@@ -1,7 +1,6 @@
 ---
 title: "Economics of Networks - GEO3-3805"
 author: "Pierre-Alexandre Balland"
-date: "Period 1, 2020"
 output: html_document
 ---
 

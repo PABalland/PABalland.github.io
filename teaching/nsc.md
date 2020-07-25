@@ -1,7 +1,6 @@
 ---
 title: "The New Science of Cities - GEO4-3632"
 author: "Pierre-Alexandre Balland"
-date: "Period 1, 2020"
 output: html_document
 ---
 

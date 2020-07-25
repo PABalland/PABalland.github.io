@@ -1,7 +1,6 @@
 ---
 title: "Introduction to Data Science - GEO4-3902"
 author: "Pierre-Alexandre Balland"
-date: "Period 1, 2020"
 output: html_document
 ---
 
