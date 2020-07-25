@@ -6,7 +6,8 @@ output: html_document
 
 ### Course description  
 The new science of cities uses recent advances in network thinking, complexity science and big data management to understand how cities function, grow, and change. Beyond buildings and urban landscapes, the soul of a city is defined by a complex web of social interactions that are fueled by urban diversity and urban density. These interactions foster new inventions, social change, and wealth creation. In this course, we discuss how a complexity perspective can help us to analyze these interactions and re-think key issues in economic and urban geography. More specifically, it will introduce concepts and methods to map and measure relationships and flows between people, firms, cities, or any other element of a complex spatial system. The class is composed of lectures, interactive seminars, and group meetings.     
-### What you will learn  
+
+### What you will learn   
 1. What a complexity-based paradigm is, and how it can be applied to cities
 2. How to identify, describe, and analyze the economic and social structure of cities
 3. How the structure of cities influence their growth and quality of life
