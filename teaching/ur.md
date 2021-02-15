@@ -40,6 +40,7 @@ On week 13, groups of 2-3 students will present their vision for resilient citie
 There is no class reader. The weekly readings are provided on this web-page and slides/videos will be regularly uploaded here. All articles listed should be considered mandatory reading. Additional online materials might be assigned throughout the quarter.  
 
 ### Course Schedule   
+For the online webinars we have created a 'Urban Resilience' team in MS Teams, you will be able to join the team by using this code: na81q34  
 
 | Week |   Day    | Date  |     Time    |  Format   | Location |  Activity  | Lecturer   |
 |:----:|:--------:|:-----:|:-----------:|:---------:|:--------:|:----------:|:----------:|
@@ -55,7 +56,7 @@ There is no class reader. The weekly readings are provided on this web-page and 
 |  11  | Tuesday  | 16/03 | 15:30-17:00 |  Webinar  |  Online  | Seminar 5  |  Balland   |
 |  12  | Tuesday  | 23/03 | 14:00-15:15 |  Webinar  |  Online  | Lecture 6  |  Boschma   |
 |  12  | Tuesday  | 23/03 | 15:30-17:00 |  Webinar  |  Online  | Seminar 6  |  Boschma   |
-|  13  | Tuesday  | 30/03 | 14:00-17:00 |  Webinar  |  Online  | Presentations  |  Balland   |
+|  14  | Tuesday  | 06/04 | 14:00-17:00 |  Webinar  |  Online  | Presentations  |  Balland   |
 
 ### Lecture 1: Complexity theory       
        
