@@ -69,28 +69,3 @@ nuts2$objects$NUTS_LB_2010_4326$geometries =
 setwd("C:/Dropbox/2-private/PABalland.github.io/json/topojson")
 nuts2j = toJSON (nuts2)
 write(nuts2j, "NUTS_LB_2010_4326-nuts-2-regpat-prelim.json")
-#NOTE: NEED TO REMOVE [ manually in topology and geometry for it to work; remove prelim after
-
-### TEST
-nuts2.test = data.frame(
-  id = nuts2$objects$NUTS_LB_2010_4326$geometries$id, 
-  name = nuts2$objects$NUTS_RG_20M_2010_4326$geometries$properties$NUTS_NAME, 
-  name.lat = nuts2$objects$NUTS_RG_20M_2010_4326$geometries$properties$NAME_LATN, 
-  level = nuts2$objects$NUTS_RG_20M_2010_4326$geometries$properties$LEVL_CODE)
-
-
-# MERGE
-nuts2.test = merge (nuts2.test, reg, by.x = "id", by.y = "reg_code", all.y = T)
-
-
-### DATA VALUE 
-nuts2.test$value = nuts2.test$patcount
-nuts2.test$name = nuts2.test$name.lat
-
-nuts2.test = nuts2.test[, c("id", "name", "value")]
-
-nuts2.test = toJSON(nuts2.test)
-setwd("C:/Dropbox/2-private/PABalland.github.io/json/topojson")
-write(nuts2.test, "NUTS_RG_20M_2010_4326-nuts-2-regpat-data.json")
-
-
