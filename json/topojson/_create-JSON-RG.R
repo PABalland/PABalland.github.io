@@ -26,6 +26,7 @@ reg = subset (reg, reg$ctry %in% eu)
 
 # READ JSON FILE FROM EUROSTAT
 setwd("C:/Dropbox/2-private/PABalland.github.io/json/topojson")
+
 nuts2 = fromJSON("NUTS_RG_20M_2010_4326.json")
 
 # change id
