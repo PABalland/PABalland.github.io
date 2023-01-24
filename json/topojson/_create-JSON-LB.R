@@ -69,3 +69,4 @@ nuts2$objects$NUTS_LB_2010_4326$geometries =
 setwd("C:/Dropbox/2-private/PABalland.github.io/json/topojson")
 nuts2j = toJSON (nuts2)
 write(nuts2j, "NUTS_LB_2010_4326-nuts-2-regpat-prelim.json")
+
