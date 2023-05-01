@@ -223,15 +223,7 @@ setwd("C:/Dropbox/2-private/1-asg/1-production/3-projects/2-EC-complexity-traini
 # htmlwidgets package needs to be loaded
 saveWidget(visnet, file="jrc-fig1.html")
 
-###----------###
-### Practice ###
-###----------###
 
-# load Spanish data
-# create igraph object
-# find most central actor
-# identify communities
-# visualize the network
 
 
 
