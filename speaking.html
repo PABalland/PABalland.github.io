@@ -11,19 +11,29 @@
 
 
 
-<title>speaking.utf8</title>
+<title>speaking.knit</title>
 
-<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<script src="site_libs/header-attrs-2.25/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/paper.min.css" rel="stylesheet" />
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
-<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/all.min.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-6.4.2/css/v4-shims.min.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -32,14 +42,9 @@
   div.column{display: inline-block; vertical-align: top; width: 50%;}
   div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   ul.task-list{list-style: none;}
-      </style>
+    </style>
 
 <style type="text/css">code{white-space: pre;}</style>
-<style type="text/css">
-  pre:not([class]) {
-    background-color: white;
-  }
-</style>
 <script type="text/javascript">
 if (window.hljs) {
   hljs.configure({languages: []});
@@ -52,32 +57,8 @@ if (window.hljs) {
 
 
 
-<style type="text/css">
-h1 {
-  font-size: 34px;
-}
-h1.title {
-  font-size: 38px;
-}
-h2 {
-  font-size: 30px;
-}
-h3 {
-  font-size: 24px;
-}
-h4 {
-  font-size: 18px;
-}
-h5 {
-  font-size: 16px;
-}
-h6 {
-  font-size: 12px;
-}
-.table th:not([align]) {
-  text-align: left;
-}
-</style>
+
+
 
 <link rel="stylesheet" href="styles.css" type="text/css" />
 
@@ -88,10 +69,6 @@ h6 {
   max-width: 940px;
   margin-left: auto;
   margin-right: auto;
-}
-code {
-  color: inherit;
-  background-color: rgba(0, 0, 0, 0.04);
 }
 img {
   max-width:100%;
@@ -108,40 +85,16 @@ button.code-folding-btn:focus {
 summary {
   display: list-item;
 }
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
 </style>
 
 
 <style type="text/css">
-/* padding for bootstrap navbar */
-body {
-  padding-top: 64px;
-  padding-bottom: 40px;
-}
-/* offset scroll position for anchor links (for fixed navbar)  */
-.section h1 {
-  padding-top: 69px;
-  margin-top: -69px;
-}
-.section h2 {
-  padding-top: 69px;
-  margin-top: -69px;
-}
-.section h3 {
-  padding-top: 69px;
-  margin-top: -69px;
-}
-.section h4 {
-  padding-top: 69px;
-  margin-top: -69px;
-}
-.section h5 {
-  padding-top: 69px;
-  margin-top: -69px;
-}
-.section h6 {
-  padding-top: 69px;
-  margin-top: -69px;
-}
 .dropdown-submenu {
   position: relative;
 }
@@ -169,7 +122,7 @@ body {
   margin-right: -10px;
 }
 .dropdown-submenu:hover>a:after {
-  border-left-color: #ffffff;
+  border-left-color: #adb5bd;
 }
 .dropdown-submenu.pull-left {
   float: none;
@@ -181,7 +134,7 @@ body {
 }
 </style>
 
-<script>
+<script type="text/javascript">
 // manage active state of menu based on current page
 $(document).ready(function () {
   // active menu anchor
@@ -191,11 +144,28 @@ $(document).ready(function () {
     href = "index.html";
   var menuAnchor = $('a[href="' + href + '"]');
 
-  // mark it active
-  menuAnchor.parent().addClass('active');
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
 
-  // if it's got a parent navbar menu mark it active as well
-  menuAnchor.closest('li.dropdown').addClass('active');
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
 });
 </script>
 
@@ -207,13 +177,12 @@ $(document).ready(function () {
   max-height: 500px;
   min-height: 44px;
   overflow-y: auto;
-  background: white;
   border: 1px solid #ddd;
   border-radius: 4px;
 }
 
-.tabset-dropdown > .nav-tabs > li.active:before {
-  content: "";
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
   font-family: 'Glyphicons Halflings';
   display: inline-block;
   padding: 10px;
@@ -221,16 +190,9 @@ $(document).ready(function () {
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
-  content: "&#xe258;";
-  border: none;
-}
-
-.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
-  content: "";
+  content: "\e258";
   font-family: 'Glyphicons Halflings';
-  display: inline-block;
-  padding: 10px;
-  border-right: 1px solid #ddd;
+  border: none;
 }
 
 .tabset-dropdown > .nav-tabs > li.active {
@@ -274,7 +236,7 @@ $(document).ready(function () {
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
   <div class="container">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
@@ -284,14 +246,14 @@ $(document).ready(function () {
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
         <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Writing
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="writing.html">Journal articles</a>
+      <a href="journal-articles.html">Journal articles</a>
     </li>
     <li>
       <a href="chapters.html">Book chapters</a>
@@ -300,10 +262,7 @@ $(document).ready(function () {
       <a href="policy-reports.html">Policy reports</a>
     </li>
     <li>
-      <a href="speaking.html">Working papers</a>
-    </li>
-    <li>
-      <a href="speaking.html">Op-eds</a>
+      <a href="working-papers.html">Working papers</a>
     </li>
   </ul>
 </li>
@@ -356,7 +315,7 @@ $(document).ready(function () {
   </div><!--/.container -->
 </div><!--/.navbar -->
 
-<div class="fluid-row" id="header">
+<div id="header">
 
 
 
@@ -365,54 +324,131 @@ $(document).ready(function () {
 
 
 <p><link rel="stylesheet" href="styles.css" type="text/css"></p>
-<div id="ersa-keynote-cities-in-a-post-corona-world" class="section level3">
-<h3>ERSA Keynote: <a href="https://ersa.eventsair.com/ersawebconference2020/plenary-sessions">Cities in a Post-Corona World</a></h3>
-<p>Keynote at the <a href="https://ersa.eventsair.com/ersawebconference2020/plenary-sessions">Annual Congress of the European Regional Science Association (ERSA)</a> on ‘Cities in a Post-Corona World’. Cities are a global magnet to talent, capital, and knowledge. The success of cities has been so spectacular that it has propelled a worrying spatial divide within almost every country. Cities are also the most resilient social systems that humans have ever created. They have dwarfed the longevity of countries and corporations, and have bounced back from pandemics, to natural disasters, to economic crises. Is this time different? Will the coronavirus crisis put a halt to the home-run of cities? Or will the societal transitions triggered by this crisis (particularly in the digital sector) be another leg to the success of cities in the 21st century? In this talk, Pierre-Alexandre Balland will build on research on complex systems and economic geography to offer an outlook for cities in a post-corona world (August 2020)</p>
+<div
+id="forge-ahead-or-fall-behind-at-the-economics-of-ai-conference-in-vienna"
+class="section level3">
+<h3>Forge ahead or fall behind at the <a
+href="https://economicsofai.at/">Economics of AI conference in
+Vienna</a></h3>
+<p>This outstanding AI conference brought together different academic,
+business, and policy perspectives. I talked about the position of Europe
+in the AI race. Whilst it’s true that the US and China dominate the
+global AI marketplace, Europe definitely shouldn’t be counted out yet.
+Europe’s current position should not be mistaken for a lack of talent or
+a lack of technological potential. Several European hubs based in cities
+across the continent do indeed harbour a rich pool of AI talent,
+scientific excellence, and commitment to responsible AI development,
+which can forge a path towards trustworthy AI, rooted in humanitarian
+and democratic values. This talk is based on an <a
+href="https://www.ceps.eu/ceps-publications/forge-ahead-or-fall-behind/">ESIR/CEPS
+paper</a> with Andrea Renda.</p>
+<iframe width="100%&quot;" height="315" src="https://www.youtube.com/embed/wZqJ0MMB-vs?start=353&amp;end=3000" frameborder="0" allowfullscreen>
+</iframe>
+<p><br />
+<br />
+</p>
 </div>
-<div id="ri-days-protect-prepare-and-transform-europe-in-a-post-covid-world" class="section level3">
-<h3>R&amp;I Days: <a href="https://research-innovation-days.ec.europa.eu/">Protect, prepare, and transform Europe in a Post-Covid world</a></h3>
-<p>Panel discussion at the <a href="https://research-innovation-days.ec.europa.eu/">Research and Innovation Days of the European Commission</a>: as Europe is facing deep societal, ecologic and economic challenges, a transformative R&amp;I policy is needed to ensure a sustainable future. The panel, led by the ESIR high-level group of experts, will discuss how R&amp;I can help to protect, prepare, and transform Europe in a post-COVID world and beyond. Following this Open Session, three additional breakout sessions will debate the implications of the societal, ecologic and economic challenges for “Universities and their adaptation strategies for the post-corona world”, “Cities, regions, and nations”, and “Protecting, preparing and transforming EU industry”.(September 2020)</p>
+<div id="the-geography-of-ai-at-the-kknomics-festival-in-stavanger"
+class="section level3">
+<h3>The Geography of AI at the <a
+href="https://kknomics.no/programposter-2023/ki-og-den-konomiske-geografien-the-geography-of-ai">KKnomics
+festival in Stavanger</a></h3>
+<p>I finally made to the stage of what is know as the first, best and
+most fun economic festival of the Nordic countries. Here I engaged with
+the audience of what in means to be human in a world increasingly shared
+with machines and core facts about the geography of AI.</p>
+<iframe width="100%&quot;" height="315" src="https://www.youtube.com/embed/64rp5d71nAk?si=xkxOUVR_-ZIpmmbK&amp;start=82" frameborder="0" allowfullscreen>
+</iframe>
+<p><br />
+<br />
+</p>
 </div>
-<div id="gic-the-role-of-policy-making-for-the-innovation-process" class="section level3">
-<h3>GIC: <a href="https://www.dropbox.com/sh/o8pfs8o1agq3d6j/AADC_GfuL48tgOA0aeA3jjWra/Late%20uploads?dl=0&amp;lst=&amp;preview=Panel%20Discussion%20-%20zoom_0.mp4&amp;subfolder_nav_tracking=1">The role of policy making for the innovation process</a></h3>
-<p>Panel Discussion at the Annual Conference on the <a href="https://complexity.world/">Geography of Innovation &amp; Complexity (GIC)</a> on the role of policy making for the innovation process, together with Ina Ganguli (Umass-Amherst), Balázs Lengyel (ANET Lab, Institute of Economics of the Hungarian Academy of Sciences) and Cesar Hidalgo (Toulouse).</p>
+<div
+id="breakthrough-innovations-and-europes-strategic-objectives-at-wire-2022"
+class="section level3">
+<h3>Breakthrough innovations and Europe’s strategic objectives at <a
+href="https://www.wire2022.eu/">WIRE 2022</a></h3>
+<p>WIRE is the main European policy forum for innovation and regional
+development. The conference provides a platform for policy makers,
+public authorities, knowledge centers and enterprises to discuss
+research and innovation (R&amp;I) practices, challenges and
+opportunities throughout the European regions, with a direct view on the
+current and future EU funding programs. In 2022 WIRE was hosted by
+Université Paris-Saclay under the French Presidency of the Council of
+the European Union.</p>
+<iframe width="100%&quot;" height="315" src="https://www.youtube.com/embed/B2qF9IGGUQc?si=-IN52qSz-zY7NP7Z&amp;start=45" frameborder="0" allowfullscreen>
+</iframe>
+<p><br />
+<br />
+</p>
 </div>
-<div id="ri-days-innovation-policy-in-a-complex-and-inequal-world" class="section level3">
-<h3>R&amp;I Days: <a href="https://ec.europa.eu/digital-single-market/events/cf/european-research-and-innovation-days/programme.cfm?id=452">Innovation Policy in a Complex and Inequal World</a></h3>
-<p>Keynote in Brussels at the <a href="https://ec.europa.eu/digital-single-market/events/cf/european-research-and-innovation-days/programme.cfm?id=452">Research and Innovation Days of the European Commission</a> on Innovation Policy in a Complex and Inequal World. (September 2019)</p>
+<div id="ersa-keynote-cities-in-a-post-corona-world"
+class="section level3">
+<h3>ERSA Keynote: <a
+href="https://ersa.eventsair.com/ersawebconference2020/plenary-sessions">Cities
+in a Post-Corona World</a></h3>
+<p>Keynote at the <a
+href="https://ersa.eventsair.com/ersawebconference2020/plenary-sessions">Annual
+Congress of the European Regional Science Association (ERSA)</a> on
+‘Cities in a Post-Corona World’. Cities are a global magnet to talent,
+capital, and knowledge. The success of cities has been so spectacular
+that it has propelled a worrying spatial divide within almost every
+country. Cities are also the most resilient social systems that humans
+have ever created. They have dwarfed the longevity of countries and
+corporations, and have bounced back from pandemics, to natural
+disasters, to economic crises. Is this time different? Will the
+coronavirus crisis put a halt to the home-run of cities? Or will the
+societal transitions triggered by this crisis (particularly in the
+digital sector) be another leg to the success of cities in the 21st
+century? In this talk, Pierre-Alexandre Balland will build on research
+on complex systems and economic geography to offer an outlook for cities
+in a post-corona world (August 2020)</p>
+<iframe width="100%&quot;" height="315" src="https://www.youtube.com/embed/C0YMLBT16n4?si=cdroYO2fGOo0sF2i&amp;start=62" frameborder="0" allowfullscreen>
+</iframe>
+<p><br />
+<br />
+</p>
 </div>
-<div id="asian-real-estate-society-international-conference-shenzhen-2019" class="section level3">
-<h3>Asian Real Estate Society International Conference (Shenzhen, 2019)</h3>
+<div
+id="how-regions-can-re-invent-themselves-at-the-institute-for-new-economic-thinking"
+class="section level3">
+<h3>How Regions Can Re-invent Themselves at <a
+href="https://ysi.ineteconomics.org/">The Institute for New Economic
+Thinking</a></h3>
+<p>No region can rely on past successes, rather constant transformation
+and re-invention is necessary for a region to keep developing. Many
+regional policies, such as smart specialization, aim to support regions
+in this process of re-invention. Yet, the operationalization of regional
+development policies has been rather limited because a coherent set of
+analytical tools to guide the policy directives remains elusive. In this
+webinar Pierre-Alexandre Balland proposes a policy framework around the
+concepts of relatedness and knowledge complexity. Based on a recent
+study, he shows that diversifying into more complex technologies is
+attractive but difficult for European Union regions to accomplish.
+Regions can overcome this diversification dilemma by developing new
+complex technologies that build on local related capabilities. These
+findings are then used to construct a policy framework for smart
+specialization that highlights the potential risks and rewards for
+regions of adopting competing diversification strategies.</p>
+<iframe width="100%&quot;" height="315" src="https://www.youtube.com/embed/BmMTvj6IWRk?si=iqNor-EjJsM7rMuQ&amp;start=0" frameborder="0" allowfullscreen>
+</iframe>
+<p><br />
+<br />
+</p>
 </div>
-<div id="mit-china-future-city-lab-conference-hangzhou-2019" class="section level3">
-<h3>MIT China Future City Lab Conference (Hangzhou, 2019)</h3>
-</div>
-<div id="future-city-innovation-tianjin-2019" class="section level3">
-<h3>Future city innovation (Tianjin, 2019)</h3>
-</div>
-<div id="geography-of-innovation-and-complexity-utrecht-2019" class="section level3">
-<h3>Geography of Innovation and Complexity (Utrecht, 2019)</h3>
-</div>
-<div id="institute-for-new-economic-thinking-urban-and-regional-economics-webinar-series" class="section level3">
-<h3>Institute for New Economic Thinking (Urban and Regional Economics Webinar Series)</h3>
-</div>
-<div id="world-real-estate-forum-boston-2018" class="section level3">
-<h3>World Real Estate Forum (Boston, 2018)</h3>
-</div>
-<div id="mit-workshop-on-economic-complexity-boston-2018" class="section level3">
-<h3>MIT Workshop on Economic Complexity (Boston, 2018)</h3>
-</div>
-<div id="institute-for-new-economic-thinking-urban-and-regional-economics-webinar-series-1" class="section level3">
-<h3>Institute for New Economic Thinking (Urban and Regional Economics Webinar Series)</h3>
-</div>
-<div id="regional-studies-association-annual-conference-dublin-2017" class="section level3">
-<h3>Regional Studies Association Annual Conference (Dublin, 2017)</h3>
-</div>
-<div id="ted-talk---tedx-university-of-bordeaux-bordeaux-2015-100-people" class="section level3">
-<h3>TED Talk - TEDx University of Bordeaux (Bordeaux, 2015 – 100 people)</h3>
-</div>
-<div id="cluster-and-networks-annual-conference-castelló-de-la-plana-2013" class="section level3">
-<h3>Cluster and Networks Annual Conference (Castelló de la Plana, 2013)</h3>
+<div id="tedx-talk-on-knowledge-and-the-citythe-digital-age-paradox"
+class="section level3">
+<h3><a href="https://www.tedxbordeaux.com/">TEDx Talk</a> on Knowledge
+and the city:the digital age paradox</h3>
+<p>The virtual age is the age of cities. As information and
+communication technologies develop, people and firms agglomerate and
+innovation disproportionally concentrates in a few places in the world.
+How can we explain this paradox? In this inspiring talk,
+Pierre-Alexandre Balland reveals that cities are the knowledge
+incubators of modern societies, and why you need proximity and
+face-to-face interactions to generate the next big idea.</p>
+<iframe width="100%&quot;" height="315" src="https://www.youtube.com/embed/bKbTq7hCMeE?si=ejxuZKToowHKaqdY" frameborder="0" allowfullscreen>
+</iframe>
 </div>
 
 
@@ -424,7 +460,7 @@ $(document).ready(function () {
 
 // add bootstrap table styles to pandoc tables
 function bootstrapStylePandocTables() {
-  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
 }
 $(document).ready(function () {
   bootstrapStylePandocTables();
@@ -442,7 +478,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   $('.tabset-dropdown > .nav-tabs > li').click(function () {
-    $(this).parent().toggleClass('nav-tabs-open')
+    $(this).parent().toggleClass('nav-tabs-open');
   });
 });
 </script>
