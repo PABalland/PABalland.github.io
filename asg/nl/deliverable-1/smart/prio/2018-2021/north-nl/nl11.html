@@ -48,7 +48,9 @@
  [{"id":"Augmented reality","x":21.46,"y":65.89,"value":0.24,"parent":"Augmented reality","color":"#8cab79","count":1},{"id":"Data technology","x":14.22,"y":100,"value":0.27,"parent":"Data technology","color":"#365a94","count":6},{"id":"Green chemistry","x":60.18,"y":0,"value":1.22,"parent":"Green chemistry","color":"#e28f26","count":1},{"id":"Hydrogen technology","x":25.4,"y":2.78,"value":0.65,"parent":"Hydrogen technology","color":"#EEDC82","count":1},{"id":"Sensor technology","x":40.62,"y":56.16,"value":1.07,"parent":"Sensor technology","color":"#800020","count":16},{"id":"Water treatment technology","x":35.41,"y":13,"value":0.56,"parent":"Water treatment technology","color":"#669999","count":1}] 
 ;
 
-  new d3plus.Plot()
+const max = Math.max(...data.map(d => d.x));
+
+ new d3plus.Plot()
     .data(data)
     .groupBy(["parent", "id"])
     .tooltipConfig({
@@ -67,16 +69,59 @@
     })
     .size("value")
     .color("color")
-    .sizeMin(5)
-    .sizeMax(20)
+    .sizeMin(10)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(30)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
     .yConfig({
-    title: "Complexity"
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .xDomain([11, max + 20])
     .xConfig({
-    title: "Relatedness Density"
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
     .render();
 
 </script>

@@ -48,7 +48,9 @@
  [{"id":"Analysis of biological materials","x":60.38,"y":44.56,"value":1.39,"parent":"Instruments","color":"#8cab79","count":182},{"id":"Audio-visual technology","x":21.39,"y":79.82,"value":1.21,"parent":"Electrical engineering","color":"#365a94","count":227},{"id":"Basic communication processes","x":31.59,"y":74.95,"value":0.79,"parent":"Electrical engineering","color":"#365a94","count":41},{"id":"Basic materials chemistry","x":52.85,"y":11.54,"value":1.37,"parent":"Chemistry","color":"#800020","count":468},{"id":"Biotechnology","x":75.33,"y":42,"value":2.31,"parent":"Chemistry","color":"#800020","count":707},{"id":"Chemical engineering","x":48.32,"y":13.92,"value":1.3,"parent":"Chemistry","color":"#800020","count":483},{"id":"Civil engineering","x":29.65,"y":18,"value":1.6,"parent":"Other fields","color":"#e28f26","count":512},{"id":"Computer technology","x":28.33,"y":90.45,"value":0.78,"parent":"Electrical engineering","color":"#365a94","count":337},{"id":"Control","x":25.14,"y":58.99,"value":0.81,"parent":"Instruments","color":"#8cab79","count":192},{"id":"Digital communication","x":16.43,"y":100,"value":0.66,"parent":"Electrical engineering","color":"#365a94","count":275},{"id":"Electrical machinery, apparatus, energy","x":39.45,"y":29.41,"value":0.57,"parent":"Electrical engineering","color":"#365a94","count":350},{"id":"Engines, pumps, turbines","x":36.34,"y":36.32,"value":0.45,"parent":"Mechanical engineering","color":"#EEDC82","count":149},{"id":"Environmental technology","x":52.18,"y":23.27,"value":1.04,"parent":"Chemistry","color":"#800020","count":167},{"id":"Food chemistry","x":65.53,"y":23.41,"value":4.84,"parent":"Chemistry","color":"#800020","count":524},{"id":"Furniture, games","x":35.56,"y":21.01,"value":1.32,"parent":"Other fields","color":"#e28f26","count":222},{"id":"Green technologies","x":32.67,"y":30.5,"value":1.03,"parent":"Other fields","color":"#e28f26","count":662},{"id":"Handling","x":31.64,"y":5.51,"value":1.31,"parent":"Mechanical engineering","color":"#EEDC82","count":464},{"id":"IT methods for management","x":22.62,"y":66.85,"value":0.72,"parent":"Electrical engineering","color":"#365a94","count":69},{"id":"Machine tools","x":43.22,"y":9.28,"value":0.31,"parent":"Mechanical engineering","color":"#EEDC82","count":82},{"id":"Macromolecular chemistry, polymers","x":60.3,"y":2.35,"value":0.96,"parent":"Chemistry","color":"#800020","count":241},{"id":"Materials, metallurgy","x":55.33,"y":15.18,"value":1.03,"parent":"Chemistry","color":"#800020","count":194},{"id":"Measurement","x":48.85,"y":55.7,"value":1.14,"parent":"Instruments","color":"#8cab79","count":732},{"id":"Mechanical elements","x":33.33,"y":18.34,"value":0.91,"parent":"Mechanical engineering","color":"#EEDC82","count":342},{"id":"Medical technology","x":42.2,"y":46.92,"value":0.73,"parent":"Instruments","color":"#8cab79","count":407},{"id":"Micro-structural and nano-technology","x":62.19,"y":39.02,"value":1.74,"parent":"Chemistry","color":"#800020","count":51},{"id":"Optics","x":38.23,"y":44.4,"value":1.1,"parent":"Instruments","color":"#8cab79","count":175},{"id":"Organic fine chemistry","x":79.18,"y":28.6,"value":1.24,"parent":"Chemistry","color":"#800020","count":376},{"id":"Other consumer goods","x":34.98,"y":24.43,"value":0.75,"parent":"Other fields","color":"#e28f26","count":182},{"id":"Other special machines","x":41.97,"y":0,"value":1.35,"parent":"Mechanical engineering","color":"#EEDC82","count":668},{"id":"Pharmaceuticals","x":64.54,"y":46.22,"value":1.97,"parent":"Chemistry","color":"#800020","count":693},{"id":"Semiconductors","x":51.27,"y":38.72,"value":1.42,"parent":"Electrical engineering","color":"#365a94","count":124},{"id":"Surface technology, coating","x":49.02,"y":6.81,"value":0.99,"parent":"Chemistry","color":"#800020","count":212},{"id":"Telecommunications","x":27.99,"y":99.51,"value":0.58,"parent":"Electrical engineering","color":"#365a94","count":136},{"id":"Textile and paper machines","x":46.44,"y":9.06,"value":0.55,"parent":"Mechanical engineering","color":"#EEDC82","count":87},{"id":"Thermal processes and apparatus","x":41.56,"y":19.47,"value":0.74,"parent":"Mechanical engineering","color":"#EEDC82","count":133},{"id":"Transport","x":33.99,"y":28.35,"value":0.83,"parent":"Mechanical engineering","color":"#EEDC82","count":479}] 
 ;
 
-  new d3plus.Plot()
+const max = Math.max(...data.map(d => d.x));
+
+ new d3plus.Plot()
     .data(data)
     .groupBy(["parent", "id"])
     .tooltipConfig({
@@ -67,16 +69,59 @@
     })
     .size("value")
     .color("color")
-    .sizeMin(5)
-    .sizeMax(20)
+    .sizeMin(10)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(30)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
     .yConfig({
-    title: "Complexity"
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .xDomain([11, max + 20])
     .xConfig({
-    title: "Relatedness Density"
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
     .render();
 
 </script>

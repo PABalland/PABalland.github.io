@@ -48,7 +48,9 @@
  [{"id":"Aerospace","x":10.89,"y":49.56,"value":0.14,"parent":"Veiligheid","color":"#365a94","count":5},{"id":"Batterietechnologie","x":8.77,"y":36.49,"value":0.16,"parent":"Energie en Klimaat","color":"#EEDC82","count":3},{"id":"Circulair Bouwen","x":14.57,"y":0.75,"value":0.92,"parent":"Energie en Klimaat","color":"#EEDC82","count":2},{"id":"CO2 vrije elektriciteit","x":32.82,"y":50.91,"value":1.15,"parent":"Energie en Klimaat","color":"#EEDC82","count":25},{"id":"Cybersecurity","x":6.82,"y":94.42,"value":0.35,"parent":"Veiligheid","color":"#365a94","count":10},{"id":"Defensietechnologie","x":8.43,"y":0,"value":0.27,"parent":"Veiligheid","color":"#365a94","count":1},{"id":"E-health","x":22.73,"y":100,"value":0.83,"parent":"Gezondheid","color":"#800020","count":11},{"id":"Engineering Fabrication - Additive manufacturing","x":8.87,"y":12.4,"value":0.82,"parent":"Sleuteltechnologieen","color":"#8cab79","count":11},{"id":"Engineering Fabrication - Autonomous robots","x":14.24,"y":17.42,"value":0.96,"parent":"Sleuteltechnologieen","color":"#8cab79","count":5},{"id":"Imaging","x":19.99,"y":82.46,"value":1.01,"parent":"Gezondheid","color":"#800020","count":33},{"id":"Innovatief Waterbeheer","x":47.21,"y":52.62,"value":1.31,"parent":"Landbouw, Water en Voedsel","color":"#e28f26","count":6},{"id":"Klimaatneutrale Landbouw","x":56.45,"y":32,"value":2.11,"parent":"Landbouw, Water en Voedsel","color":"#e28f26","count":3},{"id":"Kringloop Landbouw","x":23.62,"y":43.99,"value":0.86,"parent":"Landbouw, Water en Voedsel","color":"#e28f26","count":6},{"id":"Life sciences - Biotechnology","x":79.09,"y":81.27,"value":3.45,"parent":"Sleuteltechnologieen","color":"#8cab79","count":243},{"id":"Regeneratieve geneeskunde","x":63.16,"y":65.1,"value":2.18,"parent":"Gezondheid","color":"#800020","count":32},{"id":"Slimme mobiliteit","x":8.14,"y":3.79,"value":0.23,"parent":"Energie en Klimaat","color":"#EEDC82","count":7},{"id":"Valorisatie Deltatechnologie","x":50.36,"y":32.94,"value":10.18,"parent":"Landbouw, Water en Voedsel","color":"#e28f26","count":2},{"id":"Vertical Farming","x":14.94,"y":20.28,"value":0.39,"parent":"Landbouw, Water en Voedsel","color":"#e28f26","count":3},{"id":"Waterstof","x":22.6,"y":35.4,"value":0.79,"parent":"Energie en Klimaat","color":"#EEDC82","count":5}] 
 ;
 
-  new d3plus.Plot()
+const max = Math.max(...data.map(d => d.x));
+
+ new d3plus.Plot()
     .data(data)
     .groupBy(["parent", "id"])
     .tooltipConfig({
@@ -67,16 +69,59 @@
     })
     .size("value")
     .color("color")
-    .sizeMin(5)
-    .sizeMax(20)
+    .sizeMin(10)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(30)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
     .yConfig({
-    title: "Complexity"
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .xDomain([11, max + 20])
     .xConfig({
-    title: "Relatedness Density"
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
     .render();
 
 </script>

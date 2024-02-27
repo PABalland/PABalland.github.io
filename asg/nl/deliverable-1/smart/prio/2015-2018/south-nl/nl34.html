@@ -48,7 +48,9 @@
  [{"id":"3D-printing/additive productie","x":49.25,"y":12.91,"value":3.61,"parent":"Digitale technologie","color":"#365a94","count":14},{"id":"Digitale veiligheid","x":3.15,"y":91.61,"value":0.12,"parent":"Digitale technologie","color":"#365a94","count":1},{"id":"Elektrische mobiliteit - Battery technologies","x":13.15,"y":39.92,"value":0.18,"parent":"Digitale technologie","color":"#365a94","count":1},{"id":"Elektrische mobiliteit - EV charging systems","x":4.23,"y":0,"value":0.89,"parent":"Digitale technologie","color":"#365a94","count":1},{"id":"Energieopslag - Photovoltaic","x":25.81,"y":41.13,"value":0.44,"parent":"Fotonica","color":"#800020","count":1},{"id":"Hernieuwbare energie - Composieten","x":46.97,"y":24.69,"value":2.22,"parent":"Geavanceerde materialen","color":"#EEDC82","count":17},{"id":"Klimaatbeheersing","x":11.38,"y":18.26,"value":0.2,"parent":"Digitale technologie","color":"#365a94","count":1},{"id":"Medtech/beeldvorming","x":12.84,"y":85.32,"value":0.85,"parent":"Digitale technologie","color":"#365a94","count":8},{"id":"Nano-medicine","x":21.04,"y":65,"value":0.41,"parent":"Geavanceerde materialen","color":"#EEDC82","count":1},{"id":"Personalised/precision medicine","x":4.45,"y":100,"value":0.26,"parent":"Digitale technologie","color":"#365a94","count":1},{"id":"Recyclage","x":49.28,"y":14.5,"value":2.59,"parent":"Chemische technologie","color":"#e28f26","count":1},{"id":"Robotics - Autonomous robots","x":10.78,"y":18.17,"value":0.66,"parent":"Digitale technologie","color":"#365a94","count":1},{"id":"Robotics - Robots","x":11.82,"y":19.79,"value":0.44,"parent":"Digitale technologie","color":"#365a94","count":1},{"id":"Smart grids","x":3.88,"y":40.68,"value":0.44,"parent":"Digitale technologie","color":"#365a94","count":1},{"id":"Waste water treatment","x":29.45,"y":49.99,"value":0.52,"parent":"Nanotech en -electronica","color":"#669999","count":2}] 
 ;
 
-  new d3plus.Plot()
+const max = Math.max(...data.map(d => d.x));
+
+ new d3plus.Plot()
     .data(data)
     .groupBy(["parent", "id"])
     .tooltipConfig({
@@ -67,16 +69,59 @@
     })
     .size("value")
     .color("color")
-    .sizeMin(5)
-    .sizeMax(20)
+    .sizeMin(10)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(30)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
     .yConfig({
-    title: "Complexity"
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .xDomain([11, max + 20])
     .xConfig({
-    title: "Relatedness Density"
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
     .render();
 
 </script>

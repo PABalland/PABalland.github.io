@@ -48,7 +48,9 @@
  [{"id":"Agro-tech/Smart farming","x":66.06,"y":59.08,"value":2.57,"parent":"Sustainability & FoodTech","color":"#8cab79","count":17},{"id":"Agro-tech/Smart farming - Vertical Farming","x":24.37,"y":0,"value":1.76,"parent":"Sustainability & FoodTech","color":"#8cab79","count":13},{"id":"Circulaire en natuur - inclusieve landbouw","x":66.31,"y":52.81,"value":1.84,"parent":"Sustainability & FoodTech","color":"#8cab79","count":18},{"id":"Innovaties voor preventie - Imaging","x":14.22,"y":91.05,"value":0.73,"parent":"Prevention & MedTech","color":"#800020","count":30},{"id":"MedTech en Connected Health","x":7.99,"y":100,"value":0.53,"parent":"Prevention & MedTech","color":"#800020","count":10},{"id":"Nanotechnologie en fotonica - Nanotechnologies","x":55.58,"y":71.37,"value":1.17,"parent":"Manufacturing & MaterialTech","color":"#365a94","count":13},{"id":"Nanotechnologie en fotonica - Photonics","x":33.19,"y":54.93,"value":2.07,"parent":"Manufacturing & MaterialTech","color":"#365a94","count":69},{"id":"Nieuwe, duurzame en geavanceerde materialen - Composite materials","x":53.65,"y":3.79,"value":1.19,"parent":"Manufacturing & MaterialTech","color":"#365a94","count":28},{"id":"Protein transition and food technology","x":93.02,"y":82.39,"value":6.09,"parent":"Sustainability & FoodTech","color":"#8cab79","count":66},{"id":"Smart Industry & Industrie 4.0 - Additive manufacturing","x":23.07,"y":6.14,"value":0.54,"parent":"Manufacturing & MaterialTech","color":"#365a94","count":11},{"id":"Smart Industry & Industrie 4.0 - Autonomous robots","x":18.72,"y":8.86,"value":0.89,"parent":"Manufacturing & MaterialTech","color":"#365a94","count":7}] 
 ;
 
-  new d3plus.Plot()
+const max = Math.max(...data.map(d => d.x));
+
+ new d3plus.Plot()
     .data(data)
     .groupBy(["parent", "id"])
     .tooltipConfig({
@@ -67,16 +69,59 @@
     })
     .size("value")
     .color("color")
-    .sizeMin(5)
-    .sizeMax(20)
+    .sizeMin(10)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(30)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
     .yConfig({
-    title: "Complexity"
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .xDomain([11, max + 20])
     .xConfig({
-    title: "Relatedness Density"
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
     .render();
 
 </script>

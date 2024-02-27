@@ -48,7 +48,9 @@
  [{"id":"Audio-visual technology","x":9.7,"y":79.82,"value":0.17,"parent":"Electrical engineering","color":"#365a94","count":2},{"id":"Basic materials chemistry","x":67.72,"y":11.54,"value":3.4,"parent":"Chemistry","color":"#800020","count":69},{"id":"Biotechnology","x":34.13,"y":42,"value":0.74,"parent":"Chemistry","color":"#800020","count":14},{"id":"Chemical engineering","x":40.99,"y":13.92,"value":2.14,"parent":"Chemistry","color":"#800020","count":48},{"id":"Civil engineering","x":29.05,"y":18,"value":0.82,"parent":"Other fields","color":"#e28f26","count":16},{"id":"Computer technology","x":6.87,"y":90.45,"value":0.12,"parent":"Electrical engineering","color":"#365a94","count":3},{"id":"Control","x":10.32,"y":58.99,"value":0.33,"parent":"Instruments","color":"#8cab79","count":5},{"id":"Digital communication","x":4.69,"y":100,"value":0.04,"parent":"Electrical engineering","color":"#365a94","count":1},{"id":"Electrical machinery, apparatus, energy","x":29.35,"y":29.41,"value":0.25,"parent":"Electrical engineering","color":"#365a94","count":9},{"id":"Engines, pumps, turbines","x":35.49,"y":36.32,"value":0.11,"parent":"Mechanical engineering","color":"#EEDC82","count":2},{"id":"Environmental technology","x":56.41,"y":23.27,"value":0.95,"parent":"Chemistry","color":"#800020","count":9},{"id":"Food chemistry","x":38.05,"y":23.41,"value":1.98,"parent":"Chemistry","color":"#800020","count":14},{"id":"Furniture, games","x":21.04,"y":21.01,"value":0.34,"parent":"Other fields","color":"#e28f26","count":4},{"id":"Green technologies","x":27.3,"y":30.5,"value":1.38,"parent":"Other fields","color":"#e28f26","count":51},{"id":"Handling","x":35.48,"y":5.51,"value":0.44,"parent":"Mechanical engineering","color":"#EEDC82","count":9},{"id":"IT methods for management","x":6.93,"y":66.85,"value":0.17,"parent":"Electrical engineering","color":"#365a94","count":1},{"id":"Machine tools","x":41.94,"y":9.28,"value":0.51,"parent":"Mechanical engineering","color":"#EEDC82","count":8},{"id":"Macromolecular chemistry, polymers","x":72.37,"y":2.35,"value":7.47,"parent":"Chemistry","color":"#800020","count":117},{"id":"Materials, metallurgy","x":57.16,"y":15.18,"value":1.51,"parent":"Chemistry","color":"#800020","count":21},{"id":"Measurement","x":14.82,"y":55.7,"value":0.18,"parent":"Instruments","color":"#8cab79","count":7},{"id":"Mechanical elements","x":20.14,"y":18.34,"value":0.29,"parent":"Mechanical engineering","color":"#EEDC82","count":7},{"id":"Medical technology","x":23.9,"y":46.92,"value":0.34,"parent":"Instruments","color":"#8cab79","count":11},{"id":"Micro-structural and nano-technology","x":39.86,"y":39.02,"value":3.02,"parent":"Chemistry","color":"#800020","count":6},{"id":"Optics","x":26.29,"y":44.4,"value":0.78,"parent":"Instruments","color":"#8cab79","count":8},{"id":"Organic fine chemistry","x":51.21,"y":28.6,"value":1.45,"parent":"Chemistry","color":"#800020","count":28},{"id":"Other consumer goods","x":32.88,"y":24.43,"value":0.49,"parent":"Other fields","color":"#e28f26","count":7},{"id":"Other special machines","x":48.1,"y":0,"value":3.12,"parent":"Mechanical engineering","color":"#EEDC82","count":92},{"id":"Pharmaceuticals","x":49.25,"y":46.22,"value":0.63,"parent":"Chemistry","color":"#800020","count":15},{"id":"Semiconductors","x":39.51,"y":38.72,"value":0.49,"parent":"Electrical engineering","color":"#365a94","count":3},{"id":"Surface technology, coating","x":50,"y":6.81,"value":1.88,"parent":"Chemistry","color":"#800020","count":25},{"id":"Telecommunications","x":4.61,"y":99.51,"value":0.07,"parent":"Electrical engineering","color":"#365a94","count":1},{"id":"Textile and paper machines","x":46.41,"y":9.06,"value":1.03,"parent":"Mechanical engineering","color":"#EEDC82","count":10},{"id":"Thermal processes and apparatus","x":34.68,"y":19.47,"value":0.19,"parent":"Mechanical engineering","color":"#EEDC82","count":2},{"id":"Transport","x":22.08,"y":28.35,"value":0.58,"parent":"Mechanical engineering","color":"#EEDC82","count":20}] 
 ;
 
-  new d3plus.Plot()
+const max = Math.max(...data.map(d => d.x));
+
+ new d3plus.Plot()
     .data(data)
     .groupBy(["parent", "id"])
     .tooltipConfig({
@@ -67,16 +69,59 @@
     })
     .size("value")
     .color("color")
-    .sizeMin(5)
-    .sizeMax(20)
+    .sizeMin(10)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(30)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
     .yConfig({
-    title: "Complexity"
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .xDomain([11, max + 20])
     .xConfig({
-    title: "Relatedness Density"
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
     })
-
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
     .render();
 
 </script>
