@@ -5,8 +5,8 @@
 <head>
 
   <meta charset="utf-8">
-  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
-
+  <!-- <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3plus@2"></script>
 
 
   <style>
@@ -47,7 +47,11 @@
   var data = "https://www.paballand.com/ceps-ai/json/bar-chart.json";
 
   new d3plus.BarChart()
-    .data(data)
+    .data(data, function(d) {
+      const item = d;
+      item.sort((a, b) => (a.n - b.n));
+      return item;
+    })
     .groupBy(["parent"])
     .discrete("y")
     .color(function(d) {return d.color})
@@ -63,29 +67,52 @@
       },
       title: function(d) {
         var txt = d.id;
-        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+        return txt;
+        // return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
       }
     })
     .y("prio")
     .x("n")
     .stacked(true)
     .label(function(d){ 
-      return d.id instanceof Array ? d.parent : d.parent
+      return d.parent instanceof Array ? d.parent : `${d.n}%`
     })
     .shapeConfig({
-      label(d){
-        return d.id
-      }, 
-      Rect: {
+      // label(d){
+      //   return d.id
+      // }, 
+      Bar: {
         labelConfig: {
-          fontColor: "#000",
+          fontColor(d) {
+            return  d.parent === "ai" ? "#FFF" : "#000"
+          },
           fontSize: 15,
           textAnchor: "start",
           verticalAlign: "middle"
         },
-        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+        labelBounds(d, i, s) {
+          const padding = 1;
+          console.log(s)
+          const width = this._discrete === "y" ? "width" : "height";
+          const height = this._discrete === "y" ? "height" : "width";
+
+          const other = this._discrete.charAt(0) === "x" ? "y" : "x";
+          const invert = other === "y";
+          const nonDiscrete = this._discrete.replace(this._discrete.charAt(0), other);
+          const range = this[`_${nonDiscrete}Axis`]._d3Scale.range();
+          const space = Math.abs(range[1] - range[0]);
+          const negative = this[`_${nonDiscrete}`](d, i) < 0;
+          // return {
+          //   [width]: s[width],
+          //   [height]: s[height],
+          //   x: invert ? -s.width / 2 : negative ? this._stacked ? padding - s.width : padding - s.width : -padding,
+          //   y: invert ? negative ? this._stacked ? padding : padding : -s.height + padding : -s.height / 2 + padding
+          // };
+          return {width: 100, height: s[height], x: s.width, y: -s.height / 2}
+        }
       },
     })
+    .xDomain([0, 1200])
     .yConfig({
       title: "Industry",
       titleConfig: {
@@ -93,15 +120,13 @@
       },
       shapeConfig: {
         labelConfig: {
-          fontSize: function(d){ return 16}
+          fontSize: function(d){ return 16},
+          fontColor: "#000",
+          
         }
       }
     })
-    .ySort((a, b) => {
-        const aa = parseInt(a.prio.split("-")[0]);
-        const bb = parseInt(b.prio.split("-")[0])
-        return bb - aa;
-    })
+    .legendPosition("bottom")
     .xConfig({
       title: "%",
       titleConfig: {
@@ -109,11 +134,15 @@
       },
       shapeConfig: {
         labelConfig: {
-          fontSize: function(d){ return 16}
+          fontSize: function(d){ return 16},
+          fontColor: "#000",
         }
       }
     })
     .legendConfig({
+      label(d) {
+        return d.parent
+      },
       shapeConfig: {
         width: 24,
         height: 24,
