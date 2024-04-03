@@ -1,0 +1,129 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+
+  var data = 
+ [{"id":"Aerospace","x":15.02,"y":26.06,"value":1.07,"parent":"Veiligheid","color":"#365a94","count":40},{"id":"Batterietechnologie","x":14.42,"y":22.26,"value":0.16,"parent":"Energie en Klimaat","color":"#EEDC82","count":4},{"id":"Chemische recycling","x":46.63,"y":0,"value":0,"parent":"Energie en Klimaat","color":"#EEDC82","count":0},{"id":"Circulair Bouwen","x":29.44,"y":5.46,"value":0,"parent":"Energie en Klimaat","color":"#EEDC82","count":0},{"id":"CO2 vrije elektriciteit","x":43.89,"y":74.56,"value":0.88,"parent":"Energie en Klimaat","color":"#EEDC82","count":18},{"id":"Cybersecurity","x":8.72,"y":70.96,"value":0.22,"parent":"Veiligheid","color":"#365a94","count":7},{"id":"Defensietechnologie","x":7.07,"y":18.93,"value":0.28,"parent":"Veiligheid","color":"#365a94","count":1},{"id":"E-health","x":17.06,"y":100,"value":0.64,"parent":"Gezondheid","color":"#800020","count":10},{"id":"Engineering Fabrication - Additive manufacturing","x":26.37,"y":21.86,"value":1.13,"parent":"Sleuteltechnologieen","color":"#8cab79","count":19},{"id":"Engineering Fabrication - Autonomous robots","x":14.82,"y":21.86,"value":0.31,"parent":"Sleuteltechnologieen","color":"#8cab79","count":2},{"id":"Hergebruik plastic","x":41.47,"y":21.91,"value":2.9,"parent":"Energie en Klimaat","color":"#EEDC82","count":6},{"id":"Imaging","x":22.46,"y":93.36,"value":0.97,"parent":"Gezondheid","color":"#800020","count":33},{"id":"Innovatief Waterbeheer","x":49.6,"y":66.34,"value":0.37,"parent":"Landbouw, Water en Voedsel","color":"#e28f26","count":2},{"id":"Klimaatneutrale Landbouw","x":48.07,"y":50.28,"value":1.26,"parent":"Landbouw, Water en Voedsel","color":"#e28f26","count":2},{"id":"Kringloop Landbouw","x":49.42,"y":58.94,"value":1.72,"parent":"Landbouw, Water en Voedsel","color":"#e28f26","count":14},{"id":"Life sciences - Biotechnology","x":78.2,"y":98.87,"value":3.4,"parent":"Sleuteltechnologieen","color":"#8cab79","count":231},{"id":"Regeneratieve geneeskunde","x":66.99,"y":70.42,"value":1.69,"parent":"Gezondheid","color":"#800020","count":24},{"id":"Slimme mobiliteit","x":12.97,"y":8.34,"value":0.28,"parent":"Energie en Klimaat","color":"#EEDC82","count":9},{"id":"Valorisatie Deltatechnologie","x":58.38,"y":20.97,"value":13.11,"parent":"Landbouw, Water en Voedsel","color":"#e28f26","count":2},{"id":"Vertical Farming","x":19.47,"y":17.37,"value":0.65,"parent":"Landbouw, Water en Voedsel","color":"#e28f26","count":4},{"id":"Waterstof","x":29.92,"y":40.87,"value":0.81,"parent":"Energie en Klimaat","color":"#EEDC82","count":6}] 
+;
+
+const max = Math.max(...data.map(d => d.x));
+
+ new d3plus.Plot()
+    .data(data)
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(10)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(20)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 10,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .xDomain([11, max + 20])
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

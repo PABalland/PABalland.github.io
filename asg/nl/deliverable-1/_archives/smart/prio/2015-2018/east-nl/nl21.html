@@ -1,0 +1,129 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+
+  var data = 
+ [{"id":"Agro-tech/Smart farming","x":52.82,"y":61.37,"value":1.45,"parent":"Sustainability & FoodTech","color":"#8cab79","count":4},{"id":"Agro-tech/Smart farming - Vertical Farming","x":21.45,"y":18.95,"value":0.87,"parent":"Sustainability & FoodTech","color":"#8cab79","count":4},{"id":"Circulaire en natuur - inclusieve landbouw","x":53.98,"y":51.49,"value":0.48,"parent":"Sustainability & FoodTech","color":"#8cab79","count":2},{"id":"Innovaties voor preventie - Imaging","x":14.9,"y":100,"value":0.67,"parent":"Prevention & MedTech","color":"#800020","count":13},{"id":"Nanotechnologie en fotonica - Nanotechnologies","x":56.3,"y":83.4,"value":0.66,"parent":"Manufacturing & MaterialTech","color":"#365a94","count":4},{"id":"Nanotechnologie en fotonica - Photonics","x":27.65,"y":46.93,"value":0.55,"parent":"Manufacturing & MaterialTech","color":"#365a94","count":10},{"id":"Nieuwe, duurzame en geavanceerde materialen - Composite materials","x":55.17,"y":13.76,"value":1.58,"parent":"Manufacturing & MaterialTech","color":"#365a94","count":23},{"id":"Protein transition and food technology","x":51.92,"y":74.99,"value":0.79,"parent":"Sustainability & FoodTech","color":"#8cab79","count":4},{"id":"Smart Industry & Industrie 4.0 - Additive manufacturing","x":52.88,"y":0,"value":1.87,"parent":"Manufacturing & MaterialTech","color":"#365a94","count":15},{"id":"Smart Industry & Industrie 4.0 - Autonomous robots","x":23.21,"y":8.71,"value":0.64,"parent":"Manufacturing & MaterialTech","color":"#365a94","count":2}] 
+;
+
+const max = Math.max(...data.map(d => d.x));
+
+ new d3plus.Plot()
+    .data(data)
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(10)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(20)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 10,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .xDomain([11, max + 20])
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
