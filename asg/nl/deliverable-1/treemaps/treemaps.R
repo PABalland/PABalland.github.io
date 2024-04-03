@@ -28,7 +28,8 @@ desc$description = paste0(desc$id, ": ", desc$description)
 setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/PATENTS")
 parentswipo = unique(read.csv("cpc-schmoch.csv", sep = ";")[, c("Sector_en", "Field_en")])
 colnames (parentswipo) = c("parent", "id")
-    
+
+
 for (j in c("2015-2018", "2018-2021")) {
   
 
@@ -45,11 +46,10 @@ df = read.csv(paste0("2-count-rca-reldens-comp-", j, ".csv"))
 setwd(paste0("/Users/pierre-alex/Dropbox/1-asg/1-production/3-projects/4-dutch-regions/1-data/tech/", dr, "-nl/"))
 parentsprio = unique(read.csv("prio.csv", sep = ",") [, c("parent", "priority")])
 colnames (parentsprio) = c("parent", "id")
-
-
+parentsprio$id = trimws(parentsprio$id)
 
 if (tl == "prio") {
-  df = subset (df, nchar(df$tech)>4)
+  df = subset (df, df$tech %in% parentsprio$id)
   }
 
 df$dutch.reg[df$reg=="NL11"] = "north"
