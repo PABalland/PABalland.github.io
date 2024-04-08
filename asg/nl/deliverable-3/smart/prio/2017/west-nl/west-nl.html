@@ -1,0 +1,129 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+
+  var data = 
+ [{"id":"Primaire productie","x":36.0429,"y":4.5235,"value":0.8268,"parent":"Agri & food","color":"darkgreen","count":19515,"rca":0.8268,"sbi3":"Primaire productie"},{"id":"Voedingmiddelen industrie","x":36.3194,"y":8.9655,"value":0.8153,"parent":"Agri & food","color":"darkgreen","count":67609,"rca":0.8153,"sbi3":"Voedingmiddelen industrie"},{"id":"Overig","x":44.3078,"y":24.1624,"value":0.9046,"parent":"Agri & food","color":"darkgreen","count":8787,"rca":0.9046,"sbi3":"Overig"},{"id":"Farmacie","x":41.0291,"y":29.0102,"value":0.9219,"parent":"Life sciences & health","color":"darkred","count":6848,"rca":0.9219,"sbi3":"Farmacie"},{"id":"Groot en detailhandel","x":37.9461,"y":11.1314,"value":1.134,"parent":"Agri & food","color":"darkgreen","count":366228,"rca":1.134,"sbi3":"Groot en detailhandel"},{"id":"Medische instrumenten","x":38.71,"y":25.2743,"value":0.836,"parent":"Life sciences & health","color":"darkred","count":5844,"rca":0.836,"sbi3":"Medische instrumenten"},{"id":"Onderzoek","x":52.3,"y":41.0967,"value":1.162,"parent":"Life sciences & health","color":"darkred","count":13401,"rca":1.162,"sbi3":"Onderzoek"}] 
+;
+
+const max = Math.max(...data.map(d => d.x));
+
+ new d3plus.Plot()
+    .data(data)
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(5)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(10)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 5,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .xDomain([11, max + 20])
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

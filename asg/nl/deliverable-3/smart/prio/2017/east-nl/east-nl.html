@@ -1,0 +1,129 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+
+  var data = 
+ [{"id":"Primaire productie","x":58.2951,"y":3.8399,"value":0.9103,"parent":"Agri & food","color":"darkgreen","count":12093,"rca":0.9103,"sbi3":"Primaire productie"},{"id":"Voedingmiddelen industrie","x":56.6868,"y":9.2336,"value":1.0267,"parent":"Agri & food","color":"darkgreen","count":35021,"rca":1.0267,"sbi3":"Voedingmiddelen industrie"},{"id":"Overig","x":49.6562,"y":23.9871,"value":0.8583,"parent":"Agri & food","color":"darkgreen","count":7391,"rca":0.8583,"sbi3":"Overig"},{"id":"Farmacie","x":46.696,"y":28.6974,"value":0.4995,"parent":"Life sciences & health","color":"darkred","count":1722,"rca":0.4995,"sbi3":"Farmacie"},{"id":"Vervaardiging van transportmiddelen","x":52.2411,"y":19.3431,"value":0.937,"parent":"High Tech systems and Materials","color":"darkblue","count":7531,"rca":0.937,"sbi3":"Vervaardiging van transportmiddelen"},{"id":"Metaalindustrie","x":57.8634,"y":10.7249,"value":1.4356,"parent":"High Tech systems and Materials","color":"darkblue","count":16607,"rca":1.4356,"sbi3":"Metaalindustrie"},{"id":"Vervaardiging van machines en apparaten","x":56.2914,"y":14.5947,"value":1.3895,"parent":"High Tech systems and Materials","color":"darkblue","count":31432,"rca":1.3895,"sbi3":"Vervaardiging van machines en apparaten"},{"id":"Groot en detailhandel","x":57.8251,"y":10.5574,"value":0.8766,"parent":"Agri & food","color":"darkgreen","count":137726,"rca":0.8766,"sbi3":"Groot en detailhandel"},{"id":"Overig (software, keuring, onderzoek)","x":48.4533,"y":31.238,"value":0.8523,"parent":"High Tech systems and Materials","color":"darkblue","count":41168,"rca":0.8523,"sbi3":"Overig (software, keuring, onderzoek)"},{"id":"Medische instrumenten","x":56.64,"y":25.2743,"value":1.135,"parent":"Life sciences & health","color":"darkred","count":3003,"rca":1.135,"sbi3":"Medische instrumenten"},{"id":"Onderzoek","x":41.62,"y":41.0967,"value":0.77,"parent":"Life sciences & health","color":"darkred","count":2302,"rca":0.77,"sbi3":"Onderzoek"}] 
+;
+
+const max = Math.max(...data.map(d => d.x));
+
+ new d3plus.Plot()
+    .data(data)
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(5)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(10)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 5,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .xDomain([11, max + 20])
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
