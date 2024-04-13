@@ -1,0 +1,130 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+
+  var data = 
+ [{"id":"Voedingmiddelen industrie","x":30.7606,"y":11.893,"value":1.2146,"parent":"Agri & food","color":"darkgreen","count":14643,"rca":1.2146,"sbi3":"Voedingmiddelen industrie"},{"id":"Overig","x":34.82,"y":21.3593,"value":1.0872,"parent":"Agri & food","color":"darkgreen","count":2063,"rca":1.0872,"sbi3":"Overig"},{"id":"Farmacie","x":34.626,"y":28.8998,"value":1.9686,"parent":"Life sciences & health","color":"darkred","count":1046,"rca":1.9686,"sbi3":"Farmacie"},{"id":"Groot en detailhandel","x":30.1217,"y":11.3919,"value":0.6475,"parent":"Agri & food","color":"darkgreen","count":67068,"rca":0.6475,"sbi3":"Groot en detailhandel"},{"id":"Medische instrumenten","x":35.27,"y":25.2743,"value":2.006,"parent":"Life sciences & health","color":"darkred","count":2010,"rca":2.006,"sbi3":"Medische instrumenten"},{"id":"Onderzoek","x":38.44,"y":41.0967,"value":1.099,"parent":"Life sciences & health","color":"darkred","count":922,"rca":1.099,"sbi3":"Onderzoek"}] 
+;
+
+const max = Math.max(...data.map(d => d.x));
+const min = Math.min(...data.map(d => d.x));
+
+ new d3plus.Plot()
+    .data(data)
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(5)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(30)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .xDomain([min, max + 2])
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
