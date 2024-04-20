@@ -1,0 +1,130 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+
+  var data = 
+ [{"id":"Primaire productie","x":53.4428,"y":4.2614,"value":0.661,"parent":"Agri & food","color":"darkgreen","count":8650,"rca":0.661,"sbi3":"Primaire productie"},{"id":"Voedingmiddelen industrie","x":53.5941,"y":9.5692,"value":1.3407,"parent":"Agri & food","color":"darkgreen","count":32802,"rca":1.3407,"sbi3":"Voedingmiddelen industrie"},{"id":"Overig","x":47.3191,"y":24.0829,"value":1.6082,"parent":"Agri & food","color":"darkgreen","count":5454,"rca":1.6082,"sbi3":"Overig"},{"id":"Farmacie","x":50.325,"y":29.1022,"value":1.7145,"parent":"Life sciences & health","color":"darkred","count":4648,"rca":1.7145,"sbi3":"Farmacie"},{"id":"Vervaardiging van transportmiddelen","x":53.2763,"y":22.4716,"value":1.5063,"parent":"High Tech systems and Materials","color":"darkblue","count":12358,"rca":1.5063,"sbi3":"Vervaardiging van transportmiddelen"},{"id":"Metaalindustrie","x":53.6619,"y":11.2297,"value":1.4964,"parent":"High Tech systems and Materials","color":"darkblue","count":19047,"rca":1.4964,"sbi3":"Metaalindustrie"},{"id":"Vervaardiging van machines en apparaten","x":53.0015,"y":14.7463,"value":1.5853,"parent":"High Tech systems and Materials","color":"darkblue","count":42889,"rca":1.5853,"sbi3":"Vervaardiging van machines en apparaten"},{"id":"Watertechnologie","x":45.1533,"y":24.5143,"value":0.8047,"parent":"Water","color":"0","count":2234,"rca":0.8047,"sbi3":"Watertechnologie"},{"id":"Deltatechnologie","x":50.43,"y":16.179,"value":0.9803,"parent":"Water","color":"0","count":1563,"rca":0.9803,"sbi3":"Deltatechnologie"},{"id":"Groot en detailhandel","x":54.9351,"y":10.2709,"value":0.9386,"parent":"Agri & food","color":"darkgreen","count":111794,"rca":0.9386,"sbi3":"Groot en detailhandel"},{"id":"Overig (software, keuring, onderzoek)","x":47.3467,"y":31.238,"value":0.97,"parent":"High Tech systems and Materials","color":"darkblue","count":44237,"rca":0.97,"sbi3":"Overig (software, keuring, onderzoek)"},{"id":"Medische instrumenten","x":52.12,"y":25.2743,"value":1.534,"parent":"Life sciences & health","color":"darkred","count":3606,"rca":1.534,"sbi3":"Medische instrumenten"},{"id":"Onderzoek","x":40.91,"y":41.0967,"value":1.297,"parent":"Life sciences & health","color":"darkred","count":8601,"rca":1.297,"sbi3":"Onderzoek"}] 
+;
+
+const max = Math.max(...data.map(d => d.x));
+const min = Math.min(...data.map(d => d.x));
+
+ new d3plus.Plot()
+    .data(data)
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(5)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(30)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .xDomain([min, max + 2])
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
