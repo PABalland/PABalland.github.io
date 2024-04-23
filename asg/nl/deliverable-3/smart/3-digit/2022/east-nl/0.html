@@ -1,0 +1,130 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+
+  var data = 
+ [{"id":"Business support service activities nec","x":0,"y":0,"value":0,"parent":"Diensten (Persoonlijke) ","color":"Blue","count":0,"rca":0,"sbi3":"0"},{"id":"Manufacture of abrasive products and non-metallic mineral products nec","x":0,"y":0,"value":0,"parent":"Industrie","color":"Black","count":0,"rca":0,"sbi3":"0"},{"id":"Manufacture of articles of paper and paperboard","x":0,"y":0,"value":0,"parent":"Industrie","color":"Black","count":0,"rca":0,"sbi3":"0"},{"id":"Manufacture of transport equipment nec","x":0,"y":0,"value":0,"parent":"Industrie","color":"Black","count":0,"rca":0,"sbi3":"0"},{"id":"Manufacturing nec","x":0,"y":0,"value":0,"parent":"Industrie","color":"Black","count":0,"rca":0,"sbi3":"0"},{"id":"Mining and quarrying nec","x":0,"y":0,"value":0,"parent":"Landbouw","color":"Green","count":0,"rca":0,"sbi3":"0"},{"id":"Other passenger land transport","x":0,"y":0,"value":0,"parent":"Utilities","color":"Orange","count":0,"rca":0,"sbi3":"0"},{"id":"Other professional, scientific and technical activities nec","x":0,"y":0,"value":0,"parent":"Diensten (Zakelijk, Onderwijs, Gezondheid)","color":"Yellow","count":0,"rca":0,"sbi3":"0"}] 
+;
+
+const max = Math.max(...data.map(d => d.x));
+const min = Math.min(...data.map(d => d.x));
+
+ new d3plus.Plot()
+    .data(data)
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(5)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(10)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 5,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .xDomain([min, max + 2])
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 25}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 25}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
