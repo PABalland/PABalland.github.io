@@ -1,0 +1,196 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = 
+      [{"id":"Aerospace","x":-13,"y":-4,"value":1,"parent":"High rewards - High risks","color":"darkorange","count":1},{"id":"Agricultural","x":-7,"y":-8,"value":1,"parent":"High rewards - Low risks","color":"#365a94","count":1},{"id":"Automotive","x":-11,"y":-6,"value":1,"parent":"High rewards - High risks","color":"darkorange","count":1},{"id":"Aviation","x":-5,"y":-5,"value":1,"parent":"High rewards - Low risks","color":"#365a94","count":1},{"id":"Chemical","x":-14,"y":-12,"value":1,"parent":"Low rewards - Low risks","color":"#8B4513","count":1},{"id":"Coal","x":-1,"y":-16,"value":1,"parent":"Low rewards - Low risks","color":"darkgreen","count":1},{"id":"Defense","x":-2,"y":-2,"value":1,"parent":"High rewards - Low risks","color":"#365a94","count":1},{"id":"Education","x":-7,"y":-3,"value":1,"parent":"High rewards - Low risks","color":"#365a94","count":1},{"id":"Energy","x":-10,"y":-11,"value":1,"parent":"Low rewards - Low risks","color":"#8B4513","count":1},{"id":"Medicine","x":-16,"y":-7,"value":1,"parent":"High rewards - High risks","color":"darkorange","count":1},{"id":"Metallurgy","x":-4,"y":-13,"value":1,"parent":"Low rewards - Low risks","color":"darkgreen","count":1},{"id":"Mining","x":-7,"y":-14,"value":1,"parent":"Low rewards - Low risks","color":"darkgreen","count":1},{"id":"Nuclear","x":-3,"y":-15,"value":1,"parent":"Low rewards - Low risks","color":"darkgreen","count":1},{"id":"Railway","x":-9,"y":-9,"value":1,"parent":"Low rewards - Low risks","color":"#8B4513","count":1},{"id":"Robotics","x":-15,"y":-1,"value":1,"parent":"High rewards - High risks","color":"darkorange","count":1},{"id":"Shipbuilding","x":-12,"y":-10,"value":1,"parent":"Low rewards - Low risks","color":"#8B4513","count":1}]
+
+
+      ;
+    
+    
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [-16, 0]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(5)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(20)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Penetration rate of AI (Rank)",
+      titleConfig: {
+        fontSize: function(d){ return 20}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relative Competitiveness of Ukraine (Rank - based on VC, patents and publications)",
+      titleConfig: {
+        fontSize: function(d){ return 20}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
