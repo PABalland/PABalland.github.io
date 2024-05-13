@@ -1,0 +1,93 @@
+1+1
+6000/200
+6000/(8*17.5)
+65*140
+2.4*0.4+4+6*3+8.5*1.2+1.1*1.3+8.2*0.15+5+12*1.3+10.5+6.2*0.6+1.3*2+2.5+2.5*0.6+10+3*4.5
+2.4*0.4+4+6*3+8.5*1.2+1.1*1.3+8.2+5
+65*122
+5313*2
+1210.88/2
+19+7
+2096.27-1550
+700*21
+41618*4
+41618*4/8
+5000+14700+20809*4
+(5000+14700+20809*4)-16000
+5000+14700+20809
+20809*3
+4.5*150
+675 + 675 + 267.49
+62*0.29*0.3
+500/24
+(55740*100)/28428
+(55740)/28428
+5000*12
+103
+(130000-42500)*0.75+42500*0.85
+101750*0.7
+55824.55/105
+(58000*0.25+42000*0.15)*0.3
+(58000*0.75+42000*0.85)*0.7
+55440/100000
+1-55440/100000
+3600*2
+100-82.9
+1000*0.25*0.3
+(1000*0.25)*0.3
+(100*0.25)*0.3
+100*0.25
+100/0.25
+100*0.25
+(100*0.75)*0.7
+52.5/0.7
+(52.5/0.7)/0.25
+(52.5/0.7)/0.75
+142*0.75
+106.5*0.7
+190000*0.8
+15000*24
+5000*24
+10000*24
+200000/24
+12883+3805
+16688-10515
+540*1000
+540/24
+22.5*1000
+150*5
+5985.6*0.35
+5985.6*0.35+5985.6*0.65
+5985.6*0.6
+5985.6*0.6+2094.6
+5985.6*0.65
+3890.64+2094.96
+3890.64 +2094.96
+4+8+10+4+10+5+5
+6*12
+6+5
+1+1
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-geomap")source ("d3plus.geomap.R")library(EconGeo)library(Hmisc)library(dplyr)library(jsonlite)dr="north"#for (dr in c("north", "east", "south", "west")) {  dr="west"#
+# read datasetwd(paste0("/Users/pierre-alex/Dropbox/1-asg/1-production/3-projects/4-dutch-regions/2-analysis/tech/", dr, "-nl/prio"))df = read.csv ("3-complementarity-2018-2021.csv", sep = ",", header = T)# add namesnuts2 = fromJSON("https://www.paballand.com/json/topojson/NUTS_RG_20M_2010_4326-nuts-2-regpat.json")nuts2 = data.frame(  id = nuts2$objects$NUTS_RG_20M_2010_4326$geometries$id,   name = nuts2$objects$NUTS_RG_20M_2010_4326$geometries$properties$NAME_LATN)df = merge (df, nuts2, by.x = "region.that.adds", by.y = "id")# get parent setwd(paste0("/Users/pierre-alex/Dropbox/1-asg/1-production/3-projects/4-dutch-regions/1-data/tech/", dr, "-nl"))par = read.csv("prio.csv", sep = ",", check.names = F)[, c("parent", "priority")] %>% distinct ()# 1 df per regiondf = merge (df, par, by.x = "Industry", by.y = "priority")df$reg = df$Regiondf$dutch.reg[df$reg=="NL11"] = "north"df$dutch.reg[df$reg=="NL12"] = "north"df$dutch.reg[df$reg=="NL13"] = "north"df$dutch.reg[df$reg=="NL21"] = "east"df$dutch.reg[df$reg=="NL22"] = "east"df$dutch.reg[df$reg=="NL23"] = "west"df$dutch.reg[df$reg=="NL31"] = "west"df$dutch.reg[df$reg=="NL32"] = "west"df$dutch.reg[df$reg=="NL33"] = "west"df$dutch.reg[df$reg=="NL34"] = "south"df$dutch.reg[df$reg=="NL41"] = "south"df$dutch.reg[df$reg=="NL42"] = "south"df = subset (df, df$dutch.reg == dr)# read the count value for averages setwd(paste0("/Users/pierre-alex/Dropbox/1-asg/1-production/3-projects/4-dutch-regions/2-analysis/tech/", dr, "-nl/", "prio"))df2 = read.csv ("2-count-rca-reldens-comp-2018-2021.csv", sep = ",", header = T)#dfc = dfc[, c("reg", "tech", "count", "reldens")]df2 = df2[, c("reg", "tech", "count")]df2 = merge (df, df2, by.x = c("Region", "Industry"), by.y = c("reg", "tech"))#
+df2$reg = df2$dutch.regdf2$count2 = ave(df2$count, paste0(df2$dutch.reg, df2$Industry, df2$region.that.adds), FUN = sum)df2$RD.added2 = ave((df2$RD.added*df2$count), paste0(df2$dutch.reg, df2$Industry, df2$region.that.adds), FUN = sum)/df2$count2df2$RD.added = df2$RD.added2df2$RD.added2=NULL df2$RD = ave((df2$RD*df2$count), paste0(df2$dutch.reg, df2$Industry), FUN = sum)/df2$count2df2$count2=NULL df2$count = NULL df2$Region = df2$regdf2 = unique (df2)df = rbind (df, df2)#
+# subdividefor (i in unique (df$Region)){#
+  #i = "FR10"#
+  for (j in unique (df$Industry)){    df2 = subset (df, df$Region == i & df$Industry == j)    df2$id = df2$region.that.adds    df2$value = df2$RD.added#
+    df2 = unique (df2[, c("id", "name", "value")])#
+    df2 = toJSON(df2)#
+    j = iconv(j, to = 'ASCII//TRANSLIT')    j = gsub(" ", "-", j, fixed = TRUE)    j =gsub("/", "-", j, fixed = TRUE)    j =gsub(",", "-", j, fixed = TRUE)    j =gsub("(", "-", j, fixed = TRUE)    j =gsub(")", "", j, fixed = TRUE)    j =gsub("--", "-", j, fixed = TRUE)    j =gsub("-.", ".", j, fixed = TRUE)    j =tolower (j)#
+    setwd("/Users/pierre-alex/Dropbox/PABalland.github.io/asg/nl/json")    write(df2, paste0("complementarity-", i, "-", j, ".json"))#
+  }#
+}for (i in unique (df$Region)){#
+  options(error = NULL)#
+  #i = "ES61"#
+  for (j in unique (df$Industry)){#
+    options(error = NULL)#
+    j = iconv(j, to = 'ASCII//TRANSLIT')    j = gsub(" ", "-", j, fixed = TRUE)    j =gsub("/", "-", j, fixed = TRUE)    j =gsub(",", "-", j, fixed = TRUE)    j =gsub("(", "-", j, fixed = TRUE)    j =gsub(")", "", j, fixed = TRUE)    j =gsub("--", "-", j, fixed = TRUE)    j =gsub("-.", ".", j, fixed = TRUE)    j =tolower (j)#
+    values = paste0("https://www.paballand.com/asg/nl/json/", paste0("complementarity-", i, "-", j, ".json"))    topo = "https://www.paballand.com/json/topojson/NUTS_RG_20M_2010_4326-nuts-2-regpat.json"#
+    dir2 = paste0("~/Dropbox/1-asg/1-production/3-projects/4-dutch-regions/3-outputs/deliverable-4/", dr, "-nl")    as = paste0(i, "-", j)#
+    d3plus.geomap(sourcehtml = "/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-geomap/_source",                   topo, values,                   dir = dir2,                   as = as)#
+  }#
+}#}
+1+1
+topo
