@@ -1,0 +1,60 @@
+
+  # load packages
+  library(EconGeo)
+  library(dplyr)
+  library(data.table)
+  library(stringr)
+  library(jsonlite)
+  library(igraph)
+  library(qgraph)
+  library(Rcpp)
+    
+  # html source location
+  setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-stacked-area/_source")
+  p1 = paste(readLines("part-1.html"), collapse="\n") #before json data
+  p3 = paste(readLines("part-3.html"), collapse="\n") #after json data
+  
+  # read data
+  
+  # read data
+  setwd("~/Dropbox/1-asg/1-production/3-projects/6-esb/2-counts/geo")
+  df = read.csv(paste0("priority-nuts0-regpat-pct.csv"))
+  df = subset (df, df$year >=2000)
+  
+  i = "Quantum"
+  for (i in unique(df$tech)) {
+  df2 = subset (df, df$tech == i)
+  df2$id = df2$reg
+  df2$x = df2$year
+  df2$y = df2$count
+  df2$color = "grey"
+  df2$color[df2$id=="NL"] = "orange"
+  df2$color[df2$id=="US"] = "darkblue"
+  df2$color[df2$id=="CN"] = "darkgreen"
+  df2$color[df2$id=="JP"] = "yellow"
+  df2$color[df2$id=="DE"] = "darkred"
+  df2$color[df2$id=="FR"] = "pink"
+  #df = unique(df[,  c("id", "x", "y", "parent", "color")])
+  df2 = df2[order(-df2$y),]
+  
+ percent = T
+  
+  if (percent == T) {
+   df2$sumy = ave(df2$y, df2$x, FUN = sum)
+   df2$y = round(100*df2$y/df2$sumy, 2)
+  df2$sumy = NULL 
+  }
+  
+  df2 = df2[complete.cases(df2),]
+  #df$share = round(100*df$value/(sum(df$value)),2)
+  
+  # convert to JSON
+  p2 = toJSON(df2)
+  all = paste (p1, p2, p3, collapse="\n")
+  
+  i = tolower(i)
+  i = gsub(" ", "-", i)
+  # save as d3plus 
+  setwd("~/Dropbox/1-asg/1-production/3-projects/6-esb/4-outputs/competitiveness")
+  writeLines(all, paste0(i, ".html"))
+  }
