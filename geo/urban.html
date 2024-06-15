@@ -1,0 +1,77 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-geomap.v0.6.full.min.js"></script>
+
+  <style>
+
+    body {
+      margin: 1;
+      overflow: hidden;
+    }
+
+  </style>
+
+</head>
+
+<body></body>
+
+<script>
+
+
+
+  var popData = "https://www.paballand.com/geo/urban.json" 
+     
+
+
+;
+
+
+new d3plus.Geomap()
+  .data(popData)
+  .groupBy("urban_area_code")
+  .colorScale("value")
+  .colorScaleConfig({
+    color: ["purple", "blue", "green", "yellow", "orange", "red"]
+  })
+  .label(function(d) {
+    return d.urban_area_name + ": " + d.value + " inhabitants";
+    return d.capital + ": " + d.value + " inhabitants";
+  })
+  .point(function(d) {
+    return [d.longitude, d.latitude];
+  })
+    
+  .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>Urban Area:</td><td class='data'>" + d.urban_area_name + "</td></tr>";
+        table += "<tr><td class='title'>Country:</td><td class='data'>" + d.country_name + "</td></tr>";
+        table += "<tr><td class='title'>Code (ISO2):</td><td class='data'>" + d.ISO_3166_2 + "</td></tr>";
+        table += "<tr><td class='title'>Population:</td><td class='data'>" + d.population + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.urban_area_name;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+  
+  
+  .tileUrl("https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png")
+  .pointSize(function(d) {
+    return d.population;
+  })
+  .pointSizeMin(1)
+  .pointSizeMax(5)
+
+  .render();
+
+</script>
+
+</html>

@@ -1,0 +1,79 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-geomap.v0.6.full.min.js"></script>
+
+  <style>
+
+    body {
+      margin: 1;
+      overflow: hidden;
+    }
+
+  </style>
+
+</head>
+
+<body></body>
+
+<script>
+
+
+
+  var popData = "https://www.paballand.com/geo/country.json" 
+     
+
+
+;
+
+
+new d3plus.Geomap()
+  .data(popData)
+  .groupBy("ISO_3166_2")
+  .colorScale("population")
+  .colorScaleConfig({
+    color: ["purple", "blue", "green", "yellow", "orange", "red"]
+  })
+  .label(function(d) {
+    return d.country + ": " + d.population + " inhabitants";
+    return d.capital + ": " + d.population + " inhabitants";
+  })
+  .point(function(d) {
+    return [d.capital_lon, d.capital_lat];
+  })
+    
+  .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>Country:</td><td class='data'>" + d.name + "</td></tr>";
+        table += "<tr><td class='title'>Code (ISO2):</td><td class='data'>" + d.ISO_3166_2 + "</td></tr>";
+        table += "<tr><td class='title'>Population:</td><td class='data'>" + d.population + "</td></tr>";
+        table += "<tr><td class='title'>Capital:</td><td class='data'>" + d.capital + "</td></tr>";
+        table += "<tr><td class='title'>Continent:</td><td class='data'>" + d.continent + "</td></tr>";
+        table += "<tr><td class='title'>EU:</td><td class='data'>" + d.eu + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.name;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+  
+  
+  .tileUrl("https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}@2x.png")
+  .pointSize(function(d) {
+    return d.population;
+  })
+  .pointSizeMin(1)
+  .pointSizeMax(5)
+
+  .render();
+
+</script>
+
+</html>
