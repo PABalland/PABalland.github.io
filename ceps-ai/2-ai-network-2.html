@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network on Map with Node Size and Link Weight</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+  <style>
+      #map { height: 600px; width: 100%; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+      // Sample JSON data with node size and link weight
+      const data = {
+          nodes: [
+              { id: 1, lat: 40.7128, lon: -74.0060, name: "New York", size: 20 },
+              { id: 2, lat: 34.0522, lon: -118.2437, name: "Los Angeles", size: 15 },
+              { id: 3, lat: 41.8781, lon: -87.6298, name: "Chicago", size: 10 },
+              { id: 4, lat: 29.7604, lon: -95.3698, name: "Houston", size: 12 }
+          ],
+          links: [
+              { source: 1, target: 2, weight: 5 },
+              { source: 1, target: 3, weight: 3 },
+              { source: 2, target: 3, weight: 2 },
+              { source: 2, target: 4, weight: 4 },
+              { source: 3, target: 4, weight: 1 }
+          ]
+      };
+
+      // Initialize the map
+      const map = L.map('map').setView([39.8283, -98.5795], 4);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Scale function for node sizes
+      const nodeScale = d3.scaleLinear()
+          .domain(d3.extent(data.nodes, d => d.size))
+          .range([5, 20]);
+
+      // Scale function for link weights
+      const linkScale = d3.scaleLinear()
+          .domain(d3.extent(data.links, d => d.weight))
+          .range([1, 5]);
+
+      // Add nodes to the map
+      data.nodes.forEach(node => {
+          L.circleMarker([node.lat, node.lon], {
+              radius: nodeScale(node.size),
+              fillColor: "#ff7800",
+              color: "#000",
+              weight: 1,
+              opacity: 1,
+              fillOpacity: 0.8
+          }).addTo(map).bindPopup(`${node.name}<br>Size: ${node.size}`);
+      });
+
+      // Draw links between nodes
+      data.links.forEach(link => {
+          const source = data.nodes.find(node => node.id === link.source);
+          const target = data.nodes.find(node => node.id === link.target);
+          L.polyline([[source.lat, source.lon], [target.lat, target.lon]], {
+              color: 'red',
+              weight: linkScale(link.weight),
+              opacity: 0.5,
+              smoothFactor: 1
+          }).addTo(map).bindPopup(`Weight: ${link.weight}`);
+      });
+
+      // Add a legend
+      const legend = L.control({position: 'bottomright'});
+      legend.onAdd = function (map) {
+          const div = L.DomUtil.create('div', 'info legend');
+          div.style.backgroundColor = 'white';
+          div.style.padding = '10px';
+          div.innerHTML += '<h4>Legend</h4>';
+          div.innerHTML += '<p><strong>Node Size:</strong> Larger circles indicate larger size values</p>';
+          div.innerHTML += '<p><strong>Link Weight:</strong> Thicker lines indicate higher weight values</p>';
+          return div;
+      };
+      legend.addTo(map);
+  </script>
+</body>
+</html>
