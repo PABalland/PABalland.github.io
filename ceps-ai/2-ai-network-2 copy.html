@@ -1,0 +1,69 @@
+// Initialize the map
+const map = L.map('map').setView([39.8283, -98.5795], 4);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Fetch node data and then process everything
+fetch("https://www.paballand.com/ceps-ai/api/ai-network-2-nodes.json")
+    .then(response => response.json())
+    .then(nodeData => {
+        const data = {
+            nodes: nodeData,
+            links: [
+                { source: 1, target: 2, weight: 5 },
+                { source: 1, target: 3, weight: 3 },
+                { source: 2, target: 3, weight: 2 },
+                { source: 2, target: 4, weight: 4 },
+                { source: 3, target: 4, weight: 1 }
+            ]
+        };
+
+        // Scale function for node sizes
+        const nodeScale = d3.scaleLinear()
+            .domain(d3.extent(data.nodes, d => d.size))
+            .range([5, 20]);
+
+        // Scale function for link weights
+        const linkScale = d3.scaleLinear()
+            .domain(d3.extent(data.links, d => d.weight))
+            .range([1, 5]);
+
+        // Add nodes to the map
+        data.nodes.forEach(node => {
+            L.circleMarker([node.lat, node.lon], {
+                radius: nodeScale(node.size),
+                fillColor: "#ff7800",
+                color: "#000",
+                weight: 1,
+                opacity: 1,
+                fillOpacity: 0.8
+            }).addTo(map).bindPopup(`${node.name}<br>Size: ${node.size}`);
+        });
+
+        // Draw links between nodes
+        data.links.forEach(link => {
+            const source = data.nodes.find(node => node.id === link.source);
+            const target = data.nodes.find(node => node.id === link.target);
+            L.polyline([[source.lat, source.lon], [target.lat, target.lon]], {
+                color: 'red',
+                weight: linkScale(link.weight),
+                opacity: 0.5,
+                smoothFactor: 1
+            }).addTo(map).bindPopup(`Weight: ${link.weight}`);
+        });
+
+        // Add a legend
+        const legend = L.control({position: 'bottomright'});
+        legend.onAdd = function (map) {
+            const div = L.DomUtil.create('div', 'info legend');
+            div.style.backgroundColor = 'white';
+            div.style.padding = '10px';
+            div.innerHTML += '<h4>Legend</h4>';
+            div.innerHTML += '<p><strong>Node Size:</strong> Larger circles indicate larger size values</p>';
+            div.innerHTML += '<p><strong>Link Weight:</strong> Thicker lines indicate higher weight values</p>';
+            return div;
+        };
+        legend.addTo(map);
+    })
+    .catch(error => console.error('Error fetching node data:', error));
