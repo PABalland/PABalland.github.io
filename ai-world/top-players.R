@@ -5,9 +5,13 @@ library(jsonlite)
 
 df <- fromJSON("https://www.paballand.com/ai-world/top-players.json")
 
-df$parent2 = df$parent
-df$parent2[df$country == "France"] = "France"
 df$color[df$country == "France"] = "red"
+
+setwd("~/Dropbox/PABalland.github.io/ai-world")
+writeLines(toJSON(df, pretty = TRUE), "top-players-new.json")
+
+
+
 df$parent2[df$country == "Israel"] = "Israel"
 df$color[df$country == "Israel"] = "green"
 df$parent2[df$country == "Canada"] = "Canada"
@@ -36,5 +40,4 @@ df$color[df$country == "Singapore"] = "blue2"
 
 #df$parent2 = df$country
 
-setwd("~/Dropbox/PABalland.github.io/ai-world")
-writeLines(toJSON(df, pretty = TRUE), "top-players-new.json")
+
