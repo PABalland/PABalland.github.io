@@ -6,38 +6,22 @@ library(jsonlite)
 df <- fromJSON("https://www.paballand.com/ai-world/top-players.json")
 
 df$color[df$country == "France"] = "red"
+df$color[df$country == "Israel"] = "green"
+df$color[df$country == "Canada"] = "blue"
+df$color[df$country == "United Kingdom"] = "darkred"
+df$color[df$country == "Germany"] = "darkgreen"
+df$color[df$country == "Singapore"] = "darkblue"
+df$color[df$country == "India"] = "red2"
+df$color[df$country == "South Korea"] = "green2"
+df$color[df$country == "Singapore"] = "blue2"
+df$color[df$country == "Saudi Arabia"] = "red3"
+df$color[df$country == "South Korea"] = "green3"
+df$color[df$country == "Singapore"] = "blue2"
 
 setwd("~/Dropbox/PABalland.github.io/ai-world")
 writeLines(toJSON(df, pretty = TRUE), "top-players-new.json")
 
 
 
-df$parent2[df$country == "Israel"] = "Israel"
-df$color[df$country == "Israel"] = "green"
-df$parent2[df$country == "Canada"] = "Canada"
-df$color[df$country == "Canada"] = "blue"
-
-df$parent2[df$country == "United Kingdom"] = "United Kingdom"
-df$color[df$country == "United Kingdom"] = "darkred"
-df$parent2[df$country == "Germany"] = "Germany"
-df$color[df$country == "Germany"] = "darkgreen"
-df$parent2[df$country == "Singapore"] = "Singapore"
-df$color[df$country == "Singapore"] = "darkblue"
-
-df$parent2[df$country == "India"] = "India"
-df$color[df$country == "India"] = "red2"
-df$parent2[df$country == "South Korea"] = "South Korea"
-df$color[df$country == "South Korea"] = "green2"
-df$parent2[df$country == "Singapore"] = "Singapore"
-df$color[df$country == "Singapore"] = "blue2"
-
-df$parent2[df$country == "Saudi Arabia"] = "Saudi Arabia"
-df$color[df$country == "Saudi Arabia"] = "red3"
-df$parent2[df$country == "United Arab Emirates"] = "South Korea"
-df$color[df$country == "South Korea"] = "green3"
-df$parent2[df$country == "Singapore"] = "Singapore"
-df$color[df$country == "Singapore"] = "blue2"
-
-#df$parent2 = df$country
 
 
