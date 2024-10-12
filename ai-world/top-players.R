@@ -20,12 +20,12 @@ df$color[df$country == "Germany"] = "darkgreen"
 df$parent2[df$country == "Singapore"] = "Singapore"
 df$color[df$country == "Singapore"] = "darkblue"
 
-df$parent2[df$country == "United Kingdom"] = "United Kingdom"
-df$color[df$country == "United Kingdom"] = "darkred"
-df$parent2[df$country == "Germany"] = "Germany"
-df$color[df$country == "Germany"] = "darkgreen"
+df$parent2[df$country == "India"] = "India"
+df$color[df$country == "India"] = "red2"
+df$parent2[df$country == "South Korea"] = "South Korea"
+df$color[df$country == "South Korea"] = "green2"
 df$parent2[df$country == "Singapore"] = "Singapore"
 df$color[df$country == "Singapore"] = "darkblue"
 
 setwd("~/Dropbox/PABalland.github.io/ai-world")
-writeLines(toJSON(df, pretty = TRUE), "modified_top_players.json")
+writeLines(toJSON(df, pretty = TRUE), "top_players-new.json")
