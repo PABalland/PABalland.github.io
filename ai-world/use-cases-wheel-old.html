@@ -121,12 +121,8 @@
                 textHeight: 0,
                 fontSize: 16,
                 isHovered: false,
-                subtext,
-                currentScale: 1.0,
-                targetScale: 1.0,
-                scaleSpeed: 0.05
+                subtext
             });
-
         }
 
         smallCircles[0].customTextX = 10
@@ -258,8 +254,9 @@
 
             for (let i = 0; i < smallCircles.length; i++) {
                 const circle = smallCircles[i];
-                const radius = smallRadius * circle.currentScale;
-                const fontSize = circle.fontSize * circle.currentScale;
+                const isHovered = circle.isHovered;
+                const radius = isHovered ? smallRadius * 1.2 : smallRadius;
+                const fontSize = isHovered ? circle.fontSize * 1.2 : circle.fontSize;
 
                 ctx.beginPath();
                 ctx.arc(circle.x, circle.y, radius, 0, 2 * Math.PI);
@@ -296,7 +293,7 @@
                 ctx.textBaseline = 'top';
 
                 let subtextX = mainTextX;
-                let subtextY = mainTextY + (fontSize / 2);
+                let subtextY = mainTextY + (isHovered ? circle.fontSize * 1.2 / 2 : circle.fontSize / 2);
 
                 const lineSpacing = 2;
 
@@ -310,9 +307,32 @@
         function getHoveredCircleIndex(mouseX, mouseY) {
             for (let i = 0; i < smallCircles.length; i++) {
                 const circle = smallCircles[i];
-                const distance = Math.hypot(mouseX - circle.x, mouseY - circle.y);
 
-                if (distance <= smallRadius * circle.currentScale) {
+                const distance = Math.hypot(mouseX - circle.x, mouseY - circle.y);
+                if (distance <= smallRadius) {
+                    return i;
+                }
+
+                const fontSize = circle.isHovered ? circle.fontSize * 1.2 : circle.fontSize;
+                const mainTextX = circle.textX + (circle.customTextX || 0);
+                const mainTextY = circle.textY + (circle.customTextY || 0);
+
+                let textLeft, textRight;
+                if (circle.textAlign === 'left') {
+                    textLeft = mainTextX;
+                    textRight = mainTextX + circle.textWidth;
+                } else if (circle.textAlign === 'right') {
+                    textLeft = mainTextX - circle.textWidth;
+                    textRight = mainTextX;
+                } else {
+                    textLeft = mainTextX - circle.textWidth / 2;
+                    textRight = mainTextX + circle.textWidth / 2;
+                }
+
+                const textTop = mainTextY - fontSize / 2;
+                const textBottom = mainTextY + fontSize / 2;
+
+                if (mouseX >= textLeft && mouseX <= textRight && mouseY >= textTop && mouseY <= textBottom) {
                     return i;
                 }
             }
@@ -326,44 +346,34 @@
 
             const hoveredIndex = getHoveredCircleIndex(mouseX, mouseY);
 
-            smallCircles.forEach((circle, index) => {
-                circle.targetScale = (index === hoveredIndex) ? 1.5 : 1.0;
-            });
-        });
-
-
-
-        canvas.addEventListener('mouseout', function() {
-            smallCircles.forEach(circle => {
-                circle.targetScale = 1.0;
-            });
-        });
-
-        function animateScaling() {
             let needsRedraw = false;
-
-            smallCircles.forEach(circle => {
-                if (circle.currentScale !== circle.targetScale) {
+            for (let i = 0; i < smallCircles.length; i++) {
+                const circle = smallCircles[i];
+                const wasHovered = circle.isHovered;
+                circle.isHovered = (i === hoveredIndex);
+                if (circle.isHovered !== wasHovered) {
                     needsRedraw = true;
-
-                    const direction = circle.currentScale < circle.targetScale ? 1 : -1;
-                    circle.currentScale += circle.scaleSpeed * direction;
-
-                    if (Math.abs(circle.currentScale - circle.targetScale) < circle.scaleSpeed) {
-                        circle.currentScale = circle.targetScale;
-                    }
                 }
-            });
+            }
 
             if (needsRedraw) {
                 drawCanvas();
             }
+        });
 
-            requestAnimationFrame(animateScaling);
-        }
-
-        animateScaling();
-
+        canvas.addEventListener('mouseout', function() {
+            let needsRedraw = false;
+            for (let i = 0; i < smallCircles.length; i++) {
+                const circle = smallCircles[i];
+                if (circle.isHovered) {
+                    circle.isHovered = false;
+                    needsRedraw = true;
+                }
+            }
+            if (needsRedraw) {
+                drawCanvas();
+            }
+        });
 
     </script>
 </body>
