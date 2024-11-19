@@ -11,7 +11,6 @@
 </head>
 <body>
     <canvas id="myCanvas" width="1280" height="750" style="border:0px solid #000000;"></canvas>
-    <a id="hoverLink" style="visibility: hidden;" href="#" target="_blank"></a>
 
     <script>
         const canvas = document.getElementById("myCanvas");
@@ -19,42 +18,6 @@
 
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-
-        function resizeCanvas() {
-            const scaleFactor = window.devicePixelRatio || 1;
-
-            canvas.width = window.innerWidth * scaleFactor;
-            canvas.height = window.innerHeight * scaleFactor;
-
-            ctx.setTransform(scaleFactor, 0, 0, scaleFactor, 0, 0);
-
-            centerX = canvas.width / (2 * scaleFactor);
-            centerY = canvas.height / (2 * scaleFactor);
-
-            calculateCirclePositions();
-            drawCanvas();
-        }
-
-        function calculateCirclePositions() {
-            smallCircles.length = 0;
-
-            for (let i = 0; i < numSmallCircles; i++) {
-                const angle = (2 * Math.PI / numSmallCircles) * i;
-                const x = centerX + circleRadius * Math.cos(angle);
-                const y = centerY + circleRadius * Math.sin(angle);
-
-                smallCircles.push({
-                    x, y,
-                    color: colors[i % colors.length],
-                    text: circleTexts[i],
-                    url: circleLinks[i],
-                    currentScale: 1.0,
-                    targetScale: 1.0,
-                    scaleSpeed: 0.05
-                });
-            }
-        }
-
         const circleRadius = 225;
         const smallRadius = 22;
         const numSmallCircles = 25;
@@ -114,35 +77,6 @@
             ['Network operations monitoring', 'Traffic flow optimization', 'Network planning and optimization']
         ];
 
-        const circleLinks = [
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/",
-            "https://aiworld.eu/"
-        ];
-
-
         const smallCircles = [];
 
         for (let i = 0; i < numSmallCircles; i++) {
@@ -160,7 +94,15 @@
             const textX = centerX + textDistance * Math.cos(angle);
             const textY = centerY + textDistance * Math.sin(angle);
 
-            let textAlign = Math.cos(angle) > 0 ? 'left' : 'right';
+            let textAlign;
+            if (Math.cos(angle) > 0) {
+                textAlign = 'left';
+            } else {
+                textAlign = 'right';
+            }
+
+            let customTextX = 0;
+            let customTextY = 0;
 
             smallCircles.push({
                 x,
@@ -171,8 +113,8 @@
                 text,
                 textX,
                 textY,
-                customTextX: 0,
-                customTextY: 0,
+                customTextX,
+                customTextY,
                 textAlign,
                 angle,
                 textWidth: 0,
@@ -182,11 +124,10 @@
                 subtext,
                 currentScale: 1.0,
                 targetScale: 1.0,
-                scaleSpeed: 0.05,
-                url: circleLinks[i] // Match the link positionally
+                scaleSpeed: 0.05
             });
-        }
 
+        }
 
         smallCircles[0].customTextX = 10
         smallCircles[0].customTextY = -10
@@ -384,55 +325,19 @@
             const mouseY = event.clientY - rect.top;
 
             const hoveredIndex = getHoveredCircleIndex(mouseX, mouseY);
-            let hoveredCircle = null;
 
             smallCircles.forEach((circle, index) => {
-                circle.targetScale = (index === hoveredIndex) ? 1.45 : 1.0; // Set target scale
-                if (index === hoveredIndex) hoveredCircle = circle;
+                circle.targetScale = (index === hoveredIndex) ? 1.5 : 1.0;
             });
-
-            const hoverLink = document.getElementById("hoverLink");
-            if (hoveredCircle) {
-                canvas.style.cursor = "pointer";
-                hoverLink.href = hoveredCircle.url; // Update link dynamically
-                hoverLink.style.display = "block"; // Ensure it registers in the browser status bar
-            } else {
-                canvas.style.cursor = "default";
-                hoverLink.href = "#"; // Clear the link
-                hoverLink.style.display = "none"; // Hide it when not hovering
-            }
         });
 
 
-
-        canvas.addEventListener('click', function(event) {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = event.clientX - rect.left;
-            const mouseY = event.clientY - rect.top;
-
-            // Check if the click is inside any circle
-            for (let i = 0; i < smallCircles.length; i++) {
-                const circle = smallCircles[i];
-                const distance = Math.hypot(mouseX - circle.x, mouseY - circle.y);
-
-                if (distance <= smallRadius * circle.currentScale) {
-                    // Open the circle's URL
-                    window.open(circle.url, "_blank"); // Open in a new tab
-                    return;
-                }
-            }
-        });
 
         canvas.addEventListener('mouseout', function() {
-            canvas.style.cursor = "default";
-            const hoverLink = document.getElementById("hoverLink");
-            hoverLink.style.visibility = "hidden"; // Hide the link
-
             smallCircles.forEach(circle => {
-                circle.targetScale = 1.0; 
+                circle.targetScale = 1.0;
             });
         });
-
 
         function animateScaling() {
             let needsRedraw = false;
@@ -444,7 +349,6 @@
                     const direction = circle.currentScale < circle.targetScale ? 1 : -1;
                     circle.currentScale += circle.scaleSpeed * direction;
 
-                    // Clamp the scale to the target value
                     if (Math.abs(circle.currentScale - circle.targetScale) < circle.scaleSpeed) {
                         circle.currentScale = circle.targetScale;
                     }
@@ -452,12 +356,11 @@
             });
 
             if (needsRedraw) {
-                drawCanvas(); // Redraw the canvas only if needed
+                drawCanvas();
             }
 
-            requestAnimationFrame(animateScaling); // Continue animation loop
+            requestAnimationFrame(animateScaling);
         }
-
 
         animateScaling();
 
