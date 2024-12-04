@@ -29,15 +29,20 @@
         const width = 2000;
         const height = 1060;
         const marginTop = 60;
-        const marginRight = 20;
+        const marginRight = 50;
         const marginBottom = 20;
         const marginLeft = 100;
         const barSize = 48;
-        const n = 15;
+        const n = 10;
         const k = 12;
-        const duration = 130;
+        const duration = 100;
 
         const startingDate = new Date('2023-01-01'); //whatever I guess
+
+        function getLogoUrl(modelName) {
+            const encodedName = encodeURIComponent(modelName);
+            return `https://www.paballand.com/hf/api/logos/${encodedName}.png`;
+        }
 
         async function fetchData() {
             const response = await fetch('https://www.paballand.com/hf/api/model/author/race-chart.json');
@@ -119,6 +124,8 @@
                 .attr("width", width)
                 .attr("height", height)
                 .attr("style", "max-width: 100%; height: auto;");
+            
+            const imageGroup = svg.append("g").attr("transform", `translate(0,${marginTop})`);
 
             const barGroup = svg.append("g")
                 .attr("fill-opacity", 0.6)
@@ -173,7 +180,47 @@
                     .transition(transition)
                     .attr("y", d => yScale(d.rank))
                     .attr("width", d => xScale(d.value) - xScale(0));
+                const logoSize = yScale.bandwidth() * 0.8;
+                const images = imageGroup.selectAll("image")
+                    .data(data.slice(0, n), d => d.name);
+
+                images.join(
+                    enter => enter.append("image")
+                        .attr("xlink:href", d => getLogoUrl(d.name))
+                        .attr("height", logoSize)
+                        .attr("width", logoSize)
+                        .attr("x", d => xScale(d.value) + 10)
+                        .attr("y", d => yScale(d.rank) + (yScale.bandwidth() - logoSize) / 2)
+                        .attr("preserveAspectRatio", "xMidYMid meet")
+                        .on("error", function(event, d) {
+                            // Try different extensions on error
+                            const extensions = ['jpg', 'jpeg', 'gif', 'webp'];
+                            const img = d3.select(this);
+                            const tryNextExtension = (index) => {
+                                if (index >= extensions.length) {
+                                    // If all extensions fail, try default image
+                                    img.attr("xlink:href", 'https://www.paballand.com/hf/api/logos/abacusai%20(NLP).png')
+                                       .on("error", () => img.style("display", "none"));
+                                    return;
+                                }
+                                const encodedName = encodeURIComponent(d.name);
+                                const newUrl = `https://www.paballand.com/hf/api/logos/${encodedName}.${extensions[index]}`;
+                                img.attr("xlink:href", newUrl)
+                                   .on("error", () => tryNextExtension(index + 1));
+                            };
+                            tryNextExtension(0);
+                        }),
+                    update => update,
+                    exit => exit.transition(transition)
+                        .attr("y", d => yScale(d.rank))
+                        .remove()
+                )
+                    .transition(transition)
+                    .attr("x", d => xScale(d.value) + 10)
+                    .attr("y", d => yScale(d.rank) + (yScale.bandwidth() - logoSize) / 2);
             }
+
+            // }
 
             function updateLabels(data, transition) {
                 const labels = labelGroup.selectAll("text")
