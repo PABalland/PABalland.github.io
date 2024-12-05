@@ -15,12 +15,12 @@
             font-size: 24px;
         }
         .ticker {
-            font-size: 6px;
+            font-size: 24px;
             font-weight: bold;
         }
         .bar-label {
             fill: black;
-            font-size: 20px;
+            font-size: 25px;
         }
     </style>
 </head>
@@ -31,9 +31,9 @@
         const marginTop = 60;
         const marginRight = 80;
         const marginBottom = 20;
-        const marginLeft = 200;
+        const marginLeft = 100;
         const barSize = 48;
-        const n = 16;
+        const n = 10;
         const k = 12;
         const duration = 60;
 
@@ -145,7 +145,7 @@
                 .attr("x", width - marginRight)
                 .attr("y", marginTop - 40)
                 .attr("text-anchor", "end")
-                .text("2024", `Month 2024 ${keyframes[0][1]} (2024)`);
+                .text("2024", `Week 2024 ${keyframes[0][1]} (2024)`);
 
             xScale.domain([0, d3.max(keyframes, d => d3.max(d[2], e => e.value))]);
             yScale.domain(d3.range(1, n + 1)).padding(0.1);
@@ -184,37 +184,6 @@
                 const images = imageGroup.selectAll("image")
                     .data(data.slice(0, n), d => d.name);
 
-                images.join(
-                    enter => enter.append("image")
-                        .attr("xlink:href", d => getLogoUrl(d.name))
-                        .attr("height", logoSize)
-                        .attr("width", logoSize)
-                        .attr("x", d => xScale(d.value) + 10)
-                        .attr("y", d => yScale(d.rank) + (yScale.bandwidth() - logoSize) / 2)
-                        .attr("preserveAspectRatio", "xMidYMid meet")
-                        .on("error", function(event, d) {
-                            // Try different extensions on error
-                            const extensions = ['jpg', 'jpeg', 'gif', 'webp'];
-                            const img = d3.select(this);
-                            const tryNextExtension = (index) => {
-                                if (index >= extensions.length) {
-                                    // If all extensions fail, try default image
-                                    img.attr("xlink:href", 'https://www.paballand.com/hf/api/logos/white.jpg')
-                                       .on("error", () => img.style("display", "none"));
-                                    return;
-                                }
-                                const encodedName = encodeURIComponent(d.name);
-                                const newUrl = `https://www.paballand.com/hf/api/logos/${encodedName}.${extensions[index]}`;
-                                img.attr("xlink:href", newUrl)
-                                   .on("error", () => tryNextExtension(index + 1));
-                            };
-                            tryNextExtension(0);
-                        }),
-                    update => update,
-                    exit => exit.transition(transition)
-                        .attr("y", d => yScale(d.rank))
-                        .remove()
-                )
                     .transition(transition)
                     .attr("x", d => xScale(d.value) + 10)
                     .attr("y", d => yScale(d.rank) + (yScale.bandwidth() - logoSize) / 2);
@@ -280,7 +249,7 @@
             }
 
             function updateTicker([date, xVal], transition) {
-                transition.end().then(() => ticker.text(`Month ${xVal}`));
+                transition.end().then(() => ticker.text(`Week ${xVal}`));
             }
 
             async function animate() {
