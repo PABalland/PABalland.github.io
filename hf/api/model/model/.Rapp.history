@@ -1,3 +1,24 @@
+100*0.25
+100/0.25
+100*0.25
+(100*0.75)*0.7
+52.5/0.7
+(52.5/0.7)/0.25
+(52.5/0.7)/0.75
+142*0.75
+106.5*0.7
+190000*0.8
+15000*24
+5000*24
+10000*24
+200000/24
+12883+3805
+16688-10515
+540*1000
+540/24
+22.5*1000
+150*5
+5985.6*0.35
 5985.6*0.35+5985.6*0.65
 5985.6*0.6
 5985.6*0.6+2094.6
@@ -260,1216 +281,109 @@ nov-dec-jan-feb-mar-abril =
 22+16+14+4
 16*8
 8000*0.2
-30*60*12
-30*2*12
-30000*12
-5847+3644+3122+1115+1043+829+889+1436
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-count.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-count.html"))
-library(jsonlite)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-count.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-count.html"))
-library(jsonlite)#
-library(data.table)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-count.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-count.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-count.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-count.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-count.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-count.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv", nrow = 10000)#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-count-pipe.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-count-pipe.html"))
-head(df2)
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-count-pipe.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-count-pipe.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-count-pipe-tag.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-count-pipe-tag.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-count-pipe-tag-tag.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-count-tag-tag.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/tag"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-model-count-other.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-model-count-other.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-#df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/tag"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-model-count-other.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-model-count-other.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-#df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df$date2 = paste0(df$month, "-", substr(df$year,0,2))#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color", "date2")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/tag"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-model-count-other.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-model-count-other.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2$date2 = paste0(df2$month, "-", substr(df2$year,0,2))#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color", "date2")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/tag"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-model-count.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-model-count.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-#df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2$date2 = paste0(df2$month, "-", substr(df2$year,0,2))#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color", "date2")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/tag"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-model-count-other.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-model-count-other.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-#df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2$date2 = paste0(df2$month, "-", substr(df2$year,3,4))#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color", "date2")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/tag"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-model-count-other.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-model-count-other.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2$date2 = paste0(df2$month, "-", substr(df2$year,3,4))#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color", "date2")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/tag"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-model-count.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-model-count.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-#df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2$date2 = paste0(df2$month, "-", substr(df2$year,3,4))#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color", "date2")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/tag"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-model-count-other.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-model-count-other.html"))
-####
-### NETWORK GRAPH OF MODELS#
-####
-#
-source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/sparse.co.occurrence.chunked.R")#
-source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/d3plus.network.R")#
-source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/keep.top.links.R")#
-#
-library(data.table)#
-library (EconGeo)#
-library (jsonlite)#
-#
-# LOAD HF MODEL LIKE HISTORY#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-links = fread("likes_2024.csv")[, c("username", "id")]#
-links2 = links#
-links2$sum = 1#
-links2$sum = ave(links2$sum, links2$id, FUN = sum)#
-#links2 = unique (subset(links2[, c("id", "sum")], links2$sum>600))#
-links2 = unique (links2[, c("id", "sum")])#
-links2 = links2[order(-links2$sum), ]#
-n=50#
-links2 = links2[1:n, ]#
-links = subset (links, links$id %in% links2$id)#
-#
-nodes = fread("hf_models.csv")#
-nodes = subset (nodes, nodes$id %in% links$id)#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-nodes = merge (nodes, parent, by = "pipeline_tag", all.x = T)#
-nodes$id=nodes$id#
-nodes$size = nodes$likes#
-nodes$parent = nodes$tag#
-nodes$color = nodes$color#
-nodes$parent2 = nodes$author#
-nodes$likes = nodes$likes#
-#
-nodes = unique (nodes[, c("id", "size", "parent", "color", #
-                          "parent2", "likes")])#
-links = sparse.co.occurrence.chunked(links)#
-#
-links = relatedness(links, method = "cosine")#
-links = get_list(links)#
-links = subset (links, links$Count>0)#
-colnames (links) = c("from", "to", "weight")#
-#
-# add most related#
-library(dplyr)#
-df3 = keep.top.links(links, 5)#
-df3 <- df3 %>%#
-  group_by(from) %>%#
-  summarise(#
-    related = paste(#
-      sprintf("%s (%0.4f)", #
-              to, #
-              weight),#
-      collapse = ", "#
-    )#
+d3plus.network = function (links) {#
+  colnames (links) = c("from", "to", "weight")#
+  if (!exists("nodes")) nodes <- data.frame(id = unique (links$from))#
+  if (!exists("savename")) savename <- "network"#
+  if (!exists("topedges")) topedges <- 2#
+  if (!exists("topedges2")) topedges2 <- 4#
+  if (!exists("spread_factor")) spread_factor <- 4#
+  if (!exists("spread_angle")) spread_angle <- 45#
+  library(data.table)#
+  library (EconGeo)#
+  library (jsonlite)#
+  library(igraph)#
+  source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/keep.top.links.R")#
+  source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/spread.fr.algo.R")#
+  source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/layout.networkd3.R")#
+  # html source location#
+  setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/_source")#
+  if (!exists("p1")) p1 <- paste(readLines("graph-part-1.html"), collapse="\n") #before json data#
+  if (!exists("p3")) p3 <- paste(readLines("graph-part-3.html"), collapse="\n") #before json data#
+  if (!exists("p5")) p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
+  g <- graph_from_data_frame(links, directed=F, vertices=nodes)#
+  #g <- graph_from_data_frame(links, directed=F)#
+  layout_coords_full <- layout.networkd3(g)#
+  E(g)$weight <- -links$weight # Negate the weights to find the maximum spanning tree#
+  mst <- mst(g, weights = E(g)$weight) # Compute the maximum spanning tree#
+  E(mst)$weight <- abs(E(mst)$weight) # Restore the original weights (positive)#
+  # now add top edges#
+  df3 = links[order(-links$weight),]#
+  df3 = df3[1:(length(unique(df3$from))*topedges),]#
+  g <- graph_from_data_frame(df3, directed=F, vertices=nodes)#
+  #combined_graph <- mst#
+  new_edges <- get.edges(g, E(g))#
+  mst <- add_edges(mst, edges = new_edges, attr = edge.attributes(g))#
+  # add top links per node now (not before not to mess up the layout)#
+  #df3 = keep.top.links(links, topedges2)#
+  #df3 = df3[complete.cases(df3),]#
+  #g <- graph_from_data_frame(df3, directed=F, vertices=nodes)#
+  #new_edges <- get.edges(g, E(g))#
+  #mst <- add_edges(mst, edges = new_edges, attr = edge.attributes(g))#
+  # Usage:#
+  layout_coords <- layout.networkd3(mst)#
+  layout_coords = spread.fr.algo(layout_coords,factor = spread_factor, angle = spread_angle)#
+#
+  # compute x/y#
+  layout_fr <- spread.fr.algo(layout_with_fr(mst), factor = spread_factor, angle = spread_angle) # spread Fruchterman-Reingold layout#
+  V(mst)$x_fr <- layout_fr[,1] # Fruchterman-Reingold layout#
+  V(mst)$y_fr <- layout_fr[,2] # Fruchterman-Reingold layout#
+  V(mst)$x_kk <- layout_with_kk(mst)[,1] # Kamada-Kawai layout#
+  V(mst)$y_kk <- layout_with_kk(mst)[,2] # Kamada-Kawai layout#
+  V(mst)$x_d3 <- layout_coords[,1] # Fruchterman-Reingold layout#
+  V(mst)$y_d3 <- layout_coords[,2] # Fruchterman-Reingold layout#
+  V(mst)$x_d3_full <- layout_coords_full[,1] # Fruchterman-Reingold layout#
+  V(mst)$y_d3_full <- layout_coords_full[,2] # Fruchterman-Reingold layout#
+  # detect communities for colors #
+  V(mst)$parent_louvain = as.factor(membership(cluster_louvain(mst)))#
+  V(mst)$color_louvain <- rainbow(length(unique(membership(cluster_louvain(mst)))))[membership(cluster_louvain(mst))]#
+  # size in the mst network#
+  V(mst)$size_g = closeness(mst)#
+  # replace possible missing node variables#
+  if (is.null(vertex_attr(mst, "size"))) {V(mst)$size <- V(mst)$size_g}#
+  if (is.null(vertex_attr(mst, "parent"))) {V(mst)$parent <- V(mst)$parent_louvain}#
+  if (is.null(vertex_attr(mst, "color"))) {V(mst)$color <- V(mst)$color_louvain}#
+  if (is.null(vertex_attr(mst, "x"))) {V(mst)$x <- V(mst)$x_d3}#
+  if (is.null(vertex_attr(mst, "y"))) {V(mst)$y <- V(mst)$y_d3}#
+  if (is.null(vertex_attr(mst, "related"))) {V(mst)$related <- "No information"}#
+  g = mst#
+  # format to d3plus#
+  V(g)$name2 = V(g)$name #
+  V(g)$index = c(1:length(V(g)$name))#
+  V(g)$name = as.numeric(factor (V(g)$index))-1 # id & links needs to start at 0 in D3plus#
+  #vertex_attr(g) # see all attributes#
+  nodes2 = data.frame(#
+    id = V(g)$name2, #
+    id2 = V(g)$name, #
+    x = V(g)$x,#
+    y = V(g)$y, #
+    color = V(g)$color, #
+    parent = V(g)$parent, #
+    size = V(g)$size, #
+    related = V(g)$related#
   )#
-nodes = merge (nodes, df3, by.x = "id", by.y = "from")#
-#
-dir = "/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
-topedges2 = 2#
-savename = "network-small"#
-spread_factor <- 20#
-d3plus.network(links)
-####
-### NETWORK GRAPH OF MODELS#
-####
-#
-source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/sparse.co.occurrence.chunked.R")#
-source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/d3plus.network.R")#
-source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/keep.top.links.R")#
-#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
-p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
-#
-library(data.table)#
-library (EconGeo)#
-library (jsonlite)#
-#
-# LOAD HF MODEL LIKE HISTORY#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-links = fread("likes_2024.csv")[, c("username", "id")]#
-nodes = fread("hf_models.csv")#
-nodes = subset (nodes, nodes$id %in% links$id)#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-nodes = merge (nodes, parent, by = "pipeline_tag", all.x = T)#
-nodes$id=nodes$id#
-nodes$size = nodes$likes#
-nodes$parent = nodes$tag#
-nodes$color = nodes$color#
-nodes$parent2 = nodes$author#
-nodes$likes = nodes$likes#
-#
-nodes = unique (nodes[, c("id", "size", "parent", "color", #
-                          "parent2", "likes")])#
-links = sparse.co.occurrence.chunked(links)#
-#
-links = relatedness(links, method = "cosine")#
-links = get_list(links)#
-links = subset (links, links$Count>0)#
-colnames (links) = c("from", "to", "weight")#
-#
-# add most related#
-library(dplyr)#
-df3 = keep.top.links(links, 5)#
-df3 <- df3 %>%#
-  group_by(from) %>%#
-  summarise(#
-    related = paste(#
-      sprintf("%s (%0.4f)", #
-              to, #
-              weight),#
-      collapse = ", "#
-    )#
-  )#
-nodes = merge (nodes, df3, by.x = "id", by.y = "from")#
-#
-dir = "/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
-topedges2 = 2#
-savename = "network2"#
-spread_factor <- 20#
-d3plus.network(links)
+  links2 <- as.data.frame(cbind( as_edgelist(g) , round( E(g)$weight, 3 )))#
+  colnames (links2) = c("source", "target", "weight")#
+  links2 = subset (links2, links2$weight>0)#
+  # convert to JSON#
+  p2 = toJSON(nodes2, encoding = "latin-ascii")#
+  p2 = gsub('"x"', 'x', p2) # remove quotes that cause a pb#
+  p2 = gsub('"y"', 'y', p2) # remove quotes that cause a pb#
+  #p5 = gsub(".sizeMax(40)\n", "hola", p5) # remove quotes that cause a pb#
+  p4 = toJSON(links2)#
+  p4 = gsub('"', '', p4) # remove quotes that cause a pb#
+  all = paste (p1, p2, p3, p4, p5, collapse="\n")#
+  # save as d3plus network#
+  setwd(dir)#
+  writeLines(all, paste0(savename, ".html"))#
+  }
 ####
 ### NETWORK GRAPH OF MODELS#
 ####
 #
 setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
-p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
+#p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
+#p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
 #
 source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/sparse.co.occurrence.chunked.R")#
 source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/d3plus.network.R")#
@@ -1482,78 +396,7 @@ library (jsonlite)#
 # LOAD HF MODEL LIKE HISTORY#
 setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
 links = fread("likes_2024.csv")[, c("username", "id")]#
-links2 = links#
-links2$sum = 1#
-links2$sum = ave(links2$sum, links2$id, FUN = sum)#
-#links2 = unique (subset(links2[, c("id", "sum")], links2$sum>600))#
-links2 = unique (links2[, c("id", "sum")])#
-links2 = links2[order(-links2$sum), ]#
-n=50#
-links2 = links2[1:n, ]#
-links = subset (links, links$id %in% links2$id)#
 #
-nodes = fread("hf_models.csv")#
-nodes = subset (nodes, nodes$id %in% links$id)#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-nodes = merge (nodes, parent, by = "pipeline_tag", all.x = T)#
-nodes$id=nodes$id#
-nodes$size = nodes$likes#
-nodes$parent = nodes$tag#
-nodes$color = nodes$color#
-nodes$parent2 = nodes$author#
-nodes$likes = nodes$likes#
-#
-nodes = unique (nodes[, c("id", "size", "parent", "color", #
-                          "parent2", "likes")])#
-links = sparse.co.occurrence.chunked(links)#
-#
-links = relatedness(links, method = "cosine")#
-links = get_list(links)#
-links = subset (links, links$Count>0)#
-colnames (links) = c("from", "to", "weight")#
-#
-# add most related#
-library(dplyr)#
-df3 = keep.top.links(links, 5)#
-df3 <- df3 %>%#
-  group_by(from) %>%#
-  summarise(#
-    related = paste(#
-      sprintf("%s (%0.4f)", #
-              to, #
-              weight),#
-      collapse = ", "#
-    )#
-  )#
-nodes = merge (nodes, df3, by.x = "id", by.y = "from")#
-#
-dir = "/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
-topedges2 = 2#
-savename = "network-small"#
-spread_factor <- 20#
-d3plus.network(links)
-####
-### NETWORK GRAPH OF MODELS#
-####
-#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
-p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
-#
-source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/sparse.co.occurrence.chunked.R")#
-source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/d3plus.network.R")#
-source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/keep.top.links.R")#
-#
-library(data.table)#
-library (EconGeo)#
-library (jsonlite)#
-#
-# LOAD HF MODEL LIKE HISTORY#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-links = fread("likes_2024.csv")[, c("username", "id")]#
 links2 = links#
 links2$sum = 1#
 links2$sum = ave(links2$sum, links2$id, FUN = sum)#
@@ -1578,6 +421,10 @@ nodes$likes = nodes$likes#
 #
 nodes = unique (nodes[, c("id", "size", "parent", "color", #
                           "parent2", "likes")])#
+#
+#nodes$id <- sub("^[^/]+/", "", nodes$id)#
+#links$id <- sub("^[^/]+/", "", links$id)#
+#
 links = sparse.co.occurrence.chunked(links)#
 #
 links = relatedness(links, method = "cosine")#
@@ -1592,9 +439,9 @@ df3 <- df3 %>%#
   group_by(from) %>%#
   summarise(#
     related = paste(#
-      sprintf("%s (%0.4f)", #
-              to, #
-              weight),#
+    sprintf("%s (%0.4f)", #
+            to, #
+             weight),#
       collapse = ", "#
     )#
   )#
@@ -1605,157 +452,15 @@ setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
 p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
 topedges2 = 2#
 savename = "network-small"#
-spread_factor <- 20#
+spread_factor <- 200#
 d3plus.network(links)
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-#df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-df$date <- format(as.Date(df$created_at), "%Y-%m")#
-df$month_factor <- as.factor(df$date)#
-df$month_numeric <- as.numeric(df$month_factor)#
-df$x = df$month_numeric#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2$date2 = paste0(df2$month, "-", substr(df2$year,3,4))#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color", "date2")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-#df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/tag"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-model-count-other.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-model-count-other.html"))
-library(jsonlite)#
-library(data.table)#
-library (dplyr)#
-library(lubridate)#
-#
-# html source location - smart#
-setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 = paste(readLines("stacked-p1.html"), collapse="\n") #before json data#
-p3 = paste(readLines("stacked-p3.html"), collapse="\n") #before json data#
-#
-setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
-df = fread("hf_models.csv")#
-df <- df[!(df$pipeline_tag == ""), ] # HERE ONLY WITH TAG#
-parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
-parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
-df = merge (df, parent, by = "pipeline_tag", all.x = T)#
-#
-df$created <- as.POSIXct(df$created_at, format="%Y-%m-%d %H:%M:%S")#
-df$year <- as.numeric(format(df$created, "%Y"))#
-df$month <- as.numeric(format(df$created, "%m"))#
-df$day <- as.numeric(format(df$created, "%d"))#
-#
-df$week <- make_date(year = df$year, month = df$month, day = df$day)#
-df$week <- week(df$week) # Add week of year column#
-df$date = paste0(df$year, "-", df$month, "-", df$week)#
-df$date = paste0(df$year, "-", df$month)#
-#
-df$date <- format(as.Date(df$created_at), "%Y-%m")#
-df$month_factor <- as.factor(df$date)#
-df$month_numeric <- as.numeric(df$month_factor)#
-df$x = df$month_numeric#
-#
-#plot! #
-#
-df2 = df#
-df2$id = df2$tag#
-#df2$id = df2$pipeline#
-df2$value = 1#
-df2$value = ave(df2$value, paste0(df2$id, df2$date), FUN = sum)#
-df2$x = df2$date#
-df2$likes = df2$value#
-df2$date2 = paste0(df2$month, "-", substr(df2$year,3,4))#
-df2 = distinct(df2)#
-df2 = df2[, c("id", "x", "likes", "color", "date2")]#
-df2 = distinct(df2)#
-#
-df2$total = ave(df2$likes, df2$x, FUN = sum)#
-df2 <- df2[order(df2$id, df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-df2$likes.cum <- ave(df2$likes, df2$id, FUN = cumsum)#
-#
-df3 = df2[, c("x", "total")]#
-df3 = unique (df3)#
-df3 <- df3[order(df3$x), ] # Ensure data is sorted by 'id' and 'x'#
-#
-df3$total.cum <- ave(df3$total, FUN = cumsum)#
-df3$total=NULL #
-df2 = merge (df2, df3, by = "x")#
-#
-df2$likes.pc = 100*df2$likes/df2$total#
-df2$likes.cum.pc = 100*df2$likes.cum/df2$total.cum#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-#
-### -> likes#
-df2$y = df2$likes.cum#
-df2 = df2[complete.cases(df2),]#
-df2 <- df2[order(df2$x), ] # Ensure data is sorted by 'id' and 'x'#
-#df2$x = as.numeric(as.factor(df2$x))#
-setwd(paste0("/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/tag"))#
-write(toJSON(df2, pretty = TRUE), paste0("stacked-model-count.json"))#
-writeLines(paste (p1, toJSON(df2, pretty = TRUE), p3, collapse="\n"), paste0("stacked-model-count.html"))
 ####
 ### NETWORK GRAPH OF MODELS#
 ####
 #
 setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
-p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
-p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
+#p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
+#p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
 #
 source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/sparse.co.occurrence.chunked.R")#
 source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/d3plus.network.R")#
@@ -1768,13 +473,14 @@ library (jsonlite)#
 # LOAD HF MODEL LIKE HISTORY#
 setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
 links = fread("likes_2024.csv")[, c("username", "id")]#
+#
 links2 = links#
 links2$sum = 1#
 links2$sum = ave(links2$sum, links2$id, FUN = sum)#
 #links2 = unique (subset(links2[, c("id", "sum")], links2$sum>600))#
 links2 = unique (links2[, c("id", "sum")])#
 links2 = links2[order(-links2$sum), ]#
-n=50#
+n=70#
 links2 = links2[1:n, ]#
 links = subset (links, links$id %in% links2$id)#
 #
@@ -1792,6 +498,10 @@ nodes$likes = nodes$likes#
 #
 nodes = unique (nodes[, c("id", "size", "parent", "color", #
                           "parent2", "likes")])#
+#
+#nodes$id <- sub("^[^/]+/", "", nodes$id)#
+#links$id <- sub("^[^/]+/", "", links$id)#
+#
 links = sparse.co.occurrence.chunked(links)#
 #
 links = relatedness(links, method = "cosine")#
@@ -1801,23 +511,408 @@ colnames (links) = c("from", "to", "weight")#
 #
 # add most related#
 library(dplyr)#
-#df3 = keep.top.links(links, 5)#
-#df3 <- df3 %>%#
- # group_by(from) %>%#
- # summarise(#
- #   related = paste(#
-  #    sprintf("%s (%0.4f)", #
-   #           to, #
-   #           weight),#
-    #  collapse = ", "#
-   # )#
- # )#
-#nodes = merge (nodes, df3, by.x = "id", by.y = "from")#
+df3 = keep.top.links(links, 5)#
+df3 <- df3 %>%#
+  group_by(from) %>%#
+  summarise(#
+    related = paste(#
+    sprintf("%s (%0.4f)", #
+            to, #
+             weight),#
+      collapse = ", "#
+    )#
+  )#
+nodes = merge (nodes, df3, by.x = "id", by.y = "from")#
 #
 dir = "/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"#
 setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
 p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
-topedges2 = 2#
+topedges2 = 3#
 savename = "network-small"#
-spread_factor <- 20#
+spread_factor <- 200#
+d3plus.network(links)
+####
+### NETWORK GRAPH OF MODELS#
+####
+#
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
+#p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
+#p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
+#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/sparse.co.occurrence.chunked.R")#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/d3plus.network.R")#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/keep.top.links.R")#
+#
+library(data.table)#
+library (EconGeo)#
+library (jsonlite)#
+#
+# LOAD HF MODEL LIKE HISTORY#
+setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
+links = fread("likes_2024.csv")[, c("username", "id")]#
+#
+links2 = links#
+links2$sum = 1#
+links2$sum = ave(links2$sum, links2$id, FUN = sum)#
+#links2 = unique (subset(links2[, c("id", "sum")], links2$sum>600))#
+links2 = unique (links2[, c("id", "sum")])#
+links2 = links2[order(-links2$sum), ]#
+n=70#
+links2 = links2[1:n, ]#
+links = subset (links, links$id %in% links2$id)#
+#
+nodes = fread("hf_models.csv")#
+nodes = subset (nodes, nodes$id %in% links$id)#
+parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
+parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
+nodes = merge (nodes, parent, by = "pipeline_tag", all.x = T)#
+nodes$id=nodes$id#
+nodes$size = nodes$likes#
+nodes$parent = nodes$tag#
+nodes$color = nodes$color#
+nodes$parent2 = nodes$author#
+nodes$likes = nodes$likes#
+#
+nodes = unique (nodes[, c("id", "size", "parent", "color", #
+                          "parent2", "likes")])#
+#
+#nodes$id <- sub("^[^/]+/", "", nodes$id)#
+#links$id <- sub("^[^/]+/", "", links$id)#
+#
+links = sparse.co.occurrence.chunked(links)#
+#
+links = relatedness(links, method = "cosine")#
+links = get_list(links)#
+links = subset (links, links$Count>0)#
+colnames (links) = c("from", "to", "weight")#
+#
+# add most related#
+library(dplyr)#
+df3 = keep.top.links(links, 5)#
+df3 <- df3 %>%#
+  group_by(from) %>%#
+  summarise(#
+    related = paste(#
+    sprintf("%s (%0.4f)", #
+            to, #
+             weight),#
+      collapse = ", "#
+    )#
+  )#
+nodes = merge (nodes, df3, by.x = "id", by.y = "from")#
+#
+dir = "/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"#
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
+p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
+topedges2 = 3#
+savename = "network-small"#
+spread_factor <- 200#
+d3plus.network(links)
+####
+### NETWORK GRAPH OF MODELS#
+####
+#
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
+#p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
+#p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
+#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/sparse.co.occurrence.chunked.R")#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/d3plus.network.R")#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/keep.top.links.R")#
+#
+library(data.table)#
+library (EconGeo)#
+library (jsonlite)#
+#
+# LOAD HF MODEL LIKE HISTORY#
+setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
+links = fread("likes_2024.csv")[, c("username", "id")]#
+#
+links2 = links#
+links2$sum = 1#
+links2$sum = ave(links2$sum, links2$id, FUN = sum)#
+#links2 = unique (subset(links2[, c("id", "sum")], links2$sum>600))#
+links2 = unique (links2[, c("id", "sum")])#
+links2 = links2[order(-links2$sum), ]#
+n=70#
+links2 = links2[1:n, ]#
+links = subset (links, links$id %in% links2$id)#
+#
+nodes = fread("hf_models.csv")#
+nodes = subset (nodes, nodes$id %in% links$id)#
+parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
+parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
+nodes = merge (nodes, parent, by = "pipeline_tag", all.x = T)#
+nodes$id=nodes$id#
+nodes$size = nodes$likes#
+nodes$parent = nodes$tag#
+nodes$color = nodes$color#
+nodes$parent2 = nodes$author#
+nodes$likes = nodes$likes#
+#
+nodes = unique (nodes[, c("id", "size", "parent", "color", #
+                          "parent2", "likes")])#
+#
+#nodes$id <- sub("^[^/]+/", "", nodes$id)#
+#links$id <- sub("^[^/]+/", "", links$id)#
+#
+links = sparse.co.occurrence.chunked(links)#
+#
+links = relatedness(links, method = "cosine")#
+links = get_list(links)#
+links = subset (links, links$Count>0)#
+colnames (links) = c("from", "to", "weight")#
+#
+# add most related#
+library(dplyr)#
+df3 = keep.top.links(links, 5)#
+df3 <- df3 %>%#
+  group_by(from) %>%#
+  summarise(#
+    related = paste(#
+    sprintf("%s (%0.4f)", #
+            to, #
+             weight),#
+      collapse = ", "#
+    )#
+  )#
+nodes = merge (nodes, df3, by.x = "id", by.y = "from")#
+#
+dir = "/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"#
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
+p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
+topedges2 = 3#
+savename = "network-small"#
+spread_factor <- 200#
+d3plus.network(links)
+####
+### NETWORK GRAPH OF MODELS#
+####
+#
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
+#p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
+#p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
+#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/sparse.co.occurrence.chunked.R")#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/d3plus.network.R")#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/keep.top.links.R")#
+#
+library(data.table)#
+library (EconGeo)#
+library (jsonlite)#
+#
+# LOAD HF MODEL LIKE HISTORY#
+setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
+links = fread("likes_2024.csv")[, c("username", "id")]#
+#
+links2 = links#
+links2$sum = 1#
+links2$sum = ave(links2$sum, links2$id, FUN = sum)#
+#links2 = unique (subset(links2[, c("id", "sum")], links2$sum>600))#
+links2 = unique (links2[, c("id", "sum")])#
+links2 = links2[order(-links2$sum), ]#
+n=70#
+links2 = links2[1:n, ]#
+links = subset (links, links$id %in% links2$id)#
+#
+nodes = fread("hf_models.csv")#
+nodes = subset (nodes, nodes$id %in% links$id)#
+parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
+parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
+nodes = merge (nodes, parent, by = "pipeline_tag", all.x = T)#
+nodes$id=nodes$id#
+nodes$size = nodes$likes#
+nodes$parent = nodes$tag#
+nodes$color = nodes$color#
+nodes$parent2 = nodes$author#
+nodes$likes = nodes$likes#
+#
+nodes = unique (nodes[, c("id", "size", "parent", "color", #
+                          "parent2", "likes")])#
+#
+#nodes$id <- sub("^[^/]+/", "", nodes$id)#
+#links$id <- sub("^[^/]+/", "", links$id)#
+#
+links = sparse.co.occurrence.chunked(links)#
+#
+links = relatedness(links, method = "cosine")#
+links = get_list(links)#
+links = subset (links, links$Count>0)#
+colnames (links) = c("from", "to", "weight")#
+#
+# add most related#
+library(dplyr)#
+df3 = keep.top.links(links, 5)#
+df3 <- df3 %>%#
+  group_by(from) %>%#
+  summarise(#
+    related = paste(#
+    sprintf("%s (%0.4f)", #
+            to, #
+             weight),#
+      collapse = ", "#
+    )#
+  )#
+nodes = merge (nodes, df3, by.x = "id", by.y = "from")#
+#
+dir = "/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"#
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
+p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
+topedges2 = 3#
+savename = "network-small"#
+spread_factor <- 200#
+d3plus.network(links)
+####
+### NETWORK GRAPH OF MODELS#
+####
+#
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
+#p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
+#p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
+#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/sparse.co.occurrence.chunked.R")#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/d3plus.network.R")#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/keep.top.links.R")#
+#
+library(data.table)#
+library (EconGeo)#
+library (jsonlite)#
+#
+# LOAD HF MODEL LIKE HISTORY#
+setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
+links = fread("likes_2024.csv")[, c("username", "id")]#
+#
+links2 = links#
+links2$sum = 1#
+links2$sum = ave(links2$sum, links2$id, FUN = sum)#
+#links2 = unique (subset(links2[, c("id", "sum")], links2$sum>600))#
+links2 = unique (links2[, c("id", "sum")])#
+links2 = links2[order(-links2$sum), ]#
+n=70#
+links2 = links2[1:n, ]#
+links = subset (links, links$id %in% links2$id)#
+#
+nodes = fread("hf_models.csv")#
+nodes = subset (nodes, nodes$id %in% links$id)#
+parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
+parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
+nodes = merge (nodes, parent, by = "pipeline_tag", all.x = T)#
+nodes$id=nodes$id#
+nodes$size = nodes$likes#
+nodes$parent = nodes$tag#
+nodes$color = nodes$color#
+nodes$parent2 = nodes$author#
+nodes$likes = nodes$likes#
+#
+nodes = unique (nodes[, c("id", "size", "parent", "color", #
+                          "parent2", "likes")])#
+#
+#nodes$id <- sub("^[^/]+/", "", nodes$id)#
+#links$id <- sub("^[^/]+/", "", links$id)#
+#
+links = sparse.co.occurrence.chunked(links)#
+#
+links = relatedness(links, method = "cosine")#
+links = get_list(links)#
+links = subset (links, links$Count>0)#
+colnames (links) = c("from", "to", "weight")#
+#
+# add most related#
+library(dplyr)#
+df3 = keep.top.links(links, 5)#
+df3 <- df3 %>%#
+  group_by(from) %>%#
+  summarise(#
+    related = paste(#
+    sprintf("%s (%0.4f)", #
+            to, #
+             weight),#
+      collapse = ", "#
+    )#
+  )#
+nodes = merge (nodes, df3, by.x = "id", by.y = "from")#
+#
+dir = "/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"#
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
+p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
+topedges2 = 3#
+savename = "network-small"#
+spread_factor <- 200#
+d3plus.network(links)
+####
+### NETWORK GRAPH OF MODELS#
+####
+#
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
+#p1 <- paste(readLines("part-1.html"), collapse="\n") #before json data#
+#p3 <- paste(readLines("part-3.html"), collapse="\n") #before json data#
+#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/sparse.co.occurrence.chunked.R")#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/d3plus-network/d3plus.network.R")#
+source("/Users/pierre-alex/Dropbox/1-asg/1-production/2-code/keep.top.links.R")#
+#
+library(data.table)#
+library (EconGeo)#
+library (jsonlite)#
+#
+# LOAD HF MODEL LIKE HISTORY#
+setwd("~/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/testing")#
+links = fread("likes_2024.csv")[, c("username", "id")]#
+#
+links2 = links#
+links2$sum = 1#
+links2$sum = ave(links2$sum, links2$id, FUN = sum)#
+#links2 = unique (subset(links2[, c("id", "sum")], links2$sum>600))#
+links2 = unique (links2[, c("id", "sum")])#
+links2 = links2[order(-links2$sum), ]#
+n=70#
+links2 = links2[1:n, ]#
+links = subset (links, links$id %in% links2$id)#
+#
+nodes = fread("hf_models.csv")#
+nodes = subset (nodes, nodes$id %in% links$id)#
+parent = fread("hf_models_tasks_parent.csv") # add parents for pipeline tags #
+parent$pipeline_tag = gsub(" ", "-", tolower(parent$task))#
+nodes = merge (nodes, parent, by = "pipeline_tag", all.x = T)#
+nodes$id=nodes$id#
+nodes$size = nodes$likes#
+nodes$parent = nodes$tag#
+nodes$color = nodes$color#
+nodes$parent2 = nodes$author#
+nodes$likes = nodes$likes#
+#
+nodes = unique (nodes[, c("id", "size", "parent", "color", #
+                          "parent2", "likes")])#
+#
+#nodes$id <- sub("^[^/]+/", "", nodes$id)#
+#links$id <- sub("^[^/]+/", "", links$id)#
+#
+links = sparse.co.occurrence.chunked(links)#
+#
+links = relatedness(links, method = "cosine")#
+links = get_list(links)#
+links = subset (links, links$Count>0)#
+colnames (links) = c("from", "to", "weight")#
+#
+# add most related#
+library(dplyr)#
+df3 = keep.top.links(links, 5)#
+df3 <- df3 %>%#
+  group_by(from) %>%#
+  summarise(#
+    related = paste(#
+    sprintf("%s (%0.4f)", #
+            to, #
+             weight),#
+      collapse = ", "#
+    )#
+  )#
+nodes = merge (nodes, df3, by.x = "id", by.y = "from")#
+#
+dir = "/Users/pierre-alex/Dropbox/PABalland.github.io/hf/api/model/model"#
+setwd("/Users/pierre-alex/Dropbox/1-asg/1-production/1-data/HUGGING-FACE/viz")#
+p5 <- paste(readLines("graph-part-5.html"), collapse="\n") #before json data#
+topedges2 = 3#
+savename = "network-small"#
+spread_factor <- 200#
 d3plus.network(links)
