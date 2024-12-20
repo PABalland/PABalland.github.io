@@ -1,0 +1,742 @@
+<!DOCTYPE html><html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    /* 1) Prevent any scrolling on the page */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      /* Hides scrollbars */
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background-color: #1a1a1a;
+    }
+
+    .container {
+      /* 2) Container takes full viewport height */
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      /* Some padding for breathing space */
+      padding: 20px 10px;
+    }
+
+    .snow {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: white;
+      border-radius: 50%;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% {
+        transform: translateY(-100vh) translateX(0);
+      }
+      100% {
+        transform: translateY(100vh) translateX(20px);
+      }
+    }
+
+    .tree {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* Larger max width for desktop, but still scales down for mobile */
+      max-width: 1200px;
+      width: 100%;
+      /* Put some margin up top for the star and top blocks */
+      margin-top: 10px;
+    }
+
+    .row {
+      position: static;  /* or relative, as long as you do not impose a new stacking context */
+      overflow: visible;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    /* Original block styling */
+    .block {
+      width: 100px;
+      height: 100px;
+      background-color: #2d5a27;
+      margin: 4px;
+      position: relative;
+      overflow: visible; /* do not clip content that extends beyond the block */
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .model-link {
+      text-decoration: none;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .rank-number {
+      font-size: 28px;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: bold;
+      z-index: auto;
+    }
+
+    /* Hover tooltip for the tree blocks: appears below the block */
+    .block:hover::after {
+      content: attr(data-info);
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      width: min(300px, 80vw);
+      left: 50%;
+      transform: translateX(-50%);
+      top: -70%;
+      z-index: 9001;
+      font-size: 14px;
+    }
+
+    /* Presents section */
+    .presents {
+      margin-top: 15px; /* was 30px */
+      display: flex;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 20px;        /* was 12px */
+      justify-content: center;
+    }
+
+    /* Original present styling */
+    .present {
+      width: 90px;
+      height: 90px;
+      background-color: #ff4d4d;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .present::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #ffd700;
+      z-index: 1;
+    }
+
+    .present::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background-color: #ffd700;
+      z-index: 1;
+    }
+
+    /* Tooltip for presents: shown above */
+    .present:hover::after {
+      content: attr(data-info);
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      width: min(300px, 80vw);
+      left: 50%;
+      transform: translateX(-50%);
+      top: auto;
+      bottom: 100%;
+      margin-bottom: 10px;
+      z-index: 9000;
+      font-size: 14px;
+    }
+
+    /* Mobile Responsive Adjustments */
+    @media (max-width: 600px) {
+      .block, .present {
+        width: 60px;
+        height: 60px;
+        margin: 2px;
+      }
+      .rank-number {
+        font-size: 18px;
+      }
+      .block:hover::after, .present:hover::after {
+        width: 200px;
+        font-size: 12px;
+        z-index: 9999 ,!important;
+      }
+      .presents {
+        gap: 10px;
+      }
+    }
+
+    /* FLIP EFFECT STYLES */
+    .flip-container {
+      perspective: 1000px; /* Adjust as desired for 3D effect */
+      position: relative;
+      overflow: visible;
+      /* z-index: 1; */
+    }
+    .flipper {
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s;
+      position: relative;
+    }
+    .flip-container:hover .flipper {
+      transform: rotateY(180deg);
+    }
+    .front,
+    .back {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .front {
+      transform: rotateY(0deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .back {
+      transform: rotateY(180deg);
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    /* Remove z-index from flip container and children */
+    .flip-container,
+    .flipper,
+    .front,
+    .back {
+    z-index: auto !important;
+    overflow: visible; /* ensure no clipping */
+    }
+
+    /* Greatly increase tooltip z-index */
+    .block:hover::after,
+    .present:hover::after {
+    z-index: 999999 !important;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="tree">
+      <!-- Big golden star at the top -->
+      <span style="font-size:500%; color:gold;">★</span>
+
+      <!-- Row 1 (Peak) -->
+      <div class="row">
+        <div 
+          class="block flip-container"
+          data-info="model: Athene-v2-Chat-72B, org: NexusFlow, license: NexusFlow, pub_date: 1.72714e+12, arena_score: 1277">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/Nexusflow/Athene-V2-Chat" 
+                 class="model-link" target="_blank" rel="noopener noreferrer">
+                <span class="rank-number">1</span>
+              </a>
+            </div>
+            <div class="back" 
+                 style="background-image: url('logos/Athene-v2-Chat-72B.jpeg');">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="row">
+        <div 
+          class="block flip-container"
+          data-info="model: Llama-3.1-Nemotron-70B-Instruct, org: Nvidia, license: Llama 3.1, pub_date: 1.72912e+12, arena_score: 1269">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/nvidia/Llama-3.1-Nemotron-70B-Instruct" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">2</span>
+              </a>
+            </div>
+            <div class="back" 
+                 style="background-image: url('logos/Llama-3.1-Nemotron-70B-Instruct.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: Deepseek-v2.5, org: DeepSeek, license: DeepSeek, pub_date: 1.72549e+12, arena_score: 1258">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/deepseek-ai/DeepSeek-V2.5" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">3</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Deepseek-v2.5.jpg');">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3 -->
+      <div class="row">
+        <div 
+          class="block flip-container"
+          data-info="model: Jamba-1.5-Large, org: AI21 Labs, license: Jamba Open, pub_date: 1.72428e+12, arena_score: 1221">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/ai21labs/AI21-Jamba-1.5-Large" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">4</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Jamba-1.5-Large.jpg');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: Nemotron-4-340B-Instruct, org: Nvidia, license: NVIDIA Open Model, pub_date: 1.71832e+12, arena_score: 1209">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/nvidia/Nemotron-4-340B-Instruct" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">5</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Nemotron-4-340B-Instruct.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: Command R+ (04-2024), org: Cohere, license: CC-BY-NC-4.0, pub_date: 1.71193e+12, arena_score: 1190">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://docs.cohere.com/v2/docs/command-r-plus" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">6</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Command R+ (04-2024).png');">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 4 -->
+      <div class="row">
+        <div 
+          class="block flip-container"
+          data-info="model: InternLM2.5-20B-chat, org: InternLM, license: Other, pub_date: 1.7223e+12, arena_score: 1149">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/internlm/internlm2_5-20b-chat" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">7</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/InternLM2.5-20B-chat.webp');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: Qwen1.5-72B-Chat, org: Alibaba, license: Qianwen LICENSE, pub_date: 1.707e+12, arena_score: 1147">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/Qwen/Qwen1.5-72B-Chat" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">8</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Qwen1.5-72B-Chat.webp');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: Starling-LM-7B-beta, org: Nexusflow, license: Apache-2.0, pub_date: 1.71089e+12, arena_score: 1119">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/unsloth/Starling-LM-7B-beta" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">9</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Starling-LM-7B-beta.jpeg');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: Tulu-2-DPO-70B, org: AllenAI/UW, license: AI2 ImpACT Low-risk, pub_date: 1.70225e+12, arena_score: 1099">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/allenai/tulu-2-dpo-70b" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">10</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Tulu-2-DPO-70B.png');">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 5 -->
+      <div class="row">
+        <div 
+          class="block flip-container"
+          data-info="model: Llama-2-70B-chat, org: Meta, license: Llama 2 Community, pub_date: 1.68964e+12, arena_score: 1093">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/meta-llama/Llama-2-70b-chat-hf" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">11</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Llama-2-70B-chat.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: Vicuna-33B, org: LMSYS, license: Non-commercial, pub_date: 1.68731e+12, arena_score: 1091">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/lmsys/vicuna-33b-v1.3" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">12</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Vicuna-33B.jpg');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: Snowflake Arctic Instruct, org: Snowflake, license: Apache 2.0, pub_date: 1.71391e+12, arena_score: 1090">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/Snowflake/snowflake-arctic-instruct" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">13</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Snowflake Arctic Instruct.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: OpenChat-3.5, org: OpenChat, license: Apache-2.0, pub_date: 1.70009e+12, arena_score: 1077">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/openchat/openchat_3.5" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">14</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/OpenChat-3.5.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: Dolphin-2.2.1-Mistral-7B, org: Cognitive Computations, license: Apache-2.0, pub_date: 1.69499e+12, arena_score: 1063">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/cognitivecomputations/dolphin-2.2.1-mistral-7b" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">15</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Dolphin-2.2.1-Mistral-7B.jpg');">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 6 -->
+      <div class="row">
+        <div 
+          class="block flip-container"
+          data-info="model: MPT-30B-chat, org: MosaicML, license: CC-BY-NC-SA-4.0, pub_date: 1.68738e+12, arena_score: 1046">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/mosaicml/mpt-30b-chat" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">16</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/MPT-30B-chat.webp');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: CodeLlama-34B-instruct, org: Meta, license: Llama 2 Community, pub_date: 1.69284e+12, arena_score: 1043">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/codellama/CodeLlama-34b-Instruct-hf" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">17</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/CodeLlama-34B-instruct.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: falcon-180b-chat, org: TII, license: Falcon-180B TII License, pub_date: 1.69395e+12, arena_score: 1034">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/tiiuae/falcon-180B-chat" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">18</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/falcon-180b-chat.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: Guanaco-33B, org: UW, license: Non-commercial, pub_date: 1.68471e+12, arena_score: 1032">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/timdettmers/guanaco-33b" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">19</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/Guanaco-33B.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: StripedHyena-Nous-7B, org: Together AI, license: Apache 2.0, pub_date: 1.70199e+12, arena_score: 1017">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/togethercomputer/StripedHyena-Nous-7B" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">20</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/StripedHyena-Nous-7B.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="block flip-container"
+          data-info="model: OLMo-7B-instruct, org: Allen AI, license: Apache-2.0, pub_date: 1.70865e+12, arena_score: 1016">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/allenai/OLMo-7B-Instruct" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">21</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/OLMo-7B-instruct.png');">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Presents -->
+      <div class="presents">
+        <div 
+          class="present flip-container"
+          data-info="model: ChatGLM3-6B, org: Tsinghua, license: Apache-2.0, pub_date: 1.69836e+12, arena_score: 955">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/THUDM/chatglm3-6b" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">22</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/ChatGLM3-6B.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="present flip-container"
+          data-info="model: RWKV-4-Raven-14B, org: RWKV, license: Apache 2.0, pub_date: 1.68471e+12, arena_score: 922">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/RWKV/rwkv-4-raven-14b" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">23</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/RWKV-4-Raven-14B.png');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="present flip-container"
+          data-info="model: OpenAssistant-Pythia-12B, org: OpenAssistant, license: Apache 2.0, pub_date: 1680307200000, arena_score: 893">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/OpenAssistant/oasst-sft-4-pythia-12b-epoch-3.5" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">24</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/OpenAssistant-Pythia-12B.svg');">
+            </div>
+          </div>
+        </div>
+
+        <div 
+          class="present flip-container"
+          data-info="model: StableLM-Tuned-Alpha-7B, org: Stability AI, license: CC-BY-NC-SA-4.0, pub_date: 1681948800000, arena_score: 840">
+          <div class="flipper">
+            <div class="front">
+              <a href="https://huggingface.co/stabilityai/stablelm-tuned-alpha-7b" 
+                 class="model-link" 
+                 target="_blank" 
+                 rel="noopener noreferrer">
+                <span class="rank-number">25</span>
+              </a>
+            </div>
+            <div class="back"
+                 style="background-image: url('logos/StableLM-Tuned-Alpha-7B.png');">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function createSnow() {
+      const container = document.querySelector('.container');
+      for (let i = 0; i < 50; i++) {
+        const snow = document.createElement('div');
+        snow.className = 'snow';
+        snow.style.left = Math.random() * 100 + 'vw';
+        snow.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        snow.style.opacity = Math.random();
+        container.appendChild(snow);
+      }
+    }
+    createSnow();
+  </script>
+</body>
+</html>
