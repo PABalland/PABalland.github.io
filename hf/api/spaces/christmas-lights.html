@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+body
+{
+  background-color: black;
+  margin: 0;
+  overflow: hidden;
+  display: flex;              
+  justify-content: center;     
+  align-items: flex-start; 
+}
+.container {
+  position: relative;
+  width: 60vw;
+  height: 100vh;
+}
+.title {
+  color: #3F9EFA;
+  font-family: Arial, sans-serif;
+  font-size: 24px;
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.line {
+  position: absolute;
+  top: 100px;
+  left: 50%;                  
+  transform: translateX(-50%); 
+  width: 77%; 
+  height: 2px;
+  background: white;
+}
+
+.star-container {
+  position: absolute;
+  top: 100px;
+}
+
+.thread-line {
+  width: 2px;
+  background: white;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.star-wrapper {
+  position: relative;
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+.star-wrapper:hover {
+  cursor: pointer;
+}
+.star-wrapper:hover .star-img {
+  transform: translateX(-50%) scale(1.2);
+  filter: drop-shadow(0 0 6px white);
+}
+.star-wrapper:hover::after {
+  content: attr(data-description);
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  border-radius: 4px;
+  z-index: 9999;
+}
+.star-img {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: transform 0.3s ease;
+}
+.icon-over-star {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  color: white;
+  font-size: 1.5em; /* adjust as needed */
+  pointer-events: none;
+  animation: fall linear infinite;
+}
+
+@keyframes fall {
+  0% { top: -10px; }
+  100% { top: 110vh; }
+}
+
+.legend {
+  position: absolute; 
+  bottom: 20px; 
+  right: 20px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 6px;
+  padding: 10px;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  color: #fff;
+}
+
+.legend-item {
+  display: flex; 
+  align-items: center; 
+  margin: 5px 0;
+}
+
+.legend-color {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  margin-right: 8px;
+}
+
+.legend-color.red {
+  background: red;
+}
+.legend-color.blue {
+  background: blue;
+}
+.legend-color.purple {
+  background: purple;
+}
+
+</style>
+</head>
+<body>
+
+  <div class="legend">
+    <div class="legend-item">
+      <span class="legend-color red"></span> Visuals
+    </div>
+    <div class="legend-item">
+      <span class="legend-color blue"></span> Audio-Based
+    </div>
+    <div class="legend-item">
+      <span class="legend-color purple"></span> Miscellaneous
+    </div>
+  </div>
+  
+<svg width="0" height="0" style="position:absolute;">
+  <symbol id="star-icon" viewBox="0 0 24 24">
+    <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+  </symbol>
+</svg>
+<div class="container">
+  <div class="title">Top Twelve Trending HF Spaces</div>
+  <div class="line"></div>
+</div>
+<script>
+const container = document.querySelector('.container');
+
+const positions = [100,166,232,276,320,364,408,452,496,540,584,628];
+
+const starsData = [
+  {color:'red', size:2.3, drop:180, desc:'Space: Kwai-Kolors/Kolors-Virtual-Try-On\n\nLikes: 6030\n\nDescription: Enables trying on clothes virtually', icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/62f0babaef9cc6810cec02ff/sVnELkcfVo5kxg5308rkr.png', url:'https://huggingface.co/Kwai-Kolors/Kolors'},
+  {color:'red', size:2.0, drop:310, desc:'Space: black-forest-labs/FLUX.1-dev\n\nLikes: 5790\n\nDescription: A 12 billion parameter rectified flow transformer capable of generating images from text descriptions', icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/62cfefa74b3e8dc1e32e38bf/GgkglHn3sIo6C5XGTtZSs.png', url:'https://huggingface.co/spaces/black-forest-labs/FLUX.1-dev'},
+  {color:'red', size:1.5, drop:230, desc:'Space: lllyasviel/iclight-v2\n\nLikes: 888\n\nDescription: Adjusts illumination on images', icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/1671173450971-noauth.jpeg', url:'https://huggingface.co/spaces/lllyasviel/iclight-v2'},
+  {color:'red', size:1.0, drop:80, desc:'Space: multimodalart/flux-style-shaping\n\nLikes: 356\n\nDescription: Creates stylised images with Gradio', icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/1649143001781-624bebf604abc7ebb01789af.jpeg', url:'https://huggingface.co/spaces/multimodalart/flux-style-shaping'},
+  {color:'red', size:1.2, drop:175, desc:'Space: JeffreyXiang/TRELLIS\n\nLikes: 1520\n\nDescription: Generates 3D assets', icon:'https://huggingface.co/avatars/5f48fd02377f62864c5db5555b9bf413.svg', url:'https://huggingface.co/spaces/JeffreyXiang/TRELLIS'},
+  {color:'purple', size:1.0, drop:280, desc:'Space: huggingface/open-source-ai-year-in-review-2024\n\nLikes: 372\n\nDescription: A HF and aiworld.eu collaboration that visualises trends in open-source AI in 2024', icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/1583856921041-5dd96eb166059660ed1ee413.png', url:'https://huggingface.co/spaces/huggingface/open-source-ai-year-in-review-2024'},
+  {color:'red', size:1.0, drop:100, desc:'Space: ginipick/FLUXllama\n\nLikes: 359\n\nDescription: A lightweight model optimised for creating images with text', icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/65acd60b57f263e3d0ff0647/HENR9sR3CDchSDldrYOdS.png', url:'https://huggingface.co/spaces/ginipick/FLUXllama'},
+  {color:'blue', size:1.6, drop:190, desc:'Space: akhaliq/anychat\n\nLikes: 861\n\nDescription: A voice chat with Gemini using real-time audio streaming', icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/1674929746905-60f1abe7544c2adfd699860c.jpeg', url:'https://huggingface.co/spaces/akhaliq/anychat'},
+  {color:'red', size:0.8, drop:140, desc:'Space: ginipick/text3d\n\nLikes: 191\n\nDescription: A 3D style image generator', icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/65acd60b57f263e3d0ff0647/HENR9sR3CDchSDldrYOdS.png', url:'https://huggingface.co/spaces/ginipick/text3d'},
+  {color:'red', size:0.8, drop:200, desc:'Space: franciszzj/Leffa\n\nLikes: 153\n\nDescription: Person image generation that enables precise manipulation of appearance and pose', icon:'https://huggingface.co/avatars/715841ab309b67e310755274a29d6b61.svg', url:'https://huggingface.co/spaces/franciszzj/Leffa'},
+  {color:'purple', size:0.9, drop:130, desc:'Space: HuggingFaceH4/blogpost-scaling-test-time-compute\n\nLikes: 254\n\nDescription: A blogpost explaining scaling test time compute', icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/1583856921041-5dd96eb166059660ed1ee413.png', url:'https://huggingface.co/spaces/HuggingFaceH4/blogpost-scaling-test-time-compute'},
+  {color:'blue', size:0.8, drop:300, desc:'Space: hkchengrex/MMAudio\n\nLikes: 144\n\nDescription: Video-to-audio synthesis', icon:'https://huggingface.co/avatars/a5286d562f7b9082730f760e66c3bf29.svg', url:'https://huggingface.co/spaces/hkchengrex/MMAudio'}
+];
+
+function getColor(color) {
+  switch (color) {
+    case 'red': return 'red';
+    case 'blue': return 'blue';
+    case 'purple': return 'purple';
+    default: return 'white';
+  }
+}
+
+function createStar(x, color, size, drop, description, icon, url) {
+  const sc = document.createElement('div');
+  sc.className = 'star-container';
+  sc.style.left = x + 'px';
+
+  const line = document.createElement('div');
+  line.className = 'thread-line';
+  line.style.height = drop + 'px';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'star-wrapper';
+  wrapper.style.top = (drop - (20 * size * 1.3)) + 'px';
+  wrapper.setAttribute('data-description', description);
+
+  wrapper.addEventListener('click', () => {
+    window.location.href = url;
+  });
+
+  const finalSize = (40 * size * 1.5);
+  const svgStar = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svgStar.setAttribute('viewBox', '0 0 24 24');
+  svgStar.classList.add('star-img');
+  svgStar.style.width = finalSize + 'px';
+  svgStar.style.height = 'auto';
+
+  const useEl = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  useEl.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#star-icon');
+  useEl.setAttribute('fill', getColor(color));
+  svgStar.appendChild(useEl);
+
+  const iconImg = document.createElement('img');
+  iconImg.src = icon;
+  const iconSize = finalSize * 0.3;
+  iconImg.style.width = iconSize + 'px';
+  iconImg.style.height = 'auto';
+  iconImg.className = 'icon-over-star';
+
+  wrapper.appendChild(svgStar);
+  wrapper.appendChild(iconImg);
+  sc.appendChild(line);
+  sc.appendChild(wrapper);
+  container.appendChild(sc);
+}
+
+for (let i=0; i<starsData.length; i++) {
+  const {color,size,drop,desc,icon,url} = starsData[i];
+  createStar(positions[i], color, size, drop, desc, icon, url);
+}
+
+
+function createSnowflake() {
+  const snowflake = document.createElement('div');
+  snowflake.classList.add('snowflake');
+  snowflake.textContent = '❄'; // You can use another snowflake character if you prefer.
+
+  // Random horizontal position
+  snowflake.style.left = Math.random() * window.innerWidth + 'px';
+
+  // Random falling speed and size
+  const fallDuration = (Math.random() * 5) + 5;
+  snowflake.style.animationDuration = fallDuration + 's';
+  snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+  snowflake.style.opacity = Math.random().toString();
+
+  document.body.appendChild(snowflake);
+
+  // Remove the snowflake after it falls off the screen
+  setTimeout(() => {
+    snowflake.remove();
+  }, (fallDuration + 2) * 1000);
+}
+
+// Create a new snowflake every 300ms
+setInterval(createSnowflake, 300);
+
+
+</script>
+</body>
+</html>

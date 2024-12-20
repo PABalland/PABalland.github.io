@@ -43,7 +43,7 @@
             "ta": { models: 1079, datasets: 374, flag: "in", name: "Tamil" },
             "hu": { models: 1092, datasets: 365, flag: "hu", name: "Hungarian" },
             "uk": { models: 1358, datasets: 359, flag: "ua", name: "Ukrainian" }
-        };
+        }
 
         const [activeLanguages, setActiveLanguages] = React.useState(new Set([
             "fr", "zh", "es", "ru", "de", "ja", "pt", "ko", "it", "ar", 
@@ -52,13 +52,14 @@
         const modelColor = "#2656D2";
         const datasetColor = "#FFD21E";
 
+
         const getMaxValue = () => {
             const rawMax = Math.max(
                 ...Array.from(activeLanguages).map(lang =>
                     Math.max(initialData[lang].models, initialData[lang].datasets)
                 )
             );
-            return Math.ceil(rawMax / 1000) * 1000;
+            return Math.ceil(rawMax / 1000) * 1000; // Round up to the nearest thousand
         };
 
         const [maxValue, setMaxValue] = React.useState(getMaxValue());
@@ -68,15 +69,14 @@
         }, [activeLanguages]);
 
         const scale = (window.innerWidth * 0.4) / maxValue;
-
         React.useEffect(() => {
-            const handleResize = () => {
-                setScale((window.innerWidth * 0.4) / maxValue);
-            };
-            window.addEventListener('resize', handleResize);
-            return () => window.removeEventListener('resize', handleResize);
-        }, [maxValue]);
+        const handleResize = () => {
+            setScale((window.innerWidth * 0.4) / maxValue);
+        };
 
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, [maxValue]);
         const generateScaleMarkers = () => {
             const markers = [];
             const step = Math.ceil(maxValue / 5);
@@ -85,7 +85,6 @@
             }
             return markers;
         };
-
         const toggleLanguage = (lang) => {
             const newActiveLanguages = new Set(activeLanguages);
             if (newActiveLanguages.has(lang)) {
@@ -94,19 +93,18 @@
                 newActiveLanguages.add(lang);
             }
             setActiveLanguages(newActiveLanguages);
+            setMaxValue(Math.max(
+                ...Array.from(newActiveLanguages).map(l => 
+                    Math.max(initialData[l].models, initialData[l].datasets)
+                )
+            ));
         };
-
         const styles = {
             container: {
                 fontFamily: "-apple-system, system-ui, sans-serif",
                 maxWidth: "95vw",
                 margin: "0 auto",
                 padding: "20px",
-                display: "flex",
-                gap: "20px"
-            },
-            mainContent: {
-                flex: "1"
             },
             scaleContainer: {
                 position: "relative",
@@ -154,7 +152,6 @@
                 position: "relative",
                 height: "40px",
                 margin: "5px 0",
-                overflow: "hidden",
             },
             centerLine: {
                 position: "absolute",
@@ -179,144 +176,140 @@
                 zIndex: 2,
             },
             legend: {
-                width: "120px",
                 display: "flex",
-                flexDirection: "column",
-                gap: "5px",
+                flexWrap: "wrap",
+                gap: "10px",
+                marginTop: "20px",
                 padding: "15px",
                 background: "#f5f5f5",
                 borderRadius: "8px",
-                height: "fit-content",
-                position: "sticky",
-                top: "20px"
+                justifyContent: "center",
             },
             legendItem: {
                 display: "flex",
                 alignItems: "center",
-                padding: "4px 8px",
-                borderRadius: "4px",
+                padding: "8px 12px",
+                borderRadius: "6px",
                 cursor: "pointer",
                 border: "1px solid #ddd",
                 transition: "all 0.2s",
                 background: "white",
-                fontSize: "12px"
             }
         };
 
         return (
             <div style={styles.container}>
-                <div style={styles.mainContent}>
-                    <h2 style={{ textAlign: "center", color: "#333", marginBottom: "30px" }}>
-                        Language Distribution: Models vs Datasets
-                    </h2>
-                    
-                    <div style={styles.scaleContainer}>
-                        <div style={styles.leftScale}>
-                            {generateScaleMarkers().slice(1).reverse().map((value) => (
-                                <div key={`left-${value}`}>
-                                    <div style={{
-                                        ...styles.scaleMark,
-                                        right: `${(value * scale)}px`,
-                                        transform: "translateX(50%)",
-                                    }}>
-                                        {value.toLocaleString()}
-                                    </div>
-                                    <div style={{
-                                        ...styles.scaleTickMark,
-                                        right: `${(value * scale)}px`,
-                                    }} />
+                <h2 style={{ textAlign: "center", color: "#333", marginBottom: "30px" }}>
+                    Language Distribution: Models vs Datasets
+                </h2>
+                {/* Scale */}
+                <div style={styles.scaleContainer}>
+                    {/* Left Scale */}
+                    <div style={styles.leftScale}>
+                        {generateScaleMarkers().slice(1).reverse().map((value) => (
+                            <div key={`left-${value}`}>
+                                <div style={{
+                                    ...styles.scaleMark,
+                                    right: `${(value * scale)}px`,
+                                    transform: "translateX(50%)",
+                                }}>
+                                    {value.toLocaleString()}
                                 </div>
-                            ))}
-                        </div>
-
-                        <div style={{
-                            ...styles.scaleMark,
-                            left: "50%",
-                            transform: "translateX(-50%)",
-                        }}>
-                            0
-                        </div>
-
-                        <div style={styles.rightScale}>
-                            {generateScaleMarkers().slice(1).map((value) => (
-                                <div key={`right-${value}`}>
-                                    <div style={{
-                                        ...styles.scaleMark,
-                                        left: `${(value * scale)}px`,
-                                    }}>
-                                        {value.toLocaleString()}
-                                    </div>
-                                    <div style={{
-                                        ...styles.scaleTickMark,
-                                        left: `${(value * scale)}px`,
-                                    }} />
-                                </div>
-                            ))}
-                        </div>
+                                <div style={{
+                                    ...styles.scaleTickMark,
+                                    right: `${(value * scale)}px`,
+                                }} />
+                            </div>
+                        ))}
                     </div>
 
-                    <div style={styles.chart}>
-                        <div style={styles.centerLine} />
-                        {Object.entries(initialData)
-                            .filter(([lang]) => activeLanguages.has(lang))
-                            .map(([lang, info]) => (
-                                <div key={lang} style={styles.barContainer}>
-                                    <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
-                                        <div style={{
+                    {/* Center Mark (0) */}
+                    <div style={{
+                        ...styles.scaleMark,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                    }}>
+                        0
+                    </div>
+
+                    {/* Right Scale */}
+                    <div style={styles.rightScale}>
+                        {generateScaleMarkers().slice(1).map((value) => (
+                            <div key={`right-${value}`}>
+                                <div style={{
+                                    ...styles.scaleMark,
+                                    left: `${(value * scale)}px`,
+                                }}>
+                                    {value.toLocaleString()}
+                                </div>
+                                <div style={{
+                                    ...styles.scaleTickMark,
+                                    left: `${(value * scale)}px`,
+                                }} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                {/* Chart */}
+                <div style={styles.chart}>
+                    <div style={styles.centerLine} />
+                    {Object.entries(initialData)
+                        .filter(([lang]) => activeLanguages.has(lang))
+                        .map(([lang, info]) => (
+                            <div key={lang} style={styles.barContainer}>
+                                {/* Left Side (Datasets) - SWAPPED */}
+                                <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+                                    <div
+                                        style={{
                                             marginRight: "8px",
                                             fontSize: "12px",
                                             color: "#333",
                                             whiteSpace: "nowrap",
-                                        }}>
-                                            {info.datasets.toLocaleString()}
-                                        </div>
-                                        <div style={{
-                                            ...styles.bar,
-                                            width: `${Math.min(info.models * scale, window.innerWidth * 0.4)}px`,
-                                            maxWidth: "45%",
-                                            background: datasetColor
-                                        }} />
+                                        }}
+                                    >
+                                        {info.datasets.toLocaleString()}
                                     </div>
-
-                                    <img
-                                        src={`https://flagcdn.com/24x18/${info.flag}.png`}
-                                        alt={info.name}
-                                        style={styles.flag}
+                                    <div
+                                        style={{
+                                            ...styles.bar,
+                                            width: `${info.datasets * scale}px`,
+                                            background: datasetColor
+                                        }}
                                     />
+                                </div>
 
-                                    <div style={{ flex: 1, display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
-                                        <div style={{
+                                {/* Center Flag */}
+                                <img
+                                    src={`https://flagcdn.com/24x18/${info.flag}.png`}
+                                    alt={info.name}
+                                    style={styles.flag}
+                                />
+
+                                {/* Right Side (Models) - SWAPPED */}
+                                <div style={{ flex: 1, display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
+                                    <div
+                                        style={{
                                             ...styles.bar,
                                             width: `${info.models * scale}px`,
                                             background: modelColor
-                                        }} />
-                                        <div style={{
+                                        }}
+                                    />
+                                    <div
+                                        style={{
                                             marginLeft: "8px",
                                             fontSize: "12px",
                                             color: "#333",
                                             whiteSpace: "nowrap",
-                                        }}>
-                                            {info.models.toLocaleString()}
-                                        </div>
+                                        }}
+                                    >
+                                        {info.models.toLocaleString()}
                                     </div>
                                 </div>
-                            ))}
-                    </div>
-
-                    <div style={{ marginTop: "20px", textAlign: "center", color: "#666" }}>
-                        <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
-                            <div>
-                                <span style={{ display: "inline-block", width: "20px", height: "20px", background: modelColor, marginRight: "8px", verticalAlign: "middle" }}></span>
-                                Models
                             </div>
-                            <div>
-                                <span style={{ display: "inline-block", width: "20px", height: "20px", background: datasetColor, marginRight: "8px", verticalAlign: "middle" }}></span>
-                                Datasets
-                            </div>
-                        </div>
-                    </div>
+                        ))}
                 </div>
 
+                {/* Legend */}
                 <div style={styles.legend}>
                     {Object.entries(initialData).map(([lang, info]) => (
                         <div
@@ -330,12 +323,26 @@
                         >
                             <img
                                 src={`https://flagcdn.com/24x18/${info.flag}.png`}
-                                alt={lang}
-                                style={{ marginRight: "8px", width: "16px", height: "12px" }}
+                                alt={info.name}
+                                style={{ marginRight: "8px", width: "24px", height: "18px" }}
                             />
-                            <span>{lang.toUpperCase()}</span>
+                            <span>{info.name}</span>
                         </div>
                     ))}
+                </div>
+
+                {/* Color Legend */}
+                <div style={{ marginTop: "20px", textAlign: "center", color: "#666" }}>
+                    <div style={{ display: "flex", justifyContent: "center", gap: "20px" }}>
+                        <div>
+                            <span style={{ display: "inline-block", width: "20px", height: "20px", background: modelColor, marginRight: "8px", verticalAlign: "middle" }}></span>
+                            Models
+                        </div>
+                        <div>
+                            <span style={{ display: "inline-block", width: "20px", height: "20px", background: datasetColor, marginRight: "8px", verticalAlign: "middle" }}></span>
+                            Datasets
+                        </div>
+                    </div>
                 </div>
             </div>
         );
