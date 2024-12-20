@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+
+body {
+  background-color: black;
+  margin: 0;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
+
+.container {
+  position: relative;
+  width: 60vw;        
+  min-width: 320px;   
+  height: 100vh;
+  margin: 0 auto; 
+}
+
+.title {
+  color:#FFFF00;
+  font-size: 1.5rem;
+  position: absolute;
+  top: 8vh;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4; 
+}
+
+.box {
+  position: absolute;
+  top: 15vh;
+  width: 2.5vw;
+  min-width: 30px;
+  height: 40vh;
+  min-height: 200px;
+  background: linear-gradient(
+    to bottom, 
+    #603E00 0%, 
+    #603E00 70%, 
+    rgba(96,62,0,0) 100%
+  );
+  z-index: 3;
+}
+.box-left {
+  left: 0;
+}
+.box-right {
+  right: 0;
+}
+
+.line {
+  position: absolute;
+  top: 15vh;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: white;
+  z-index: 2;  
+}
+
+.star-container {
+  position: absolute;
+  top: 15vh;
+}
+
+.thread-line {
+  position: absolute;
+  width: 2px;
+  background: white;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
+
+.star-wrapper {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  transition: transform 0.3s ease;
+  position: relative; /* So we can absolutely position elements inside */
+}
+.star-wrapper:hover {
+  cursor: pointer;
+}
+.star-wrapper:hover .star-img {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 6px white);
+}
+
+.star-wrapper:hover::after {
+  content: attr(data-description);
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  font-style: italic;
+  white-space: pre-wrap;
+  border-radius: 4px;
+  z-index: 9999;
+}
+
+
+.star-img {
+  display: block;
+  margin: 0 auto;
+  transition: 0.3s;
+  transform-origin: 50% 50%;
+}
+
+.icon-over-star {
+  position: absolute;
+  left: 50%;
+  bottom: 100%; /* place it above the star */
+  transform: translate(-50%, -20%); /* adjust the vertical offset as needed */
+}
+
+/* Name below the star */
+.star-name {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translate(-50%, 0);
+  margin-top: 5px;
+  color: #FFFF00;
+  text-shadow: 0 0 6px rgba(255,255,0,0.9);
+  font-size: 0.8rem;
+  max-width: 150px;
+  display: inline-block;
+  z-index: 999;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  color: white;
+  font-size: 1.2rem;
+  pointer-events: none;
+  animation: fall linear infinite;
+}
+@keyframes fall {
+  0%   { top: -10px; }
+  100% { top: 110vh; }
+}
+
+
+</style>
+</head>
+<body>
+  
+  <svg width="0" height="0" style="position:absolute;">
+    <symbol id="star-icon" viewBox="0 0 24 24">
+      <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9"/>
+    </symbol>
+  </svg>
+
+  <div class="container">
+    <div class="title">Top Twelve Trending HF Spaces</div>
+    
+    <div class="box box-left"></div>
+    <div class="box box-right"></div>
+
+    <div class="line"></div>
+  </div>
+
+<script>
+const container = document.querySelector('.container');
+
+const positions = [40,140,226,300,368,428,480,530,605,660,714,784];
+const starsData = [
+  {
+    name: 'Kwai-Kolors/Kolors-Virtual-Try-On', 
+    color:'green', size:2.3, drop:170, 
+    desc:'Likes: 6100\n\nEnables trying on clothes virtually',
+    icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/62f0babaef9cc6810cec02ff/sVnELkcfVo5kxg5308rkr.png',
+    url:'https://huggingface.co/Kwai-Kolors/Kolors'
+  },
+  {
+    name: 'black-forest-labs/FLUX.1-dev', 
+    color:'white', size:1.9, drop:310, 
+    desc:'Likes: 5860\n\n12B param flow transformer for images from text',
+    icon:'https://i.postimg.cc/VkgQNZKk/output-onlinepngtools.png',
+    url:'https://huggingface.co/spaces/black-forest-labs/FLUX.1-dev'
+  },
+  {
+    name: 'lllyasviel/\niclight-v2',
+    color:'orange', size:1.2, drop:215, 
+    desc:'Likes: 956\n\nAdjusts illumination in images',
+    icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/1671173450971-noauth.jpeg',
+    url:'https://huggingface.co/spaces/lllyasviel/iclight-v2'
+  },
+  {
+    name: 'multimodalart/flux-style-shaping',
+    color:'green', size:1.0, drop:80, 
+    desc:'Likes: 455\n\nStylized images with Gradio',
+    icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/1649143001781-624bebf604abc7ebb01789af.jpeg',
+    url:'https://huggingface.co/spaces/multimodalart/flux-style-shaping'
+  },
+  {
+    name: 'JeffreyXiang/\nTRELLIS',
+    color:'red', size:1.3, drop:175, 
+    desc:'Likes: 1740\n\nGenerates 3D assets',
+    icon:'https://huggingface.co/avatars/5f48fd02377f62864c5db5555b9bf413.svg',
+    url:'https://huggingface.co/spaces/JeffreyXiang/TRELLIS'
+  },
+  {
+    name: 'huggingface/open-source-ai-year-in-review-2024',
+    color:'yellow', size:1.0, drop:320, 
+    desc:'Likes: 387\n\nVisualizes open-source AI trends in 2024',
+    icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/1583856921041-5dd96eb166059660ed1ee413.png',
+    url:'https://huggingface.co/spaces/huggingface/open-source-ai-year-in-review-2024'
+  },
+  {
+    name: 'ginipick/\nFLUXllama',
+    color:'orange', size:1.0, drop:100, 
+    desc:'Likes: 364\n\nLightweight model for images with text',
+    icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/65acd60b57f263e3d0ff0647/HENR9sR3CDchSDldrYOdS.png',
+    url:'https://huggingface.co/spaces/ginipick/FLUXllama'
+  },
+  {
+    name: 'akhaliq/anychat',
+    color:'blue', size:1.6, drop:270,
+    desc:'Likes: 885\n\nVoice chat with Gemini using real-time audio streaming',
+    icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/1674929746905-60f1abe7544c2adfd699860c.jpeg',
+    url:'https://huggingface.co/spaces/akhaliq/anychat'
+  },
+  {
+    name: 'ginipick/\ntext3d',
+    color:'orange', size:0.8, drop:130,
+    desc:'Likes: 210\n\n3D style image generator',
+    icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/65acd60b57f263e3d0ff0647/HENR9sR3CDchSDldrYOdS.png',
+    url:'https://huggingface.co/spaces/ginipick/text3d'
+  },
+  {
+    name: 'franciszzj/\nLeffa',
+    color:'green', size:0.8, drop:200,
+    desc:'Likes: 174\n\nPerson image generation w precise pose & appearance control',
+    icon:'https://huggingface.co/avatars/715841ab309b67e310755274a29d6b61.svg',
+    url:'https://huggingface.co/spaces/franciszzj/Leffa'
+  },
+  {
+    name: 'HuggingFaceH4/blogpost-scaling-test-time-compute',
+    color:'yellow', size:0.9, drop:300,
+    desc:'Likes: 285\n\nBlogpost about scaling test\n time compute',
+    icon:'https://cdn-avatars.huggingface.co/v1/production/uploads/1583856921041-5dd96eb166059660ed1ee413.png',
+    url:'https://huggingface.co/spaces/HuggingFaceH4/blogpost-scaling-test-time-compute'
+  },
+  {
+    name: 'hkchengrex/\nMMAudio',
+    color:'yellow', size:0.8, drop:120,
+    desc:'Likes: 193\n\nVideo-to-audio synthesis',
+    icon:'https://huggingface.co/avatars/a5286d562f7b9082730f760e66c3bf29.svg',
+    url:'https://huggingface.co/spaces/hkchengrex/MMAudio'
+  }
+];
+
+function getColor(color) {
+  switch (color) {
+    case 'red':    return 'red';
+    case 'blue':   return 'blue';
+    case 'purple': return 'purple';
+    case 'green':  return 'green';
+    case 'yellow': return 'yellow';
+    case 'orange': return 'orange';
+    default:       return 'white';
+  }
+}
+
+
+
+function createStar(x, color, size, drop, description, icon, url, name) {
+  const sc = document.createElement('div');
+  sc.className = 'star-container';
+  sc.style.left = x + 'px';
+
+  const line = document.createElement('div');
+  line.className = 'thread-line';
+  line.style.height = drop + 'px';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'star-wrapper';
+  
+
+  wrapper.style.top = (drop - (20 * size * 1.3)) + 'px';
+  wrapper.setAttribute('data-description', description);
+  wrapper.addEventListener('click', () => {
+    window.location.href = url;
+  });
+
+  const finalSize = 40 * size * 1.5; 
+
+  const svgStar = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svgStar.setAttribute('viewBox', '0 0 24 24');
+  svgStar.classList.add('star-img');
+  svgStar.style.width = finalSize + 'px';
+  svgStar.style.height = 'auto';
+
+  const useEl = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+  useEl.setAttributeNS('http://www.w3.org/1999/xlink', 'xlink:href', '#star-icon');
+  useEl.setAttribute('fill', getColor(color));
+  svgStar.appendChild(useEl);
+
+  const iconImg = document.createElement('img');
+  iconImg.src = icon;
+  iconImg.className = 'icon-over-star';
+  const iconSize = finalSize * 0.3;
+  iconImg.style.width = iconSize + 'px';
+  iconImg.style.height = 'auto';
+
+  const starName = document.createElement('div');
+  starName.className = 'star-name';
+  starName.textContent = name;
+
+  wrapper.appendChild(svgStar);
+  wrapper.appendChild(iconImg);
+  wrapper.appendChild(starName);
+
+  sc.appendChild(line);
+  sc.appendChild(wrapper);
+  container.appendChild(sc);
+}
+
+for (let i = 0; i < starsData.length; i++) {
+  const { name, color, size, drop, desc, icon, url } = starsData[i];
+  createStar(positions[i], color, size, drop, desc, icon, url, name);
+}
+
+function createSnowflake() {
+  const snowflake = document.createElement('div');
+  snowflake.classList.add('snowflake');
+  snowflake.textContent = '❄';
+
+  snowflake.style.left = Math.random() * window.innerWidth + 'px';
+  const fallDuration = Math.random() * 5 + 5;
+  snowflake.style.animationDuration = fallDuration + 's';
+  snowflake.style.fontSize = (Math.random() * 10 + 10) + 'px';
+  snowflake.style.opacity = Math.random().toString();
+
+  document.body.appendChild(snowflake);
+
+  setTimeout(() => {
+    snowflake.remove();
+  }, (fallDuration + 2) * 1000);
+}
+
+setInterval(createSnowflake, 100);
+</script>
+</body>
+</html>
