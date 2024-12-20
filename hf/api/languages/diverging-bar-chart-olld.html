@@ -12,12 +12,6 @@
             margin: 0;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            overflow-x: hidden;
-        }
-        @media (max-width: 768px) {
-            body {
-                font-size: 14px;
-            }
         }
     </style>
 </head>
@@ -30,7 +24,6 @@
                 "fr": { models: 7538, datasets: 2073, flag: "fr", name: "FR" },
                 "zh": { models: 7707, datasets: 1966, flag: "cn", name: "ZH" },
                 "es": { models: 6677, datasets: 1516, flag: "es", name: "ES" },
-                "ru": { models: 4120, datasets: 1273, flag: "ru", name: "RU" },
                 "de": { models: 6843, datasets: 1225, flag: "de", name: "DE" },
                 "ja": { models: 5504, datasets: 1147, flag: "jp", name: "JA" },
                 "pt": { models: 4876, datasets: 1007, flag: "pt", name: "PT" },
@@ -56,19 +49,12 @@
                 "ta": { models: 1079, datasets: 374, flag: "in", name: "TA" },
                 "hu": { models: 1092, datasets: 365, flag: "hu", name: "HU" },
                 "uk": { models: 1358, datasets: 359, flag: "ua", name: "UK" },
+                "bg": { models: 1144, datasets: 317, flag: "bg", name: "BG" }
             };
 
             const [activeLanguages, setActiveLanguages] = React.useState(new Set([
-                "fr", "zh", "es", "de", "ja", "pt", "ko", "it", "ar", "vi", "tr", "hi", "id","ru",
+                "fr", "zh", "es", "de", "ja", "pt", "ko", "it", "ar"
             ]));
-
-            const [windowWidth, setWindowWidth] = React.useState(window.innerWidth);
-
-            React.useEffect(() => {
-                const handleResize = () => setWindowWidth(window.innerWidth);
-                window.addEventListener('resize', handleResize);
-                return () => window.removeEventListener('resize', handleResize);
-            }, []);
 
             const modelColor = "#2656D2";
             const datasetColor = "#FFD21E";
@@ -88,25 +74,7 @@
                 setMaxValue(getMaxValue());
             }, [activeLanguages]);
 
-            const getScale = () => {
-                const baseScale = 600 / maxValue;
-                if (windowWidth <= 768) {
-                    return baseScale * (windowWidth / 1024);
-                }
-                return baseScale;
-            };
-
-            const scale = getScale();
-
-            const getBarWidth = (value, type) => {
-                const baseWidth = value * scale;
-                if (windowWidth <= 768) {
-                    return type === 'models' 
-                        ? baseWidth * 0.7
-                        : baseWidth * 0.9;
-                }
-                return baseWidth;
-            };
+            const scale = 400 / maxValue;
 
             const toggleLanguage = (lang) => {
                 const newActiveLanguages = new Set(activeLanguages);
@@ -123,24 +91,19 @@
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    width: "100%",
+                    maxWidth: "2000px",
                     margin: "0 auto",
-                    padding: windowWidth <= 768 ? "5px" : "10px",
-                    paddingTop: windowWidth <= 768 ? "20px" : "50px",
-                    boxSizing: "border-box",
+                    padding: "20px",
                 },
                 chartContainer: {
-                    width: "100%",
-                    maxWidth: windowWidth <= 768 ? "100%" : "1200px",
+                    width: "900px",
                     position: "relative",
-                    padding: windowWidth <= 768 ? "0 10px" : "0",
-                    boxSizing: "border-box",
                 },
                 barRow: {
                     display: "flex",
                     alignItems: "center",
-                    height: windowWidth <= 768 ? "28px" : "34px",
-                    margin: windowWidth <= 768 ? "2px 0" : "3px 0",
+                    height: "40px",
+                    margin: "4px 0",
                     position: "relative",
                 },
                 centerLine: {
@@ -153,7 +116,7 @@
                 },
                 barSide: {
                     flex: 1,
-                    width: windowWidth <= 768 ? "45%" : "600px",
+                    width: "400px",
                     display: "flex",
                     alignItems: "center",
                 },
@@ -164,59 +127,54 @@
                     justifyContent: "flex-start",
                 },
                 bar: {
-                    height: windowWidth <= 768 ? "22px" : "28px",
+                    height: "32px",
                     borderRadius: "4px",
                     transition: "width 0.3s ease",
                 },
                 value: {
-                    fontSize: windowWidth <= 768 ? "10px" : "12px",
+                    fontSize: "12px",
                     color: "#666",
                     whiteSpace: "nowrap",
-                    padding: windowWidth <= 768 ? "0 4px" : "0 8px",
+                    padding: "0 8px",
                 },
                 flag: {
                     position: "absolute",
                     left: "50%",
                     transform: "translateX(-50%)",
-                    width: windowWidth <= 768 ? "20px" : "24px",
-                    height: windowWidth <= 768 ? "15px" : "18px",
+                    width: "24px",
+                    height: "18px",
                     zIndex: 1,
                 },
                 legend: {
                     display: "grid",
-                    gridTemplateColumns: windowWidth <= 768 
-                        ? "repeat(7, 1fr)" 
-                        : "repeat(15, 1fr)",
-                    gap: "1px",
-                    padding: "1px",
+                    gridTemplateColumns: "repeat(10, 1fr)",
+                    gap: "8px",
+                    padding: "16px",
                     backgroundColor: "#f5f5f5",
-                    borderRadius: "12px",
-                    marginTop: "10px",
-                    width: "100%",
-                    maxWidth: windowWidth <= 768 ? "100%" : "900px",
+                    borderRadius: "8px",
+                    marginTop: "24px",
+                    width: "900px",
                 },
                 legendItem: {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: "2px",
-                    borderRadius: "2px",
+                    padding: "8px",
+                    borderRadius: "4px",
                     cursor: "pointer",
                     border: "1px solid #ddd",
                     transition: "all 0.2s ease",
-                    fontSize: windowWidth <= 768 ? "6px" : "8px",
                 },
                 colorLegend: {
                     display: "flex",
                     justifyContent: "center",
-                    gap: "12px",
-                    marginTop: "8px",
-                    fontSize: windowWidth <= 768 ? "10px" : "12px",
+                    gap: "20px",
+                    marginTop: "20px",
                 },
                 colorBox: {
-                    width: windowWidth <= 768 ? "12px" : "16px",
-                    height: windowWidth <= 768 ? "12px" : "16px",
-                    marginRight: "6px",
+                    width: "20px",
+                    height: "20px",
+                    marginRight: "8px",
                     display: "inline-block",
                     verticalAlign: "middle",
                 }
@@ -237,7 +195,7 @@
                                         <div
                                             style={{
                                                 ...styles.bar,
-                                                width: `${getBarWidth(info.datasets, 'datasets')}px`,
+                                                width: `${info.datasets * scale}px`,
                                                 backgroundColor: datasetColor,
                                             }}
                                         />
@@ -253,7 +211,7 @@
                                         <div
                                             style={{
                                                 ...styles.bar,
-                                                width: `${getBarWidth(info.models, 'models')}px`,
+                                                width: `${info.models * scale}px`,
                                                 backgroundColor: modelColor,
                                             }}
                                         />
@@ -279,11 +237,7 @@
                                 <img
                                     src={`https://flagcdn.com/24x18/${info.flag}.png`}
                                     alt={info.name}
-                                    style={{ 
-                                        marginRight: "4px", 
-                                        width: windowWidth <= 768 ? "10px" : "14", 
-                                        height: windowWidth <= 768 ? "10px" : "12px" 
-                                    }}
+                                    style={{ marginRight: "8px", width: "24px", height: "18px" }}
                                 />
                                 <span>{info.name}</span>
                             </div>
