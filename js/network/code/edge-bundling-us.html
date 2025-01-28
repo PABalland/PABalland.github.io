@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Edge Bundling</title>
+    <title>Edge Bundling USA</title>
     <style>
         html, body {
             width: 100%;
@@ -124,16 +124,16 @@
         const height = window.innerHeight
         const tooltip = d3.select("body").append("div").attr("class", "tooltip")
 
-        const mapLayer = svg.append("g").attr("id", "mapLayer")
-        const linkLayer = svg.append("g").attr("id", "linkLayer")
-        const nodeLayer = svg.append("g").attr("id", "nodeLayer")
+        const allLayers = svg.append("g")
+        const mapLayer = allLayers.append("g").attr("id", "mapLayer")
+        const linkLayer = allLayers.append("g").attr("id", "linkLayer")
+        const nodeLayer = allLayers.append("g").attr("id", "nodeLayer")
 
         let baseThickness = 1
         let linkAlpha = 0.2
         let bundlingBeta = 0.65
         let weightEmphasis = 1
         let currentlySelectedNode = null
-
         let linkWeightsSorted = []
 
         const projection = d3.geoAlbersUsa()
@@ -148,7 +148,6 @@
             .x(d => d.x)
             .y(d => d.y)
 
-
         svg.append("defs")
             .append("filter")
             .attr("id", "nodeGlow")
@@ -157,17 +156,24 @@
             .attr("width", "300%")
             .attr("height", "300%")
             .html(`
-                <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+                <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
                 <feMerge>
                     <feMergeNode in="blur"/>
                     <feMergeNode in="SourceGraphic"/>
                 </feMerge>
             `)
 
+        const zoom = d3.zoom()
+            .scaleExtent([0.5, 8])
+            .on("zoom", (event) => {
+                allLayers.attr("transform", event.transform)
+            })
+        svg.call(zoom)
+
         Promise.all([
-            d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"), // for the US coordenates and states and everything
-            d3.json("https://www.paballand.com/ceps-ai/json/nodes-us.json"), // your json file for the nodes
-            d3.json("https://www.paballand.com/ceps-ai/json/links-us.json") // for json file for the links
+            d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"),
+            d3.json("https://www.paballand.com/ceps-ai/json/nodes-us.json"), //for the nodes
+            d3.json("https://www.paballand.com/ceps-ai/json/links-us.json") //for the links
         ]).then(([us, nodesData, linksData]) => {
             mapLayer.append("path")
                 .datum(topojson.feature(us, us.objects.nation))
@@ -212,6 +218,7 @@
                 l.source.weightSum += l.weight
                 l.target.weightSum += l.weight
             })
+
             const bundle = generateSegments(nodes, links)
 
             linkSelection = linkLayer.selectAll(".link")
@@ -224,6 +231,7 @@
                 .attr("opacity", linkAlpha)
                 .classed("highlighted", false)
                 .attr("d", line)
+
             nodeLayer.selectAll("circle")
                 .data(nodes)
                 .enter()
@@ -273,11 +281,10 @@
             linkSelection.attr("d", line)
 
             d3.select("#spinner").style("display", "none")
-            svg.on("click", (event) => {
-                if (event.target === svg.node()) {
-                    resetHighlights()
-                    currentlySelectedNode = null
-                }
+
+            svg.on("click", () => {
+                resetHighlights()
+                currentlySelectedNode = null
             })
 
             function calculateStrokeWidth(weightValue) {
@@ -289,7 +296,6 @@
             function filterLinksByPercent(sliderValue) {
                 const keepFrac = sliderValue / 100
                 let threshold
-
                 if (keepFrac === 1) {
                     threshold = Number.NEGATIVE_INFINITY
                 } else if (keepFrac === 0) {
@@ -298,9 +304,9 @@
                     const index = Math.floor((1 - keepFrac) * linkWeightsSorted.length)
                     threshold = linkWeightsSorted[index]
                 }
-
                 linkSelection.attr("display", d => (d.weight >= threshold) ? "inline" : "none")
             }
+
             function highlightLinks(clickedNode) {
                 nodeLayer.selectAll("circle").classed("highlighted-node", false)
                 nodeLayer.selectAll("circle")
@@ -309,9 +315,8 @@
 
                 linkSelection.each(function(d) {
                     const isActive =
-                        d.originalSource.id === clickedNode.id ||
-                        d.originalTarget.id === clickedNode.id
-
+                        d.originalSource && d.originalSource.id === clickedNode.id ||
+                        d.originalTarget && d.originalTarget.id === clickedNode.id
                     if (isActive) {
                         linkLayer.node().appendChild(this)
                         d3.select(this)
@@ -329,7 +334,6 @@
 
             function resetHighlights() {
                 nodeLayer.selectAll("circle").classed("highlighted-node", false)
-
                 linkSelection
                     .classed("highlighted", false)
                     .attr("stroke", "#69b3a2")
@@ -345,13 +349,11 @@
 
             function generateSegments(nodes, links) {
                 let bundle = { nodes: [], links: [], paths: [] }
-
                 bundle.nodes = nodes.map(d => {
                     d.fx = d.x
                     d.fy = d.y
                     return d
                 })
-
                 links.forEach(d => {
                     let length = distance(d.source, d.target)
                     let total = Math.max(1, Math.round(length / 50))
@@ -365,7 +367,6 @@
                     let source = d.source
                     let target = null
                     let local = [source]
-
                     for (let j = 1; j <= total; j++) {
                         target = { x: xscale(j), y: yscale(j) }
                         local.push(target)
@@ -378,10 +379,8 @@
                     local.weight = d.weight
                     local.originalSource = d.source
                     local.originalTarget = d.target
-
                     bundle.paths.push(local)
                 })
-
                 return bundle
             }
 
