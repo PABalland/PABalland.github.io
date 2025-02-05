@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Edge Bundling Europe</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        #controlsContainer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 180px;
+            padding: 10px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 4px;
+            font-family: sans-serif;
+        }
+        #spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #444;
+            border-top: 5px solid #888;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 9999;
+        }
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+            background: #ADD8E6;
+            display: block;
+        }
+        .land {
+            fill: #fff;
+        }
+        .link {
+            fill: none;
+            stroke: #69b3a2;
+            pointer-events: none;
+        }
+        circle {
+            fill: red;
+            stroke: #fff;
+            stroke-width: 1px;
+            cursor: pointer;
+        }
+        .highlighted-node {
+            filter: url(#nodeGlow);
+        }
+        .tooltip {
+            position: absolute;
+            background: white;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            pointer-events: none;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="controlsContainer">
+            <div>
+                <label for="linkThickness">Link Thickness</label><br>
+                <input type="range" id="linkThickness" min="0.1" max="5" step="0.1" value="1">
+                <span id="linkThicknessValue">1</span>
+            </div>
+            <hr>
+            <div>
+                <label for="alphaSlider">Alpha Modifier</label><br>
+                <input type="range" id="alphaSlider" min="0" max="1" step="0.01" value="0.2">
+                <span id="alphaSliderValue">0.2</span>
+            </div>
+            <hr>
+            <div>
+                <label for="bundlingBeta">Bundling Beta</label><br>
+                <input type="range" id="bundlingBeta" min="0" max="1" step="0.01" value="0.65">
+                <span id="bundlingBetaValue">0.65</span>
+            </div>
+            <hr>
+            <div>
+                <label for="weightEmphasis">Weight Emphasis</label><br>
+                <input type="range" id="weightEmphasis" min="0" max="2" step="0.1" value="1">
+                <span id="weightEmphasisValue">1</span>
+            </div>
+            <hr>
+            <div>
+                <label for="linkRemover">Link Display (%)</label><br>
+                <input type="range" id="linkRemover" min="0" max="100" step="1" value="100">
+                <span id="linkRemoverValue">100</span>
+            </div>
+        </div>
+        <div id="spinner"></div>
+        <svg></svg>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson@3"></script>
+    <script>
+        const svg = d3.select("svg")
+        const width = window.innerWidth
+        const height = window.innerHeight
+        const tooltip = d3.select("body").append("div").attr("class", "tooltip")
+
+        const allLayers = svg.append("g")
+        const mapLayer = allLayers.append("g").attr("id", "mapLayer")
+        const linkLayer = allLayers.append("g").attr("id", "linkLayer")
+        const nodeLayer = allLayers.append("g").attr("id", "nodeLayer")
+
+        let baseThickness = 1
+        let linkAlpha = 0.2
+        let bundlingBeta = 0.65
+        let weightEmphasis = 1
+        let currentlySelectedNode = null
+        let linkWeightsSorted = []
+
+        const projection = d3.geoMercator()
+            .scale(600)
+            .center([13, 52])
+            .translate([width / 2, height / 2])
+
+        const path = d3.geoPath().projection(projection)
+
+        let linkSelection
+        let line = d3.line()
+            .curve(d3.curveBundle.beta(bundlingBeta))
+            .x(d => d.x)
+            .y(d => d.y)
+
+        svg.append("defs")
+            .append("filter")
+            .attr("id", "nodeGlow")
+            .attr("x", "-50%")
+            .attr("y", "-50%")
+            .attr("width", "300%")
+            .attr("height", "300%")
+            .html(`
+                <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+                <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            `)
+
+        const zoom = d3.zoom()
+            .scaleExtent([0.5, 8])
+            .on("zoom", (event) => {
+                allLayers.attr("transform", event.transform)
+            })
+        svg.call(zoom)
+
+        Promise.all([
+            d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json"),
+            d3.json([{"id":"Wien (Vienna)","id2":0,"x":48.2064,"y":16.3707,"color":"darkblue","parent":"Austria","size":1,"urban_id":52},{"id":"Antwerpen","id2":1,"x":51.2199,"y":4.4035,"color":"darkblue","parent":"Belgium","size":1,"urban_id":74},{"id":"Bruxelles-Brussel","id2":2,"x":50.8467,"y":4.3499,"color":"darkblue","parent":"Belgium","size":1,"urban_id":75},{"id":"Charleroi","id2":3,"x":50.4114,"y":4.4445,"color":"darkblue","parent":"Belgium","size":1,"urban_id":76},{"id":"Gent","id2":4,"x":51.05,"y":3.7167,"color":"darkblue","parent":"Belgium","size":1,"urban_id":77},{"id":"Li<e8>ge","id2":5,"x":50.6337,"y":5.5675,"color":"darkblue","parent":"Belgium","size":1,"urban_id":78},{"id":"Plovdiv","id2":6,"x":42.15,"y":24.75,"color":"darkblue","parent":"Bulgaria","size":1,"urban_id":147},{"id":"Sofia","id2":7,"x":42.6975,"y":23.3242,"color":"darkblue","parent":"Bulgaria","size":1,"urban_id":148},{"id":"Varna","id2":8,"x":43.2167,"y":27.9167,"color":"darkblue","parent":"Bulgaria","size":1,"urban_id":149},{"id":"Zagreb","id2":9,"x":45.8144,"y":15.978,"color":"darkblue","parent":"Croatia","size":1,"urban_id":645},{"id":"Brno","id2":10,"x":49.1952,"y":16.608,"color":"darkblue","parent":"Czechia","size":1,"urban_id":649},{"id":"Praha (Prague)","id2":11,"x":50.088,"y":14.4208,"color":"darkblue","parent":"Czechia","size":1,"urban_id":650},{"id":"K<f8>benhavn (Copenhagen)","id2":12,"x":55.6759,"y":12.5655,"color":"darkblue","parent":"Denmark","size":1,"urban_id":672},{"id":"Tallinn","id2":13,"x":59.437,"y":24.7535,"color":"darkblue","parent":"Estonia","size":1,"urban_id":696},{"id":"Helsinki","id2":14,"x":60.1692,"y":24.9402,"color":"darkblue","parent":"Finland","size":1,"urban_id":702},{"id":"Tampere","id2":15,"x":61.4991,"y":23.7871,"color":"darkblue","parent":"Finland","size":1,"urban_id":703},{"id":"Avignon","id2":16,"x":43.9483,"y":4.8089,"color":"darkblue","parent":"France","size":1,"urban_id":704},{"id":"B<e9>thune","id2":17,"x":50.5333,"y":2.6333,"color":"darkblue","parent":"France","size":1,"urban_id":705},{"id":"Bordeaux","id2":18,"x":44.8404,"y":-0.5805,"color":"darkblue","parent":"France","size":1,"urban_id":706},{"id":"Douai-Lens","id2":19,"x":50.3682,"y":3.0795,"color":"darkblue","parent":"France","size":1,"urban_id":707},{"id":"Grenoble","id2":20,"x":45.1667,"y":5.7167,"color":"darkblue","parent":"France","size":1,"urban_id":708},{"id":"Lille","id2":21,"x":50.633,"y":3.0586,"color":"darkblue","parent":"France","size":1,"urban_id":709},{"id":"Lyon","id2":22,"x":45.7485,"y":4.8467,"color":"darkblue","parent":"France","size":1,"urban_id":710},{"id":"Marseille-Aix-en-Provence","id2":23,"x":43.5284,"y":5.4433,"color":"darkblue","parent":"France","size":1,"urban_id":711},{"id":"Montpellier","id2":24,"x":43.6109,"y":3.8772,"color":"darkblue","parent":"France","size":1,"urban_id":712},{"id":"Nantes","id2":25,"x":47.2173,"y":-1.5534,"color":"darkblue","parent":"France","size":1,"urban_id":713},{"id":"Nice-Cannes","id2":26,"x":43.6646,"y":7.1534,"color":"darkblue","parent":"France","size":1,"urban_id":714},{"id":"Paris","id2":27,"x":48.8534,"y":2.3488,"color":"darkblue","parent":"France","size":1,"urban_id":715},{"id":"Rennes","id2":28,"x":48.112,"y":-1.6743,"color":"darkblue","parent":"France","size":1,"urban_id":716},{"id":"Rouen","id2":29,"x":49.4431,"y":1.0993,"color":"darkblue","parent":"France","size":1,"urban_id":717},{"id":"Saint-<c9>tienne","id2":30,"x":45.4333,"y":4.4,"color":"darkblue","parent":"France","size":1,"urban_id":718},{"id":"Strasbourg","id2":31,"x":48.5834,"y":7.743,"color":"darkblue","parent":"France","size":1,"urban_id":719},{"id":"Toulon","id2":32,"x":43.124,"y":5.9332,"color":"darkblue","parent":"France","size":1,"urban_id":720},{"id":"Toulouse","id2":33,"x":43.6043,"y":1.4437,"color":"darkblue","parent":"France","size":1,"urban_id":721},{"id":"Tours","id2":34,"x":47.3833,"y":0.6833,"color":"darkblue","parent":"France","size":1,"urban_id":722},{"id":"Valenciennes","id2":35,"x":50.35,"y":3.5333,"color":"darkblue","parent":"France","size":1,"urban_id":723},{"id":"Berlin","id2":36,"x":52.5244,"y":13.4105,"color":"darkblue","parent":"Germany","size":1,"urban_id":727},{"id":"Bielefeld","id2":37,"x":52.0333,"y":8.5333,"color":"darkblue","parent":"Germany","size":1,"urban_id":728},{"id":"Bochum","id2":38,"x":51.4833,"y":7.2167,"color":"darkblue","parent":"Germany","size":1,"urban_id":729},{"id":"Bonn","id2":39,"x":50.7344,"y":7.0955,"color":"darkblue","parent":"Germany","size":1,"urban_id":730},{"id":"Bremen","id2":40,"x":53.0752,"y":8.8078,"color":"darkblue","parent":"Germany","size":1,"urban_id":731},{"id":"Dortmund","id2":41,"x":51.5167,"y":7.45,"color":"darkblue","parent":"Germany","size":1,"urban_id":732},{"id":"Dresden","id2":42,"x":51.0509,"y":13.7383,"color":"darkblue","parent":"Germany","size":1,"urban_id":733},{"id":"Duesseldorf","id2":43,"x":51.2217,"y":6.7762,"color":"darkblue","parent":"Germany","size":1,"urban_id":734},{"id":"Duisburg","id2":44,"x":51.4333,"y":6.75,"color":"darkblue","parent":"Germany","size":1,"urban_id":735},{"id":"Essen","id2":45,"x":51.4537,"y":7.0104,"color":"darkblue","parent":"Germany","size":1,"urban_id":736},{"id":"Frankfurt am Main","id2":46,"x":50.1167,"y":8.6833,"color":"darkblue","parent":"Germany","size":1,"urban_id":737},{"id":"Hamburg","id2":47,"x":53.55,"y":10,"color":"darkblue","parent":"Germany","size":1,"urban_id":738},{"id":"Hannover","id2":48,"x":52.3705,"y":9.7332,"color":"darkblue","parent":"Germany","size":1,"urban_id":739},{"id":"Karlsruhe","id2":50,"x":49.0047,"y":8.3858,"color":"darkblue","parent":"Germany","size":1,"urban_id":740},{"id":"K<f6>ln (Cologne)","id2":49,"x":50.9333,"y":6.95,"color":"darkblue","parent":"Germany","size":1,"urban_id":741},{"id":"Leipzig","id2":51,"x":51.3396,"y":12.3713,"color":"darkblue","parent":"Germany","size":1,"urban_id":742},{"id":"Mannheim","id2":53,"x":49.4883,"y":8.4647,"color":"darkblue","parent":"Germany","size":1,"urban_id":743},{"id":"Muenster (Westfalen)","id2":54,"x":51.9624,"y":7.6257,"color":"darkblue","parent":"Germany","size":1,"urban_id":744},{"id":"M<fc>nchen (Munich)","id2":52,"x":48.1371,"y":11.5734,"color":"darkblue","parent":"Germany","size":1,"urban_id":745},{"id":"Nurenberg","id2":55,"x":49.4504,"y":11.0758,"color":"darkblue","parent":"Germany","size":1,"urban_id":746},{"id":"Stuttgart","id2":56,"x":48.7823,"y":9.177,"color":"darkblue","parent":"Germany","size":1,"urban_id":747},{"id":"Wuppertal","id2":57,"x":51.2667,"y":7.1833,"color":"darkblue","parent":"Germany","size":1,"urban_id":748},{"id":"Ath<ed>nai (Athens)","id2":58,"x":37.9534,"y":23.749,"color":"darkblue","parent":"Greece","size":1,"urban_id":753},{"id":"Thessaloniki","id2":59,"x":40.6403,"y":22.9439,"color":"darkblue","parent":"Greece","size":1,"urban_id":754},{"id":"Budapest","id2":60,"x":47.498,"y":19.0399,"color":"darkblue","parent":"Hungary","size":1,"urban_id":761},{"id":"Dublin","id2":61,"x":53.3331,"y":-6.2489,"color":"darkblue","parent":"Ireland","size":1,"urban_id":1021},{"id":"Bari","id2":62,"x":41.1177,"y":16.8512,"color":"darkblue","parent":"Italy","size":1,"urban_id":1026},{"id":"Barletta","id2":63,"x":41.3118,"y":16.2908,"color":"darkblue","parent":"Italy","size":1,"urban_id":1027},{"id":"Bergamo","id2":64,"x":45.698,"y":9.669,"color":"darkblue","parent":"Italy","size":1,"urban_id":1028},{"id":"Bologna","id2":65,"x":44.4938,"y":11.3388,"color":"darkblue","parent":"Italy","size":1,"urban_id":1029},{"id":"Brescia","id2":66,"x":45.5248,"y":10.2273,"color":"darkblue","parent":"Italy","size":1,"urban_id":1030},{"id":"Busto Arsizio","id2":67,"x":45.6113,"y":8.8491,"color":"darkblue","parent":"Italy","size":1,"urban_id":1031},{"id":"Cagliari","id2":68,"x":39.2074,"y":9.1346,"color":"darkblue","parent":"Italy","size":1,"urban_id":1032},{"id":"Caserta","id2":69,"x":41.0832,"y":14.3349,"color":"darkblue","parent":"Italy","size":1,"urban_id":1033},{"id":"Catania","id2":70,"x":37.5021,"y":15.0872,"color":"darkblue","parent":"Italy","size":1,"urban_id":1034},{"id":"Como","id2":71,"x":45.81,"y":9.0874,"color":"darkblue","parent":"Italy","size":1,"urban_id":1035},{"id":"Firenze (Florence)","id2":72,"x":43.7667,"y":11.25,"color":"darkblue","parent":"Italy","size":1,"urban_id":1036},{"id":"Genova (Genoa)","id2":73,"x":44.4063,"y":8.9339,"color":"darkblue","parent":"Italy","size":1,"urban_id":1037},{"id":"Latina","id2":74,"x":41.4661,"y":12.9043,"color":"darkblue","parent":"Italy","size":1,"urban_id":1038},{"id":"Lecco","id2":75,"x":45.8532,"y":9.3901,"color":"darkblue","parent":"Italy","size":1,"urban_id":1039},{"id":"Milano (Milan)","id2":76,"x":45.5531,"y":9.1834,"color":"darkblue","parent":"Italy","size":1,"urban_id":1040},{"id":"Modena","id2":77,"x":44.6478,"y":10.9254,"color":"darkblue","parent":"Italy","size":1,"urban_id":1041},{"id":"Napoli (Naples)","id2":78,"x":40.8502,"y":14.2592,"color":"darkblue","parent":"Italy","size":1,"urban_id":1042},{"id":"Nola","id2":79,"x":40.922,"y":14.5329,"color":"darkblue","parent":"Italy","size":1,"urban_id":1043},{"id":"Padova","id2":80,"x":45.4152,"y":11.8818,"color":"darkblue","parent":"Italy","size":1,"urban_id":1044},{"id":"Palermo","id2":81,"x":38.1158,"y":13.3598,"color":"darkblue","parent":"Italy","size":1,"urban_id":1045},{"id":"Parma","id2":82,"x":44.8027,"y":10.329,"color":"darkblue","parent":"Italy","size":1,"urban_id":1046},{"id":"Pescara","id2":83,"x":42.4602,"y":14.2102,"color":"darkblue","parent":"Italy","size":1,"urban_id":1047},{"id":"Reggio Emilia","id2":84,"x":44.6983,"y":10.6313,"color":"darkblue","parent":"Italy","size":1,"urban_id":1048},{"id":"Roma (Rome)","id2":85,"x":41.8947,"y":12.4811,"color":"darkblue","parent":"Italy","size":1,"urban_id":1049},{"id":"Salerno","id2":86,"x":40.678,"y":14.766,"color":"darkblue","parent":"Italy","size":1,"urban_id":1050},{"id":"Seregno","id2":87,"x":45.6524,"y":9.2003,"color":"darkblue","parent":"Italy","size":1,"urban_id":1051},{"id":"Taranto","id2":88,"x":40.4625,"y":17.2597,"color":"darkblue","parent":"Italy","size":1,"urban_id":1052},{"id":"Torino (Turin)","id2":89,"x":45.0687,"y":7.6772,"color":"darkblue","parent":"Italy","size":1,"urban_id":1053},{"id":"Treviso","id2":90,"x":45.6667,"y":12.245,"color":"darkblue","parent":"Italy","size":1,"urban_id":1054},{"id":"Venezia","id2":91,"x":45.4357,"y":12.3396,"color":"darkblue","parent":"Italy","size":1,"urban_id":1055},{"id":"Verona","id2":92,"x":45.4342,"y":10.9978,"color":"darkblue","parent":"Italy","size":1,"urban_id":1056},{"id":"Vicenza","id2":93,"x":45.5573,"y":11.5409,"color":"darkblue","parent":"Italy","size":1,"urban_id":1057},{"id":"Riga","id2":94,"x":56.946,"y":24.1059,"color":"darkblue","parent":"Latvia","size":1,"urban_id":1116},{"id":"Vilnius","id2":95,"x":54.6892,"y":25.2798,"color":"darkblue","parent":"Lithuania","size":1,"urban_id":1122},{"id":"Oslo","id2":96,"x":59.9127,"y":10.7461,"color":"darkblue","parent":"Norway","size":1,"urban_id":1282},{"id":"Bydgoszcz","id2":98,"x":53.1235,"y":18.0076,"color":"darkblue","parent":"Poland","size":1,"urban_id":1355},{"id":"Gda?sk","id2":99,"x":54.3521,"y":18.6464,"color":"darkblue","parent":"Poland","size":1,"urban_id":1356},{"id":"Krak<f3>w (Cracow)","id2":100,"x":50.0668,"y":19.9425,"color":"darkblue","parent":"Poland","size":1,"urban_id":1357},{"id":"?<f3>d?","id2":97,"x":51.7594,"y":19.46,"color":"darkblue","parent":"Poland","size":1,"urban_id":1358},{"id":"Lublin","id2":101,"x":51.25,"y":22.5667,"color":"darkblue","parent":"Poland","size":1,"urban_id":1359},{"id":"Pozna?","id2":102,"x":52.4069,"y":16.9299,"color":"darkblue","parent":"Poland","size":1,"urban_id":1360},{"id":"Szczecin","id2":103,"x":53.4289,"y":14.553,"color":"darkblue","parent":"Poland","size":1,"urban_id":1361},{"id":"Warszawa (Warsaw)","id2":104,"x":52.2298,"y":21.0118,"color":"darkblue","parent":"Poland","size":1,"urban_id":1362},{"id":"Wroc?aw","id2":105,"x":51.1,"y":17.0333,"color":"darkblue","parent":"Poland","size":1,"urban_id":1363},{"id":"Lisboa (Lisbon)","id2":106,"x":38.7169,"y":-9.1399,"color":"darkblue","parent":"Portugal","size":1,"urban_id":1364},{"id":"Porto","id2":107,"x":41.1496,"y":-8.611,"color":"darkblue","parent":"Portugal","size":1,"urban_id":1365},{"id":"Bucuresti (Bucharest)","id2":108,"x":44.4328,"y":26.1043,"color":"darkblue","parent":"Romania","size":1,"urban_id":1397},{"id":"Cluj-Napoca","id2":109,"x":46.7667,"y":23.6,"color":"darkblue","parent":"Romania","size":1,"urban_id":1398},{"id":"Iasi","id2":110,"x":47.1667,"y":27.6,"color":"darkblue","parent":"Romania","size":1,"urban_id":1399},{"id":"Timisoara","id2":111,"x":45.7494,"y":21.2272,"color":"darkblue","parent":"Romania","size":1,"urban_id":1400},{"id":"Bratislava","id2":112,"x":48.1482,"y":17.1067,"color":"darkblue","parent":"Slovakia","size":1,"urban_id":1491},{"id":"Alicante","id2":113,"x":38.3452,"y":-0.4815,"color":"darkblue","parent":"Spain","size":1,"urban_id":1513},{"id":"Barcelona","id2":114,"x":41.3888,"y":2.159,"color":"darkblue","parent":"Spain","size":1,"urban_id":1514},{"id":"Bilbao","id2":115,"x":43.2627,"y":-2.9253,"color":"darkblue","parent":"Spain","size":1,"urban_id":1515},{"id":"Cordoba","id2":116,"x":37.8833,"y":-4.7667,"color":"darkblue","parent":"Spain","size":1,"urban_id":1516},{"id":"Las Palmas Gran Canaria","id2":117,"x":28.1107,"y":-15.4343,"color":"darkblue","parent":"Spain","size":1,"urban_id":1517},{"id":"Madrid","id2":118,"x":40.4165,"y":-3.7026,"color":"darkblue","parent":"Spain","size":1,"urban_id":1518},{"id":"Malaga","id2":119,"x":36.7202,"y":-4.4203,"color":"darkblue","parent":"Spain","size":1,"urban_id":1519},{"id":"Murcia","id2":120,"x":37.987,"y":-1.13,"color":"darkblue","parent":"Spain","size":1,"urban_id":1520},{"id":"Palma","id2":121,"x":39.5694,"y":2.6502,"color":"darkblue","parent":"Spain","size":1,"urban_id":1521},{"id":"Sevilla","id2":122,"x":37.3824,"y":-5.9761,"color":"darkblue","parent":"Spain","size":1,"urban_id":1522},{"id":"Valencia","id2":123,"x":39.4698,"y":-0.3774,"color":"darkblue","parent":"Spain","size":1,"urban_id":1523},{"id":"Valladolid","id2":124,"x":41.6552,"y":-4.7237,"color":"darkblue","parent":"Spain","size":1,"urban_id":1524},{"id":"Vigo","id2":125,"x":42.2328,"y":-8.7226,"color":"darkblue","parent":"Spain","size":1,"urban_id":1525},{"id":"Zaragoza","id2":126,"x":41.6561,"y":-0.8773,"color":"darkblue","parent":"Spain","size":1,"urban_id":1526},{"id":"G<f6>teborg","id2":127,"x":57.7032,"y":11.9663,"color":"darkblue","parent":"Sweden","size":1,"urban_id":1536},{"id":"Malm<f6>","id2":128,"x":55.6059,"y":13.0007,"color":"darkblue","parent":"Sweden","size":1,"urban_id":1537},{"id":"Stockholm","id2":129,"x":59.3326,"y":18.0649,"color":"darkblue","parent":"Sweden","size":1,"urban_id":1538},{"id":"Basel","id2":130,"x":47.5584,"y":7.5733,"color":"darkblue","parent":"Switzerland","size":1,"urban_id":1539},{"id":"Bern","id2":131,"x":46.9481,"y":7.4474,"color":"darkblue","parent":"Switzerland","size":1,"urban_id":1540},{"id":"Gen<e8>ve","id2":132,"x":46.2022,"y":6.1457,"color":"darkblue","parent":"Switzerland","size":1,"urban_id":1541},{"id":"Lausanne","id2":133,"x":46.516,"y":6.6328,"color":"darkblue","parent":"Switzerland","size":1,"urban_id":1542},{"id":"Z<fc>rich (Zurich)","id2":134,"x":47.3579,"y":8.503,"color":"darkblue","parent":"Switzerland","size":1,"urban_id":1543},{"id":"Amsterdam","id2":135,"x":52.374,"y":4.8897,"color":"darkblue","parent":"The Netherlands","size":1,"urban_id":1221},{"id":"Eindhoven","id2":136,"x":51.4408,"y":5.4778,"color":"darkblue","parent":"The Netherlands","size":1,"urban_id":1222},{"id":"Rotterdam","id2":137,"x":51.9225,"y":4.4792,"color":"darkblue","parent":"The Netherlands","size":1,"urban_id":1223},{"id":"s-Gravenhage (The Hague)","id2":138,"x":52.0767,"y":4.2986,"color":"darkblue","parent":"The Netherlands","size":1,"urban_id":1224},{"id":"Utrecht","id2":139,"x":52.0908,"y":5.1222,"color":"darkblue","parent":"The Netherlands","size":1,"urban_id":1225},{"id":"Belfast","id2":140,"x":54.5947,"y":-5.9298,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1636},{"id":"Birkenhead","id2":141,"x":53.3934,"y":-3.0148,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1637},{"id":"Birmingham (West Midlands)","id2":142,"x":52.4814,"y":-1.8998,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1638},{"id":"Bournemouth/Poole","id2":143,"x":50.7205,"y":-1.8795,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1639},{"id":"Brighton-Worthing-Littlehampton","id2":144,"x":50.8284,"y":-0.1395,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1640},{"id":"Bristol","id2":145,"x":51.4552,"y":-2.5966,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1641},{"id":"Cardiff","id2":146,"x":51.48,"y":-3.18,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1642},{"id":"Coventry-Bedworth","id2":147,"x":52.4066,"y":-1.5122,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1643},{"id":"Edinburgh","id2":148,"x":55.9521,"y":-3.1965,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1644},{"id":"Glasgow","id2":149,"x":55.8652,"y":-4.2576,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1645},{"id":"Kingston upon Hull","id2":150,"x":53.7483,"y":-0.334,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1646},{"id":"Leicester","id2":151,"x":52.6386,"y":-1.1317,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1647},{"id":"Liverpool","id2":152,"x":53.4106,"y":-2.9779,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1648},{"id":"London","id2":153,"x":51.5085,"y":-0.1257,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1649},{"id":"Manchester","id2":154,"x":53.481,"y":-2.2374,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1650},{"id":"Newcastle upon Tyne","id2":155,"x":54.9733,"y":-1.614,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1651},{"id":"Newport","id2":156,"x":51.5847,"y":-2.9979,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1652},{"id":"Nottingham","id2":157,"x":52.9536,"y":-1.1505,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1653},{"id":"Preston","id2":158,"x":53.761,"y":-2.7024,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1654},{"id":"Reading-Wokingham","id2":159,"x":51.4112,"y":-0.8356,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1655},{"id":"Sheffield","id2":160,"x":53.383,"y":-1.4659,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1656},{"id":"Southampton/Portsmouth (South Hampshire)","id2":161,"x":50.9117,"y":-1.4036,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1657},{"id":"Southend-On-Sea","id2":162,"x":51.5378,"y":0.7143,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1658},{"id":"Stoke-on-Trent (The Potteries)","id2":163,"x":53.0042,"y":-2.1854,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1659},{"id":"Sunderland","id2":164,"x":54.9119,"y":-1.3833,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1660},{"id":"Swansea","id2":165,"x":51.6208,"y":-3.9432,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1661},{"id":"Teeside (Middlesbrough)","id2":166,"x":54.5762,"y":-1.2348,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1662},{"id":"West Yorkshire","id2":167,"x":53.7984,"y":-1.7649,"color":"darkblue","parent":"United Kingdom","size":1,"urban_id":1663}]
+), //for the nodes
+            d3.json([{"source":100,"target":104,"weight":4608},{"source":113,"target":118,"weight":4882},{"source":135,"target":136,"weight":4500},{"source":135,"target":153,"weight":8629},{"source":135,"target":137,"weight":8425},{"source":135,"target":139,"weight":13623},{"source":1,"target":4,"weight":3124},{"source":58,"target":59,"weight":5848},{"source":16,"target":27,"weight":1831},{"source":17,"target":27,"weight":122},{"source":114,"target":118,"weight":38944},{"source":130,"target":134,"weight":5867},{"source":64,"target":76,"weight":3198},{"source":36,"target":37,"weight":1420},{"source":36,"target":42,"weight":4196},{"source":36,"target":45,"weight":3171},{"source":36,"target":47,"weight":8085},{"source":36,"target":51,"weight":5195},{"source":36,"target":54,"weight":13594},{"source":36,"target":52,"weight":9413},{"source":27,"target":36,"weight":8955},{"source":131,"target":134,"weight":7649},{"source":142,"target":153,"weight":11502},{"source":36,"target":38,"weight":2343},{"source":65,"target":85,"weight":12630},{"source":18,"target":27,"weight":24473},{"source":11,"target":112,"weight":2482},{"source":36,"target":40,"weight":1504},{"source":66,"target":76,"weight":5341},{"source":145,"target":153,"weight":10699},{"source":10,"target":11,"weight":6240},{"source":2,"target":4,"weight":5194},{"source":2,"target":27,"weight":8184},{"source":108,"target":109,"weight":1957},{"source":108,"target":110,"weight":1884},{"source":27,"target":108,"weight":1951},{"source":108,"target":111,"weight":1361},{"source":67,"target":76,"weight":635},{"source":69,"target":78,"weight":207},{"source":70,"target":85,"weight":5620},{"source":2,"target":3,"weight":447},{"source":116,"target":118,"weight":3466},{"source":36,"target":41,"weight":1329},{"source":61,"target":153,"weight":5463},{"source":44,"target":45,"weight":798},{"source":148,"target":153,"weight":12022},{"source":72,"target":85,"weight":10709},{"source":36,"target":46,"weight":6445},{"source":127,"target":129,"weight":7817},{"source":98,"target":104,"weight":4499},{"source":73,"target":85,"weight":9369},{"source":149,"target":153,"weight":11067},{"source":20,"target":27,"weight":30188},{"source":36,"target":48,"weight":4394},{"source":14,"target":129,"weight":4983},{"source":14,"target":15,"weight":2128},{"source":36,"target":50,"weight":5485},{"source":12,"target":153,"weight":8227},{"source":97,"target":99,"weight":1992},{"source":99,"target":104,"weight":11545},{"source":99,"target":105,"weight":9285},{"source":133,"target":134,"weight":6819},{"source":151,"target":153,"weight":5598},{"source":5,"target":27,"weight":2902},{"source":19,"target":21,"weight":462},{"source":21,"target":27,"weight":20486},{"source":27,"target":106,"weight":3951},{"source":106,"target":107,"weight":10560},{"source":141,"target":152,"weight":39},{"source":58,"target":153,"weight":4828},{"source":140,"target":153,"weight":3510},{"source":143,"target":153,"weight":1025},{"source":144,"target":153,"weight":4199},{"source":146,"target":153,"weight":6382},{"source":147,"target":153,"weight":5405},{"source":150,"target":153,"weight":1037},{"source":152,"target":153,"weight":9089},{"source":153,"target":154,"weight":15125},{"source":96,"target":153,"weight":5242},{"source":27,"target":153,"weight":22945},{"source":153,"target":160,"weight":6191},{"source":153,"target":161,"weight":10178},{"source":129,"target":153,"weight":9094},{"source":153,"target":164,"weight":2108},{"source":153,"target":165,"weight":2126},{"source":153,"target":166,"weight":885},{"source":22,"target":27,"weight":39632},{"source":39,"target":54,"weight":5015},{"source":43,"target":54,"weight":4777},{"source":49,"target":54,"weight":2167},{"source":54,"target":55,"weight":3605},{"source":54,"target":56,"weight":2715},{"source":115,"target":118,"weight":6248},{"source":117,"target":118,"weight":2159},{"source":118,"target":119,"weight":4651},{"source":118,"target":121,"weight":3110},{"source":118,"target":122,"weight":9342},{"source":118,"target":123,"weight":14345},{"source":118,"target":125,"weight":2946},{"source":118,"target":126,"weight":6883},{"source":128,"target":129,"weight":5986},{"source":23,"target":27,"weight":46063},{"source":71,"target":76,"weight":1062},{"source":75,"target":76,"weight":776},{"source":76,"target":85,"weight":46979},{"source":24,"target":27,"weight":29108},{"source":36,"target":53,"weight":2858},{"source":118,"target":120,"weight":4368},{"source":25,"target":27,"weight":14073},{"source":78,"target":85,"weight":15228},{"source":78,"target":86,"weight":2845},{"source":153,"target":155,"weight":7926},{"source":153,"target":156,"weight":574},{"source":26,"target":27,"weight":12177},{"source":153,"target":157,"weight":8604},{"source":80,"target":85,"weight":11748},{"source":80,"target":90,"weight":834},{"source":27,"target":114,"weight":13533},{"source":27,"target":60,"weight":2308},{"source":27,"target":132,"weight":6409},{"source":11,"target":27,"weight":5194},{"source":27,"target":28,"weight":17236},{"source":27,"target":94,"weight":555},{"source":27,"target":85,"weight":13546},{"source":27,"target":29,"weight":6240},{"source":27,"target":30,"weight":4287},{"source":27,"target":31,"weight":16108},{"source":27,"target":32,"weight":2200},{"source":27,"target":33,"weight":31762},{"source":27,"target":34,"weight":7265},{"source":27,"target":95,"weight":717},{"source":0,"target":27,"weight":6440},{"source":82,"target":85,"weight":3646},{"source":6,"target":7,"weight":1189},{"source":102,"target":104,"weight":5029},{"source":153,"target":158,"weight":1374},{"source":153,"target":159,"weight":2714},{"source":62,"target":85,"weight":11707},{"source":63,"target":85,"weight":79},{"source":68,"target":85,"weight":3437},{"source":74,"target":85,"weight":668},{"source":77,"target":85,"weight":4220},{"source":81,"target":85,"weight":5876},{"source":83,"target":85,"weight":3398},{"source":84,"target":85,"weight":2461},{"source":85,"target":89,"weight":12773},{"source":85,"target":91,"weight":2647},{"source":85,"target":92,"weight":4527},{"source":135,"target":138,"weight":5048},{"source":85,"target":87,"weight":388},{"source":7,"target":27,"weight":1041},{"source":7,"target":8,"weight":489},{"source":153,"target":162,"weight":1810},{"source":153,"target":163,"weight":1787},{"source":103,"target":104,"weight":1557},{"source":13,"target":14,"weight":806},{"source":62,"target":88,"weight":13},{"source":27,"target":35,"weight":1766},{"source":118,"target":124,"weight":3390},{"source":85,"target":93,"weight":658},{"source":101,"target":104,"weight":3485},{"source":27,"target":104,"weight":4474},{"source":153,"target":167,"weight":9876},{"source":36,"target":57,"weight":608},{"source":27,"target":134,"weight":7528},{"source":9,"target":27,"weight":1415},{"source":27,"target":153,"weight":347929},{"source":85,"target":118,"weight":257055},{"source":76,"target":114,"weight":131558},{"source":36,"target":54,"weight":129976},{"source":12,"target":134,"weight":106039},{"source":104,"target":129,"weight":99527},{"source":0,"target":135,"weight":86605},{"source":11,"target":52,"weight":82204},{"source":76,"target":106,"weight":66919},{"source":23,"target":76,"weight":66074},{"source":22,"target":23,"weight":62154},{"source":14,"target":58,"weight":61949},{"source":47,"target":139,"weight":57001},{"source":22,"target":22,"weight":54059},{"source":23,"target":114,"weight":50786},{"source":96,"target":114,"weight":50422},{"source":46,"target":154,"weight":49000},{"source":89,"target":107,"weight":46979},{"source":61,"target":123,"weight":46979},{"source":33,"target":148,"weight":46063},{"source":20,"target":78,"weight":46063},{"source":62,"target":99,"weight":44847},{"source":27,"target":133,"weight":44695},{"source":2,"target":27,"weight":43158},{"source":50,"target":65,"weight":42088},{"source":20,"target":20,"weight":41101},{"source":24,"target":80,"weight":39632},{"source":24,"target":149,"weight":39632},{"source":24,"target":60,"weight":39067},{"source":4,"target":42,"weight":38944},{"source":127,"target":142,"weight":38944},{"source":72,"target":132,"weight":38198},{"source":131,"target":167,"weight":38143},{"source":108,"target":130,"weight":38131},{"source":18,"target":18,"weight":36866},{"source":18,"target":138,"weight":36118},{"source":152,"target":161,"weight":35729},{"source":27,"target":137,"weight":34882},{"source":27,"target":157,"weight":33935},{"source":21,"target":145,"weight":33764},{"source":55,"target":128,"weight":33070},{"source":56,"target":122,"weight":32982},{"source":49,"target":73,"weight":32078},{"source":39,"target":48,"weight":31928},{"source":21,"target":21,"weight":31885},{"source":10,"target":59,"weight":31762},{"source":51,"target":155,"weight":31762},{"source":9,"target":115,"weight":30873},{"source":28,"target":43,"weight":30840},{"source":102,"target":105,"weight":30201},{"source":136,"target":160,"weight":30188},{"source":27,"target":27,"weight":30188},{"source":31,"target":112,"weight":30093},{"source":27,"target":27,"weight":29108},{"source":7,"target":126,"weight":29108},{"source":78,"target":78,"weight":28740},{"source":153,"target":153,"weight":28597},{"source":45,"target":118,"weight":27892},{"source":25,"target":118,"weight":27710},{"source":25,"target":53,"weight":27486},{"source":38,"target":135,"weight":26697},{"source":36,"target":135,"weight":26651},{"source":36,"target":146,"weight":25992},{"source":27,"target":27,"weight":25878},{"source":27,"target":27,"weight":25646},{"source":1,"target":25,"weight":25284},{"source":27,"target":27,"weight":25237},{"source":70,"target":147,"weight":24882},{"source":85,"target":85,"weight":24782},{"source":65,"target":65,"weight":24473},{"source":26,"target":100,"weight":24473},{"source":26,"target":98,"weight":24442},{"source":26,"target":148,"weight":23807},{"source":101,"target":148,"weight":23645},{"source":81,"target":114,"weight":23600},{"source":80,"target":114,"weight":22945},{"source":62,"target":80,"weight":22945},{"source":62,"target":85,"weight":22603},{"source":85,"target":99,"weight":22387},{"source":99,"target":142,"weight":22367},{"source":118,"target":142,"weight":22171},{"source":27,"target":118,"weight":22066},{"source":27,"target":149,"weight":21968},{"source":27,"target":149,"weight":21563},{"source":118,"target":153,"weight":21256},{"source":85,"target":114,"weight":21079},{"source":36,"target":76,"weight":20595},{"source":12,"target":54,"weight":20510},{"source":104,"target":134,"weight":20486},{"source":129,"target":135,"weight":20486},{"source":0,"target":52,"weight":20102},{"source":11,"target":106,"weight":19900},{"source":85,"target":85,"weight":19600},{"source":27,"target":27,"weight":19424},{"source":14,"target":22,"weight":18109},{"source":47,"target":58,"weight":18068},{"source":27,"target":139,"weight":17971},{"source":23,"target":27,"weight":17533},{"source":118,"target":118,"weight":17520},{"source":46,"target":96,"weight":17462},{"source":89,"target":154,"weight":17306},{"source":107,"target":123,"weight":17281},{"source":61,"target":148,"weight":17236},{"source":20,"target":33,"weight":17236},{"source":62,"target":78,"weight":16819},{"source":99,"target":133,"weight":16298},{"source":33,"target":33,"weight":16108},{"source":2,"target":50,"weight":16108},{"source":27,"target":65,"weight":15630},{"source":27,"target":80,"weight":15239},{"source":27,"target":27,"weight":15228},{"source":60,"target":149,"weight":15228},{"source":4,"target":24,"weight":15125},{"source":42,"target":127,"weight":15125},{"source":72,"target":142,"weight":14796},{"source":132,"target":167,"weight":14345},{"source":130,"target":131,"weight":14345},{"source":18,"target":108,"weight":14073},{"source":27,"target":27,"weight":14073},{"source":138,"target":152,"weight":14035},{"source":137,"target":161,"weight":13761},{"source":153,"target":153,"weight":13623},{"source":21,"target":157,"weight":13623},{"source":128,"target":145,"weight":13594},{"source":55,"target":56,"weight":13594},{"source":73,"target":122,"weight":13591},{"source":39,"target":49,"weight":13546},{"source":27,"target":48,"weight":13546},{"source":27,"target":59,"weight":13533},{"source":10,"target":51,"weight":13533},{"source":115,"target":155,"weight":13424},{"source":9,"target":43,"weight":13395},{"source":28,"target":102,"weight":13082},{"source":105,"target":160,"weight":13082},{"source":28,"target":136,"weight":12996},{"source":28,"target":31,"weight":12783},{"source":31,"target":112,"weight":12773},{"source":7,"target":31,"weight":12773},{"source":85,"target":126,"weight":12630},{"source":85,"target":154,"weight":12630},{"source":45,"target":154,"weight":12416},{"source":123,"target":123,"weight":12296},{"source":27,"target":27,"weight":12232},{"source":38,"target":53,"weight":12177},{"source":139,"target":139,"weight":12177},{"source":54,"target":54,"weight":12022},{"source":85,"target":146,"weight":12022},{"source":85,"target":114,"weight":11960},{"source":25,"target":114,"weight":11894},{"source":1,"target":118,"weight":11823},{"source":70,"target":118,"weight":11823},{"source":89,"target":147,"weight":11748},{"source":85,"target":89,"weight":11748},{"source":26,"target":85,"weight":11707},{"source":98,"target":100,"weight":11707},{"source":27,"target":27,"weight":11657},{"source":153,"target":153,"weight":11657},{"source":81,"target":101,"weight":11545},{"source":153,"target":153,"weight":11545},{"source":85,"target":85,"weight":11502},{"source":85,"target":85,"weight":11502},{"source":153,"target":153,"weight":11471},{"source":104,"target":104,"weight":11471},{"source":153,"target":153,"weight":11162},{"source":153,"target":153,"weight":11162},{"source":76,"target":76,"weight":11067},{"source":153,"target":153,"weight":11067}]
+) //for the links
+        ]).then(([world, nodesData, linksData]) => {
+            mapLayer.append("path")
+                .datum(topojson.feature(world, world.objects.countries))
+                .attr("class", "land")
+                .attr("d", path)
+
+            mapLayer.append("path")
+                .datum(topojson.mesh(world, world.objects.countries, (a, b) => a !== b))
+                .attr("fill", "none")
+                .attr("stroke", "#999")
+                .attr("stroke-width", 0.5)
+                .attr("d", path)
+
+            const nodes = nodesData.map(d => {
+                const coords = projection([d.y, d.x])
+                return {
+                    id: d.id2,
+                    name: d.id,
+                    parent: d.parent,
+                    x: coords[0],
+                    y: coords[1],
+                    color: d.color,
+                    size: d.size,
+                    weightSum: 0
+                }
+            })
+
+            const links = linksData
+                .map(d => {
+                    const sourceNode = nodes.find(n => n.id === d.source)
+                    const targetNode = nodes.find(n => n.id === d.target)
+                    return {
+                        source: sourceNode,
+                        target: targetNode,
+                        weight: d.weight
+                    }
+                })
+                .filter(d => d.source && d.target)
+
+            linkWeightsSorted = links.map(l => l.weight).sort((a, b) => a - b)
+            links.forEach(l => {
+                l.source.weightSum += l.weight
+                l.target.weightSum += l.weight
+            })
+
+            const bundle = generateSegments(nodes, links)
+
+            linkSelection = linkLayer.selectAll(".link")
+                .data(bundle.paths)
+                .enter()
+                .append("path")
+                .attr("class", "link")
+                .attr("stroke", "#69b3a2")
+                .attr("stroke-width", d => calculateStrokeWidth(d.weight))
+                .attr("opacity", linkAlpha)
+                .classed("highlighted", false)
+                .attr("d", line)
+
+            nodeLayer.selectAll("circle")
+                .data(nodes)
+                .enter()
+                .append("circle")
+                .attr("r", d => d.size + Math.log(1 + d.weightSum))
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .style("fill", d => d.color)
+                .on("mouseover", (event, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(d.parent + "<br>" + d.name)
+                        .style("left", (event.pageX + 5) + "px")
+                        .style("top", (event.pageY + 5) + "px")
+                })
+                .on("mousemove", event => {
+                    tooltip
+                        .style("left", (event.pageX + 5) + "px")
+                        .style("top", (event.pageY + 5) + "px")
+                })
+                .on("mouseout", () => {
+                    tooltip.style("opacity", 0)
+                })
+                .on("click", (event, d) => {
+                    event.stopPropagation()
+                    if (currentlySelectedNode && currentlySelectedNode.id === d.id) {
+                        resetHighlights()
+                        currentlySelectedNode = null
+                    } else {
+                        highlightLinks(d)
+                        currentlySelectedNode = d
+                    }
+                })
+                .classed("highlighted-node", false)
+
+            let simulation = d3.forceSimulation()
+                .nodes(bundle.nodes)
+                .force("charge", d3.forceManyBody().strength(10).distanceMax(50))
+                .force("link", d3.forceLink(bundle.links).strength(0.7).distance(0))
+
+            simulation.stop()
+            for (let i = 0; i < 300; i++) {
+                simulation.tick()
+            }
+
+            line.curve(d3.curveBundle.beta(bundlingBeta))
+            linkSelection.attr("d", line)
+
+            d3.select("#spinner").style("display", "none")
+
+            svg.on("click", () => {
+                resetHighlights()
+                currentlySelectedNode = null
+            })
+
+            function calculateStrokeWidth(weightValue) {
+                let logVal = Math.log(1 + weightValue)
+                let emphasisVal = Math.pow(logVal, weightEmphasis)
+                return baseThickness * (0.5 + 0.5 * emphasisVal)
+            }
+
+            function filterLinksByPercent(sliderValue) {
+                const keepFrac = sliderValue / 100
+                let threshold
+                if (keepFrac === 1) {
+                    threshold = Number.NEGATIVE_INFINITY
+                } else if (keepFrac === 0) {
+                    threshold = Number.POSITIVE_INFINITY
+                } else {
+                    const index = Math.floor((1 - keepFrac) * linkWeightsSorted.length)
+                    threshold = linkWeightsSorted[index]
+                }
+                linkSelection.attr("display", d => (d.weight >= threshold) ? "inline" : "none")
+            }
+
+            function highlightLinks(clickedNode) {
+                nodeLayer.selectAll("circle").classed("highlighted-node", false)
+                nodeLayer.selectAll("circle")
+                    .filter(n => n.id === clickedNode.id)
+                    .classed("highlighted-node", true)
+
+                linkSelection.each(function(d) {
+                    const isActive =
+                        d.originalSource.id === clickedNode.id ||
+                        d.originalTarget.id === clickedNode.id
+
+                    if (isActive) {
+                        linkLayer.node().appendChild(this)
+                        d3.select(this)
+                            .classed("highlighted", true)
+                            .attr("stroke", "#69b3a2")
+                            .attr("opacity", 1)
+                    } else {
+                        d3.select(this)
+                            .classed("highlighted", false)
+                            .attr("stroke", "#999")
+                            .attr("opacity", 0)
+                    }
+                })
+            }
+
+            function resetHighlights() {
+                nodeLayer.selectAll("circle").classed("highlighted-node", false)
+                linkSelection
+                    .classed("highlighted", false)
+                    .attr("stroke", "#69b3a2")
+                    .each(function() {
+                        const disp = d3.select(this).attr("display")
+                        if (disp !== "none") {
+                            d3.select(this).attr("opacity", linkAlpha)
+                        } else {
+                            d3.select(this).attr("opacity", 0)
+                        }
+                    })
+            }
+
+            function generateSegments(nodes, links) {
+                let bundle = { nodes: [], links: [], paths: [] }
+                bundle.nodes = nodes.map(d => {
+                    d.fx = d.x
+                    d.fy = d.y
+                    return d
+                })
+
+                links.forEach(d => {
+                    let length = distance(d.source, d.target)
+                    let total = Math.max(1, Math.round(length / 50))
+                    let xscale = d3.scaleLinear()
+                        .domain([0, total + 1])
+                        .range([d.source.x, d.target.x])
+                    let yscale = d3.scaleLinear()
+                        .domain([0, total + 1])
+                        .range([d.source.y, d.target.y])
+
+                    let source = d.source
+                    let target = null
+                    let local = [source]
+
+                    for (let j = 1; j <= total; j++) {
+                        target = { x: xscale(j), y: yscale(j) }
+                        local.push(target)
+                        bundle.nodes.push(target)
+                        bundle.links.push({ source: source, target: target })
+                        source = target
+                    }
+                    local.push(d.target)
+                    bundle.links.push({ source: target, target: d.target })
+                    local.weight = d.weight
+                    local.originalSource = d.source
+                    local.originalTarget = d.target
+                    bundle.paths.push(local)
+                })
+                return bundle
+            }
+
+            function distance(a, b) {
+                const dx = b.x - a.x
+                const dy = b.y - a.y
+                return Math.sqrt(dx * dx + dy * dy)
+            }
+
+            d3.select("#linkRemover").on("input", function() {
+                const val = +this.value
+                document.getElementById("linkRemoverValue").textContent = val
+                filterLinksByPercent(val)
+            })
+        }).catch(err => {
+            console.error("Error loading data:", err)
+        })
+
+        d3.select("#linkThickness").on("input", function() {
+            baseThickness = +this.value
+            document.getElementById("linkThicknessValue").textContent = this.value
+            if (linkSelection) {
+                linkSelection
+                    .filter(function() {
+                        return d3.select(this).attr("display") !== "none"
+                    })
+                    .attr("stroke-width", d => calculateStrokeWidth(d.weight))
+            }
+        })
+
+        d3.select("#alphaSlider").on("input", function() {
+            linkAlpha = +this.value
+            document.getElementById("alphaSliderValue").textContent = this.value
+            if (linkSelection) {
+                linkSelection.each(function() {
+                    const sel = d3.select(this)
+                    const disp = sel.attr("display")
+                    const isHighlighted = sel.classed("highlighted")
+                    if (disp !== "none" && !isHighlighted) {
+                        sel.attr("opacity", linkAlpha)
+                    }
+                })
+            }
+        })
+
+        d3.select("#bundlingBeta").on("input", function() {
+            bundlingBeta = +this.value
+            document.getElementById("bundlingBetaValue").textContent = this.value
+            line.curve(d3.curveBundle.beta(bundlingBeta))
+            if (linkSelection) {
+                linkSelection.attr("d", line)
+            }
+        })
+
+        d3.select("#weightEmphasis").on("input", function() {
+            weightEmphasis = +this.value
+            document.getElementById("weightEmphasisValue").textContent = this.value
+            if (linkSelection) {
+                linkSelection
+                    .filter(function() {
+                        return d3.select(this).attr("display") !== "none"
+                    })
+                    .attr("stroke-width", d => calculateStrokeWidth(d.weight))
+            }
+        })
+
+        function calculateStrokeWidth(weightValue) {
+            let logVal = Math.log(1 + weightValue)
+            let emphasisVal = Math.pow(logVal, weightEmphasis)
+            return baseThickness * (0.5 + 0.5 * emphasisVal)
+        }
+    </script>
+</body>
+</html>
