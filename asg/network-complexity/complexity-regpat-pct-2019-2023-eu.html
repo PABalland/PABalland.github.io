@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Edge Bundling USA</title>
+    <title>Edge Bundling Europe</title>
     <style>
         html, body {
             width: 100%;
@@ -19,7 +19,7 @@
             position: absolute;
             top: 10px;
             left: 10px;
-            width: 200px;
+            width: 180px;
             padding: 10px;
             background: rgba(255,255,255,0.8);
             border-radius: 4px;
@@ -107,7 +107,7 @@
             </div>
             <hr>
             <div>
-                <label for="linkRemover">Link Remover</label><br>
+                <label for="linkRemover">Link Display (%)</label><br>
                 <input type="range" id="linkRemover" min="0" max="100" step="1" value="100">
                 <span id="linkRemoverValue">100</span>
             </div>
@@ -136,8 +136,9 @@
         let currentlySelectedNode = null
         let linkWeightsSorted = []
 
-        const projection = d3.geoAlbersUsa()
-            .scale(1300)
+        const projection = d3.geoMercator()
+            .scale(600)
+            .center([13, 52])
             .translate([width / 2, height / 2])
 
         const path = d3.geoPath().projection(projection)
@@ -171,17 +172,17 @@
         svg.call(zoom)
 
         Promise.all([
-            d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"),
-            d3.json("https://www.paballand.com/ceps-ai/json/nodes-us.json"),
-            d3.json("https://www.paballand.com/ceps-ai/json/links-us.json")
-        ]).then(([us, nodesData, linksData]) => {
+            d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json"),
+            d3.json("https://www.paballand.com/asg/network-complexity/complexity-regpat-pct-2019-2023-nodes-eu.json"), //for the nodes
+            d3.json("https://www.paballand.com/asg/network-complexity/complexity-regpat-pct-2019-2023-links-eu.json") //for the links
+        ]).then(([world, nodesData, linksData]) => {
             mapLayer.append("path")
-                .datum(topojson.feature(us, us.objects.nation))
+                .datum(topojson.feature(world, world.objects.countries))
                 .attr("class", "land")
                 .attr("d", path)
 
             mapLayer.append("path")
-                .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
+                .datum(topojson.mesh(world, world.objects.countries, (a, b) => a !== b))
                 .attr("fill", "none")
                 .attr("stroke", "#999")
                 .attr("stroke-width", 0.5)
@@ -208,8 +209,7 @@
                     return {
                         source: sourceNode,
                         target: targetNode,
-                        weight: d.weight,
-                        color: d.color ? d.color : "#69b3a2"
+                        weight: d.weight
                     }
                 })
                 .filter(d => d.source && d.target)
@@ -227,7 +227,7 @@
                 .enter()
                 .append("path")
                 .attr("class", "link")
-                .attr("stroke", d => d.color)
+                .attr("stroke", "#69b3a2")
                 .attr("stroke-width", d => calculateStrokeWidth(d.weight))
                 .attr("opacity", linkAlpha)
                 .classed("highlighted", false)
@@ -237,7 +237,7 @@
                 .data(nodes)
                 .enter()
                 .append("circle")
-                .attr("r", d => d.size + Math.log(1 + d.weightSum))
+                .attr("r", d => d.size + 5)
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y)
                 .style("fill", d => d.color)
@@ -316,8 +316,9 @@
 
                 linkSelection.each(function(d) {
                     const isActive =
-                        d.originalSource && d.originalSource.id === clickedNode.id ||
-                        d.originalTarget && d.originalTarget.id === clickedNode.id
+                        d.originalSource.id === clickedNode.id ||
+                        d.originalTarget.id === clickedNode.id
+
                     if (isActive) {
                         linkLayer.node().appendChild(this)
                         d3.select(this)
@@ -337,7 +338,7 @@
                 nodeLayer.selectAll("circle").classed("highlighted-node", false)
                 linkSelection
                     .classed("highlighted", false)
-                    .attr("stroke", d => d.color)
+                    .attr("stroke", "#69b3a2")
                     .each(function() {
                         const disp = d3.select(this).attr("display")
                         if (disp !== "none") {
@@ -355,6 +356,7 @@
                     d.fy = d.y
                     return d
                 })
+
                 links.forEach(d => {
                     let length = distance(d.source, d.target)
                     let total = Math.max(1, Math.round(length / 50))
@@ -368,6 +370,7 @@
                     let source = d.source
                     let target = null
                     let local = [source]
+
                     for (let j = 1; j <= total; j++) {
                         target = { x: xscale(j), y: yscale(j) }
                         local.push(target)
@@ -378,7 +381,6 @@
                     local.push(d.target)
                     bundle.links.push({ source: target, target: d.target })
                     local.weight = d.weight
-                    local.color = d.color
                     local.originalSource = d.source
                     local.originalTarget = d.target
                     bundle.paths.push(local)

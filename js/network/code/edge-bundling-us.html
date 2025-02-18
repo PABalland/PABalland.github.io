@@ -172,8 +172,8 @@
 
         Promise.all([
             d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"),
-            d3.json("https://www.paballand.com/ceps-ai/json/nodes-us.json"), //for the nodes
-            d3.json("https://www.paballand.com/ceps-ai/json/links-us.json") //for the links
+            d3.json("https://www.paballand.com/ceps-ai/json/nodes-us.json"),
+            d3.json("https://www.paballand.com/ceps-ai/json/links-us.json")
         ]).then(([us, nodesData, linksData]) => {
             mapLayer.append("path")
                 .datum(topojson.feature(us, us.objects.nation))
@@ -208,7 +208,8 @@
                     return {
                         source: sourceNode,
                         target: targetNode,
-                        weight: d.weight
+                        weight: d.weight,
+                        color: d.color ? d.color : "#69b3a2"
                     }
                 })
                 .filter(d => d.source && d.target)
@@ -226,7 +227,7 @@
                 .enter()
                 .append("path")
                 .attr("class", "link")
-                .attr("stroke", "#69b3a2")
+                .attr("stroke", d => d.color)
                 .attr("stroke-width", d => calculateStrokeWidth(d.weight))
                 .attr("opacity", linkAlpha)
                 .classed("highlighted", false)
@@ -336,7 +337,7 @@
                 nodeLayer.selectAll("circle").classed("highlighted-node", false)
                 linkSelection
                     .classed("highlighted", false)
-                    .attr("stroke", "#69b3a2")
+                    .attr("stroke", d => d.color)
                     .each(function() {
                         const disp = d3.select(this).attr("display")
                         if (disp !== "none") {
@@ -377,6 +378,7 @@
                     local.push(d.target)
                     bundle.links.push({ source: target, target: d.target })
                     local.weight = d.weight
+                    local.color = d.color
                     local.originalSource = d.source
                     local.originalTarget = d.target
                     bundle.paths.push(local)
