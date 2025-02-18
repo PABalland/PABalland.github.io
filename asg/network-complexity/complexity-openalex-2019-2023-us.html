@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Edge Bundling Europe</title>
+    <title>Edge Bundling USA</title>
     <style>
         html, body {
             width: 100%;
@@ -19,7 +19,7 @@
             position: absolute;
             top: 10px;
             left: 10px;
-            width: 180px;
+            width: 200px;
             padding: 10px;
             background: rgba(255,255,255,0.8);
             border-radius: 4px;
@@ -107,7 +107,7 @@
             </div>
             <hr>
             <div>
-                <label for="linkRemover">Link Display (%)</label><br>
+                <label for="linkRemover">Link Remover</label><br>
                 <input type="range" id="linkRemover" min="0" max="100" step="1" value="100">
                 <span id="linkRemoverValue">100</span>
             </div>
@@ -136,9 +136,8 @@
         let currentlySelectedNode = null
         let linkWeightsSorted = []
 
-        const projection = d3.geoMercator()
-            .scale(600)
-            .center([13, 52])
+        const projection = d3.geoAlbersUsa()
+            .scale(1300)
             .translate([width / 2, height / 2])
 
         const path = d3.geoPath().projection(projection)
@@ -172,17 +171,17 @@
         svg.call(zoom)
 
         Promise.all([
-            d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json"),
+            d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"),
             d3.json("https://www.paballand.com/asg/network-complexity/complexity-openalex-2019-2023-nodes-us.json"), //for the nodes
             d3.json("https://www.paballand.com/asg/network-complexity/complexity-openalex-2019-2023-links-us.json") //for the links
-        ]).then(([world, nodesData, linksData]) => {
+        ]).then(([us, nodesData, linksData]) => {
             mapLayer.append("path")
-                .datum(topojson.feature(world, world.objects.countries))
+                .datum(topojson.feature(us, us.objects.nation))
                 .attr("class", "land")
                 .attr("d", path)
 
             mapLayer.append("path")
-                .datum(topojson.mesh(world, world.objects.countries, (a, b) => a !== b))
+                .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
                 .attr("fill", "none")
                 .attr("stroke", "#999")
                 .attr("stroke-width", 0.5)
@@ -237,7 +236,7 @@
                 .data(nodes)
                 .enter()
                 .append("circle")
-                .attr("r", d => d.size + 5)
+                .attr("r", d => d.size + Math.log(1 + d.weightSum))
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y)
                 .style("fill", d => d.color)
@@ -316,9 +315,8 @@
 
                 linkSelection.each(function(d) {
                     const isActive =
-                        d.originalSource.id === clickedNode.id ||
-                        d.originalTarget.id === clickedNode.id
-
+                        d.originalSource && d.originalSource.id === clickedNode.id ||
+                        d.originalTarget && d.originalTarget.id === clickedNode.id
                     if (isActive) {
                         linkLayer.node().appendChild(this)
                         d3.select(this)
@@ -356,7 +354,6 @@
                     d.fy = d.y
                     return d
                 })
-
                 links.forEach(d => {
                     let length = distance(d.source, d.target)
                     let total = Math.max(1, Math.round(length / 50))
@@ -370,7 +367,6 @@
                     let source = d.source
                     let target = null
                     let local = [source]
-
                     for (let j = 1; j <= total; j++) {
                         target = { x: xscale(j), y: yscale(j) }
                         local.push(target)
