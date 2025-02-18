@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Edge Bundling Europe</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        #controlsContainer {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 180px;
+            padding: 10px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 4px;
+            font-family: sans-serif;
+        }
+        #spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #444;
+            border-top: 5px solid #888;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 9999;
+        }
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+        svg {
+            width: 100%;
+            height: 100%;
+            background: #ADD8E6;
+            display: block;
+        }
+        .land {
+            fill: #fff;
+        }
+        .link {
+            fill: none;
+            stroke: #69b3a2;
+            pointer-events: none;
+        }
+        circle {
+            fill: red;
+            stroke: #fff;
+            stroke-width: 1px;
+            cursor: pointer;
+        }
+        .highlighted-node {
+            filter: url(#nodeGlow);
+        }
+        .tooltip {
+            position: absolute;
+            background: white;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            pointer-events: none;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="controlsContainer">
+            <div>
+                <label for="linkThickness">Link Thickness</label><br>
+                <input type="range" id="linkThickness" min="0.1" max="5" step="0.1" value="1">
+                <span id="linkThicknessValue">1</span>
+            </div>
+            <hr>
+            <div>
+                <label for="alphaSlider">Alpha Modifier</label><br>
+                <input type="range" id="alphaSlider" min="0" max="1" step="0.01" value="0.2">
+                <span id="alphaSliderValue">0.2</span>
+            </div>
+            <hr>
+            <div>
+                <label for="bundlingBeta">Bundling Beta</label><br>
+                <input type="range" id="bundlingBeta" min="0" max="1" step="0.01" value="0.65">
+                <span id="bundlingBetaValue">0.65</span>
+            </div>
+            <hr>
+            <div>
+                <label for="weightEmphasis">Weight Emphasis</label><br>
+                <input type="range" id="weightEmphasis" min="0" max="2" step="0.1" value="1">
+                <span id="weightEmphasisValue">1</span>
+            </div>
+            <hr>
+            <div>
+                <label for="linkRemover">Link Display (%)</label><br>
+                <input type="range" id="linkRemover" min="0" max="100" step="1" value="100">
+                <span id="linkRemoverValue">100</span>
+            </div>
+        </div>
+        <div id="spinner"></div>
+        <svg></svg>
+    </div>
+
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://unpkg.com/topojson@3"></script>
+    <script>
+        const svg = d3.select("svg")
+        const width = window.innerWidth
+        const height = window.innerHeight
+        const tooltip = d3.select("body").append("div").attr("class", "tooltip")
+
+        const allLayers = svg.append("g")
+        const mapLayer = allLayers.append("g").attr("id", "mapLayer")
+        const linkLayer = allLayers.append("g").attr("id", "linkLayer")
+        const nodeLayer = allLayers.append("g").attr("id", "nodeLayer")
+
+        let baseThickness = 1
+        let linkAlpha = 0.2
+        let bundlingBeta = 0.65
+        let weightEmphasis = 1
+        let currentlySelectedNode = null
+        let linkWeightsSorted = []
+
+        const projection = d3.geoMercator()
+            .scale(600)
+            .center([13, 52])
+            .translate([width / 2, height / 2])
+
+        const path = d3.geoPath().projection(projection)
+
+        let linkSelection
+        let line = d3.line()
+            .curve(d3.curveBundle.beta(bundlingBeta))
+            .x(d => d.x)
+            .y(d => d.y)
+
+        svg.append("defs")
+            .append("filter")
+            .attr("id", "nodeGlow")
+            .attr("x", "-50%")
+            .attr("y", "-50%")
+            .attr("width", "300%")
+            .attr("height", "300%")
+            .html(`
+                <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur" />
+                <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            `)
+
+        const zoom = d3.zoom()
+            .scaleExtent([0.5, 8])
+            .on("zoom", (event) => {
+                allLayers.attr("transform", event.transform)
+            })
+        svg.call(zoom)
+
+        Promise.all([
+            d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json"),
+            d3.json("https://www.paballand.com/asg/network-complexity/complexity-openalex-2019-2023-nodes-eu.json"), //for the nodes
+            d3.json("https://www.paballand.com/asg/network-complexity/complexity-openalex-2019-2023-links-eu.json") //for the links
+        ]).then(([world, nodesData, linksData]) => {
+            mapLayer.append("path")
+                .datum(topojson.feature(world, world.objects.countries))
+                .attr("class", "land")
+                .attr("d", path)
+
+            mapLayer.append("path")
+                .datum(topojson.mesh(world, world.objects.countries, (a, b) => a !== b))
+                .attr("fill", "none")
+                .attr("stroke", "#999")
+                .attr("stroke-width", 0.5)
+                .attr("d", path)
+
+            const nodes = nodesData.map(d => {
+                const coords = projection([d.y, d.x])
+                return {
+                    id: d.id2,
+                    name: d.id,
+                    parent: d.parent,
+                    x: coords[0],
+                    y: coords[1],
+                    color: d.color,
+                    size: d.size,
+                    weightSum: 0
+                }
+            })
+
+            const links = linksData
+                .map(d => {
+                    const sourceNode = nodes.find(n => n.id === d.source)
+                    const targetNode = nodes.find(n => n.id === d.target)
+                    return {
+                        source: sourceNode,
+                        target: targetNode,
+                        weight: d.weight
+                    }
+                })
+                .filter(d => d.source && d.target)
+
+            linkWeightsSorted = links.map(l => l.weight).sort((a, b) => a - b)
+            links.forEach(l => {
+                l.source.weightSum += l.weight
+                l.target.weightSum += l.weight
+            })
+
+            const bundle = generateSegments(nodes, links)
+
+            linkSelection = linkLayer.selectAll(".link")
+                .data(bundle.paths)
+                .enter()
+                .append("path")
+                .attr("class", "link")
+                .attr("stroke", "#69b3a2")
+                .attr("stroke-width", d => calculateStrokeWidth(d.weight))
+                .attr("opacity", linkAlpha)
+                .classed("highlighted", false)
+                .attr("d", line)
+
+            nodeLayer.selectAll("circle")
+                .data(nodes)
+                .enter()
+                .append("circle")
+                .attr("r", d => d.size + Math.log(1 + d.weightSum))
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .style("fill", d => d.color)
+                .on("mouseover", (event, d) => {
+                    tooltip
+                        .style("opacity", 1)
+                        .html(d.parent + "<br>" + d.name)
+                        .style("left", (event.pageX + 5) + "px")
+                        .style("top", (event.pageY + 5) + "px")
+                })
+                .on("mousemove", event => {
+                    tooltip
+                        .style("left", (event.pageX + 5) + "px")
+                        .style("top", (event.pageY + 5) + "px")
+                })
+                .on("mouseout", () => {
+                    tooltip.style("opacity", 0)
+                })
+                .on("click", (event, d) => {
+                    event.stopPropagation()
+                    if (currentlySelectedNode && currentlySelectedNode.id === d.id) {
+                        resetHighlights()
+                        currentlySelectedNode = null
+                    } else {
+                        highlightLinks(d)
+                        currentlySelectedNode = d
+                    }
+                })
+                .classed("highlighted-node", false)
+
+            let simulation = d3.forceSimulation()
+                .nodes(bundle.nodes)
+                .force("charge", d3.forceManyBody().strength(10).distanceMax(50))
+                .force("link", d3.forceLink(bundle.links).strength(0.7).distance(0))
+
+            simulation.stop()
+            for (let i = 0; i < 300; i++) {
+                simulation.tick()
+            }
+
+            line.curve(d3.curveBundle.beta(bundlingBeta))
+            linkSelection.attr("d", line)
+
+            d3.select("#spinner").style("display", "none")
+
+            svg.on("click", () => {
+                resetHighlights()
+                currentlySelectedNode = null
+            })
+
+            function calculateStrokeWidth(weightValue) {
+                let logVal = Math.log(1 + weightValue)
+                let emphasisVal = Math.pow(logVal, weightEmphasis)
+                return baseThickness * (0.5 + 0.5 * emphasisVal)
+            }
+
+            function filterLinksByPercent(sliderValue) {
+                const keepFrac = sliderValue / 100
+                let threshold
+                if (keepFrac === 1) {
+                    threshold = Number.NEGATIVE_INFINITY
+                } else if (keepFrac === 0) {
+                    threshold = Number.POSITIVE_INFINITY
+                } else {
+                    const index = Math.floor((1 - keepFrac) * linkWeightsSorted.length)
+                    threshold = linkWeightsSorted[index]
+                }
+                linkSelection.attr("display", d => (d.weight >= threshold) ? "inline" : "none")
+            }
+
+            function highlightLinks(clickedNode) {
+                nodeLayer.selectAll("circle").classed("highlighted-node", false)
+                nodeLayer.selectAll("circle")
+                    .filter(n => n.id === clickedNode.id)
+                    .classed("highlighted-node", true)
+
+                linkSelection.each(function(d) {
+                    const isActive =
+                        d.originalSource.id === clickedNode.id ||
+                        d.originalTarget.id === clickedNode.id
+
+                    if (isActive) {
+                        linkLayer.node().appendChild(this)
+                        d3.select(this)
+                            .classed("highlighted", true)
+                            .attr("stroke", "#69b3a2")
+                            .attr("opacity", 1)
+                    } else {
+                        d3.select(this)
+                            .classed("highlighted", false)
+                            .attr("stroke", "#999")
+                            .attr("opacity", 0)
+                    }
+                })
+            }
+
+            function resetHighlights() {
+                nodeLayer.selectAll("circle").classed("highlighted-node", false)
+                linkSelection
+                    .classed("highlighted", false)
+                    .attr("stroke", "#69b3a2")
+                    .each(function() {
+                        const disp = d3.select(this).attr("display")
+                        if (disp !== "none") {
+                            d3.select(this).attr("opacity", linkAlpha)
+                        } else {
+                            d3.select(this).attr("opacity", 0)
+                        }
+                    })
+            }
+
+            function generateSegments(nodes, links) {
+                let bundle = { nodes: [], links: [], paths: [] }
+                bundle.nodes = nodes.map(d => {
+                    d.fx = d.x
+                    d.fy = d.y
+                    return d
+                })
+
+                links.forEach(d => {
+                    let length = distance(d.source, d.target)
+                    let total = Math.max(1, Math.round(length / 50))
+                    let xscale = d3.scaleLinear()
+                        .domain([0, total + 1])
+                        .range([d.source.x, d.target.x])
+                    let yscale = d3.scaleLinear()
+                        .domain([0, total + 1])
+                        .range([d.source.y, d.target.y])
+
+                    let source = d.source
+                    let target = null
+                    let local = [source]
+
+                    for (let j = 1; j <= total; j++) {
+                        target = { x: xscale(j), y: yscale(j) }
+                        local.push(target)
+                        bundle.nodes.push(target)
+                        bundle.links.push({ source: source, target: target })
+                        source = target
+                    }
+                    local.push(d.target)
+                    bundle.links.push({ source: target, target: d.target })
+                    local.weight = d.weight
+                    local.originalSource = d.source
+                    local.originalTarget = d.target
+                    bundle.paths.push(local)
+                })
+                return bundle
+            }
+
+            function distance(a, b) {
+                const dx = b.x - a.x
+                const dy = b.y - a.y
+                return Math.sqrt(dx * dx + dy * dy)
+            }
+
+            d3.select("#linkRemover").on("input", function() {
+                const val = +this.value
+                document.getElementById("linkRemoverValue").textContent = val
+                filterLinksByPercent(val)
+            })
+        }).catch(err => {
+            console.error("Error loading data:", err)
+        })
+
+        d3.select("#linkThickness").on("input", function() {
+            baseThickness = +this.value
+            document.getElementById("linkThicknessValue").textContent = this.value
+            if (linkSelection) {
+                linkSelection
+                    .filter(function() {
+                        return d3.select(this).attr("display") !== "none"
+                    })
+                    .attr("stroke-width", d => calculateStrokeWidth(d.weight))
+            }
+        })
+
+        d3.select("#alphaSlider").on("input", function() {
+            linkAlpha = +this.value
+            document.getElementById("alphaSliderValue").textContent = this.value
+            if (linkSelection) {
+                linkSelection.each(function() {
+                    const sel = d3.select(this)
+                    const disp = sel.attr("display")
+                    const isHighlighted = sel.classed("highlighted")
+                    if (disp !== "none" && !isHighlighted) {
+                        sel.attr("opacity", linkAlpha)
+                    }
+                })
+            }
+        })
+
+        d3.select("#bundlingBeta").on("input", function() {
+            bundlingBeta = +this.value
+            document.getElementById("bundlingBetaValue").textContent = this.value
+            line.curve(d3.curveBundle.beta(bundlingBeta))
+            if (linkSelection) {
+                linkSelection.attr("d", line)
+            }
+        })
+
+        d3.select("#weightEmphasis").on("input", function() {
+            weightEmphasis = +this.value
+            document.getElementById("weightEmphasisValue").textContent = this.value
+            if (linkSelection) {
+                linkSelection
+                    .filter(function() {
+                        return d3.select(this).attr("display") !== "none"
+                    })
+                    .attr("stroke-width", d => calculateStrokeWidth(d.weight))
+            }
+        })
+
+        function calculateStrokeWidth(weightValue) {
+            let logVal = Math.log(1 + weightValue)
+            let emphasisVal = Math.pow(logVal, weightEmphasis)
+            return baseThickness * (0.5 + 0.5 * emphasisVal)
+        }
+    </script>
+</body>
+</html>
