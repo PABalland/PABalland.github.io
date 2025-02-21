@@ -19,21 +19,11 @@
             position: absolute;
             top: 10px;
             left: 10px;
-            width: 220px;
+            width: 180px;
             padding: 10px;
             background: rgba(255,255,255,0.8);
             border-radius: 4px;
             font-family: sans-serif;
-        }
-        .slider-group {
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .slider-group-title {
-            font-weight: bold;
-            margin-bottom: 10px;
         }
         #spinner {
             position: absolute;
@@ -66,6 +56,7 @@
         }
         .link {
             fill: none;
+            stroke: #69b3a2;
             pointer-events: none;
         }
         circle {
@@ -91,49 +82,34 @@
 <body>
     <div id="container">
         <div id="controlsContainer">
-            <div class="slider-group">
-                <div class="slider-group-title">Edge Bundling</div>
-                <div>
-                    <label for="bundlingBeta">Bundling Beta</label><br>
-                    <input type="range" id="bundlingBeta" min="0" max="1" step="0.01" value="0.65">
-                    <span id="bundlingBetaValue">0.65</span>
-                </div>
+            <div>
+                <label for="linkThickness">Link Thickness</label><br>
+                <input type="range" id="linkThickness" min="0.1" max="5" step="0.1" value="1">
+                <span id="linkThicknessValue">1</span>
             </div>
-            <div class="slider-group">
-                <div class="slider-group-title">Node Properties</div>
-                <div>
-                    <label for="nodeSizeSlider">Node Size</label><br>
-                    <input type="range" id="nodeSizeSlider" min="0.1" max="5" step="0.1" value="1">
-                    <span id="nodeSizeSliderValue">1</span>
-                </div>
-                <div>
-                    <label for="nodeAlphaSlider">Node Alpha</label><br>
-                    <input type="range" id="nodeAlphaSlider" min="0" max="1" step="0.01" value="1">
-                    <span id="nodeAlphaSliderValue">1</span>
-                </div>
+            <hr>
+            <div>
+                <label for="alphaSlider">Alpha Modifier</label><br>
+                <input type="range" id="alphaSlider" min="0" max="1" step="0.01" value="0.2">
+                <span id="alphaSliderValue">0.2</span>
             </div>
-            <div class="slider-group">
-                <div class="slider-group-title">Link Properties</div>
-                <div>
-                    <label for="linkThickness">Link Thickness</label><br>
-                    <input type="range" id="linkThickness" min="0.1" max="5" step="0.1" value="1">
-                    <span id="linkThicknessValue">1</span>
-                </div>
-                <div>
-                    <label for="alphaSlider">Link Alpha</label><br>
-                    <input type="range" id="alphaSlider" min="0" max="1" step="0.01" value="0.2">
-                    <span id="alphaSliderValue">0.2</span>
-                </div>
-                <div>
-                    <label for="weightEmphasis">Link Emphasis</label><br>
-                    <input type="range" id="weightEmphasis" min="0" max="2" step="0.1" value="1">
-                    <span id="weightEmphasisValue">1</span>
-                </div>
-                <div>
-                    <label for="linkRemover">Link Display (%)</label><br>
-                    <input type="range" id="linkRemover" min="0" max="100" step="1" value="100">
-                    <span id="linkRemoverValue">100</span>
-                </div>
+            <hr>
+            <div>
+                <label for="bundlingBeta">Bundling Beta</label><br>
+                <input type="range" id="bundlingBeta" min="0" max="1" step="0.01" value="0.65">
+                <span id="bundlingBetaValue">0.65</span>
+            </div>
+            <hr>
+            <div>
+                <label for="weightEmphasis">Weight Emphasis</label><br>
+                <input type="range" id="weightEmphasis" min="0" max="2" step="0.1" value="1">
+                <span id="weightEmphasisValue">1</span>
+            </div>
+            <hr>
+            <div>
+                <label for="linkRemover">Link Display (%)</label><br>
+                <input type="range" id="linkRemover" min="0" max="100" step="1" value="100">
+                <span id="linkRemoverValue">100</span>
             </div>
         </div>
         <div id="spinner"></div>
@@ -157,8 +133,6 @@
         let linkAlpha = 0.2
         let bundlingBeta = 0.65
         let weightEmphasis = 1
-        let nodeSizeMultiplier = 1
-        let nodeAlpha = 1
         let currentlySelectedNode = null
         let linkWeightsSorted = []
 
@@ -200,7 +174,7 @@
         Promise.all([
             d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json"),
             d3.json("https://www.paballand.com/ceps-ai/json/nodes-eu.json"),
-            d3.json("https://www.paballand.com/asg/network-complexity/complexity-regpat-pct-2019-2023-links-eu.json")
+            d3.json("https://www.paballand.com/ceps-ai/json/links-eu.json")
         ]).then(([world, nodesData, linksData]) => {
             mapLayer.append("path")
                 .datum(topojson.feature(world, world.objects.countries))
@@ -214,11 +188,10 @@
                 .attr("stroke-width", 0.5)
                 .attr("d", path)
 
-            const nodes = nodesData.map((d, i) => {
+            const nodes = nodesData.map(d => {
                 const coords = projection([d.y, d.x])
                 return {
-                    id: i,
-                    originalId: d.id2,
+                    id: d.id2,
                     name: d.id,
                     parent: d.parent,
                     x: coords[0],
@@ -231,8 +204,8 @@
 
             const links = linksData
                 .map(d => {
-                    const sourceNode = nodes[d.source]
-                    const targetNode = nodes[d.target]
+                    const sourceNode = nodes.find(n => n.id === d.source)
+                    const targetNode = nodes.find(n => n.id === d.target)
                     return {
                         source: sourceNode,
                         target: targetNode,
@@ -261,14 +234,13 @@
                 .classed("highlighted", false)
                 .attr("d", line)
 
-            const nodeSelection = nodeLayer.selectAll("circle")
+            nodeLayer.selectAll("circle")
                 .data(nodes)
                 .enter()
                 .append("circle")
-                .attr("r", d => (d.size + Math.log(1 + d.weightSum)) * nodeSizeMultiplier)
+                .attr("r", d => d.size + Math.log(1 + d.weightSum))
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y)
-                .attr("opacity", nodeAlpha)
                 .style("fill", d => d.color)
                 .on("mouseover", (event, d) => {
                     tooltip
@@ -342,20 +314,22 @@
                 nodeLayer.selectAll("circle")
                     .filter(n => n.id === clickedNode.id)
                     .classed("highlighted-node", true)
+
                 linkSelection.each(function(d) {
                     const isActive =
-                        d.originalSource && d.originalSource.id === clickedNode.id ||
-                        d.originalTarget && d.originalTarget.id === clickedNode.id
+                        d.originalSource.id === clickedNode.id ||
+                        d.originalTarget.id === clickedNode.id
+
                     if (isActive) {
                         linkLayer.node().appendChild(this)
                         d3.select(this)
                             .classed("highlighted", true)
-                            .attr("stroke", d => d.color)
+                            .attr("stroke", "#69b3a2")
                             .attr("opacity", 1)
                     } else {
                         d3.select(this)
                             .classed("highlighted", false)
-                            .attr("stroke", d => d.color)
+                            .attr("stroke", "#999")
                             .attr("opacity", 0)
                     }
                 })
@@ -383,6 +357,7 @@
                     d.fy = d.y
                     return d
                 })
+
                 links.forEach(d => {
                     let length = distance(d.source, d.target)
                     let total = Math.max(1, Math.round(length / 50))
@@ -392,9 +367,11 @@
                     let yscale = d3.scaleLinear()
                         .domain([0, total + 1])
                         .range([d.source.y, d.target.y])
+
                     let source = d.source
                     let target = null
                     let local = [source]
+
                     for (let j = 1; j <= total; j++) {
                         target = { x: xscale(j), y: yscale(j) }
                         local.push(target)
@@ -428,15 +405,6 @@
             console.error("Error loading data:", err)
         })
 
-        d3.select("#bundlingBeta").on("input", function() {
-            bundlingBeta = +this.value
-            document.getElementById("bundlingBetaValue").textContent = this.value
-            line.curve(d3.curveBundle.beta(bundlingBeta))
-            if (linkSelection) {
-                linkSelection.attr("d", line)
-            }
-        })
-
         d3.select("#linkThickness").on("input", function() {
             baseThickness = +this.value
             document.getElementById("linkThicknessValue").textContent = this.value
@@ -464,6 +432,15 @@
             }
         })
 
+        d3.select("#bundlingBeta").on("input", function() {
+            bundlingBeta = +this.value
+            document.getElementById("bundlingBetaValue").textContent = this.value
+            line.curve(d3.curveBundle.beta(bundlingBeta))
+            if (linkSelection) {
+                linkSelection.attr("d", line)
+            }
+        })
+
         d3.select("#weightEmphasis").on("input", function() {
             weightEmphasis = +this.value
             document.getElementById("weightEmphasisValue").textContent = this.value
@@ -474,18 +451,6 @@
                     })
                     .attr("stroke-width", d => calculateStrokeWidth(d.weight))
             }
-        })
-
-        d3.select("#nodeSizeSlider").on("input", function() {
-            nodeSizeMultiplier = +this.value
-            document.getElementById("nodeSizeSliderValue").textContent = this.value
-            d3.selectAll("circle").attr("r", d => (d.size + Math.log(1 + d.weightSum)) * nodeSizeMultiplier)
-        })
-
-        d3.select("#nodeAlphaSlider").on("input", function() {
-            nodeAlpha = +this.value
-            document.getElementById("nodeAlphaSliderValue").textContent = this.value
-            d3.selectAll("circle").attr("opacity", nodeAlpha)
         })
 
         function calculateStrokeWidth(weightValue) {
