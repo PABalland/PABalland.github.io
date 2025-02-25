@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Edge Bundling USA</title>
+    <title>Edge Bundling Europe</title>
     <style>
         html, body {
             width: 100%;
@@ -162,8 +162,9 @@
         let currentlySelectedNode = null
         let linkWeightsSorted = []
 
-        const projection = d3.geoAlbersUsa()
-            .scale(1300)
+        const projection = d3.geoMercator()
+            .scale(600)
+            .center([13, 52])
             .translate([width / 2, height / 2])
 
         const path = d3.geoPath().projection(projection)
@@ -197,26 +198,27 @@
         svg.call(zoom)
 
         Promise.all([
-            d3.json("https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json"),
-            d3.json("https://www.paballand.com/ceps-ai/json/nodes-us.json"),
-            d3.json("https://www.paballand.com/ceps-ai/json/links-us.json")
-        ]).then(([us, nodesData, linksData]) => {
+            d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json"),
+            d3.json("https://www.paballand.com/asg/network-complexity/artificial-intelligence-complexity-regpat-pct-2019-2023-nodes-eu.json"), //for the nodes
+            d3.json("https://www.paballand.com/asg/network-complexity/artificial-intelligence-complexity-regpat-pct-2019-2023-links-eu.json") //for the links
+        ]).then(([world, nodesData, linksData]) => {
             mapLayer.append("path")
-                .datum(topojson.feature(us, us.objects.nation))
+                .datum(topojson.feature(world, world.objects.countries))
                 .attr("class", "land")
                 .attr("d", path)
 
             mapLayer.append("path")
-                .datum(topojson.mesh(us, us.objects.states, (a, b) => a !== b))
+                .datum(topojson.mesh(world, world.objects.countries, (a, b) => a !== b))
                 .attr("fill", "none")
                 .attr("stroke", "#999")
                 .attr("stroke-width", 0.5)
                 .attr("d", path)
 
-            const nodes = nodesData.map(d => {
+            const nodes = nodesData.map((d, i) => {
                 const coords = projection([d.y, d.x])
                 return {
-                    id: d.id2,
+                    id: i,
+                    originalId: d.id2,
                     name: d.id,
                     parent: d.parent,
                     x: coords[0],
@@ -266,8 +268,8 @@
                 .attr("r", d => (d.size + Math.log(1 + d.weightSum)) * nodeSizeMultiplier)
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y)
-                .style("fill", d => d.color)
                 .attr("opacity", nodeAlpha)
+                .style("fill", d => d.color)
                 .on("mouseover", (event, d) => {
                     tooltip
                         .style("opacity", 1)
