@@ -1,0 +1,804 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Schwaben (DE27)",
+    "count": 28,
+    "share": 0.224,
+    "rca": 0.32,
+    "reldens": 48.27,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 48.27,
+    "y": 8.93,
+    "value": 0.32
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Schwaben (DE27)",
+    "count": 66,
+    "share": 0.4214,
+    "rca": 0.6,
+    "reldens": 27.88,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 27.88,
+    "y": 55.36,
+    "value": 0.6
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Schwaben (DE27)",
+    "count": 32,
+    "share": 0.7233,
+    "rca": 1.02,
+    "reldens": 32.14,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 32.14,
+    "y": 41.07,
+    "value": 1.02
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Schwaben (DE27)",
+    "count": 145,
+    "share": 0.482,
+    "rca": 0.68,
+    "reldens": 35.67,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 35.67,
+    "y": 51.79,
+    "value": 0.68
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Schwaben (DE27)",
+    "count": 24,
+    "share": 0.0631,
+    "rca": 0.09,
+    "reldens": 19.43,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 19.43,
+    "y": 50,
+    "value": 0.09
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Schwaben (DE27)",
+    "count": 138,
+    "share": 0.4623,
+    "rca": 0.65,
+    "reldens": 59.81,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 59.81,
+    "y": 40.18,
+    "value": 0.65
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Schwaben (DE27)",
+    "count": 266,
+    "share": 1.4439,
+    "rca": 2.04,
+    "reldens": 65.43,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 65.43,
+    "y": 10.71,
+    "value": 2.04
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Schwaben (DE27)",
+    "count": 153,
+    "share": 0.3468,
+    "rca": 0.49,
+    "reldens": 33.75,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 33.75,
+    "y": 78.57,
+    "value": 0.49
+  },
+  {
+    "domain": "Control",
+    "geo": "Schwaben (DE27)",
+    "count": 241,
+    "share": 1.2012,
+    "rca": 1.7,
+    "reldens": 54.71,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 54.71,
+    "y": 50,
+    "value": 1.7
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Schwaben (DE27)",
+    "count": 107,
+    "share": 0.2362,
+    "rca": 0.33,
+    "reldens": 29.99,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 29.99,
+    "y": 100,
+    "value": 0.33
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Schwaben (DE27)",
+    "count": 529,
+    "share": 0.9691,
+    "rca": 1.37,
+    "reldens": 60.57,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 60.57,
+    "y": 90.18,
+    "value": 1.37
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Schwaben (DE27)",
+    "count": 128,
+    "share": 0.5992,
+    "rca": 0.85,
+    "reldens": 84.19,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 84.19,
+    "y": 58.93,
+    "value": 0.85
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Schwaben (DE27)",
+    "count": 112,
+    "share": 0.9421,
+    "rca": 1.33,
+    "reldens": 45.15,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 45.15,
+    "y": 0,
+    "value": 1.33
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Schwaben (DE27)",
+    "count": 21,
+    "share": 0.1736,
+    "rca": 0.25,
+    "reldens": 28.04,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 28.04,
+    "y": 13.39,
+    "value": 0.25
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Schwaben (DE27)",
+    "count": 262,
+    "share": 2.4743,
+    "rca": 3.5,
+    "reldens": 51.85,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 51.85,
+    "y": 3.57,
+    "value": 3.5
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Schwaben (DE27)",
+    "count": 458,
+    "share": 0.7501,
+    "rca": 1.06,
+    "reldens": 56.91,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 56.91,
+    "y": 57.14,
+    "value": 1.06
+  },
+  {
+    "domain": "Handling",
+    "geo": "Schwaben (DE27)",
+    "count": 345,
+    "share": 1.5033,
+    "rca": 2.12,
+    "reldens": 60.7,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 60.7,
+    "y": 44.64,
+    "value": 2.12
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Schwaben (DE27)",
+    "count": 38,
+    "share": 0.4437,
+    "rca": 0.63,
+    "reldens": 41.48,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 41.48,
+    "y": 14.29,
+    "value": 0.63
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Schwaben (DE27)",
+    "count": 379,
+    "share": 2.2663,
+    "rca": 3.2,
+    "reldens": 64.63,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 64.63,
+    "y": 44.64,
+    "value": 3.2
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Schwaben (DE27)",
+    "count": 89,
+    "share": 0.3957,
+    "rca": 0.56,
+    "reldens": 40.65,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 40.65,
+    "y": 71.43,
+    "value": 0.56
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Schwaben (DE27)",
+    "count": 191,
+    "share": 0.888,
+    "rca": 1.26,
+    "reldens": 56.79,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 56.79,
+    "y": 46.43,
+    "value": 1.26
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Schwaben (DE27)",
+    "count": 419,
+    "share": 0.7586,
+    "rca": 1.07,
+    "reldens": 31.95,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 31.95,
+    "y": 66.07,
+    "value": 1.07
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Schwaben (DE27)",
+    "count": 531,
+    "share": 2.0708,
+    "rca": 2.93,
+    "reldens": 68.15,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 68.15,
+    "y": 59.82,
+    "value": 2.93
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Schwaben (DE27)",
+    "count": 166,
+    "share": 0.3206,
+    "rca": 0.45,
+    "reldens": 40.93,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 40.93,
+    "y": 60.71,
+    "value": 0.45
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Schwaben (DE27)",
+    "count": 1,
+    "share": 0.1073,
+    "rca": 0.15,
+    "reldens": 36.16,
+    "comp": 44.64,
+    "comp_TCI": 31.66,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 36.16,
+    "y": 44.64,
+    "value": 0.15
+  },
+  {
+    "domain": "Optics",
+    "geo": "Schwaben (DE27)",
+    "count": 114,
+    "share": 0.6359,
+    "rca": 0.9,
+    "reldens": 33.51,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 33.51,
+    "y": 66.07,
+    "value": 0.9
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Schwaben (DE27)",
+    "count": 32,
+    "share": 0.0885,
+    "rca": 0.13,
+    "reldens": 15.43,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 15.43,
+    "y": 63.39,
+    "value": 0.13
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Schwaben (DE27)",
+    "count": 139,
+    "share": 0.6904,
+    "rca": 0.98,
+    "reldens": 59.14,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 59.14,
+    "y": 62.5,
+    "value": 0.98
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Schwaben (DE27)",
+    "count": 309,
+    "share": 0.8832,
+    "rca": 1.25,
+    "reldens": 43.24,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 43.24,
+    "y": 35.71,
+    "value": 1.25
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Schwaben (DE27)",
+    "count": 27,
+    "share": 0.0597,
+    "rca": 0.08,
+    "reldens": 10.86,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 10.86,
+    "y": 39.29,
+    "value": 0.08
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Schwaben (DE27)",
+    "count": 62,
+    "share": 0.5953,
+    "rca": 0.84,
+    "reldens": 40.78,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 40.78,
+    "y": 46.43,
+    "value": 0.84
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Schwaben (DE27)",
+    "count": 121,
+    "share": 0.6887,
+    "rca": 0.97,
+    "reldens": 53.55,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 53.55,
+    "y": 38.39,
+    "value": 0.97
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Schwaben (DE27)",
+    "count": 78,
+    "share": 0.3845,
+    "rca": 0.54,
+    "reldens": 25.25,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 25.25,
+    "y": 78.57,
+    "value": 0.54
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Schwaben (DE27)",
+    "count": 86,
+    "share": 0.7112,
+    "rca": 1.01,
+    "reldens": 36.82,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 36.82,
+    "y": 33.04,
+    "value": 1.01
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Schwaben (DE27)",
+    "count": 105,
+    "share": 0.9175,
+    "rca": 1.3,
+    "reldens": 60.5,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 60.5,
+    "y": 23.21,
+    "value": 1.3
+  },
+  {
+    "domain": "Transport",
+    "geo": "Schwaben (DE27)",
+    "count": 649,
+    "share": 1.3111,
+    "rca": 1.85,
+    "reldens": 70.86,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 70.86,
+    "y": 86.61,
+    "value": 1.85
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

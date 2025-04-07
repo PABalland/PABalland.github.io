@@ -1,0 +1,566 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Algarve (PT15)",
+    "count": 4,
+    "share": 0.032,
+    "rca": 5.62,
+    "reldens": 62.41,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 62.41,
+    "y": 8.93,
+    "value": 5.62
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Algarve (PT15)",
+    "count": 1,
+    "share": 0.0026,
+    "rca": 0.46,
+    "reldens": 80.11,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 80.11,
+    "y": 50,
+    "value": 0.46
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Algarve (PT15)",
+    "count": 6,
+    "share": 0.0201,
+    "rca": 3.53,
+    "reldens": 47.01,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 47.01,
+    "y": 40.18,
+    "value": 3.53
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Algarve (PT15)",
+    "count": 1,
+    "share": 0.0054,
+    "rca": 0.95,
+    "reldens": 52.42,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 52.42,
+    "y": 10.71,
+    "value": 0.95
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Algarve (PT15)",
+    "count": 1,
+    "share": 0.0023,
+    "rca": 0.4,
+    "reldens": 29.34,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 29.34,
+    "y": 78.57,
+    "value": 0.4
+  },
+  {
+    "domain": "Control",
+    "geo": "Algarve (PT15)",
+    "count": 3,
+    "share": 0.015,
+    "rca": 2.63,
+    "reldens": 26.62,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 26.62,
+    "y": 50,
+    "value": 2.63
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Algarve (PT15)",
+    "count": 3,
+    "share": 0.014,
+    "rca": 2.47,
+    "reldens": 45.28,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 45.28,
+    "y": 58.93,
+    "value": 2.47
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Algarve (PT15)",
+    "count": 1,
+    "share": 0.0084,
+    "rca": 1.48,
+    "reldens": 55.8,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 55.8,
+    "y": 0,
+    "value": 1.48
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Algarve (PT15)",
+    "count": 2,
+    "share": 0.0165,
+    "rca": 2.91,
+    "reldens": 44.7,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 44.7,
+    "y": 13.39,
+    "value": 2.91
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Algarve (PT15)",
+    "count": 2,
+    "share": 0.0189,
+    "rca": 3.32,
+    "reldens": 40.65,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 40.65,
+    "y": 3.57,
+    "value": 3.32
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Algarve (PT15)",
+    "count": 2,
+    "share": 0.0033,
+    "rca": 0.58,
+    "reldens": 38.69,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 38.69,
+    "y": 57.14,
+    "value": 0.58
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Algarve (PT15)",
+    "count": 1,
+    "share": 0.006,
+    "rca": 1.05,
+    "reldens": 35.23,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 35.23,
+    "y": 44.64,
+    "value": 1.05
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Algarve (PT15)",
+    "count": 6,
+    "share": 0.0109,
+    "rca": 1.91,
+    "reldens": 44.48,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 44.48,
+    "y": 66.07,
+    "value": 1.91
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Algarve (PT15)",
+    "count": 2,
+    "share": 0.0078,
+    "rca": 1.37,
+    "reldens": 38.56,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 38.56,
+    "y": 59.82,
+    "value": 1.37
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Algarve (PT15)",
+    "count": 5,
+    "share": 0.0097,
+    "rca": 1.7,
+    "reldens": 40.21,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 40.21,
+    "y": 60.71,
+    "value": 1.7
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Algarve (PT15)",
+    "count": 2,
+    "share": 0.0055,
+    "rca": 0.97,
+    "reldens": 57.34,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 57.34,
+    "y": 63.39,
+    "value": 0.97
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Algarve (PT15)",
+    "count": 1,
+    "share": 0.005,
+    "rca": 0.87,
+    "reldens": 47.23,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 47.23,
+    "y": 62.5,
+    "value": 0.87
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Algarve (PT15)",
+    "count": 1,
+    "share": 0.0029,
+    "rca": 0.5,
+    "reldens": 36.23,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 36.23,
+    "y": 35.71,
+    "value": 0.5
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Algarve (PT15)",
+    "count": 6,
+    "share": 0.0133,
+    "rca": 2.33,
+    "reldens": 29.99,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 29.99,
+    "y": 39.29,
+    "value": 2.33
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Algarve (PT15)",
+    "count": 1,
+    "share": 0.0057,
+    "rca": 1,
+    "reldens": 18.93,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 18.93,
+    "y": 38.39,
+    "value": 1
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Algarve (PT15)",
+    "count": 1,
+    "share": 0.0087,
+    "rca": 1.54,
+    "reldens": 45.4,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 45.4,
+    "y": 23.21,
+    "value": 1.54
+  },
+  {
+    "domain": "Transport",
+    "geo": "Algarve (PT15)",
+    "count": 1,
+    "share": 0.002,
+    "rca": 0.36,
+    "reldens": 46.04,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 46.04,
+    "y": 86.61,
+    "value": 0.36
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

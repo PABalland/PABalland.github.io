@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Kent (UKJ4)",
+    "count": 416,
+    "share": 0.0286,
+    "rca": 1.22,
+    "reldens": 77.81,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 77.81,
+    "y": 81.25,
+    "value": 1.22
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Kent (UKJ4)",
+    "count": 20,
+    "share": 0.0123,
+    "rca": 0.52,
+    "reldens": 12.06,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 12.06,
+    "y": 35,
+    "value": 0.52
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Kent (UKJ4)",
+    "count": 2,
+    "share": 0.0092,
+    "rca": 0.39,
+    "reldens": 53.25,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 53.25,
+    "y": 45,
+    "value": 0.39
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Kent (UKJ4)",
+    "count": 7,
+    "share": 0.0033,
+    "rca": 0.14,
+    "reldens": 3.86,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 3.86,
+    "y": 72.5,
+    "value": 0.14
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Kent (UKJ4)",
+    "count": 979,
+    "share": 0.0322,
+    "rca": 1.37,
+    "reldens": 71.92,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 71.92,
+    "y": 96.25,
+    "value": 1.37
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Kent (UKJ4)",
+    "count": 7,
+    "share": 0.0063,
+    "rca": 0.27,
+    "reldens": 8.99,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 8.99,
+    "y": 25,
+    "value": 0.27
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Kent (UKJ4)",
+    "count": 75,
+    "share": 0.0164,
+    "rca": 0.7,
+    "reldens": 15.6,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 15.6,
+    "y": 30,
+    "value": 0.7
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Kent (UKJ4)",
+    "count": 48,
+    "share": 0.0068,
+    "rca": 0.29,
+    "reldens": 10.06,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 10.06,
+    "y": 35,
+    "value": 0.29
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Kent (UKJ4)",
+    "count": 8,
+    "share": 0.0025,
+    "rca": 0.11,
+    "reldens": 6.02,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 6.02,
+    "y": 37.5,
+    "value": 0.11
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Kent (UKJ4)",
+    "count": 3,
+    "share": 0.0053,
+    "rca": 0.23,
+    "reldens": 20.19,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 20.19,
+    "y": 0,
+    "value": 0.23
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Kent (UKJ4)",
+    "count": 2,
+    "share": 0.0043,
+    "rca": 0.18,
+    "reldens": 5.98,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 5.98,
+    "y": 40,
+    "value": 0.18
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Kent (UKJ4)",
+    "count": 124,
+    "share": 0.0134,
+    "rca": 0.57,
+    "reldens": 39.98,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 39.98,
+    "y": 32.5,
+    "value": 0.57
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Kent (UKJ4)",
+    "count": 214,
+    "share": 0.0432,
+    "rca": 1.84,
+    "reldens": 76.59,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 76.59,
+    "y": 27.5,
+    "value": 1.84
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Kent (UKJ4)",
+    "count": 278,
+    "share": 0.0301,
+    "rca": 1.28,
+    "reldens": 16.65,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 16.65,
+    "y": 32.5,
+    "value": 1.28
+  },
+  {
+    "domain": "Handling",
+    "geo": "Kent (UKJ4)",
+    "count": 6,
+    "share": 0.008,
+    "rca": 0.34,
+    "reldens": 3.66,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 3.66,
+    "y": 10,
+    "value": 0.34
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Kent (UKJ4)",
+    "count": 11,
+    "share": 0.008,
+    "rca": 0.34,
+    "reldens": 7.29,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 7.29,
+    "y": 12.5,
+    "value": 0.34
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Kent (UKJ4)",
+    "count": 30,
+    "share": 0.0151,
+    "rca": 0.65,
+    "reldens": 23.25,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 23.25,
+    "y": 55,
+    "value": 0.65
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Kent (UKJ4)",
+    "count": 20,
+    "share": 0.0051,
+    "rca": 0.22,
+    "reldens": 8.52,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 8.52,
+    "y": 50,
+    "value": 0.22
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Kent (UKJ4)",
+    "count": 1420,
+    "share": 0.0326,
+    "rca": 1.39,
+    "reldens": 69.79,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 69.79,
+    "y": 57.5,
+    "value": 1.39
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Kent (UKJ4)",
+    "count": 42,
+    "share": 0.0044,
+    "rca": 0.19,
+    "reldens": 11.55,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 11.55,
+    "y": 87.5,
+    "value": 0.19
+  },
+  {
+    "domain": "Optics",
+    "geo": "Kent (UKJ4)",
+    "count": 27,
+    "share": 0.0048,
+    "rca": 0.2,
+    "reldens": 17.38,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 17.38,
+    "y": 100,
+    "value": 0.2
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Kent (UKJ4)",
+    "count": 10,
+    "share": 0.0075,
+    "rca": 0.32,
+    "reldens": 46.1,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 46.1,
+    "y": 43.75,
+    "value": 0.32
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Kent (UKJ4)",
+    "count": 149,
+    "share": 0.0301,
+    "rca": 1.28,
+    "reldens": 88.82,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 88.82,
+    "y": 60,
+    "value": 1.28
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Kent (UKJ4)",
+    "count": 1,
+    "share": 0.0009,
+    "rca": 0.04,
+    "reldens": 3.04,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 3.04,
+    "y": 67.5,
+    "value": 0.04
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Kent (UKJ4)",
+    "count": 1,
+    "share": 0.0012,
+    "rca": 0.05,
+    "reldens": 12.63,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 12.63,
+    "y": 27.5,
+    "value": 0.05
+  },
+  {
+    "domain": "Transport",
+    "geo": "Kent (UKJ4)",
+    "count": 7,
+    "share": 0.0111,
+    "rca": 0.47,
+    "reldens": 8.04,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 8.04,
+    "y": 15,
+    "value": 0.47
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

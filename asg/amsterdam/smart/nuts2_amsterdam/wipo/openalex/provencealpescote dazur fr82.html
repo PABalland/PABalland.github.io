@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 18812,
+    "share": 1.2913,
+    "rca": 1.26,
+    "reldens": 44.55,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 44.55,
+    "y": 81.25,
+    "value": 1.26
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 1623,
+    "share": 0.9956,
+    "rca": 0.97,
+    "reldens": 34.86,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 34.86,
+    "y": 35,
+    "value": 0.97
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 375,
+    "share": 1.7245,
+    "rca": 1.68,
+    "reldens": 9.57,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 9.57,
+    "y": 45,
+    "value": 1.68
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 2267,
+    "share": 1.0749,
+    "rca": 1.05,
+    "reldens": 16.61,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 16.61,
+    "y": 72.5,
+    "value": 1.05
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 32640,
+    "share": 1.0742,
+    "rca": 1.04,
+    "reldens": 29.66,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 29.66,
+    "y": 96.25,
+    "value": 1.04
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 874,
+    "share": 0.7901,
+    "rca": 0.77,
+    "reldens": 65.61,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 65.61,
+    "y": 25,
+    "value": 0.77
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 6765,
+    "share": 1.4771,
+    "rca": 1.44,
+    "reldens": 41.37,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 41.37,
+    "y": 30,
+    "value": 1.44
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 5979,
+    "share": 0.8497,
+    "rca": 0.83,
+    "reldens": 38.26,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 38.26,
+    "y": 35,
+    "value": 0.83
+  },
+  {
+    "domain": "Control",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 93,
+    "share": 0.6293,
+    "rca": 0.61,
+    "reldens": 35.08,
+    "comp": 37.5,
+    "comp_TCI": 96.68,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 35.08,
+    "y": 37.5,
+    "value": 0.61
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 3287,
+    "share": 1.0454,
+    "rca": 1.02,
+    "reldens": 32.6,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 32.6,
+    "y": 37.5,
+    "value": 1.02
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 218,
+    "share": 0.3842,
+    "rca": 0.37,
+    "reldens": 59.49,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 59.49,
+    "y": 0,
+    "value": 0.37
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 740,
+    "share": 1.6027,
+    "rca": 1.56,
+    "reldens": 61.12,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 61.12,
+    "y": 40,
+    "value": 1.56
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 12110,
+    "share": 1.3131,
+    "rca": 1.28,
+    "reldens": 55.36,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 55.36,
+    "y": 32.5,
+    "value": 1.28
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 3446,
+    "share": 0.6955,
+    "rca": 0.68,
+    "reldens": 66.24,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 66.24,
+    "y": 27.5,
+    "value": 0.68
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 13777,
+    "share": 1.4922,
+    "rca": 1.45,
+    "reldens": 64.75,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 64.75,
+    "y": 32.5,
+    "value": 1.45
+  },
+  {
+    "domain": "Handling",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 418,
+    "share": 0.5599,
+    "rca": 0.54,
+    "reldens": 20.42,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 20.42,
+    "y": 10,
+    "value": 0.54
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 856,
+    "share": 0.6212,
+    "rca": 0.6,
+    "reldens": 20.62,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 20.62,
+    "y": 12.5,
+    "value": 0.6
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 21,
+    "share": 0.1601,
+    "rca": 0.16,
+    "reldens": 11.56,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 11.56,
+    "y": 20,
+    "value": 0.16
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 1751,
+    "share": 0.8839,
+    "rca": 0.86,
+    "reldens": 38.25,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 38.25,
+    "y": 55,
+    "value": 0.86
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 3683,
+    "share": 0.9334,
+    "rca": 0.91,
+    "reldens": 34.53,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 34.53,
+    "y": 50,
+    "value": 0.91
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 479,
+    "share": 0.5311,
+    "rca": 0.52,
+    "reldens": 33.19,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 33.19,
+    "y": 12.5,
+    "value": 0.52
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 35400,
+    "share": 0.8114,
+    "rca": 0.79,
+    "reldens": 61.06,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 61.06,
+    "y": 57.5,
+    "value": 0.79
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 9738,
+    "share": 1.018,
+    "rca": 0.99,
+    "reldens": 48.96,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 48.96,
+    "y": 87.5,
+    "value": 0.99
+  },
+  {
+    "domain": "Optics",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 7987,
+    "share": 1.4212,
+    "rca": 1.38,
+    "reldens": 39.74,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 39.74,
+    "y": 100,
+    "value": 1.38
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 1301,
+    "share": 0.9708,
+    "rca": 0.94,
+    "reldens": 50.4,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 50.4,
+    "y": 43.75,
+    "value": 0.94
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 4234,
+    "share": 0.8563,
+    "rca": 0.83,
+    "reldens": 38.27,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 38.27,
+    "y": 60,
+    "value": 0.83
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 772,
+    "share": 0.6925,
+    "rca": 0.67,
+    "reldens": 33.78,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 33.78,
+    "y": 67.5,
+    "value": 0.67
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 184,
+    "share": 0.934,
+    "rca": 0.91,
+    "reldens": 27.98,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 27.98,
+    "y": 31.25,
+    "value": 0.91
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 140,
+    "share": 1.1641,
+    "rca": 1.13,
+    "reldens": 83.9,
+    "comp": 40,
+    "comp_TCI": 75.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 83.9,
+    "y": 40,
+    "value": 1.13
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 972,
+    "share": 1.1171,
+    "rca": 1.09,
+    "reldens": 55.52,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 55.52,
+    "y": 27.5,
+    "value": 1.09
+  },
+  {
+    "domain": "Transport",
+    "geo": "Provence-Alpes-Côte d'Azur (FR82)",
+    "count": 247,
+    "share": 0.3919,
+    "rca": 0.38,
+    "reldens": 46.75,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 46.75,
+    "y": 15,
+    "value": 0.38
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

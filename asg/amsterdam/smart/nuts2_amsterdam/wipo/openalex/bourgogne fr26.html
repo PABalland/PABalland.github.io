@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Bourgogne (FR26)",
+    "count": 2223,
+    "share": 0.1526,
+    "rca": 1.13,
+    "reldens": 48.33,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 48.33,
+    "y": 81.25,
+    "value": 1.13
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Bourgogne (FR26)",
+    "count": 197,
+    "share": 0.1208,
+    "rca": 0.89,
+    "reldens": 14.24,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 14.24,
+    "y": 35,
+    "value": 0.89
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Bourgogne (FR26)",
+    "count": 16,
+    "share": 0.0736,
+    "rca": 0.54,
+    "reldens": 4.37,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 4.37,
+    "y": 45,
+    "value": 0.54
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Bourgogne (FR26)",
+    "count": 226,
+    "share": 0.1072,
+    "rca": 0.79,
+    "reldens": 13.2,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 13.2,
+    "y": 72.5,
+    "value": 0.79
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Bourgogne (FR26)",
+    "count": 5239,
+    "share": 0.1724,
+    "rca": 1.27,
+    "reldens": 46.16,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 46.16,
+    "y": 96.25,
+    "value": 1.27
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Bourgogne (FR26)",
+    "count": 64,
+    "share": 0.0579,
+    "rca": 0.43,
+    "reldens": 16.43,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 16.43,
+    "y": 25,
+    "value": 0.43
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Bourgogne (FR26)",
+    "count": 342,
+    "share": 0.0747,
+    "rca": 0.55,
+    "reldens": 28.81,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 28.81,
+    "y": 30,
+    "value": 0.55
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Bourgogne (FR26)",
+    "count": 558,
+    "share": 0.0793,
+    "rca": 0.59,
+    "reldens": 11.87,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 11.87,
+    "y": 35,
+    "value": 0.59
+  },
+  {
+    "domain": "Control",
+    "geo": "Bourgogne (FR26)",
+    "count": 8,
+    "share": 0.0541,
+    "rca": 0.4,
+    "reldens": 14.45,
+    "comp": 37.5,
+    "comp_TCI": 96.68,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 14.45,
+    "y": 37.5,
+    "value": 0.4
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Bourgogne (FR26)",
+    "count": 391,
+    "share": 0.1244,
+    "rca": 0.92,
+    "reldens": 14.81,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 14.81,
+    "y": 37.5,
+    "value": 0.92
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Bourgogne (FR26)",
+    "count": 8,
+    "share": 0.0141,
+    "rca": 0.1,
+    "reldens": 22.78,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 22.78,
+    "y": 0,
+    "value": 0.1
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Bourgogne (FR26)",
+    "count": 25,
+    "share": 0.0542,
+    "rca": 0.4,
+    "reldens": 21.04,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 21.04,
+    "y": 40,
+    "value": 0.4
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Bourgogne (FR26)",
+    "count": 1227,
+    "share": 0.133,
+    "rca": 0.98,
+    "reldens": 41.62,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 41.62,
+    "y": 32.5,
+    "value": 0.98
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Bourgogne (FR26)",
+    "count": 1444,
+    "share": 0.2914,
+    "rca": 2.15,
+    "reldens": 63.14,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 63.14,
+    "y": 27.5,
+    "value": 2.15
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Bourgogne (FR26)",
+    "count": 1530,
+    "share": 0.1657,
+    "rca": 1.22,
+    "reldens": 18.92,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 18.92,
+    "y": 32.5,
+    "value": 1.22
+  },
+  {
+    "domain": "Handling",
+    "geo": "Bourgogne (FR26)",
+    "count": 60,
+    "share": 0.0804,
+    "rca": 0.59,
+    "reldens": 21.29,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 21.29,
+    "y": 10,
+    "value": 0.59
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Bourgogne (FR26)",
+    "count": 97,
+    "share": 0.0704,
+    "rca": 0.52,
+    "reldens": 7.45,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 7.45,
+    "y": 12.5,
+    "value": 0.52
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Bourgogne (FR26)",
+    "count": 45,
+    "share": 0.3431,
+    "rca": 2.53,
+    "reldens": 25.35,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 25.35,
+    "y": 20,
+    "value": 2.53
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Bourgogne (FR26)",
+    "count": 233,
+    "share": 0.1176,
+    "rca": 0.87,
+    "reldens": 35.59,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 35.59,
+    "y": 55,
+    "value": 0.87
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Bourgogne (FR26)",
+    "count": 509,
+    "share": 0.129,
+    "rca": 0.95,
+    "reldens": 32.28,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 32.28,
+    "y": 50,
+    "value": 0.95
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Bourgogne (FR26)",
+    "count": 131,
+    "share": 0.1452,
+    "rca": 1.07,
+    "reldens": 12.44,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 12.44,
+    "y": 12.5,
+    "value": 1.07
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Bourgogne (FR26)",
+    "count": 4911,
+    "share": 0.1126,
+    "rca": 0.83,
+    "reldens": 60.19,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 60.19,
+    "y": 57.5,
+    "value": 0.83
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Bourgogne (FR26)",
+    "count": 1001,
+    "share": 0.1046,
+    "rca": 0.77,
+    "reldens": 28.48,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 28.48,
+    "y": 87.5,
+    "value": 0.77
+  },
+  {
+    "domain": "Optics",
+    "geo": "Bourgogne (FR26)",
+    "count": 1173,
+    "share": 0.2087,
+    "rca": 1.54,
+    "reldens": 9.57,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 9.57,
+    "y": 100,
+    "value": 1.54
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Bourgogne (FR26)",
+    "count": 194,
+    "share": 0.1448,
+    "rca": 1.07,
+    "reldens": 40.05,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 40.05,
+    "y": 43.75,
+    "value": 1.07
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Bourgogne (FR26)",
+    "count": 461,
+    "share": 0.0932,
+    "rca": 0.69,
+    "reldens": 51.96,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 51.96,
+    "y": 60,
+    "value": 0.69
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Bourgogne (FR26)",
+    "count": 62,
+    "share": 0.0556,
+    "rca": 0.41,
+    "reldens": 14.92,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 14.92,
+    "y": 67.5,
+    "value": 0.41
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Bourgogne (FR26)",
+    "count": 61,
+    "share": 0.3096,
+    "rca": 2.29,
+    "reldens": 8.9,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 8.9,
+    "y": 31.25,
+    "value": 2.29
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Bourgogne (FR26)",
+    "count": 1,
+    "share": 0.0083,
+    "rca": 0.06,
+    "reldens": 31.39,
+    "comp": 40,
+    "comp_TCI": 75.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 31.39,
+    "y": 40,
+    "value": 0.06
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Bourgogne (FR26)",
+    "count": 42,
+    "share": 0.0483,
+    "rca": 0.36,
+    "reldens": 22.87,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 22.87,
+    "y": 27.5,
+    "value": 0.36
+  },
+  {
+    "domain": "Transport",
+    "geo": "Bourgogne (FR26)",
+    "count": 57,
+    "share": 0.0904,
+    "rca": 0.67,
+    "reldens": 20.49,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 20.49,
+    "y": 15,
+    "value": 0.67
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

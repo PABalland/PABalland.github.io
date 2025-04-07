@@ -1,0 +1,583 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 3.75,
+    "share": 0.096,
+    "rca": 0.45,
+    "reldens": 5.91,
+    "comp": 31.58,
+    "comp_TCI": 77.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 5.91,
+    "y": 31.58,
+    "value": 0.45
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 0.28,
+    "share": 0.0026,
+    "rca": 0.01,
+    "reldens": 36.26,
+    "comp": 42.11,
+    "comp_TCI": 45.54,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 36.26,
+    "y": 42.11,
+    "value": 0.01
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 4.9,
+    "share": 0.0818,
+    "rca": 0.38,
+    "reldens": 23.9,
+    "comp": 63.16,
+    "comp_TCI": 6.13,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 23.9,
+    "y": 63.16,
+    "value": 0.38
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 21.4,
+    "share": 0.0689,
+    "rca": 0.32,
+    "reldens": 15.76,
+    "comp": 28.95,
+    "comp_TCI": 93.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 15.76,
+    "y": 28.95,
+    "value": 0.32
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 39.61,
+    "share": 0.5399,
+    "rca": 2.51,
+    "reldens": 57.05,
+    "comp": 73.68,
+    "comp_TCI": 70.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 57.05,
+    "y": 73.68,
+    "value": 2.51
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 3.46,
+    "share": 0.0226,
+    "rca": 0.11,
+    "reldens": 50.75,
+    "comp": 57.89,
+    "comp_TCI": 23.83,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 50.75,
+    "y": 57.89,
+    "value": 0.11
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 85.13,
+    "share": 0.0538,
+    "rca": 0.25,
+    "reldens": 42.75,
+    "comp": 47.37,
+    "comp_TCI": 9.99,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 42.75,
+    "y": 47.37,
+    "value": 0.25
+  },
+  {
+    "domain": "Control",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 139.01,
+    "share": 1.7343,
+    "rca": 8.06,
+    "reldens": 42.94,
+    "comp": 0,
+    "comp_TCI": 51.55,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 42.94,
+    "y": 0,
+    "value": 8.06
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 0.04,
+    "share": 0.0003,
+    "rca": 0,
+    "reldens": 24.32,
+    "comp": 57.89,
+    "comp_TCI": 28.77,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 24.32,
+    "y": 57.89,
+    "value": 0
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 138.5,
+    "share": 0.3256,
+    "rca": 1.51,
+    "reldens": 48.8,
+    "comp": 71.05,
+    "comp_TCI": 79.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 48.8,
+    "y": 71.05,
+    "value": 1.51
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 55.04,
+    "share": 0.2232,
+    "rca": 1.04,
+    "reldens": 43.85,
+    "comp": 42.11,
+    "comp_TCI": 70.84,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 43.85,
+    "y": 42.11,
+    "value": 1.04
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 10.22,
+    "share": 0.0542,
+    "rca": 0.25,
+    "reldens": 42.51,
+    "comp": 39.47,
+    "comp_TCI": 52.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 42.51,
+    "y": 39.47,
+    "value": 0.25
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 37.14,
+    "share": 0.7726,
+    "rca": 3.59,
+    "reldens": 12.58,
+    "comp": 5.26,
+    "comp_TCI": 41.68,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 12.58,
+    "y": 5.26,
+    "value": 3.59
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 15.48,
+    "share": 0.0474,
+    "rca": 0.22,
+    "reldens": 72.52,
+    "comp": 100,
+    "comp_TCI": 88.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 72.52,
+    "y": 100,
+    "value": 0.22
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 202.12,
+    "share": 0.2398,
+    "rca": 1.11,
+    "reldens": 17.58,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 17.58,
+    "y": 68.42,
+    "value": 1.11
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 3.6,
+    "share": 0.2428,
+    "rca": 1.13,
+    "reldens": 62.76,
+    "comp": 21.05,
+    "comp_TCI": 67.12,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 62.76,
+    "y": 21.05,
+    "value": 1.13
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 39.61,
+    "share": 10.8896,
+    "rca": 50.61,
+    "reldens": 69.67,
+    "comp": 52.63,
+    "comp_TCI": 36.36,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 69.67,
+    "y": 52.63,
+    "value": 50.61
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 160.92,
+    "share": 0.5236,
+    "rca": 2.43,
+    "reldens": 45.56,
+    "comp": 10.53,
+    "comp_TCI": 73.14,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 45.56,
+    "y": 10.53,
+    "value": 2.43
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 20.45,
+    "share": 0.0464,
+    "rca": 0.22,
+    "reldens": 13.79,
+    "comp": 36.84,
+    "comp_TCI": 77.03,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 13.79,
+    "y": 36.84,
+    "value": 0.22
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 37.18,
+    "share": 0.0661,
+    "rca": 0.31,
+    "reldens": 32.54,
+    "comp": 55.26,
+    "comp_TCI": 13.33,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 32.54,
+    "y": 55.26,
+    "value": 0.31
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 5.33,
+    "share": 0.0218,
+    "rca": 0.1,
+    "reldens": 8.77,
+    "comp": 52.63,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 8.77,
+    "y": 52.63,
+    "value": 0.1
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 40.98,
+    "share": 6.7508,
+    "rca": 31.38,
+    "reldens": 46.81,
+    "comp": 42.11,
+    "comp_TCI": 53.5,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 46.81,
+    "y": 42.11,
+    "value": 31.38
+  },
+  {
+    "domain": "Transport",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 411.67,
+    "share": 0.8722,
+    "rca": 4.05,
+    "reldens": 36.99,
+    "comp": 68.42,
+    "comp_TCI": 45.37,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 36.99,
+    "y": 68.42,
+    "value": 4.05
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

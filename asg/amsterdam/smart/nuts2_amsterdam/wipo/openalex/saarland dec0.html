@@ -1,0 +1,702 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Saarland (DEC0)",
+    "count": 1901,
+    "share": 0.1305,
+    "rca": 0.88,
+    "reldens": 40.83,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 40.83,
+    "y": 81.25,
+    "value": 0.88
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Saarland (DEC0)",
+    "count": 635,
+    "share": 0.3895,
+    "rca": 2.63,
+    "reldens": 69.36,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 69.36,
+    "y": 35,
+    "value": 2.63
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Saarland (DEC0)",
+    "count": 64,
+    "share": 0.2943,
+    "rca": 1.99,
+    "reldens": 49.45,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 49.45,
+    "y": 45,
+    "value": 1.99
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Saarland (DEC0)",
+    "count": 399,
+    "share": 0.1892,
+    "rca": 1.28,
+    "reldens": 68.22,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 68.22,
+    "y": 72.5,
+    "value": 1.28
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Saarland (DEC0)",
+    "count": 4680,
+    "share": 0.154,
+    "rca": 1.04,
+    "reldens": 20.24,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 20.24,
+    "y": 96.25,
+    "value": 1.04
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Saarland (DEC0)",
+    "count": 34,
+    "share": 0.0307,
+    "rca": 0.21,
+    "reldens": 40.76,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 40.76,
+    "y": 25,
+    "value": 0.21
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Saarland (DEC0)",
+    "count": 211,
+    "share": 0.0461,
+    "rca": 0.31,
+    "reldens": 42.07,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 42.07,
+    "y": 30,
+    "value": 0.31
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Saarland (DEC0)",
+    "count": 3287,
+    "share": 0.4671,
+    "rca": 3.16,
+    "reldens": 70.39,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 70.39,
+    "y": 35,
+    "value": 3.16
+  },
+  {
+    "domain": "Control",
+    "geo": "Saarland (DEC0)",
+    "count": 21,
+    "share": 0.1421,
+    "rca": 0.96,
+    "reldens": 82.76,
+    "comp": 37.5,
+    "comp_TCI": 96.68,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 82.76,
+    "y": 37.5,
+    "value": 0.96
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Saarland (DEC0)",
+    "count": 674,
+    "share": 0.2144,
+    "rca": 1.45,
+    "reldens": 44.02,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 44.02,
+    "y": 37.5,
+    "value": 1.45
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Saarland (DEC0)",
+    "count": 45,
+    "share": 0.0793,
+    "rca": 0.54,
+    "reldens": 48.35,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 48.35,
+    "y": 0,
+    "value": 0.54
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Saarland (DEC0)",
+    "count": 17,
+    "share": 0.0368,
+    "rca": 0.25,
+    "reldens": 29.55,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 29.55,
+    "y": 40,
+    "value": 0.25
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Saarland (DEC0)",
+    "count": 480,
+    "share": 0.052,
+    "rca": 0.35,
+    "reldens": 37.79,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 37.79,
+    "y": 32.5,
+    "value": 0.35
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Saarland (DEC0)",
+    "count": 366,
+    "share": 0.0739,
+    "rca": 0.5,
+    "reldens": 51.08,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 51.08,
+    "y": 27.5,
+    "value": 0.5
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Saarland (DEC0)",
+    "count": 222,
+    "share": 0.024,
+    "rca": 0.16,
+    "reldens": 23.83,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 23.83,
+    "y": 32.5,
+    "value": 0.16
+  },
+  {
+    "domain": "Handling",
+    "geo": "Saarland (DEC0)",
+    "count": 171,
+    "share": 0.2291,
+    "rca": 1.55,
+    "reldens": 58.99,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 58.99,
+    "y": 10,
+    "value": 1.55
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Saarland (DEC0)",
+    "count": 276,
+    "share": 0.2003,
+    "rca": 1.35,
+    "reldens": 69.57,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 69.57,
+    "y": 12.5,
+    "value": 1.35
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Saarland (DEC0)",
+    "count": 33,
+    "share": 0.2516,
+    "rca": 1.7,
+    "reldens": 74.15,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 74.15,
+    "y": 20,
+    "value": 1.7
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Saarland (DEC0)",
+    "count": 588,
+    "share": 0.2968,
+    "rca": 2.01,
+    "reldens": 69.96,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 69.96,
+    "y": 55,
+    "value": 2.01
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Saarland (DEC0)",
+    "count": 771,
+    "share": 0.1954,
+    "rca": 1.32,
+    "reldens": 53.83,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 53.83,
+    "y": 50,
+    "value": 1.32
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Saarland (DEC0)",
+    "count": 225,
+    "share": 0.2495,
+    "rca": 1.69,
+    "reldens": 54.53,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 54.53,
+    "y": 12.5,
+    "value": 1.69
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Saarland (DEC0)",
+    "count": 5874,
+    "share": 0.1346,
+    "rca": 0.91,
+    "reldens": 47.58,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 47.58,
+    "y": 57.5,
+    "value": 0.91
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Saarland (DEC0)",
+    "count": 1814,
+    "share": 0.1896,
+    "rca": 1.28,
+    "reldens": 51.71,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 51.71,
+    "y": 87.5,
+    "value": 1.28
+  },
+  {
+    "domain": "Optics",
+    "geo": "Saarland (DEC0)",
+    "count": 646,
+    "share": 0.115,
+    "rca": 0.78,
+    "reldens": 57.88,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 57.88,
+    "y": 100,
+    "value": 0.78
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Saarland (DEC0)",
+    "count": 370,
+    "share": 0.2761,
+    "rca": 1.87,
+    "reldens": 66.7,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 66.7,
+    "y": 43.75,
+    "value": 1.87
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Saarland (DEC0)",
+    "count": 542,
+    "share": 0.1096,
+    "rca": 0.74,
+    "reldens": 36.44,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 36.44,
+    "y": 60,
+    "value": 0.74
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Saarland (DEC0)",
+    "count": 79,
+    "share": 0.0709,
+    "rca": 0.48,
+    "reldens": 69.76,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 69.76,
+    "y": 67.5,
+    "value": 0.48
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Saarland (DEC0)",
+    "count": 26,
+    "share": 0.132,
+    "rca": 0.89,
+    "reldens": 68.26,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 68.26,
+    "y": 31.25,
+    "value": 0.89
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Saarland (DEC0)",
+    "count": 104,
+    "share": 0.1195,
+    "rca": 0.81,
+    "reldens": 19.84,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 19.84,
+    "y": 27.5,
+    "value": 0.81
+  },
+  {
+    "domain": "Transport",
+    "geo": "Saarland (DEC0)",
+    "count": 69,
+    "share": 0.1095,
+    "rca": 0.74,
+    "reldens": 55.78,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 55.78,
+    "y": 15,
+    "value": 0.74
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

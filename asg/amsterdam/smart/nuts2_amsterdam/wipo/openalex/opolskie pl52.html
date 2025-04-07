@@ -1,0 +1,702 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Opolskie (PL52)",
+    "count": 291,
+    "share": 0.02,
+    "rca": 0.61,
+    "reldens": 34.98,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 34.98,
+    "y": 81.25,
+    "value": 0.61
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Opolskie (PL52)",
+    "count": 28,
+    "share": 0.0172,
+    "rca": 0.53,
+    "reldens": 69.24,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 69.24,
+    "y": 35,
+    "value": 0.53
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Opolskie (PL52)",
+    "count": 2,
+    "share": 0.0092,
+    "rca": 0.28,
+    "reldens": 25.73,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 25.73,
+    "y": 45,
+    "value": 0.28
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Opolskie (PL52)",
+    "count": 85,
+    "share": 0.0403,
+    "rca": 1.24,
+    "reldens": 88.63,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 88.63,
+    "y": 72.5,
+    "value": 1.24
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Opolskie (PL52)",
+    "count": 553,
+    "share": 0.0182,
+    "rca": 0.56,
+    "reldens": 46.17,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 46.17,
+    "y": 96.25,
+    "value": 0.56
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Opolskie (PL52)",
+    "count": 99,
+    "share": 0.0895,
+    "rca": 2.75,
+    "reldens": 95.44,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 95.44,
+    "y": 25,
+    "value": 2.75
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Opolskie (PL52)",
+    "count": 260,
+    "share": 0.0568,
+    "rca": 1.75,
+    "reldens": 91.28,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 91.28,
+    "y": 30,
+    "value": 1.75
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Opolskie (PL52)",
+    "count": 256,
+    "share": 0.0364,
+    "rca": 1.12,
+    "reldens": 40.09,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 40.09,
+    "y": 35,
+    "value": 1.12
+  },
+  {
+    "domain": "Control",
+    "geo": "Opolskie (PL52)",
+    "count": 21,
+    "share": 0.1421,
+    "rca": 4.37,
+    "reldens": 67.98,
+    "comp": 37.5,
+    "comp_TCI": 96.68,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 67.98,
+    "y": 37.5,
+    "value": 4.37
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Opolskie (PL52)",
+    "count": 64,
+    "share": 0.0204,
+    "rca": 0.63,
+    "reldens": 67.06,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 67.06,
+    "y": 37.5,
+    "value": 0.63
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Opolskie (PL52)",
+    "count": 38,
+    "share": 0.067,
+    "rca": 2.06,
+    "reldens": 63.34,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 63.34,
+    "y": 0,
+    "value": 2.06
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Opolskie (PL52)",
+    "count": 33,
+    "share": 0.0715,
+    "rca": 2.2,
+    "reldens": 95.95,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 95.95,
+    "y": 40,
+    "value": 2.2
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Opolskie (PL52)",
+    "count": 325,
+    "share": 0.0352,
+    "rca": 1.08,
+    "reldens": 82.24,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 82.24,
+    "y": 32.5,
+    "value": 1.08
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Opolskie (PL52)",
+    "count": 201,
+    "share": 0.0406,
+    "rca": 1.25,
+    "reldens": 30.79,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 30.79,
+    "y": 27.5,
+    "value": 1.25
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Opolskie (PL52)",
+    "count": 334,
+    "share": 0.0362,
+    "rca": 1.11,
+    "reldens": 78.99,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 78.99,
+    "y": 32.5,
+    "value": 1.11
+  },
+  {
+    "domain": "Handling",
+    "geo": "Opolskie (PL52)",
+    "count": 107,
+    "share": 0.1433,
+    "rca": 4.41,
+    "reldens": 93.21,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 93.21,
+    "y": 10,
+    "value": 4.41
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Opolskie (PL52)",
+    "count": 56,
+    "share": 0.0406,
+    "rca": 1.25,
+    "reldens": 83.08,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 83.08,
+    "y": 12.5,
+    "value": 1.25
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Opolskie (PL52)",
+    "count": 178,
+    "share": 1.3573,
+    "rca": 41.78,
+    "reldens": 98.05,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 98.05,
+    "y": 20,
+    "value": 41.78
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Opolskie (PL52)",
+    "count": 80,
+    "share": 0.0404,
+    "rca": 1.24,
+    "reldens": 80.44,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 80.44,
+    "y": 55,
+    "value": 1.24
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Opolskie (PL52)",
+    "count": 447,
+    "share": 0.1133,
+    "rca": 3.49,
+    "reldens": 86.47,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 86.47,
+    "y": 50,
+    "value": 3.49
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Opolskie (PL52)",
+    "count": 183,
+    "share": 0.2029,
+    "rca": 6.25,
+    "reldens": 95.7,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 95.7,
+    "y": 12.5,
+    "value": 6.25
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Opolskie (PL52)",
+    "count": 920,
+    "share": 0.0211,
+    "rca": 0.65,
+    "reldens": 23.28,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 23.28,
+    "y": 57.5,
+    "value": 0.65
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Opolskie (PL52)",
+    "count": 327,
+    "share": 0.0342,
+    "rca": 1.05,
+    "reldens": 70.07,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 70.07,
+    "y": 87.5,
+    "value": 1.05
+  },
+  {
+    "domain": "Optics",
+    "geo": "Opolskie (PL52)",
+    "count": 76,
+    "share": 0.0135,
+    "rca": 0.42,
+    "reldens": 48.93,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 48.93,
+    "y": 100,
+    "value": 0.42
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Opolskie (PL52)",
+    "count": 87,
+    "share": 0.0649,
+    "rca": 2,
+    "reldens": 59.73,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 59.73,
+    "y": 43.75,
+    "value": 2
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Opolskie (PL52)",
+    "count": 139,
+    "share": 0.0281,
+    "rca": 0.87,
+    "reldens": 21.54,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 21.54,
+    "y": 60,
+    "value": 0.87
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Opolskie (PL52)",
+    "count": 17,
+    "share": 0.0152,
+    "rca": 0.47,
+    "reldens": 84.9,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 84.9,
+    "y": 67.5,
+    "value": 0.47
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Opolskie (PL52)",
+    "count": 28,
+    "share": 0.1421,
+    "rca": 4.37,
+    "reldens": 99.14,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 99.14,
+    "y": 31.25,
+    "value": 4.37
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Opolskie (PL52)",
+    "count": 126,
+    "share": 0.1448,
+    "rca": 4.46,
+    "reldens": 94.64,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 94.64,
+    "y": 27.5,
+    "value": 4.46
+  },
+  {
+    "domain": "Transport",
+    "geo": "Opolskie (PL52)",
+    "count": 48,
+    "share": 0.0762,
+    "rca": 2.34,
+    "reldens": 86.12,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 86.12,
+    "y": 15,
+    "value": 2.34
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

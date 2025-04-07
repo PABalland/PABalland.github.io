@@ -1,0 +1,736 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Wallonia (BE34)",
+    "count": 8,
+    "share": 0.064,
+    "rca": 2.88,
+    "reldens": 67.72,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 67.72,
+    "y": 8.93,
+    "value": 2.88
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Wallonia (BE34)",
+    "count": 1,
+    "share": 0.0064,
+    "rca": 0.29,
+    "reldens": 18.52,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 18.52,
+    "y": 55.36,
+    "value": 0.29
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Wallonia (BE34)",
+    "count": 3,
+    "share": 0.0678,
+    "rca": 3.05,
+    "reldens": 17.54,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 17.54,
+    "y": 41.07,
+    "value": 3.05
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Wallonia (BE34)",
+    "count": 17,
+    "share": 0.0565,
+    "rca": 2.54,
+    "reldens": 32.69,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 32.69,
+    "y": 51.79,
+    "value": 2.54
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Wallonia (BE34)",
+    "count": 12,
+    "share": 0.0316,
+    "rca": 1.42,
+    "reldens": 36.53,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 36.53,
+    "y": 50,
+    "value": 1.42
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Wallonia (BE34)",
+    "count": 6,
+    "share": 0.0201,
+    "rca": 0.9,
+    "reldens": 55.98,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 55.98,
+    "y": 40.18,
+    "value": 0.9
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Wallonia (BE34)",
+    "count": 1,
+    "share": 0.0054,
+    "rca": 0.24,
+    "reldens": 44.78,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 44.78,
+    "y": 10.71,
+    "value": 0.24
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Wallonia (BE34)",
+    "count": 3,
+    "share": 0.0068,
+    "rca": 0.31,
+    "reldens": 20.33,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 20.33,
+    "y": 78.57,
+    "value": 0.31
+  },
+  {
+    "domain": "Control",
+    "geo": "Wallonia (BE34)",
+    "count": 3,
+    "share": 0.015,
+    "rca": 0.67,
+    "reldens": 33.14,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 33.14,
+    "y": 50,
+    "value": 0.67
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Wallonia (BE34)",
+    "count": 2,
+    "share": 0.0044,
+    "rca": 0.2,
+    "reldens": 19.41,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 19.41,
+    "y": 100,
+    "value": 0.2
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Wallonia (BE34)",
+    "count": 10,
+    "share": 0.0183,
+    "rca": 0.82,
+    "reldens": 52.21,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 52.21,
+    "y": 90.18,
+    "value": 0.82
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Wallonia (BE34)",
+    "count": 8,
+    "share": 0.0374,
+    "rca": 1.69,
+    "reldens": 45.39,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 45.39,
+    "y": 58.93,
+    "value": 1.69
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Wallonia (BE34)",
+    "count": 6,
+    "share": 0.0505,
+    "rca": 2.27,
+    "reldens": 35.09,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 35.09,
+    "y": 0,
+    "value": 2.27
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Wallonia (BE34)",
+    "count": 16,
+    "share": 0.0262,
+    "rca": 1.18,
+    "reldens": 36.79,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 36.79,
+    "y": 57.14,
+    "value": 1.18
+  },
+  {
+    "domain": "Handling",
+    "geo": "Wallonia (BE34)",
+    "count": 5,
+    "share": 0.0218,
+    "rca": 0.98,
+    "reldens": 38.92,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 38.92,
+    "y": 44.64,
+    "value": 0.98
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Wallonia (BE34)",
+    "count": 1,
+    "share": 0.0117,
+    "rca": 0.53,
+    "reldens": 15.98,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 15.98,
+    "y": 14.29,
+    "value": 0.53
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Wallonia (BE34)",
+    "count": 4,
+    "share": 0.0239,
+    "rca": 1.08,
+    "reldens": 34.31,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 34.31,
+    "y": 44.64,
+    "value": 1.08
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Wallonia (BE34)",
+    "count": 2,
+    "share": 0.0089,
+    "rca": 0.4,
+    "reldens": 60.01,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 60.01,
+    "y": 71.43,
+    "value": 0.4
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Wallonia (BE34)",
+    "count": 3,
+    "share": 0.014,
+    "rca": 0.63,
+    "reldens": 58.56,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 58.56,
+    "y": 46.43,
+    "value": 0.63
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Wallonia (BE34)",
+    "count": 18,
+    "share": 0.0326,
+    "rca": 1.47,
+    "reldens": 43.9,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 43.9,
+    "y": 66.07,
+    "value": 1.47
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Wallonia (BE34)",
+    "count": 1,
+    "share": 0.0039,
+    "rca": 0.18,
+    "reldens": 49.53,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 49.53,
+    "y": 59.82,
+    "value": 0.18
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Wallonia (BE34)",
+    "count": 3,
+    "share": 0.0058,
+    "rca": 0.26,
+    "reldens": 31.59,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 31.59,
+    "y": 60.71,
+    "value": 0.26
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Wallonia (BE34)",
+    "count": 1,
+    "share": 0.1073,
+    "rca": 4.83,
+    "reldens": 37.98,
+    "comp": 44.64,
+    "comp_TCI": 31.66,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 37.98,
+    "y": 44.64,
+    "value": 4.83
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Wallonia (BE34)",
+    "count": 1,
+    "share": 0.0028,
+    "rca": 0.12,
+    "reldens": 35.24,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 35.24,
+    "y": 63.39,
+    "value": 0.12
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Wallonia (BE34)",
+    "count": 3,
+    "share": 0.0149,
+    "rca": 0.67,
+    "reldens": 33.81,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 33.81,
+    "y": 62.5,
+    "value": 0.67
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Wallonia (BE34)",
+    "count": 15,
+    "share": 0.0429,
+    "rca": 1.93,
+    "reldens": 38.28,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 38.28,
+    "y": 35.71,
+    "value": 1.93
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Wallonia (BE34)",
+    "count": 7,
+    "share": 0.0155,
+    "rca": 0.7,
+    "reldens": 52.31,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 52.31,
+    "y": 39.29,
+    "value": 0.7
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Wallonia (BE34)",
+    "count": 19,
+    "share": 0.1082,
+    "rca": 4.87,
+    "reldens": 37.26,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 37.26,
+    "y": 38.39,
+    "value": 4.87
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Wallonia (BE34)",
+    "count": 1,
+    "share": 0.0049,
+    "rca": 0.22,
+    "reldens": 17.83,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 17.83,
+    "y": 78.57,
+    "value": 0.22
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Wallonia (BE34)",
+    "count": 6,
+    "share": 0.0496,
+    "rca": 2.23,
+    "reldens": 36.74,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 36.74,
+    "y": 33.04,
+    "value": 2.23
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Wallonia (BE34)",
+    "count": 2,
+    "share": 0.0175,
+    "rca": 0.79,
+    "reldens": 45.09,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 45.09,
+    "y": 23.21,
+    "value": 0.79
+  },
+  {
+    "domain": "Transport",
+    "geo": "Wallonia (BE34)",
+    "count": 19,
+    "share": 0.0384,
+    "rca": 1.73,
+    "reldens": 31.78,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 31.78,
+    "y": 86.61,
+    "value": 1.73
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,702 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "La Rioja (ES23)",
+    "count": 590,
+    "share": 0.0405,
+    "rca": 0.91,
+    "reldens": 46.8,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 46.8,
+    "y": 81.25,
+    "value": 0.91
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "La Rioja (ES23)",
+    "count": 98,
+    "share": 0.0601,
+    "rca": 1.35,
+    "reldens": 65.89,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 65.89,
+    "y": 35,
+    "value": 1.35
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "La Rioja (ES23)",
+    "count": 7,
+    "share": 0.0322,
+    "rca": 0.73,
+    "reldens": 57.36,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 57.36,
+    "y": 45,
+    "value": 0.73
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "La Rioja (ES23)",
+    "count": 22,
+    "share": 0.0104,
+    "rca": 0.24,
+    "reldens": 9.6,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 9.6,
+    "y": 72.5,
+    "value": 0.24
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "La Rioja (ES23)",
+    "count": 1655,
+    "share": 0.0545,
+    "rca": 1.23,
+    "reldens": 33.62,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 33.62,
+    "y": 96.25,
+    "value": 1.23
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "La Rioja (ES23)",
+    "count": 17,
+    "share": 0.0154,
+    "rca": 0.35,
+    "reldens": 8.98,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 8.98,
+    "y": 25,
+    "value": 0.35
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "La Rioja (ES23)",
+    "count": 150,
+    "share": 0.0328,
+    "rca": 0.74,
+    "reldens": 14.24,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 14.24,
+    "y": 30,
+    "value": 0.74
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "La Rioja (ES23)",
+    "count": 726,
+    "share": 0.1032,
+    "rca": 2.32,
+    "reldens": 61.9,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 61.9,
+    "y": 35,
+    "value": 2.32
+  },
+  {
+    "domain": "Control",
+    "geo": "La Rioja (ES23)",
+    "count": 11,
+    "share": 0.0744,
+    "rca": 1.68,
+    "reldens": 60.43,
+    "comp": 37.5,
+    "comp_TCI": 96.68,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 60.43,
+    "y": 37.5,
+    "value": 1.68
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "La Rioja (ES23)",
+    "count": 234,
+    "share": 0.0744,
+    "rca": 1.68,
+    "reldens": 58.13,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 58.13,
+    "y": 37.5,
+    "value": 1.68
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "La Rioja (ES23)",
+    "count": 28,
+    "share": 0.0494,
+    "rca": 1.11,
+    "reldens": 41.68,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 41.68,
+    "y": 0,
+    "value": 1.11
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "La Rioja (ES23)",
+    "count": 3,
+    "share": 0.0065,
+    "rca": 0.15,
+    "reldens": 12.24,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 12.24,
+    "y": 40,
+    "value": 0.15
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "La Rioja (ES23)",
+    "count": 237,
+    "share": 0.0257,
+    "rca": 0.58,
+    "reldens": 15.76,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 15.76,
+    "y": 32.5,
+    "value": 0.58
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "La Rioja (ES23)",
+    "count": 749,
+    "share": 0.1512,
+    "rca": 3.41,
+    "reldens": 52.34,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 52.34,
+    "y": 27.5,
+    "value": 3.41
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "La Rioja (ES23)",
+    "count": 323,
+    "share": 0.035,
+    "rca": 0.79,
+    "reldens": 30.05,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 30.05,
+    "y": 32.5,
+    "value": 0.79
+  },
+  {
+    "domain": "Handling",
+    "geo": "La Rioja (ES23)",
+    "count": 13,
+    "share": 0.0174,
+    "rca": 0.39,
+    "reldens": 50.24,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 50.24,
+    "y": 10,
+    "value": 0.39
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "La Rioja (ES23)",
+    "count": 147,
+    "share": 0.1067,
+    "rca": 2.4,
+    "reldens": 57.56,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 57.56,
+    "y": 12.5,
+    "value": 2.4
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "La Rioja (ES23)",
+    "count": 9,
+    "share": 0.0686,
+    "rca": 1.55,
+    "reldens": 8.89,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 8.89,
+    "y": 20,
+    "value": 1.55
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "La Rioja (ES23)",
+    "count": 86,
+    "share": 0.0434,
+    "rca": 0.98,
+    "reldens": 31.32,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 31.32,
+    "y": 55,
+    "value": 0.98
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "La Rioja (ES23)",
+    "count": 70,
+    "share": 0.0177,
+    "rca": 0.4,
+    "reldens": 10.82,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 10.82,
+    "y": 50,
+    "value": 0.4
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "La Rioja (ES23)",
+    "count": 24,
+    "share": 0.0266,
+    "rca": 0.6,
+    "reldens": 17.99,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 17.99,
+    "y": 12.5,
+    "value": 0.6
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "La Rioja (ES23)",
+    "count": 1587,
+    "share": 0.0364,
+    "rca": 0.82,
+    "reldens": 58.22,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 58.22,
+    "y": 57.5,
+    "value": 0.82
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "La Rioja (ES23)",
+    "count": 125,
+    "share": 0.0131,
+    "rca": 0.29,
+    "reldens": 16.51,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 16.51,
+    "y": 87.5,
+    "value": 0.29
+  },
+  {
+    "domain": "Optics",
+    "geo": "La Rioja (ES23)",
+    "count": 87,
+    "share": 0.0155,
+    "rca": 0.35,
+    "reldens": 33.69,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 33.69,
+    "y": 100,
+    "value": 0.35
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "La Rioja (ES23)",
+    "count": 104,
+    "share": 0.0776,
+    "rca": 1.75,
+    "reldens": 38.31,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 38.31,
+    "y": 43.75,
+    "value": 1.75
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "La Rioja (ES23)",
+    "count": 236,
+    "share": 0.0477,
+    "rca": 1.08,
+    "reldens": 44.34,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 44.34,
+    "y": 60,
+    "value": 1.08
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "La Rioja (ES23)",
+    "count": 21,
+    "share": 0.0188,
+    "rca": 0.42,
+    "reldens": 23.89,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 23.89,
+    "y": 67.5,
+    "value": 0.42
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "La Rioja (ES23)",
+    "count": 1,
+    "share": 0.0051,
+    "rca": 0.11,
+    "reldens": 5.59,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 5.59,
+    "y": 31.25,
+    "value": 0.11
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "La Rioja (ES23)",
+    "count": 15,
+    "share": 0.0172,
+    "rca": 0.39,
+    "reldens": 5.33,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 5.33,
+    "y": 27.5,
+    "value": 0.39
+  },
+  {
+    "domain": "Transport",
+    "geo": "La Rioja (ES23)",
+    "count": 14,
+    "share": 0.0222,
+    "rca": 0.5,
+    "reldens": 32.62,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 32.62,
+    "y": 15,
+    "value": 0.5
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,804 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Île-de-France (FR10)",
+    "count": 814,
+    "share": 6.5104,
+    "rca": 1.07,
+    "reldens": 31.24,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 31.24,
+    "y": 8.93,
+    "value": 1.07
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Île-de-France (FR10)",
+    "count": 718,
+    "share": 4.5841,
+    "rca": 0.75,
+    "reldens": 33.67,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 33.67,
+    "y": 55.36,
+    "value": 0.75
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Île-de-France (FR10)",
+    "count": 154,
+    "share": 3.481,
+    "rca": 0.57,
+    "reldens": 24.01,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 24.01,
+    "y": 41.07,
+    "value": 0.57
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Île-de-France (FR10)",
+    "count": 1288,
+    "share": 4.2816,
+    "rca": 0.7,
+    "reldens": 33.3,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 33.3,
+    "y": 51.79,
+    "value": 0.7
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Île-de-France (FR10)",
+    "count": 2398,
+    "share": 6.3047,
+    "rca": 1.03,
+    "reldens": 28.06,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 28.06,
+    "y": 50,
+    "value": 1.03
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Île-de-France (FR10)",
+    "count": 1778,
+    "share": 5.9569,
+    "rca": 0.97,
+    "reldens": 53.05,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 53.05,
+    "y": 40.18,
+    "value": 0.97
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Île-de-France (FR10)",
+    "count": 711,
+    "share": 3.8593,
+    "rca": 0.63,
+    "reldens": 45.93,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 45.93,
+    "y": 10.71,
+    "value": 0.63
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Île-de-France (FR10)",
+    "count": 2816,
+    "share": 6.382,
+    "rca": 1.04,
+    "reldens": 26.8,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 26.8,
+    "y": 78.57,
+    "value": 1.04
+  },
+  {
+    "domain": "Control",
+    "geo": "Île-de-France (FR10)",
+    "count": 942,
+    "share": 4.6952,
+    "rca": 0.77,
+    "reldens": 44.98,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 44.98,
+    "y": 50,
+    "value": 0.77
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Île-de-France (FR10)",
+    "count": 2404,
+    "share": 5.3057,
+    "rca": 0.87,
+    "reldens": 44.9,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 44.9,
+    "y": 100,
+    "value": 0.87
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Île-de-France (FR10)",
+    "count": 3198,
+    "share": 5.8585,
+    "rca": 0.96,
+    "reldens": 51.93,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 51.93,
+    "y": 90.18,
+    "value": 0.96
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Île-de-France (FR10)",
+    "count": 3773,
+    "share": 17.6614,
+    "rca": 2.89,
+    "reldens": 61.87,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 61.87,
+    "y": 58.93,
+    "value": 2.89
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Île-de-France (FR10)",
+    "count": 730,
+    "share": 6.1406,
+    "rca": 1,
+    "reldens": 39.45,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 39.45,
+    "y": 0,
+    "value": 1
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Île-de-France (FR10)",
+    "count": 283,
+    "share": 2.339,
+    "rca": 0.38,
+    "reldens": 36.05,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 36.05,
+    "y": 13.39,
+    "value": 0.38
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Île-de-France (FR10)",
+    "count": 175,
+    "share": 1.6527,
+    "rca": 0.27,
+    "reldens": 30.47,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 30.47,
+    "y": 3.57,
+    "value": 0.27
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Île-de-France (FR10)",
+    "count": 5141,
+    "share": 8.4194,
+    "rca": 1.38,
+    "reldens": 41.9,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 41.9,
+    "y": 57.14,
+    "value": 1.38
+  },
+  {
+    "domain": "Handling",
+    "geo": "Île-de-France (FR10)",
+    "count": 432,
+    "share": 1.8824,
+    "rca": 0.31,
+    "reldens": 25.24,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 25.24,
+    "y": 44.64,
+    "value": 0.31
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Île-de-France (FR10)",
+    "count": 580,
+    "share": 6.7717,
+    "rca": 1.11,
+    "reldens": 39.17,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 39.17,
+    "y": 14.29,
+    "value": 1.11
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Île-de-France (FR10)",
+    "count": 516,
+    "share": 3.0856,
+    "rca": 0.5,
+    "reldens": 37.57,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 37.57,
+    "y": 44.64,
+    "value": 0.5
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Île-de-France (FR10)",
+    "count": 536,
+    "share": 2.3833,
+    "rca": 0.39,
+    "reldens": 24.85,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 24.85,
+    "y": 71.43,
+    "value": 0.39
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Île-de-France (FR10)",
+    "count": 1643,
+    "share": 7.6383,
+    "rca": 1.25,
+    "reldens": 31.77,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 31.77,
+    "y": 46.43,
+    "value": 1.25
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Île-de-France (FR10)",
+    "count": 3261,
+    "share": 5.9039,
+    "rca": 0.97,
+    "reldens": 52.14,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 52.14,
+    "y": 66.07,
+    "value": 0.97
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Île-de-France (FR10)",
+    "count": 1975,
+    "share": 7.7022,
+    "rca": 1.26,
+    "reldens": 41.76,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 41.76,
+    "y": 59.82,
+    "value": 1.26
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Île-de-France (FR10)",
+    "count": 2051,
+    "share": 3.9611,
+    "rca": 0.65,
+    "reldens": 38.39,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 38.39,
+    "y": 60.71,
+    "value": 0.65
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Île-de-France (FR10)",
+    "count": 21,
+    "share": 2.2532,
+    "rca": 0.37,
+    "reldens": 27.43,
+    "comp": 44.64,
+    "comp_TCI": 31.66,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 27.43,
+    "y": 44.64,
+    "value": 0.37
+  },
+  {
+    "domain": "Optics",
+    "geo": "Île-de-France (FR10)",
+    "count": 1210,
+    "share": 6.7492,
+    "rca": 1.1,
+    "reldens": 17.97,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 17.97,
+    "y": 66.07,
+    "value": 1.1
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Île-de-France (FR10)",
+    "count": 2565,
+    "share": 7.0919,
+    "rca": 1.16,
+    "reldens": 20.75,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 20.75,
+    "y": 63.39,
+    "value": 1.16
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Île-de-France (FR10)",
+    "count": 1005,
+    "share": 4.9918,
+    "rca": 0.82,
+    "reldens": 24.52,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 24.52,
+    "y": 62.5,
+    "value": 0.82
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Île-de-France (FR10)",
+    "count": 1792,
+    "share": 5.1218,
+    "rca": 0.84,
+    "reldens": 31.64,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 31.64,
+    "y": 35.71,
+    "value": 0.84
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Île-de-France (FR10)",
+    "count": 2643,
+    "share": 5.8449,
+    "rca": 0.96,
+    "reldens": 69.64,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 69.64,
+    "y": 39.29,
+    "value": 0.96
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Île-de-France (FR10)",
+    "count": 324,
+    "share": 3.1109,
+    "rca": 0.51,
+    "reldens": 30.3,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 30.3,
+    "y": 46.43,
+    "value": 0.51
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Île-de-France (FR10)",
+    "count": 947,
+    "share": 5.3902,
+    "rca": 0.88,
+    "reldens": 28.86,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 28.86,
+    "y": 38.39,
+    "value": 0.88
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Île-de-France (FR10)",
+    "count": 994,
+    "share": 4.9002,
+    "rca": 0.8,
+    "reldens": 24.66,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 24.66,
+    "y": 78.57,
+    "value": 0.8
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Île-de-France (FR10)",
+    "count": 286,
+    "share": 2.3652,
+    "rca": 0.39,
+    "reldens": 19.86,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 19.86,
+    "y": 33.04,
+    "value": 0.39
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Île-de-France (FR10)",
+    "count": 1052,
+    "share": 9.1926,
+    "rca": 1.5,
+    "reldens": 46.62,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 46.62,
+    "y": 23.21,
+    "value": 1.5
+  },
+  {
+    "domain": "Transport",
+    "geo": "Île-de-France (FR10)",
+    "count": 5780,
+    "share": 11.6765,
+    "rca": 1.91,
+    "reldens": 41.12,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 41.12,
+    "y": 86.61,
+    "value": 1.91
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,328 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Computer technology",
+    "geo": "South East (RO22)",
+    "count": 4,
+    "share": 0.0091,
+    "rca": 5.28,
+    "reldens": 19.37,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 19.37,
+    "y": 78.57,
+    "value": 5.28
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "South East (RO22)",
+    "count": 4,
+    "share": 0.0088,
+    "rca": 5.14,
+    "reldens": 24.3,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 24.3,
+    "y": 100,
+    "value": 5.14
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "South East (RO22)",
+    "count": 2,
+    "share": 0.0094,
+    "rca": 5.45,
+    "reldens": 34.92,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 34.92,
+    "y": 58.93,
+    "value": 5.45
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "South East (RO22)",
+    "count": 1,
+    "share": 0.0016,
+    "rca": 0.95,
+    "reldens": 33.58,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 33.58,
+    "y": 57.14,
+    "value": 0.95
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "South East (RO22)",
+    "count": 1,
+    "share": 0.0046,
+    "rca": 2.71,
+    "reldens": 8.33,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 8.33,
+    "y": 46.43,
+    "value": 2.71
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "South East (RO22)",
+    "count": 2,
+    "share": 0.0078,
+    "rca": 4.54,
+    "reldens": 32.92,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 32.92,
+    "y": 59.82,
+    "value": 4.54
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "South East (RO22)",
+    "count": 1,
+    "share": 0.0087,
+    "rca": 5.09,
+    "reldens": 24.48,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 24.48,
+    "y": 23.21,
+    "value": 5.09
+  },
+  {
+    "domain": "Transport",
+    "geo": "South East (RO22)",
+    "count": 1,
+    "share": 0.002,
+    "rca": 1.18,
+    "reldens": 27.18,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 27.18,
+    "y": 86.61,
+    "value": 1.18
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

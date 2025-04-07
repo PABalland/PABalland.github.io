@@ -1,0 +1,481 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 4.77,
+    "share": 0.1222,
+    "rca": 6.99,
+    "reldens": 75.53,
+    "comp": 31.58,
+    "comp_TCI": 77.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 75.53,
+    "y": 31.58,
+    "value": 6.99
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 1.72,
+    "share": 0.0162,
+    "rca": 0.93,
+    "reldens": 31.08,
+    "comp": 42.11,
+    "comp_TCI": 45.54,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 31.08,
+    "y": 42.11,
+    "value": 0.93
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 7.34,
+    "share": 0.0236,
+    "rca": 1.35,
+    "reldens": 65.95,
+    "comp": 28.95,
+    "comp_TCI": 93.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 65.95,
+    "y": 28.95,
+    "value": 1.35
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 1.72,
+    "share": 0.0112,
+    "rca": 0.64,
+    "reldens": 25.07,
+    "comp": 57.89,
+    "comp_TCI": 23.83,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 25.07,
+    "y": 57.89,
+    "value": 0.64
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 24.55,
+    "share": 0.0155,
+    "rca": 0.89,
+    "reldens": 34.71,
+    "comp": 47.37,
+    "comp_TCI": 9.99,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 34.71,
+    "y": 47.37,
+    "value": 0.89
+  },
+  {
+    "domain": "Control",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 0.6,
+    "share": 0.0075,
+    "rca": 0.43,
+    "reldens": 20.75,
+    "comp": 0,
+    "comp_TCI": 51.55,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 20.75,
+    "y": 0,
+    "value": 0.43
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 0.43,
+    "share": 0.001,
+    "rca": 0.06,
+    "reldens": 16.81,
+    "comp": 71.05,
+    "comp_TCI": 79.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 16.81,
+    "y": 71.05,
+    "value": 0.06
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 0.43,
+    "share": 0.0017,
+    "rca": 0.1,
+    "reldens": 16.49,
+    "comp": 42.11,
+    "comp_TCI": 70.84,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 16.49,
+    "y": 42.11,
+    "value": 0.1
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 0.73,
+    "share": 0.0039,
+    "rca": 0.22,
+    "reldens": 30.5,
+    "comp": 39.47,
+    "comp_TCI": 52.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 30.5,
+    "y": 39.47,
+    "value": 0.22
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 1.72,
+    "share": 0.0358,
+    "rca": 2.05,
+    "reldens": 9.59,
+    "comp": 5.26,
+    "comp_TCI": 41.68,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 9.59,
+    "y": 5.26,
+    "value": 2.05
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 0.43,
+    "share": 0.0013,
+    "rca": 0.08,
+    "reldens": 14.34,
+    "comp": 100,
+    "comp_TCI": 88.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 14.34,
+    "y": 100,
+    "value": 0.08
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 21.55,
+    "share": 0.0256,
+    "rca": 1.46,
+    "reldens": 10.68,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 10.68,
+    "y": 68.42,
+    "value": 1.46
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 18,
+    "share": 0.0586,
+    "rca": 3.35,
+    "reldens": 11.92,
+    "comp": 10.53,
+    "comp_TCI": 73.14,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 11.92,
+    "y": 10.53,
+    "value": 3.35
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 25.8,
+    "share": 0.0585,
+    "rca": 3.35,
+    "reldens": 61.11,
+    "comp": 36.84,
+    "comp_TCI": 77.03,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 61.11,
+    "y": 36.84,
+    "value": 3.35
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 2.94,
+    "share": 0.0052,
+    "rca": 0.3,
+    "reldens": 34.05,
+    "comp": 55.26,
+    "comp_TCI": 13.33,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 34.05,
+    "y": 55.26,
+    "value": 0.3
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 4.77,
+    "share": 0.0195,
+    "rca": 1.12,
+    "reldens": 78.61,
+    "comp": 52.63,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 78.61,
+    "y": 52.63,
+    "value": 1.12
+  },
+  {
+    "domain": "Transport",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 2.32,
+    "share": 0.0049,
+    "rca": 0.28,
+    "reldens": 16.74,
+    "comp": 68.42,
+    "comp_TCI": 45.37,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 16.74,
+    "y": 68.42,
+    "value": 0.28
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,787 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "South East England (UKJ3)",
+    "count": 25,
+    "share": 0.2,
+    "rca": 0.43,
+    "reldens": 7.96,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 7.96,
+    "y": 8.93,
+    "value": 0.43
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "South East England (UKJ3)",
+    "count": 89,
+    "share": 0.5682,
+    "rca": 1.21,
+    "reldens": 60.44,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 60.44,
+    "y": 55.36,
+    "value": 1.21
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "South East England (UKJ3)",
+    "count": 28,
+    "share": 0.6329,
+    "rca": 1.35,
+    "reldens": 55.45,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 55.45,
+    "y": 41.07,
+    "value": 1.35
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "South East England (UKJ3)",
+    "count": 66,
+    "share": 0.2194,
+    "rca": 0.47,
+    "reldens": 19.37,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 19.37,
+    "y": 51.79,
+    "value": 0.47
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "South East England (UKJ3)",
+    "count": 51,
+    "share": 0.1341,
+    "rca": 0.29,
+    "reldens": 8.8,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 8.8,
+    "y": 50,
+    "value": 0.29
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "South East England (UKJ3)",
+    "count": 42,
+    "share": 0.1407,
+    "rca": 0.3,
+    "reldens": 19.15,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 19.15,
+    "y": 40.18,
+    "value": 0.3
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "South East England (UKJ3)",
+    "count": 26,
+    "share": 0.1411,
+    "rca": 0.3,
+    "reldens": 32.4,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 32.4,
+    "y": 10.71,
+    "value": 0.3
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "South East England (UKJ3)",
+    "count": 283,
+    "share": 0.6414,
+    "rca": 1.37,
+    "reldens": 62,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 62,
+    "y": 78.57,
+    "value": 1.37
+  },
+  {
+    "domain": "Control",
+    "geo": "South East England (UKJ3)",
+    "count": 92,
+    "share": 0.4586,
+    "rca": 0.98,
+    "reldens": 50.76,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 50.76,
+    "y": 50,
+    "value": 0.98
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "South East England (UKJ3)",
+    "count": 1067,
+    "share": 2.3549,
+    "rca": 5.01,
+    "reldens": 81.42,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 81.42,
+    "y": 100,
+    "value": 5.01
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "South East England (UKJ3)",
+    "count": 151,
+    "share": 0.2766,
+    "rca": 0.59,
+    "reldens": 46.09,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 46.09,
+    "y": 90.18,
+    "value": 0.59
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "South East England (UKJ3)",
+    "count": 168,
+    "share": 0.7864,
+    "rca": 1.67,
+    "reldens": 27.35,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 27.35,
+    "y": 58.93,
+    "value": 1.67
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "South East England (UKJ3)",
+    "count": 20,
+    "share": 0.1682,
+    "rca": 0.36,
+    "reldens": 24.92,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 24.92,
+    "y": 0,
+    "value": 0.36
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "South East England (UKJ3)",
+    "count": 10,
+    "share": 0.0826,
+    "rca": 0.18,
+    "reldens": 20.97,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 20.97,
+    "y": 13.39,
+    "value": 0.18
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "South East England (UKJ3)",
+    "count": 70,
+    "share": 0.6611,
+    "rca": 1.41,
+    "reldens": 33.65,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 33.65,
+    "y": 3.57,
+    "value": 1.41
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "South East England (UKJ3)",
+    "count": 291,
+    "share": 0.4766,
+    "rca": 1.01,
+    "reldens": 23.96,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 23.96,
+    "y": 57.14,
+    "value": 1.01
+  },
+  {
+    "domain": "Handling",
+    "geo": "South East England (UKJ3)",
+    "count": 63,
+    "share": 0.2745,
+    "rca": 0.58,
+    "reldens": 33.02,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 33.02,
+    "y": 44.64,
+    "value": 0.58
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "South East England (UKJ3)",
+    "count": 62,
+    "share": 0.7239,
+    "rca": 1.54,
+    "reldens": 60.83,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 60.83,
+    "y": 14.29,
+    "value": 1.54
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "South East England (UKJ3)",
+    "count": 27,
+    "share": 0.1614,
+    "rca": 0.34,
+    "reldens": 26.31,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 26.31,
+    "y": 44.64,
+    "value": 0.34
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "South East England (UKJ3)",
+    "count": 72,
+    "share": 0.3201,
+    "rca": 0.68,
+    "reldens": 31.53,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 31.53,
+    "y": 71.43,
+    "value": 0.68
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "South East England (UKJ3)",
+    "count": 28,
+    "share": 0.1302,
+    "rca": 0.28,
+    "reldens": 28.86,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 28.86,
+    "y": 46.43,
+    "value": 0.28
+  },
+  {
+    "domain": "Measurement",
+    "geo": "South East England (UKJ3)",
+    "count": 254,
+    "share": 0.4598,
+    "rca": 0.98,
+    "reldens": 30.23,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 30.23,
+    "y": 66.07,
+    "value": 0.98
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "South East England (UKJ3)",
+    "count": 53,
+    "share": 0.2067,
+    "rca": 0.44,
+    "reldens": 33.85,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 33.85,
+    "y": 59.82,
+    "value": 0.44
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "South East England (UKJ3)",
+    "count": 77,
+    "share": 0.1487,
+    "rca": 0.32,
+    "reldens": 44.02,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 44.02,
+    "y": 60.71,
+    "value": 0.32
+  },
+  {
+    "domain": "Optics",
+    "geo": "South East England (UKJ3)",
+    "count": 144,
+    "share": 0.8032,
+    "rca": 1.71,
+    "reldens": 34.08,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 34.08,
+    "y": 66.07,
+    "value": 1.71
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "South East England (UKJ3)",
+    "count": 26,
+    "share": 0.0719,
+    "rca": 0.15,
+    "reldens": 10.78,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 10.78,
+    "y": 63.39,
+    "value": 0.15
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "South East England (UKJ3)",
+    "count": 115,
+    "share": 0.5712,
+    "rca": 1.22,
+    "reldens": 28.02,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 28.02,
+    "y": 62.5,
+    "value": 1.22
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "South East England (UKJ3)",
+    "count": 203,
+    "share": 0.5802,
+    "rca": 1.24,
+    "reldens": 19.75,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 19.75,
+    "y": 35.71,
+    "value": 1.24
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "South East England (UKJ3)",
+    "count": 59,
+    "share": 0.1305,
+    "rca": 0.28,
+    "reldens": 6.44,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 6.44,
+    "y": 39.29,
+    "value": 0.28
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "South East England (UKJ3)",
+    "count": 9,
+    "share": 0.0864,
+    "rca": 0.18,
+    "reldens": 41.5,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 41.5,
+    "y": 46.43,
+    "value": 0.18
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "South East England (UKJ3)",
+    "count": 62,
+    "share": 0.3529,
+    "rca": 0.75,
+    "reldens": 28.08,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 28.08,
+    "y": 38.39,
+    "value": 0.75
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "South East England (UKJ3)",
+    "count": 460,
+    "share": 2.2677,
+    "rca": 4.83,
+    "reldens": 80.94,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 80.94,
+    "y": 78.57,
+    "value": 4.83
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "South East England (UKJ3)",
+    "count": 42,
+    "share": 0.3473,
+    "rca": 0.74,
+    "reldens": 35.3,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 35.3,
+    "y": 33.04,
+    "value": 0.74
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "South East England (UKJ3)",
+    "count": 12,
+    "share": 0.1049,
+    "rca": 0.22,
+    "reldens": 41.66,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 41.66,
+    "y": 23.21,
+    "value": 0.22
+  },
+  {
+    "domain": "Transport",
+    "geo": "South East England (UKJ3)",
+    "count": 128,
+    "share": 0.2586,
+    "rca": 0.55,
+    "reldens": 39.01,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 39.01,
+    "y": 86.61,
+    "value": 0.55
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

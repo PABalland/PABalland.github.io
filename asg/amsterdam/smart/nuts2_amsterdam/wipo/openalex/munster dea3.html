@@ -1,0 +1,702 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Münster (DEA3)",
+    "count": 3329,
+    "share": 0.2285,
+    "rca": 1.05,
+    "reldens": 72.2,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 72.2,
+    "y": 81.25,
+    "value": 1.05
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Münster (DEA3)",
+    "count": 213,
+    "share": 0.1307,
+    "rca": 0.6,
+    "reldens": 15.42,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 15.42,
+    "y": 35,
+    "value": 0.6
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Münster (DEA3)",
+    "count": 43,
+    "share": 0.1978,
+    "rca": 0.91,
+    "reldens": 53.47,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 53.47,
+    "y": 45,
+    "value": 0.91
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Münster (DEA3)",
+    "count": 979,
+    "share": 0.4642,
+    "rca": 2.14,
+    "reldens": 64.03,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 64.03,
+    "y": 72.5,
+    "value": 2.14
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Münster (DEA3)",
+    "count": 7816,
+    "share": 0.2572,
+    "rca": 1.18,
+    "reldens": 70.46,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 70.46,
+    "y": 96.25,
+    "value": 1.18
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Münster (DEA3)",
+    "count": 60,
+    "share": 0.0542,
+    "rca": 0.25,
+    "reldens": 34.3,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 34.3,
+    "y": 25,
+    "value": 0.25
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Münster (DEA3)",
+    "count": 468,
+    "share": 0.1022,
+    "rca": 0.47,
+    "reldens": 10.7,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 10.7,
+    "y": 30,
+    "value": 0.47
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Münster (DEA3)",
+    "count": 1036,
+    "share": 0.1472,
+    "rca": 0.68,
+    "reldens": 20.31,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 20.31,
+    "y": 35,
+    "value": 0.68
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Münster (DEA3)",
+    "count": 276,
+    "share": 0.0878,
+    "rca": 0.4,
+    "reldens": 13.97,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 13.97,
+    "y": 37.5,
+    "value": 0.4
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Münster (DEA3)",
+    "count": 15,
+    "share": 0.0264,
+    "rca": 0.12,
+    "reldens": 14.93,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 14.93,
+    "y": 0,
+    "value": 0.12
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Münster (DEA3)",
+    "count": 40,
+    "share": 0.0866,
+    "rca": 0.4,
+    "reldens": 6.58,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 6.58,
+    "y": 40,
+    "value": 0.4
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Münster (DEA3)",
+    "count": 991,
+    "share": 0.1075,
+    "rca": 0.49,
+    "reldens": 39.64,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 39.64,
+    "y": 32.5,
+    "value": 0.49
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Münster (DEA3)",
+    "count": 604,
+    "share": 0.1219,
+    "rca": 0.56,
+    "reldens": 80.76,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 80.76,
+    "y": 27.5,
+    "value": 0.56
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Münster (DEA3)",
+    "count": 1400,
+    "share": 0.1516,
+    "rca": 0.7,
+    "reldens": 19.3,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 19.3,
+    "y": 32.5,
+    "value": 0.7
+  },
+  {
+    "domain": "Handling",
+    "geo": "Münster (DEA3)",
+    "count": 47,
+    "share": 0.063,
+    "rca": 0.29,
+    "reldens": 8.63,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 8.63,
+    "y": 10,
+    "value": 0.29
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Münster (DEA3)",
+    "count": 252,
+    "share": 0.1829,
+    "rca": 0.84,
+    "reldens": 6.72,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 6.72,
+    "y": 12.5,
+    "value": 0.84
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Münster (DEA3)",
+    "count": 2,
+    "share": 0.0152,
+    "rca": 0.07,
+    "reldens": 25.19,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 25.19,
+    "y": 20,
+    "value": 0.07
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Münster (DEA3)",
+    "count": 488,
+    "share": 0.2464,
+    "rca": 1.13,
+    "reldens": 60.92,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 60.92,
+    "y": 55,
+    "value": 1.13
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Münster (DEA3)",
+    "count": 790,
+    "share": 0.2002,
+    "rca": 0.92,
+    "reldens": 47.34,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 47.34,
+    "y": 50,
+    "value": 0.92
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Münster (DEA3)",
+    "count": 55,
+    "share": 0.061,
+    "rca": 0.28,
+    "reldens": 11.59,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 11.59,
+    "y": 12.5,
+    "value": 0.28
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Münster (DEA3)",
+    "count": 10700,
+    "share": 0.2452,
+    "rca": 1.13,
+    "reldens": 74.56,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 74.56,
+    "y": 57.5,
+    "value": 1.13
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Münster (DEA3)",
+    "count": 2887,
+    "share": 0.3018,
+    "rca": 1.39,
+    "reldens": 57.52,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 57.52,
+    "y": 87.5,
+    "value": 1.39
+  },
+  {
+    "domain": "Optics",
+    "geo": "Münster (DEA3)",
+    "count": 1245,
+    "share": 0.2215,
+    "rca": 1.02,
+    "reldens": 42.44,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 42.44,
+    "y": 100,
+    "value": 1.02
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Münster (DEA3)",
+    "count": 843,
+    "share": 0.629,
+    "rca": 2.89,
+    "reldens": 81.64,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 81.64,
+    "y": 43.75,
+    "value": 2.89
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Münster (DEA3)",
+    "count": 1190,
+    "share": 0.2407,
+    "rca": 1.11,
+    "reldens": 83.66,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 83.66,
+    "y": 60,
+    "value": 1.11
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Münster (DEA3)",
+    "count": 251,
+    "share": 0.2252,
+    "rca": 1.04,
+    "reldens": 62.88,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 62.88,
+    "y": 67.5,
+    "value": 1.04
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Münster (DEA3)",
+    "count": 49,
+    "share": 0.2487,
+    "rca": 1.14,
+    "reldens": 21.84,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 21.84,
+    "y": 31.25,
+    "value": 1.14
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Münster (DEA3)",
+    "count": 1,
+    "share": 0.0083,
+    "rca": 0.04,
+    "reldens": 35.69,
+    "comp": 40,
+    "comp_TCI": 75.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 35.69,
+    "y": 40,
+    "value": 0.04
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Münster (DEA3)",
+    "count": 78,
+    "share": 0.0896,
+    "rca": 0.41,
+    "reldens": 18.38,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 18.38,
+    "y": 27.5,
+    "value": 0.41
+  },
+  {
+    "domain": "Transport",
+    "geo": "Münster (DEA3)",
+    "count": 45,
+    "share": 0.0714,
+    "rca": 0.33,
+    "reldens": 1.52,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 1.52,
+    "y": 15,
+    "value": 0.33
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

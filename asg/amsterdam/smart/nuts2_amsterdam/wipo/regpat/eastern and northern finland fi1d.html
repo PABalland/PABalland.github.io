@@ -1,0 +1,787 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 34,
+    "share": 0.2719,
+    "rca": 0.6,
+    "reldens": 3.39,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 3.39,
+    "y": 8.93,
+    "value": 0.6
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 112,
+    "share": 0.7151,
+    "rca": 1.57,
+    "reldens": 30.9,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 30.9,
+    "y": 55.36,
+    "value": 1.57
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 57,
+    "share": 1.2884,
+    "rca": 2.83,
+    "reldens": 35.99,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 35.99,
+    "y": 41.07,
+    "value": 2.83
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 33,
+    "share": 0.1097,
+    "rca": 0.24,
+    "reldens": 14.51,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 14.51,
+    "y": 51.79,
+    "value": 0.24
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 48,
+    "share": 0.1262,
+    "rca": 0.28,
+    "reldens": 5.28,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 5.28,
+    "y": 50,
+    "value": 0.28
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 119,
+    "share": 0.3987,
+    "rca": 0.88,
+    "reldens": 28.37,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 28.37,
+    "y": 40.18,
+    "value": 0.88
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 80,
+    "share": 0.4342,
+    "rca": 0.95,
+    "reldens": 12.4,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 12.4,
+    "y": 10.71,
+    "value": 0.95
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 153,
+    "share": 0.3468,
+    "rca": 0.76,
+    "reldens": 38.89,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 38.89,
+    "y": 78.57,
+    "value": 0.76
+  },
+  {
+    "domain": "Control",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 44,
+    "share": 0.2193,
+    "rca": 0.48,
+    "reldens": 18.98,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 18.98,
+    "y": 50,
+    "value": 0.48
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 1315,
+    "share": 2.9022,
+    "rca": 6.37,
+    "reldens": 45.36,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 45.36,
+    "y": 100,
+    "value": 6.37
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 83,
+    "share": 0.152,
+    "rca": 0.33,
+    "reldens": 31.94,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 31.94,
+    "y": 90.18,
+    "value": 0.33
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 16,
+    "share": 0.0749,
+    "rca": 0.16,
+    "reldens": 26.89,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 26.89,
+    "y": 58.93,
+    "value": 0.16
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 59,
+    "share": 0.4963,
+    "rca": 1.09,
+    "reldens": 14.27,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 14.27,
+    "y": 0,
+    "value": 1.09
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 16,
+    "share": 0.1322,
+    "rca": 0.29,
+    "reldens": 6.22,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 6.22,
+    "y": 13.39,
+    "value": 0.29
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 30,
+    "share": 0.2833,
+    "rca": 0.62,
+    "reldens": 12.14,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 12.14,
+    "y": 3.57,
+    "value": 0.62
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 291,
+    "share": 0.4766,
+    "rca": 1.05,
+    "reldens": 13.81,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 13.81,
+    "y": 57.14,
+    "value": 1.05
+  },
+  {
+    "domain": "Handling",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 46,
+    "share": 0.2004,
+    "rca": 0.44,
+    "reldens": 14.18,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 14.18,
+    "y": 44.64,
+    "value": 0.44
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 38,
+    "share": 0.4437,
+    "rca": 0.97,
+    "reldens": 26.83,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 26.83,
+    "y": 14.29,
+    "value": 0.97
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 35,
+    "share": 0.2093,
+    "rca": 0.46,
+    "reldens": 11.57,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 11.57,
+    "y": 44.64,
+    "value": 0.46
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 53,
+    "share": 0.2357,
+    "rca": 0.52,
+    "reldens": 12.54,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 12.54,
+    "y": 71.43,
+    "value": 0.52
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 90,
+    "share": 0.4184,
+    "rca": 0.92,
+    "reldens": 21.98,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 21.98,
+    "y": 46.43,
+    "value": 0.92
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 229,
+    "share": 0.4146,
+    "rca": 0.91,
+    "reldens": 14.49,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 14.49,
+    "y": 66.07,
+    "value": 0.91
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 42,
+    "share": 0.1638,
+    "rca": 0.36,
+    "reldens": 11.53,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 11.53,
+    "y": 59.82,
+    "value": 0.36
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 223,
+    "share": 0.4307,
+    "rca": 0.95,
+    "reldens": 12.87,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 12.87,
+    "y": 60.71,
+    "value": 0.95
+  },
+  {
+    "domain": "Optics",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 61,
+    "share": 0.3402,
+    "rca": 0.75,
+    "reldens": 22.07,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 22.07,
+    "y": 66.07,
+    "value": 0.75
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 5,
+    "share": 0.0138,
+    "rca": 0.03,
+    "reldens": 8.67,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 8.67,
+    "y": 63.39,
+    "value": 0.03
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 23,
+    "share": 0.1142,
+    "rca": 0.25,
+    "reldens": 20.09,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 20.09,
+    "y": 62.5,
+    "value": 0.25
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 120,
+    "share": 0.343,
+    "rca": 0.75,
+    "reldens": 13.89,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 13.89,
+    "y": 35.71,
+    "value": 0.75
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 15,
+    "share": 0.0332,
+    "rca": 0.07,
+    "reldens": 3.77,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 3.77,
+    "y": 39.29,
+    "value": 0.07
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 36,
+    "share": 0.3457,
+    "rca": 0.76,
+    "reldens": 23.63,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 23.63,
+    "y": 46.43,
+    "value": 0.76
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 51,
+    "share": 0.2903,
+    "rca": 0.64,
+    "reldens": 15.41,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 15.41,
+    "y": 38.39,
+    "value": 0.64
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 515,
+    "share": 2.5388,
+    "rca": 5.58,
+    "reldens": 61.23,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 61.23,
+    "y": 78.57,
+    "value": 5.58
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 57,
+    "share": 0.4714,
+    "rca": 1.04,
+    "reldens": 7.27,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 7.27,
+    "y": 33.04,
+    "value": 1.04
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 50,
+    "share": 0.4369,
+    "rca": 0.96,
+    "reldens": 25.18,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 25.18,
+    "y": 23.21,
+    "value": 0.96
+  },
+  {
+    "domain": "Transport",
+    "geo": "Eastern and Northern Finland (FI1D)",
+    "count": 63,
+    "share": 0.1273,
+    "rca": 0.28,
+    "reldens": 20.29,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 20.29,
+    "y": 86.61,
+    "value": 0.28
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

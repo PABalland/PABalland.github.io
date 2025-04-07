@@ -1,0 +1,430 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Biotechnology",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 7.14,
+    "share": 0.023,
+    "rca": 2.87,
+    "reldens": 33.51,
+    "comp": 28.95,
+    "comp_TCI": 93.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 33.51,
+    "y": 28.95,
+    "value": 2.87
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 7.54,
+    "share": 0.0048,
+    "rca": 0.59,
+    "reldens": 27.97,
+    "comp": 47.37,
+    "comp_TCI": 9.99,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 27.97,
+    "y": 47.37,
+    "value": 0.59
+  },
+  {
+    "domain": "Control",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 10.92,
+    "share": 0.1362,
+    "rca": 17.02,
+    "reldens": 30.22,
+    "comp": 0,
+    "comp_TCI": 51.55,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 30.22,
+    "y": 0,
+    "value": 17.02
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 1.33,
+    "share": 0.0096,
+    "rca": 1.2,
+    "reldens": 13.74,
+    "comp": 57.89,
+    "comp_TCI": 28.77,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 13.74,
+    "y": 57.89,
+    "value": 1.2
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 0.29,
+    "share": 0.0007,
+    "rca": 0.09,
+    "reldens": 35.12,
+    "comp": 71.05,
+    "comp_TCI": 79.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 35.12,
+    "y": 71.05,
+    "value": 0.09
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 2.19,
+    "share": 0.0089,
+    "rca": 1.11,
+    "reldens": 16.01,
+    "comp": 42.11,
+    "comp_TCI": 70.84,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 16.01,
+    "y": 42.11,
+    "value": 1.11
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 0.16,
+    "share": 0.0005,
+    "rca": 0.06,
+    "reldens": 37.22,
+    "comp": 100,
+    "comp_TCI": 88.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 37.22,
+    "y": 100,
+    "value": 0.06
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 2.71,
+    "share": 0.0032,
+    "rca": 0.4,
+    "reldens": 22.27,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 22.27,
+    "y": 68.42,
+    "value": 0.4
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 0.53,
+    "share": 0.0357,
+    "rca": 4.47,
+    "reldens": 40.06,
+    "comp": 21.05,
+    "comp_TCI": 67.12,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 40.06,
+    "y": 21.05,
+    "value": 4.47
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 11.54,
+    "share": 0.0376,
+    "rca": 4.69,
+    "reldens": 26.96,
+    "comp": 10.53,
+    "comp_TCI": 73.14,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 26.96,
+    "y": 10.53,
+    "value": 4.69
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 8.42,
+    "share": 0.0191,
+    "rca": 2.39,
+    "reldens": 28.52,
+    "comp": 36.84,
+    "comp_TCI": 77.03,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 28.52,
+    "y": 36.84,
+    "value": 2.39
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 0.65,
+    "share": 0.0012,
+    "rca": 0.14,
+    "reldens": 25.3,
+    "comp": 55.26,
+    "comp_TCI": 13.33,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 25.3,
+    "y": 55.26,
+    "value": 0.14
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 0.8,
+    "share": 0.0104,
+    "rca": 1.3,
+    "reldens": 25.24,
+    "comp": 63.16,
+    "comp_TCI": 29.03,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 25.24,
+    "y": 63.16,
+    "value": 1.3
+  },
+  {
+    "domain": "Transport",
+    "geo": "Principado de Asturias (ES12)",
+    "count": 0.68,
+    "share": 0.0014,
+    "rca": 0.18,
+    "reldens": 26.41,
+    "comp": 68.42,
+    "comp_TCI": 45.37,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 26.41,
+    "y": 68.42,
+    "value": 0.18
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

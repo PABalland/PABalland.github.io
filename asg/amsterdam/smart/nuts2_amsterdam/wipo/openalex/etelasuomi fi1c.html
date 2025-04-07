@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 3270,
+    "share": 0.2245,
+    "rca": 0.98,
+    "reldens": 42.72,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 42.72,
+    "y": 81.25,
+    "value": 0.98
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 373,
+    "share": 0.2288,
+    "rca": 1,
+    "reldens": 61.41,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 61.41,
+    "y": 35,
+    "value": 1
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 104,
+    "share": 0.4783,
+    "rca": 2.08,
+    "reldens": 66.36,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 66.36,
+    "y": 45,
+    "value": 2.08
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 406,
+    "share": 0.1925,
+    "rca": 0.84,
+    "reldens": 22.95,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 22.95,
+    "y": 72.5,
+    "value": 0.84
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 6948,
+    "share": 0.2287,
+    "rca": 0.99,
+    "reldens": 43.79,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 43.79,
+    "y": 96.25,
+    "value": 0.99
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 495,
+    "share": 0.4475,
+    "rca": 1.95,
+    "reldens": 9.93,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 9.93,
+    "y": 25,
+    "value": 1.95
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 425,
+    "share": 0.0928,
+    "rca": 0.4,
+    "reldens": 28.41,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 28.41,
+    "y": 30,
+    "value": 0.4
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1910,
+    "share": 0.2714,
+    "rca": 1.18,
+    "reldens": 29.36,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 29.36,
+    "y": 35,
+    "value": 1.18
+  },
+  {
+    "domain": "Control",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 33,
+    "share": 0.2233,
+    "rca": 0.97,
+    "reldens": 48.89,
+    "comp": 37.5,
+    "comp_TCI": 96.68,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 48.89,
+    "y": 37.5,
+    "value": 0.97
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 651,
+    "share": 0.2071,
+    "rca": 0.9,
+    "reldens": 45.07,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 45.07,
+    "y": 37.5,
+    "value": 0.9
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 194,
+    "share": 0.3419,
+    "rca": 1.49,
+    "reldens": 17.03,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 17.03,
+    "y": 0,
+    "value": 1.49
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 31,
+    "share": 0.0671,
+    "rca": 0.29,
+    "reldens": 18.53,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 18.53,
+    "y": 40,
+    "value": 0.29
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1949,
+    "share": 0.2113,
+    "rca": 0.92,
+    "reldens": 21.79,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 21.79,
+    "y": 32.5,
+    "value": 0.92
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1148,
+    "share": 0.2317,
+    "rca": 1.01,
+    "reldens": 11.71,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 11.71,
+    "y": 27.5,
+    "value": 1.01
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1816,
+    "share": 0.1967,
+    "rca": 0.86,
+    "reldens": 23.26,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 23.26,
+    "y": 32.5,
+    "value": 0.86
+  },
+  {
+    "domain": "Handling",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 205,
+    "share": 0.2746,
+    "rca": 1.19,
+    "reldens": 34.67,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 34.67,
+    "y": 10,
+    "value": 1.19
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 459,
+    "share": 0.3331,
+    "rca": 1.45,
+    "reldens": 64.5,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 64.5,
+    "y": 12.5,
+    "value": 1.45
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 17,
+    "share": 0.1296,
+    "rca": 0.56,
+    "reldens": 37.71,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 37.71,
+    "y": 20,
+    "value": 0.56
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 365,
+    "share": 0.1843,
+    "rca": 0.8,
+    "reldens": 23.98,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 23.98,
+    "y": 55,
+    "value": 0.8
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1230,
+    "share": 0.3117,
+    "rca": 1.36,
+    "reldens": 16.84,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 16.84,
+    "y": 50,
+    "value": 1.36
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 205,
+    "share": 0.2273,
+    "rca": 0.99,
+    "reldens": 38.81,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 38.81,
+    "y": 12.5,
+    "value": 0.99
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 11096,
+    "share": 0.2543,
+    "rca": 1.11,
+    "reldens": 18.68,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 18.68,
+    "y": 57.5,
+    "value": 1.11
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1995,
+    "share": 0.2086,
+    "rca": 0.91,
+    "reldens": 21.34,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 21.34,
+    "y": 87.5,
+    "value": 0.91
+  },
+  {
+    "domain": "Optics",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1205,
+    "share": 0.2144,
+    "rca": 0.93,
+    "reldens": 25.12,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 25.12,
+    "y": 100,
+    "value": 0.93
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 228,
+    "share": 0.1701,
+    "rca": 0.74,
+    "reldens": 14.33,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 14.33,
+    "y": 43.75,
+    "value": 0.74
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1061,
+    "share": 0.2146,
+    "rca": 0.93,
+    "reldens": 56.2,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 56.2,
+    "y": 60,
+    "value": 0.93
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 166,
+    "share": 0.1489,
+    "rca": 0.65,
+    "reldens": 24.36,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 24.36,
+    "y": 67.5,
+    "value": 0.65
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 29,
+    "share": 0.1472,
+    "rca": 0.64,
+    "reldens": 48.61,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 48.61,
+    "y": 31.25,
+    "value": 0.64
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 4,
+    "share": 0.0333,
+    "rca": 0.14,
+    "reldens": 11.29,
+    "comp": 40,
+    "comp_TCI": 75.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 11.29,
+    "y": 40,
+    "value": 0.14
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 153,
+    "share": 0.1758,
+    "rca": 0.76,
+    "reldens": 27.65,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 27.65,
+    "y": 27.5,
+    "value": 0.76
+  },
+  {
+    "domain": "Transport",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 104,
+    "share": 0.165,
+    "rca": 0.72,
+    "reldens": 32.78,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 32.78,
+    "y": 15,
+    "value": 0.72
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

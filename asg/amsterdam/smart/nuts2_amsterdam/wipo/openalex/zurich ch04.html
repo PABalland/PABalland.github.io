@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Zürich (CH04)",
+    "count": 14793,
+    "share": 1.0154,
+    "rca": 0.97,
+    "reldens": 21.51,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 21.51,
+    "y": 81.25,
+    "value": 0.97
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Zürich (CH04)",
+    "count": 2316,
+    "share": 1.4207,
+    "rca": 1.36,
+    "reldens": 59.63,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 59.63,
+    "y": 35,
+    "value": 1.36
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Zürich (CH04)",
+    "count": 148,
+    "share": 0.6806,
+    "rca": 0.65,
+    "reldens": 41.07,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 41.07,
+    "y": 45,
+    "value": 0.65
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Zürich (CH04)",
+    "count": 2175,
+    "share": 1.0313,
+    "rca": 0.99,
+    "reldens": 78.11,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 78.11,
+    "y": 72.5,
+    "value": 0.99
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Zürich (CH04)",
+    "count": 27961,
+    "share": 0.9202,
+    "rca": 0.88,
+    "reldens": 17.93,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 17.93,
+    "y": 96.25,
+    "value": 0.88
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Zürich (CH04)",
+    "count": 1160,
+    "share": 1.0487,
+    "rca": 1,
+    "reldens": 52.69,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 52.69,
+    "y": 25,
+    "value": 1
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Zürich (CH04)",
+    "count": 7094,
+    "share": 1.549,
+    "rca": 1.48,
+    "reldens": 52.85,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 52.85,
+    "y": 30,
+    "value": 1.48
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Zürich (CH04)",
+    "count": 9967,
+    "share": 1.4164,
+    "rca": 1.35,
+    "reldens": 38.95,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 38.95,
+    "y": 35,
+    "value": 1.35
+  },
+  {
+    "domain": "Control",
+    "geo": "Zürich (CH04)",
+    "count": 116,
+    "share": 0.7849,
+    "rca": 0.75,
+    "reldens": 36.19,
+    "comp": 37.5,
+    "comp_TCI": 96.68,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 36.19,
+    "y": 37.5,
+    "value": 0.75
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Zürich (CH04)",
+    "count": 2711,
+    "share": 0.8622,
+    "rca": 0.82,
+    "reldens": 47.12,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 47.12,
+    "y": 37.5,
+    "value": 0.82
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Zürich (CH04)",
+    "count": 475,
+    "share": 0.8372,
+    "rca": 0.8,
+    "reldens": 51.16,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 51.16,
+    "y": 0,
+    "value": 0.8
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Zürich (CH04)",
+    "count": 370,
+    "share": 0.8014,
+    "rca": 0.77,
+    "reldens": 35.6,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 35.6,
+    "y": 40,
+    "value": 0.77
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Zürich (CH04)",
+    "count": 13256,
+    "share": 1.4374,
+    "rca": 1.37,
+    "reldens": 63.15,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 63.15,
+    "y": 32.5,
+    "value": 1.37
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Zürich (CH04)",
+    "count": 3125,
+    "share": 0.6307,
+    "rca": 0.6,
+    "reldens": 20.32,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 20.32,
+    "y": 27.5,
+    "value": 0.6
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Zürich (CH04)",
+    "count": 14047,
+    "share": 1.5214,
+    "rca": 1.46,
+    "reldens": 51.86,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 51.86,
+    "y": 32.5,
+    "value": 1.46
+  },
+  {
+    "domain": "Handling",
+    "geo": "Zürich (CH04)",
+    "count": 961,
+    "share": 1.2873,
+    "rca": 1.23,
+    "reldens": 32.97,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 32.97,
+    "y": 10,
+    "value": 1.23
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Zürich (CH04)",
+    "count": 920,
+    "share": 0.6677,
+    "rca": 0.64,
+    "reldens": 65.82,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 65.82,
+    "y": 12.5,
+    "value": 0.64
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Zürich (CH04)",
+    "count": 130,
+    "share": 0.9913,
+    "rca": 0.95,
+    "reldens": 60.79,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 60.79,
+    "y": 20,
+    "value": 0.95
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Zürich (CH04)",
+    "count": 1966,
+    "share": 0.9925,
+    "rca": 0.95,
+    "reldens": 48.21,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 48.21,
+    "y": 55,
+    "value": 0.95
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Zürich (CH04)",
+    "count": 4417,
+    "share": 1.1195,
+    "rca": 1.07,
+    "reldens": 39.47,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 39.47,
+    "y": 50,
+    "value": 1.07
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Zürich (CH04)",
+    "count": 656,
+    "share": 0.7274,
+    "rca": 0.7,
+    "reldens": 59.71,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 59.71,
+    "y": 12.5,
+    "value": 0.7
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Zürich (CH04)",
+    "count": 39002,
+    "share": 0.894,
+    "rca": 0.86,
+    "reldens": 17.22,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 17.22,
+    "y": 57.5,
+    "value": 0.86
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Zürich (CH04)",
+    "count": 12340,
+    "share": 1.29,
+    "rca": 1.23,
+    "reldens": 42.09,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 42.09,
+    "y": 87.5,
+    "value": 1.23
+  },
+  {
+    "domain": "Optics",
+    "geo": "Zürich (CH04)",
+    "count": 5798,
+    "share": 1.0317,
+    "rca": 0.99,
+    "reldens": 51.92,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 51.92,
+    "y": 100,
+    "value": 0.99
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Zürich (CH04)",
+    "count": 1174,
+    "share": 0.876,
+    "rca": 0.84,
+    "reldens": 22.19,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 22.19,
+    "y": 43.75,
+    "value": 0.84
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Zürich (CH04)",
+    "count": 3883,
+    "share": 0.7853,
+    "rca": 0.75,
+    "reldens": 3.91,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 3.91,
+    "y": 60,
+    "value": 0.75
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Zürich (CH04)",
+    "count": 1549,
+    "share": 1.3895,
+    "rca": 1.33,
+    "reldens": 59.26,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 59.26,
+    "y": 67.5,
+    "value": 1.33
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Zürich (CH04)",
+    "count": 174,
+    "share": 0.8832,
+    "rca": 0.84,
+    "reldens": 68.4,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 68.4,
+    "y": 31.25,
+    "value": 0.84
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Zürich (CH04)",
+    "count": 63,
+    "share": 0.5238,
+    "rca": 0.5,
+    "reldens": 15.76,
+    "comp": 40,
+    "comp_TCI": 75.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 15.76,
+    "y": 40,
+    "value": 0.5
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Zürich (CH04)",
+    "count": 748,
+    "share": 0.8596,
+    "rca": 0.82,
+    "reldens": 50.77,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 50.77,
+    "y": 27.5,
+    "value": 0.82
+  },
+  {
+    "domain": "Transport",
+    "geo": "Zürich (CH04)",
+    "count": 557,
+    "share": 0.8838,
+    "rca": 0.85,
+    "reldens": 69.93,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 69.93,
+    "y": 15,
+    "value": 0.85
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

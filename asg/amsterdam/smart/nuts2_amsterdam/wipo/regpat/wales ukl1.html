@@ -1,0 +1,770 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Wales (UKL1)",
+    "count": 15,
+    "share": 0.12,
+    "rca": 1.64,
+    "reldens": 16.04,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 16.04,
+    "y": 8.93,
+    "value": 1.64
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Wales (UKL1)",
+    "count": 8,
+    "share": 0.0511,
+    "rca": 0.7,
+    "reldens": 37.49,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 37.49,
+    "y": 55.36,
+    "value": 0.7
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Wales (UKL1)",
+    "count": 9,
+    "share": 0.2034,
+    "rca": 2.78,
+    "reldens": 33.28,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 33.28,
+    "y": 41.07,
+    "value": 2.78
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Wales (UKL1)",
+    "count": 30,
+    "share": 0.0997,
+    "rca": 1.36,
+    "reldens": 26.35,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 26.35,
+    "y": 51.79,
+    "value": 1.36
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Wales (UKL1)",
+    "count": 14,
+    "share": 0.0368,
+    "rca": 0.5,
+    "reldens": 27.64,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 27.64,
+    "y": 50,
+    "value": 0.5
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Wales (UKL1)",
+    "count": 35,
+    "share": 0.1173,
+    "rca": 1.6,
+    "reldens": 48.34,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 48.34,
+    "y": 40.18,
+    "value": 1.6
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Wales (UKL1)",
+    "count": 25,
+    "share": 0.1357,
+    "rca": 1.85,
+    "reldens": 41.49,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 41.49,
+    "y": 10.71,
+    "value": 1.85
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Wales (UKL1)",
+    "count": 41,
+    "share": 0.0929,
+    "rca": 1.27,
+    "reldens": 25.87,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 25.87,
+    "y": 78.57,
+    "value": 1.27
+  },
+  {
+    "domain": "Control",
+    "geo": "Wales (UKL1)",
+    "count": 10,
+    "share": 0.0498,
+    "rca": 0.68,
+    "reldens": 41.16,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 41.16,
+    "y": 50,
+    "value": 0.68
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Wales (UKL1)",
+    "count": 13,
+    "share": 0.0287,
+    "rca": 0.39,
+    "reldens": 32.97,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 32.97,
+    "y": 100,
+    "value": 0.39
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Wales (UKL1)",
+    "count": 22,
+    "share": 0.0403,
+    "rca": 0.55,
+    "reldens": 40.61,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 40.61,
+    "y": 90.18,
+    "value": 0.55
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Wales (UKL1)",
+    "count": 17,
+    "share": 0.0796,
+    "rca": 1.09,
+    "reldens": 35.21,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 35.21,
+    "y": 58.93,
+    "value": 1.09
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Wales (UKL1)",
+    "count": 11,
+    "share": 0.0925,
+    "rca": 1.26,
+    "reldens": 58.35,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 58.35,
+    "y": 0,
+    "value": 1.26
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Wales (UKL1)",
+    "count": 3,
+    "share": 0.0248,
+    "rca": 0.34,
+    "reldens": 22.66,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 22.66,
+    "y": 13.39,
+    "value": 0.34
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Wales (UKL1)",
+    "count": 14,
+    "share": 0.1322,
+    "rca": 1.81,
+    "reldens": 42.05,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 42.05,
+    "y": 3.57,
+    "value": 1.81
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Wales (UKL1)",
+    "count": 39,
+    "share": 0.0639,
+    "rca": 0.87,
+    "reldens": 41.36,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 41.36,
+    "y": 57.14,
+    "value": 0.87
+  },
+  {
+    "domain": "Handling",
+    "geo": "Wales (UKL1)",
+    "count": 12,
+    "share": 0.0523,
+    "rca": 0.71,
+    "reldens": 40.32,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 40.32,
+    "y": 44.64,
+    "value": 0.71
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Wales (UKL1)",
+    "count": 4,
+    "share": 0.0467,
+    "rca": 0.64,
+    "reldens": 44.84,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 44.84,
+    "y": 14.29,
+    "value": 0.64
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Wales (UKL1)",
+    "count": 2,
+    "share": 0.012,
+    "rca": 0.16,
+    "reldens": 42.09,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 42.09,
+    "y": 44.64,
+    "value": 0.16
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Wales (UKL1)",
+    "count": 10,
+    "share": 0.0445,
+    "rca": 0.61,
+    "reldens": 39.96,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 39.96,
+    "y": 71.43,
+    "value": 0.61
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Wales (UKL1)",
+    "count": 25,
+    "share": 0.1162,
+    "rca": 1.59,
+    "reldens": 31.23,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 31.23,
+    "y": 46.43,
+    "value": 1.59
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Wales (UKL1)",
+    "count": 38,
+    "share": 0.0688,
+    "rca": 0.94,
+    "reldens": 50.72,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 50.72,
+    "y": 66.07,
+    "value": 0.94
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Wales (UKL1)",
+    "count": 16,
+    "share": 0.0624,
+    "rca": 0.85,
+    "reldens": 54.61,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 54.61,
+    "y": 59.82,
+    "value": 0.85
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Wales (UKL1)",
+    "count": 55,
+    "share": 0.1062,
+    "rca": 1.45,
+    "reldens": 42.41,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 42.41,
+    "y": 60.71,
+    "value": 1.45
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Wales (UKL1)",
+    "count": 19,
+    "share": 0.0525,
+    "rca": 0.72,
+    "reldens": 30.86,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 30.86,
+    "y": 63.39,
+    "value": 0.72
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Wales (UKL1)",
+    "count": 21,
+    "share": 0.1043,
+    "rca": 1.42,
+    "reldens": 38.41,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 38.41,
+    "y": 62.5,
+    "value": 1.42
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Wales (UKL1)",
+    "count": 9,
+    "share": 0.0257,
+    "rca": 0.35,
+    "reldens": 34.54,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 34.54,
+    "y": 35.71,
+    "value": 0.35
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Wales (UKL1)",
+    "count": 30,
+    "share": 0.0663,
+    "rca": 0.91,
+    "reldens": 16.26,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 16.26,
+    "y": 39.29,
+    "value": 0.91
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Wales (UKL1)",
+    "count": 18,
+    "share": 0.1728,
+    "rca": 2.36,
+    "reldens": 23.1,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 23.1,
+    "y": 46.43,
+    "value": 2.36
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Wales (UKL1)",
+    "count": 12,
+    "share": 0.0683,
+    "rca": 0.93,
+    "reldens": 44.44,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 44.44,
+    "y": 38.39,
+    "value": 0.93
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Wales (UKL1)",
+    "count": 4,
+    "share": 0.0197,
+    "rca": 0.27,
+    "reldens": 25.18,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 25.18,
+    "y": 78.57,
+    "value": 0.27
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Wales (UKL1)",
+    "count": 8,
+    "share": 0.0662,
+    "rca": 0.9,
+    "reldens": 45.75,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 45.75,
+    "y": 33.04,
+    "value": 0.9
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Wales (UKL1)",
+    "count": 5,
+    "share": 0.0437,
+    "rca": 0.6,
+    "reldens": 56.06,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 56.06,
+    "y": 23.21,
+    "value": 0.6
+  },
+  {
+    "domain": "Transport",
+    "geo": "Wales (UKL1)",
+    "count": 88,
+    "share": 0.1778,
+    "rca": 2.43,
+    "reldens": 25.16,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 25.16,
+    "y": 86.61,
+    "value": 2.43
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

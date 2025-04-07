@@ -1,0 +1,413 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Biotechnology",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 11.88,
+    "share": 0.0382,
+    "rca": 3.5,
+    "reldens": 37.74,
+    "comp": 28.95,
+    "comp_TCI": 93.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 37.74,
+    "y": 28.95,
+    "value": 3.5
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 4.43,
+    "share": 0.0028,
+    "rca": 0.26,
+    "reldens": 18.21,
+    "comp": 47.37,
+    "comp_TCI": 9.99,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 18.21,
+    "y": 47.37,
+    "value": 0.26
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 0.48,
+    "share": 0.0011,
+    "rca": 0.1,
+    "reldens": 37.9,
+    "comp": 71.05,
+    "comp_TCI": 79.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 37.9,
+    "y": 71.05,
+    "value": 0.1
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 6.8,
+    "share": 0.0276,
+    "rca": 2.53,
+    "reldens": 32.34,
+    "comp": 42.11,
+    "comp_TCI": 70.84,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 32.34,
+    "y": 42.11,
+    "value": 2.53
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 18.03,
+    "share": 0.0956,
+    "rca": 8.76,
+    "reldens": 29.26,
+    "comp": 39.47,
+    "comp_TCI": 52.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 29.26,
+    "y": 39.47,
+    "value": 8.76
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 6.93,
+    "share": 0.0212,
+    "rca": 1.94,
+    "reldens": 29.99,
+    "comp": 100,
+    "comp_TCI": 88.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 29.99,
+    "y": 100,
+    "value": 1.94
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 2.21,
+    "share": 0.0026,
+    "rca": 0.24,
+    "reldens": 15.3,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 15.3,
+    "y": 68.42,
+    "value": 0.24
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 2.43,
+    "share": 0.1639,
+    "rca": 15.01,
+    "reldens": 11.39,
+    "comp": 21.05,
+    "comp_TCI": 67.12,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 11.39,
+    "y": 21.05,
+    "value": 15.01
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 2.61,
+    "share": 0.0085,
+    "rca": 0.78,
+    "reldens": 28.96,
+    "comp": 10.53,
+    "comp_TCI": 73.14,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 28.96,
+    "y": 10.53,
+    "value": 0.78
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 11.91,
+    "share": 0.027,
+    "rca": 2.48,
+    "reldens": 26.46,
+    "comp": 36.84,
+    "comp_TCI": 77.03,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 26.46,
+    "y": 36.84,
+    "value": 2.48
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 2.48,
+    "share": 0.6702,
+    "rca": 61.4,
+    "reldens": 33.77,
+    "comp": 23.68,
+    "comp_TCI": 37.56,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 33.77,
+    "y": 23.68,
+    "value": 61.4
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 2.21,
+    "share": 0.0039,
+    "rca": 0.36,
+    "reldens": 26.24,
+    "comp": 55.26,
+    "comp_TCI": 13.33,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 26.24,
+    "y": 55.26,
+    "value": 0.36
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Comunidad Foral de Navarra (ES22)",
+    "count": 2.48,
+    "share": 0.0101,
+    "rca": 0.93,
+    "reldens": 73.29,
+    "comp": 52.63,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 73.29,
+    "y": 52.63,
+    "value": 0.93
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,787 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 99,
+    "share": 0.7918,
+    "rca": 1.23,
+    "reldens": 80.54,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 80.54,
+    "y": 8.93,
+    "value": 1.23
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 79,
+    "share": 0.5044,
+    "rca": 0.78,
+    "reldens": 35.35,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 35.35,
+    "y": 55.36,
+    "value": 0.78
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 117,
+    "share": 2.6447,
+    "rca": 4.1,
+    "reldens": 34.08,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 34.08,
+    "y": 41.07,
+    "value": 4.1
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 125,
+    "share": 0.4155,
+    "rca": 0.64,
+    "reldens": 33.54,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 33.54,
+    "y": 51.79,
+    "value": 0.64
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 275,
+    "share": 0.723,
+    "rca": 1.12,
+    "reldens": 76.97,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 76.97,
+    "y": 50,
+    "value": 1.12
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 147,
+    "share": 0.4925,
+    "rca": 0.76,
+    "reldens": 52.09,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 52.09,
+    "y": 40.18,
+    "value": 0.76
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 181,
+    "share": 0.9825,
+    "rca": 1.52,
+    "reldens": 38.14,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 38.14,
+    "y": 10.71,
+    "value": 1.52
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 265,
+    "share": 0.6006,
+    "rca": 0.93,
+    "reldens": 33.86,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 33.86,
+    "y": 78.57,
+    "value": 0.93
+  },
+  {
+    "domain": "Control",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 276,
+    "share": 1.3757,
+    "rca": 2.13,
+    "reldens": 35.39,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 35.39,
+    "y": 50,
+    "value": 2.13
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 178,
+    "share": 0.3928,
+    "rca": 0.61,
+    "reldens": 53.43,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 53.43,
+    "y": 100,
+    "value": 0.61
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 311,
+    "share": 0.5697,
+    "rca": 0.88,
+    "reldens": 48.3,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 48.3,
+    "y": 90.18,
+    "value": 0.88
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 247,
+    "share": 1.1562,
+    "rca": 1.79,
+    "reldens": 47.54,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 47.54,
+    "y": 58.93,
+    "value": 1.79
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 110,
+    "share": 0.9253,
+    "rca": 1.44,
+    "reldens": 31.8,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 31.8,
+    "y": 0,
+    "value": 1.44
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 69,
+    "share": 0.5703,
+    "rca": 0.88,
+    "reldens": 70.26,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 70.26,
+    "y": 13.39,
+    "value": 0.88
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 9,
+    "share": 0.085,
+    "rca": 0.13,
+    "reldens": 27.08,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 27.08,
+    "y": 3.57,
+    "value": 0.13
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 484,
+    "share": 0.7926,
+    "rca": 1.23,
+    "reldens": 38.93,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 38.93,
+    "y": 57.14,
+    "value": 1.23
+  },
+  {
+    "domain": "Handling",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 59,
+    "share": 0.2571,
+    "rca": 0.4,
+    "reldens": 35.85,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 35.85,
+    "y": 44.64,
+    "value": 0.4
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 33,
+    "share": 0.3853,
+    "rca": 0.6,
+    "reldens": 34.32,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 34.32,
+    "y": 14.29,
+    "value": 0.6
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 29,
+    "share": 0.1734,
+    "rca": 0.27,
+    "reldens": 29.71,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 29.71,
+    "y": 44.64,
+    "value": 0.27
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 107,
+    "share": 0.4758,
+    "rca": 0.74,
+    "reldens": 34.24,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 34.24,
+    "y": 71.43,
+    "value": 0.74
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 79,
+    "share": 0.3673,
+    "rca": 0.57,
+    "reldens": 37.48,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 37.48,
+    "y": 46.43,
+    "value": 0.57
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 557,
+    "share": 1.0084,
+    "rca": 1.56,
+    "reldens": 54.74,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 54.74,
+    "y": 66.07,
+    "value": 1.56
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 73,
+    "share": 0.2847,
+    "rca": 0.44,
+    "reldens": 53.11,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 53.11,
+    "y": 59.82,
+    "value": 0.44
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 130,
+    "share": 0.2511,
+    "rca": 0.39,
+    "reldens": 36.44,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 36.44,
+    "y": 60.71,
+    "value": 0.39
+  },
+  {
+    "domain": "Optics",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 63,
+    "share": 0.3514,
+    "rca": 0.55,
+    "reldens": 26.5,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 26.5,
+    "y": 66.07,
+    "value": 0.55
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 264,
+    "share": 0.7299,
+    "rca": 1.13,
+    "reldens": 53.71,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 53.71,
+    "y": 63.39,
+    "value": 1.13
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 29,
+    "share": 0.144,
+    "rca": 0.22,
+    "reldens": 23.65,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 23.65,
+    "y": 62.5,
+    "value": 0.22
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 229,
+    "share": 0.6545,
+    "rca": 1.02,
+    "reldens": 25.62,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 25.62,
+    "y": 35.71,
+    "value": 1.02
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 342,
+    "share": 0.7563,
+    "rca": 1.17,
+    "reldens": 74.96,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 74.96,
+    "y": 39.29,
+    "value": 1.17
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 46,
+    "share": 0.4417,
+    "rca": 0.69,
+    "reldens": 21.17,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 21.17,
+    "y": 46.43,
+    "value": 0.69
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 68,
+    "share": 0.387,
+    "rca": 0.6,
+    "reldens": 24.35,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 24.35,
+    "y": 38.39,
+    "value": 0.6
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 185,
+    "share": 0.912,
+    "rca": 1.42,
+    "reldens": 19.28,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 19.28,
+    "y": 78.57,
+    "value": 1.42
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 20,
+    "share": 0.1654,
+    "rca": 0.26,
+    "reldens": 21.65,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 21.65,
+    "y": 33.04,
+    "value": 0.26
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 64,
+    "share": 0.5592,
+    "rca": 0.87,
+    "reldens": 45.41,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 45.41,
+    "y": 23.21,
+    "value": 0.87
+  },
+  {
+    "domain": "Transport",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 655,
+    "share": 1.3232,
+    "rca": 2.05,
+    "reldens": 45.18,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 45.18,
+    "y": 86.61,
+    "value": 2.05
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

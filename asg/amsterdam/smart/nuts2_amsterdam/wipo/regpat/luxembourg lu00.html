@@ -1,0 +1,804 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Luxembourg (LU00)",
+    "count": 31,
+    "share": 0.2479,
+    "rca": 1.7,
+    "reldens": 46.4,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 46.4,
+    "y": 8.93,
+    "value": 1.7
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Luxembourg (LU00)",
+    "count": 20,
+    "share": 0.1277,
+    "rca": 0.88,
+    "reldens": 21.91,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 21.91,
+    "y": 55.36,
+    "value": 0.88
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Luxembourg (LU00)",
+    "count": 9,
+    "share": 0.2034,
+    "rca": 1.4,
+    "reldens": 17.82,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 17.82,
+    "y": 41.07,
+    "value": 1.4
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Luxembourg (LU00)",
+    "count": 46,
+    "share": 0.1529,
+    "rca": 1.05,
+    "reldens": 50.34,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 50.34,
+    "y": 51.79,
+    "value": 1.05
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Luxembourg (LU00)",
+    "count": 41,
+    "share": 0.1078,
+    "rca": 0.74,
+    "reldens": 34.47,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 34.47,
+    "y": 50,
+    "value": 0.74
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Luxembourg (LU00)",
+    "count": 34,
+    "share": 0.1139,
+    "rca": 0.78,
+    "reldens": 45.15,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 45.15,
+    "y": 40.18,
+    "value": 0.78
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Luxembourg (LU00)",
+    "count": 32,
+    "share": 0.1737,
+    "rca": 1.19,
+    "reldens": 36.65,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 36.65,
+    "y": 10.71,
+    "value": 1.19
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Luxembourg (LU00)",
+    "count": 50,
+    "share": 0.1133,
+    "rca": 0.78,
+    "reldens": 19.1,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 19.1,
+    "y": 78.57,
+    "value": 0.78
+  },
+  {
+    "domain": "Control",
+    "geo": "Luxembourg (LU00)",
+    "count": 22,
+    "share": 0.1096,
+    "rca": 0.75,
+    "reldens": 26.31,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 26.31,
+    "y": 50,
+    "value": 0.75
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Luxembourg (LU00)",
+    "count": 18,
+    "share": 0.0397,
+    "rca": 0.27,
+    "reldens": 17.95,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 17.95,
+    "y": 100,
+    "value": 0.27
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Luxembourg (LU00)",
+    "count": 67,
+    "share": 0.1227,
+    "rca": 0.84,
+    "reldens": 53.88,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 53.88,
+    "y": 90.18,
+    "value": 0.84
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Luxembourg (LU00)",
+    "count": 22,
+    "share": 0.103,
+    "rca": 0.71,
+    "reldens": 47.92,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 47.92,
+    "y": 58.93,
+    "value": 0.71
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Luxembourg (LU00)",
+    "count": 6,
+    "share": 0.0505,
+    "rca": 0.35,
+    "reldens": 43.77,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 43.77,
+    "y": 0,
+    "value": 0.35
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Luxembourg (LU00)",
+    "count": 17,
+    "share": 0.1405,
+    "rca": 0.97,
+    "reldens": 20.05,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 20.05,
+    "y": 13.39,
+    "value": 0.97
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Luxembourg (LU00)",
+    "count": 8,
+    "share": 0.0756,
+    "rca": 0.52,
+    "reldens": 33.02,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 33.02,
+    "y": 3.57,
+    "value": 0.52
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Luxembourg (LU00)",
+    "count": 97,
+    "share": 0.1589,
+    "rca": 1.09,
+    "reldens": 28.37,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 28.37,
+    "y": 57.14,
+    "value": 1.09
+  },
+  {
+    "domain": "Handling",
+    "geo": "Luxembourg (LU00)",
+    "count": 33,
+    "share": 0.1438,
+    "rca": 0.99,
+    "reldens": 38.45,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 38.45,
+    "y": 44.64,
+    "value": 0.99
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Luxembourg (LU00)",
+    "count": 11,
+    "share": 0.1284,
+    "rca": 0.88,
+    "reldens": 14.42,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 14.42,
+    "y": 14.29,
+    "value": 0.88
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Luxembourg (LU00)",
+    "count": 35,
+    "share": 0.2093,
+    "rca": 1.44,
+    "reldens": 42.77,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 42.77,
+    "y": 44.64,
+    "value": 1.44
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Luxembourg (LU00)",
+    "count": 47,
+    "share": 0.209,
+    "rca": 1.44,
+    "reldens": 46.41,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 46.41,
+    "y": 71.43,
+    "value": 1.44
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Luxembourg (LU00)",
+    "count": 89,
+    "share": 0.4138,
+    "rca": 2.84,
+    "reldens": 52.52,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 52.52,
+    "y": 46.43,
+    "value": 2.84
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Luxembourg (LU00)",
+    "count": 89,
+    "share": 0.1611,
+    "rca": 1.11,
+    "reldens": 34.3,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 34.3,
+    "y": 66.07,
+    "value": 1.11
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Luxembourg (LU00)",
+    "count": 23,
+    "share": 0.0897,
+    "rca": 0.62,
+    "reldens": 39.5,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 39.5,
+    "y": 59.82,
+    "value": 0.62
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Luxembourg (LU00)",
+    "count": 41,
+    "share": 0.0792,
+    "rca": 0.54,
+    "reldens": 33.58,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 33.58,
+    "y": 60.71,
+    "value": 0.54
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Luxembourg (LU00)",
+    "count": 2,
+    "share": 0.2146,
+    "rca": 1.48,
+    "reldens": 37.83,
+    "comp": 44.64,
+    "comp_TCI": 31.66,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 37.83,
+    "y": 44.64,
+    "value": 1.48
+  },
+  {
+    "domain": "Optics",
+    "geo": "Luxembourg (LU00)",
+    "count": 25,
+    "share": 0.1394,
+    "rca": 0.96,
+    "reldens": 38.45,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 38.45,
+    "y": 66.07,
+    "value": 0.96
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Luxembourg (LU00)",
+    "count": 34,
+    "share": 0.094,
+    "rca": 0.65,
+    "reldens": 34.94,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 34.94,
+    "y": 63.39,
+    "value": 0.65
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Luxembourg (LU00)",
+    "count": 40,
+    "share": 0.1987,
+    "rca": 1.37,
+    "reldens": 36.07,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 36.07,
+    "y": 62.5,
+    "value": 1.37
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Luxembourg (LU00)",
+    "count": 46,
+    "share": 0.1315,
+    "rca": 0.9,
+    "reldens": 57.36,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 57.36,
+    "y": 35.71,
+    "value": 0.9
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Luxembourg (LU00)",
+    "count": 40,
+    "share": 0.0885,
+    "rca": 0.61,
+    "reldens": 19.26,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 19.26,
+    "y": 39.29,
+    "value": 0.61
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Luxembourg (LU00)",
+    "count": 10,
+    "share": 0.096,
+    "rca": 0.66,
+    "reldens": 50.38,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 50.38,
+    "y": 46.43,
+    "value": 0.66
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Luxembourg (LU00)",
+    "count": 105,
+    "share": 0.5976,
+    "rca": 4.11,
+    "reldens": 48.33,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 48.33,
+    "y": 38.39,
+    "value": 4.11
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Luxembourg (LU00)",
+    "count": 24,
+    "share": 0.1183,
+    "rca": 0.81,
+    "reldens": 17.8,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 17.8,
+    "y": 78.57,
+    "value": 0.81
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Luxembourg (LU00)",
+    "count": 30,
+    "share": 0.2481,
+    "rca": 1.71,
+    "reldens": 51.5,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 51.5,
+    "y": 33.04,
+    "value": 1.71
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Luxembourg (LU00)",
+    "count": 55,
+    "share": 0.4806,
+    "rca": 3.3,
+    "reldens": 37.77,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 37.77,
+    "y": 23.21,
+    "value": 3.3
+  },
+  {
+    "domain": "Transport",
+    "geo": "Luxembourg (LU00)",
+    "count": 56,
+    "share": 0.1131,
+    "rca": 0.78,
+    "reldens": 33.26,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 33.26,
+    "y": 86.61,
+    "value": 0.78
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

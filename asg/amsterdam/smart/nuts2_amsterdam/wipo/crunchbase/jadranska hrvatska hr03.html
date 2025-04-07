@@ -1,0 +1,328 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Jadranska Hrvatska (HR03)",
+    "count": 0.07,
+    "share": 0.0007,
+    "rca": 0.08,
+    "reldens": 3.42,
+    "comp": 42.11,
+    "comp_TCI": 45.54,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 3.42,
+    "y": 42.11,
+    "value": 0.08
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Jadranska Hrvatska (HR03)",
+    "count": 0.7,
+    "share": 0.0046,
+    "rca": 0.58,
+    "reldens": 5.85,
+    "comp": 57.89,
+    "comp_TCI": 23.83,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 5.85,
+    "y": 57.89,
+    "value": 0.58
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Jadranska Hrvatska (HR03)",
+    "count": 0.98,
+    "share": 0.0006,
+    "rca": 0.08,
+    "reldens": 4.15,
+    "comp": 47.37,
+    "comp_TCI": 9.99,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 4.15,
+    "y": 47.37,
+    "value": 0.08
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Jadranska Hrvatska (HR03)",
+    "count": 0.07,
+    "share": 0.0005,
+    "rca": 0.06,
+    "reldens": 1.27,
+    "comp": 57.89,
+    "comp_TCI": 28.77,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 1.27,
+    "y": 57.89,
+    "value": 0.06
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Jadranska Hrvatska (HR03)",
+    "count": 1.59,
+    "share": 0.0019,
+    "rca": 0.24,
+    "reldens": 2.32,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 2.32,
+    "y": 68.42,
+    "value": 0.24
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Jadranska Hrvatska (HR03)",
+    "count": 25,
+    "share": 0.0814,
+    "rca": 10.29,
+    "reldens": 1.18,
+    "comp": 10.53,
+    "comp_TCI": 73.14,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 1.18,
+    "y": 10.53,
+    "value": 10.29
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Jadranska Hrvatska (HR03)",
+    "count": 25,
+    "share": 6.7566,
+    "rca": 855.05,
+    "reldens": 8.05,
+    "comp": 23.68,
+    "comp_TCI": 37.56,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 8.05,
+    "y": 23.68,
+    "value": 855.05
+  },
+  {
+    "domain": "Transport",
+    "geo": "Jadranska Hrvatska (HR03)",
+    "count": 0.79,
+    "share": 0.0017,
+    "rca": 0.21,
+    "reldens": 7.27,
+    "comp": 68.42,
+    "comp_TCI": 45.37,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 7.27,
+    "y": 68.42,
+    "value": 0.21
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

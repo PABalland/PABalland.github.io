@@ -1,0 +1,804 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "South Holland (NL33)",
+    "count": 140,
+    "share": 1.1197,
+    "rca": 1.33,
+    "reldens": 83.75,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 83.75,
+    "y": 8.93,
+    "value": 1.33
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "South Holland (NL33)",
+    "count": 143,
+    "share": 0.913,
+    "rca": 1.09,
+    "reldens": 21.58,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 21.58,
+    "y": 55.36,
+    "value": 1.09
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "South Holland (NL33)",
+    "count": 38,
+    "share": 0.859,
+    "rca": 1.02,
+    "reldens": 32.57,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 32.57,
+    "y": 41.07,
+    "value": 1.02
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "South Holland (NL33)",
+    "count": 236,
+    "share": 0.7845,
+    "rca": 0.93,
+    "reldens": 38.89,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 38.89,
+    "y": 51.79,
+    "value": 0.93
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "South Holland (NL33)",
+    "count": 681,
+    "share": 1.7905,
+    "rca": 2.13,
+    "reldens": 83.57,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 83.57,
+    "y": 50,
+    "value": 2.13
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "South Holland (NL33)",
+    "count": 320,
+    "share": 1.0721,
+    "rca": 1.28,
+    "reldens": 52.76,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 52.76,
+    "y": 40.18,
+    "value": 1.28
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "South Holland (NL33)",
+    "count": 299,
+    "share": 1.623,
+    "rca": 1.93,
+    "reldens": 32.34,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 32.34,
+    "y": 10.71,
+    "value": 1.93
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "South Holland (NL33)",
+    "count": 205,
+    "share": 0.4646,
+    "rca": 0.55,
+    "reldens": 31.56,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 31.56,
+    "y": 78.57,
+    "value": 0.55
+  },
+  {
+    "domain": "Control",
+    "geo": "South Holland (NL33)",
+    "count": 70,
+    "share": 0.3489,
+    "rca": 0.42,
+    "reldens": 36.88,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 36.88,
+    "y": 50,
+    "value": 0.42
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "South Holland (NL33)",
+    "count": 188,
+    "share": 0.4149,
+    "rca": 0.49,
+    "reldens": 24.23,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 24.23,
+    "y": 100,
+    "value": 0.49
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "South Holland (NL33)",
+    "count": 265,
+    "share": 0.4855,
+    "rca": 0.58,
+    "reldens": 50.11,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 50.11,
+    "y": 90.18,
+    "value": 0.58
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "South Holland (NL33)",
+    "count": 137,
+    "share": 0.6413,
+    "rca": 0.76,
+    "reldens": 53.76,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 53.76,
+    "y": 58.93,
+    "value": 0.76
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "South Holland (NL33)",
+    "count": 136,
+    "share": 1.144,
+    "rca": 1.36,
+    "reldens": 60.7,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 60.7,
+    "y": 0,
+    "value": 1.36
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "South Holland (NL33)",
+    "count": 271,
+    "share": 2.2399,
+    "rca": 2.66,
+    "reldens": 69.42,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 69.42,
+    "y": 13.39,
+    "value": 2.66
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "South Holland (NL33)",
+    "count": 72,
+    "share": 0.68,
+    "rca": 0.81,
+    "reldens": 38.07,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 38.07,
+    "y": 3.57,
+    "value": 0.81
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "South Holland (NL33)",
+    "count": 781,
+    "share": 1.279,
+    "rca": 1.52,
+    "reldens": 34.46,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 34.46,
+    "y": 57.14,
+    "value": 1.52
+  },
+  {
+    "domain": "Handling",
+    "geo": "South Holland (NL33)",
+    "count": 250,
+    "share": 1.0894,
+    "rca": 1.3,
+    "reldens": 29.71,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 29.71,
+    "y": 44.64,
+    "value": 1.3
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "South Holland (NL33)",
+    "count": 25,
+    "share": 0.2919,
+    "rca": 0.35,
+    "reldens": 20.61,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 20.61,
+    "y": 14.29,
+    "value": 0.35
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "South Holland (NL33)",
+    "count": 25,
+    "share": 0.1495,
+    "rca": 0.18,
+    "reldens": 42.59,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 42.59,
+    "y": 44.64,
+    "value": 0.18
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "South Holland (NL33)",
+    "count": 108,
+    "share": 0.4802,
+    "rca": 0.57,
+    "reldens": 38.5,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 38.5,
+    "y": 71.43,
+    "value": 0.57
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "South Holland (NL33)",
+    "count": 169,
+    "share": 0.7857,
+    "rca": 0.93,
+    "reldens": 49.25,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 49.25,
+    "y": 46.43,
+    "value": 0.93
+  },
+  {
+    "domain": "Measurement",
+    "geo": "South Holland (NL33)",
+    "count": 658,
+    "share": 1.1913,
+    "rca": 1.42,
+    "reldens": 52.29,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 52.29,
+    "y": 66.07,
+    "value": 1.42
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "South Holland (NL33)",
+    "count": 78,
+    "share": 0.3042,
+    "rca": 0.36,
+    "reldens": 38.08,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 38.08,
+    "y": 59.82,
+    "value": 0.36
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "South Holland (NL33)",
+    "count": 328,
+    "share": 0.6335,
+    "rca": 0.75,
+    "reldens": 43.52,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 43.52,
+    "y": 60.71,
+    "value": 0.75
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "South Holland (NL33)",
+    "count": 12,
+    "share": 1.2875,
+    "rca": 1.53,
+    "reldens": 58.95,
+    "comp": 44.64,
+    "comp_TCI": 31.66,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 58.95,
+    "y": 44.64,
+    "value": 1.53
+  },
+  {
+    "domain": "Optics",
+    "geo": "South Holland (NL33)",
+    "count": 145,
+    "share": 0.8088,
+    "rca": 0.96,
+    "reldens": 42.28,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 42.28,
+    "y": 66.07,
+    "value": 0.96
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "South Holland (NL33)",
+    "count": 150,
+    "share": 0.4147,
+    "rca": 0.49,
+    "reldens": 70.04,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 70.04,
+    "y": 63.39,
+    "value": 0.49
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "South Holland (NL33)",
+    "count": 83,
+    "share": 0.4123,
+    "rca": 0.49,
+    "reldens": 35.98,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 35.98,
+    "y": 62.5,
+    "value": 0.49
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "South Holland (NL33)",
+    "count": 495,
+    "share": 1.4148,
+    "rca": 1.68,
+    "reldens": 33.72,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 33.72,
+    "y": 35.71,
+    "value": 1.68
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "South Holland (NL33)",
+    "count": 468,
+    "share": 1.035,
+    "rca": 1.23,
+    "reldens": 63.77,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 63.77,
+    "y": 39.29,
+    "value": 1.23
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "South Holland (NL33)",
+    "count": 128,
+    "share": 1.229,
+    "rca": 1.46,
+    "reldens": 37.04,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 37.04,
+    "y": 46.43,
+    "value": 1.46
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "South Holland (NL33)",
+    "count": 101,
+    "share": 0.5749,
+    "rca": 0.68,
+    "reldens": 41.06,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 41.06,
+    "y": 38.39,
+    "value": 0.68
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "South Holland (NL33)",
+    "count": 152,
+    "share": 0.7493,
+    "rca": 0.89,
+    "reldens": 40.12,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 40.12,
+    "y": 78.57,
+    "value": 0.89
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "South Holland (NL33)",
+    "count": 28,
+    "share": 0.2316,
+    "rca": 0.28,
+    "reldens": 34.57,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 34.57,
+    "y": 33.04,
+    "value": 0.28
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "South Holland (NL33)",
+    "count": 128,
+    "share": 1.1185,
+    "rca": 1.33,
+    "reldens": 42.23,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 42.23,
+    "y": 23.21,
+    "value": 1.33
+  },
+  {
+    "domain": "Transport",
+    "geo": "South Holland (NL33)",
+    "count": 319,
+    "share": 0.6444,
+    "rca": 0.77,
+    "reldens": 37.73,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 37.73,
+    "y": 86.61,
+    "value": 0.77
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,804 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Lower Austria (AT12)",
+    "count": 34,
+    "share": 0.2719,
+    "rca": 0.83,
+    "reldens": 29.36,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 29.36,
+    "y": 8.93,
+    "value": 0.83
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Lower Austria (AT12)",
+    "count": 64,
+    "share": 0.4086,
+    "rca": 1.24,
+    "reldens": 27.74,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 27.74,
+    "y": 55.36,
+    "value": 1.24
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Lower Austria (AT12)",
+    "count": 3,
+    "share": 0.0678,
+    "rca": 0.21,
+    "reldens": 26.15,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 26.15,
+    "y": 41.07,
+    "value": 0.21
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Lower Austria (AT12)",
+    "count": 44,
+    "share": 0.1463,
+    "rca": 0.44,
+    "reldens": 42.93,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 42.93,
+    "y": 51.79,
+    "value": 0.44
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Lower Austria (AT12)",
+    "count": 148,
+    "share": 0.3891,
+    "rca": 1.18,
+    "reldens": 13.04,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 13.04,
+    "y": 50,
+    "value": 1.18
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Lower Austria (AT12)",
+    "count": 76,
+    "share": 0.2546,
+    "rca": 0.77,
+    "reldens": 34.87,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 34.87,
+    "y": 40.18,
+    "value": 0.77
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Lower Austria (AT12)",
+    "count": 135,
+    "share": 0.7328,
+    "rca": 2.23,
+    "reldens": 39.22,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 39.22,
+    "y": 10.71,
+    "value": 2.23
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Lower Austria (AT12)",
+    "count": 85,
+    "share": 0.1926,
+    "rca": 0.59,
+    "reldens": 29.49,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 29.49,
+    "y": 78.57,
+    "value": 0.59
+  },
+  {
+    "domain": "Control",
+    "geo": "Lower Austria (AT12)",
+    "count": 52,
+    "share": 0.2592,
+    "rca": 0.79,
+    "reldens": 41.37,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 41.37,
+    "y": 50,
+    "value": 0.79
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Lower Austria (AT12)",
+    "count": 57,
+    "share": 0.1258,
+    "rca": 0.38,
+    "reldens": 13.65,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 13.65,
+    "y": 100,
+    "value": 0.38
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Lower Austria (AT12)",
+    "count": 341,
+    "share": 0.6247,
+    "rca": 1.9,
+    "reldens": 35.68,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 35.68,
+    "y": 90.18,
+    "value": 1.9
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Lower Austria (AT12)",
+    "count": 52,
+    "share": 0.2434,
+    "rca": 0.74,
+    "reldens": 35.89,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 35.89,
+    "y": 58.93,
+    "value": 0.74
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Lower Austria (AT12)",
+    "count": 36,
+    "share": 0.3028,
+    "rca": 0.92,
+    "reldens": 26.77,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 26.77,
+    "y": 0,
+    "value": 0.92
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Lower Austria (AT12)",
+    "count": 68,
+    "share": 0.562,
+    "rca": 1.71,
+    "reldens": 35.73,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 35.73,
+    "y": 13.39,
+    "value": 1.71
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Lower Austria (AT12)",
+    "count": 60,
+    "share": 0.5666,
+    "rca": 1.72,
+    "reldens": 38.71,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 38.71,
+    "y": 3.57,
+    "value": 1.72
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Lower Austria (AT12)",
+    "count": 190,
+    "share": 0.3112,
+    "rca": 0.95,
+    "reldens": 47.01,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 47.01,
+    "y": 57.14,
+    "value": 0.95
+  },
+  {
+    "domain": "Handling",
+    "geo": "Lower Austria (AT12)",
+    "count": 148,
+    "share": 0.6449,
+    "rca": 1.96,
+    "reldens": 45.54,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 45.54,
+    "y": 44.64,
+    "value": 1.96
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Lower Austria (AT12)",
+    "count": 26,
+    "share": 0.3036,
+    "rca": 0.92,
+    "reldens": 19.48,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 19.48,
+    "y": 14.29,
+    "value": 0.92
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Lower Austria (AT12)",
+    "count": 60,
+    "share": 0.3588,
+    "rca": 1.09,
+    "reldens": 53.86,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 53.86,
+    "y": 44.64,
+    "value": 1.09
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Lower Austria (AT12)",
+    "count": 65,
+    "share": 0.289,
+    "rca": 0.88,
+    "reldens": 52.21,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 52.21,
+    "y": 71.43,
+    "value": 0.88
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Lower Austria (AT12)",
+    "count": 83,
+    "share": 0.3859,
+    "rca": 1.17,
+    "reldens": 45.21,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 45.21,
+    "y": 46.43,
+    "value": 1.17
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Lower Austria (AT12)",
+    "count": 177,
+    "share": 0.3204,
+    "rca": 0.97,
+    "reldens": 33.34,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 33.34,
+    "y": 66.07,
+    "value": 0.97
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Lower Austria (AT12)",
+    "count": 78,
+    "share": 0.3042,
+    "rca": 0.92,
+    "reldens": 58.87,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 58.87,
+    "y": 59.82,
+    "value": 0.92
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Lower Austria (AT12)",
+    "count": 103,
+    "share": 0.1989,
+    "rca": 0.6,
+    "reldens": 33.88,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 33.88,
+    "y": 60.71,
+    "value": 0.6
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Lower Austria (AT12)",
+    "count": 3,
+    "share": 0.3219,
+    "rca": 0.98,
+    "reldens": 40.2,
+    "comp": 44.64,
+    "comp_TCI": 31.66,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 40.2,
+    "y": 44.64,
+    "value": 0.98
+  },
+  {
+    "domain": "Optics",
+    "geo": "Lower Austria (AT12)",
+    "count": 65,
+    "share": 0.3626,
+    "rca": 1.1,
+    "reldens": 38.43,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 38.43,
+    "y": 66.07,
+    "value": 1.1
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Lower Austria (AT12)",
+    "count": 15,
+    "share": 0.0415,
+    "rca": 0.13,
+    "reldens": 23.47,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 23.47,
+    "y": 63.39,
+    "value": 0.13
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Lower Austria (AT12)",
+    "count": 41,
+    "share": 0.2036,
+    "rca": 0.62,
+    "reldens": 53.9,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 53.9,
+    "y": 62.5,
+    "value": 0.62
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Lower Austria (AT12)",
+    "count": 191,
+    "share": 0.5459,
+    "rca": 1.66,
+    "reldens": 45.94,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 45.94,
+    "y": 35.71,
+    "value": 1.66
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Lower Austria (AT12)",
+    "count": 125,
+    "share": 0.2764,
+    "rca": 0.84,
+    "reldens": 49.92,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 49.92,
+    "y": 39.29,
+    "value": 0.84
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Lower Austria (AT12)",
+    "count": 22,
+    "share": 0.2112,
+    "rca": 0.64,
+    "reldens": 58.5,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 58.5,
+    "y": 46.43,
+    "value": 0.64
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Lower Austria (AT12)",
+    "count": 77,
+    "share": 0.4383,
+    "rca": 1.33,
+    "reldens": 50.73,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 50.73,
+    "y": 38.39,
+    "value": 1.33
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Lower Austria (AT12)",
+    "count": 14,
+    "share": 0.069,
+    "rca": 0.21,
+    "reldens": 36.47,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 36.47,
+    "y": 78.57,
+    "value": 0.21
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Lower Austria (AT12)",
+    "count": 56,
+    "share": 0.4631,
+    "rca": 1.41,
+    "reldens": 42.3,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 42.3,
+    "y": 33.04,
+    "value": 1.41
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Lower Austria (AT12)",
+    "count": 29,
+    "share": 0.2534,
+    "rca": 0.77,
+    "reldens": 35.88,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 35.88,
+    "y": 23.21,
+    "value": 0.77
+  },
+  {
+    "domain": "Transport",
+    "geo": "Lower Austria (AT12)",
+    "count": 244,
+    "share": 0.4929,
+    "rca": 1.5,
+    "reldens": 33.21,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 33.21,
+    "y": 86.61,
+    "value": 1.5
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,804 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 30,
+    "share": 0.2399,
+    "rca": 0.56,
+    "reldens": 56.38,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 56.38,
+    "y": 8.93,
+    "value": 0.56
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 68,
+    "share": 0.4341,
+    "rca": 1.01,
+    "reldens": 44.55,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 44.55,
+    "y": 55.36,
+    "value": 1.01
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 21,
+    "share": 0.4747,
+    "rca": 1.1,
+    "reldens": 48.71,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 48.71,
+    "y": 41.07,
+    "value": 1.1
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 35,
+    "share": 0.1164,
+    "rca": 0.27,
+    "reldens": 46.88,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 46.88,
+    "y": 51.79,
+    "value": 0.27
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 35,
+    "share": 0.092,
+    "rca": 0.21,
+    "reldens": 30.98,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 30.98,
+    "y": 50,
+    "value": 0.21
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 188,
+    "share": 0.6299,
+    "rca": 1.47,
+    "reldens": 53.21,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 53.21,
+    "y": 40.18,
+    "value": 1.47
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 104,
+    "share": 0.5645,
+    "rca": 1.31,
+    "reldens": 60.2,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 60.2,
+    "y": 10.71,
+    "value": 1.31
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 88,
+    "share": 0.1994,
+    "rca": 0.46,
+    "reldens": 48.89,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 48.89,
+    "y": 78.57,
+    "value": 0.46
+  },
+  {
+    "domain": "Control",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 83,
+    "share": 0.4137,
+    "rca": 0.96,
+    "reldens": 57.51,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 57.51,
+    "y": 50,
+    "value": 0.96
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 17,
+    "share": 0.0375,
+    "rca": 0.09,
+    "reldens": 23.93,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 23.93,
+    "y": 100,
+    "value": 0.09
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 323,
+    "share": 0.5917,
+    "rca": 1.38,
+    "reldens": 52.11,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 52.11,
+    "y": 90.18,
+    "value": 1.38
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 51,
+    "share": 0.2387,
+    "rca": 0.56,
+    "reldens": 62.29,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 62.29,
+    "y": 58.93,
+    "value": 0.56
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 63,
+    "share": 0.53,
+    "rca": 1.23,
+    "reldens": 54.35,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 54.35,
+    "y": 0,
+    "value": 1.23
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 54,
+    "share": 0.4463,
+    "rca": 1.04,
+    "reldens": 27.73,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 27.73,
+    "y": 13.39,
+    "value": 1.04
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 107,
+    "share": 1.0105,
+    "rca": 2.35,
+    "reldens": 56.31,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 56.31,
+    "y": 3.57,
+    "value": 2.35
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 166,
+    "share": 0.2719,
+    "rca": 0.63,
+    "reldens": 54.99,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 54.99,
+    "y": 57.14,
+    "value": 0.63
+  },
+  {
+    "domain": "Handling",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 190,
+    "share": 0.8279,
+    "rca": 1.93,
+    "reldens": 59.34,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 59.34,
+    "y": 44.64,
+    "value": 1.93
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 27,
+    "share": 0.3152,
+    "rca": 0.73,
+    "reldens": 28.78,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 28.78,
+    "y": 14.29,
+    "value": 0.73
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 229,
+    "share": 1.3694,
+    "rca": 3.19,
+    "reldens": 62.62,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 62.62,
+    "y": 44.64,
+    "value": 3.19
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 30,
+    "share": 0.1334,
+    "rca": 0.31,
+    "reldens": 54.66,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 54.66,
+    "y": 71.43,
+    "value": 0.31
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 85,
+    "share": 0.3952,
+    "rca": 0.92,
+    "reldens": 64.39,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 64.39,
+    "y": 46.43,
+    "value": 0.92
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 326,
+    "share": 0.5902,
+    "rca": 1.37,
+    "reldens": 41.51,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 41.51,
+    "y": 66.07,
+    "value": 1.37
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 207,
+    "share": 0.8073,
+    "rca": 1.88,
+    "reldens": 66.17,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 66.17,
+    "y": 59.82,
+    "value": 1.88
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 309,
+    "share": 0.5968,
+    "rca": 1.39,
+    "reldens": 44.93,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 44.93,
+    "y": 60.71,
+    "value": 1.39
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 7,
+    "share": 0.7511,
+    "rca": 1.75,
+    "reldens": 79.12,
+    "comp": 44.64,
+    "comp_TCI": 31.66,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 79.12,
+    "y": 44.64,
+    "value": 1.75
+  },
+  {
+    "domain": "Optics",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 84,
+    "share": 0.4685,
+    "rca": 1.09,
+    "reldens": 62.53,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 62.53,
+    "y": 66.07,
+    "value": 1.09
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 94,
+    "share": 0.2599,
+    "rca": 0.6,
+    "reldens": 26.85,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 26.85,
+    "y": 63.39,
+    "value": 0.6
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 67,
+    "share": 0.3328,
+    "rca": 0.77,
+    "reldens": 63.82,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 63.82,
+    "y": 62.5,
+    "value": 0.77
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 181,
+    "share": 0.5173,
+    "rca": 1.2,
+    "reldens": 47.16,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 47.16,
+    "y": 35.71,
+    "value": 1.2
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 105,
+    "share": 0.2322,
+    "rca": 0.54,
+    "reldens": 26,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 26,
+    "y": 39.29,
+    "value": 0.54
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 76,
+    "share": 0.7297,
+    "rca": 1.7,
+    "reldens": 70.47,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 70.47,
+    "y": 46.43,
+    "value": 1.7
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 189,
+    "share": 1.0758,
+    "rca": 2.5,
+    "reldens": 56.69,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 56.69,
+    "y": 38.39,
+    "value": 2.5
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 45,
+    "share": 0.2218,
+    "rca": 0.52,
+    "reldens": 50.44,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 50.44,
+    "y": 78.57,
+    "value": 0.52
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 48,
+    "share": 0.397,
+    "rca": 0.92,
+    "reldens": 53.99,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 53.99,
+    "y": 33.04,
+    "value": 0.92
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 37,
+    "share": 0.3233,
+    "rca": 0.75,
+    "reldens": 56.49,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 56.49,
+    "y": 23.21,
+    "value": 0.75
+  },
+  {
+    "domain": "Transport",
+    "geo": "Eastern Switzerland (CH05)",
+    "count": 236,
+    "share": 0.4768,
+    "rca": 1.11,
+    "reldens": 55.07,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 55.07,
+    "y": 86.61,
+    "value": 1.11
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

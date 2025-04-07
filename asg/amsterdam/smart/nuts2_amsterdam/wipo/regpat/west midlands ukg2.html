@@ -1,0 +1,753 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "West Midlands (UKG2)",
+    "count": 3,
+    "share": 0.024,
+    "rca": 0.51,
+    "reldens": 8.15,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 8.15,
+    "y": 8.93,
+    "value": 0.51
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "West Midlands (UKG2)",
+    "count": 3,
+    "share": 0.0192,
+    "rca": 0.41,
+    "reldens": 22.19,
+    "comp": 55.36,
+    "comp_TCI": 66.98,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 22.19,
+    "y": 55.36,
+    "value": 0.41
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "West Midlands (UKG2)",
+    "count": 8,
+    "share": 0.1808,
+    "rca": 3.83,
+    "reldens": 20.87,
+    "comp": 41.07,
+    "comp_TCI": 62.38,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 20.87,
+    "y": 41.07,
+    "value": 3.83
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "West Midlands (UKG2)",
+    "count": 21,
+    "share": 0.0698,
+    "rca": 1.48,
+    "reldens": 40.46,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 40.46,
+    "y": 51.79,
+    "value": 1.48
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "West Midlands (UKG2)",
+    "count": 3,
+    "share": 0.0079,
+    "rca": 0.17,
+    "reldens": 8.7,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 8.7,
+    "y": 50,
+    "value": 0.17
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "West Midlands (UKG2)",
+    "count": 6,
+    "share": 0.0201,
+    "rca": 0.43,
+    "reldens": 32.92,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 32.92,
+    "y": 40.18,
+    "value": 0.43
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "West Midlands (UKG2)",
+    "count": 27,
+    "share": 0.1466,
+    "rca": 3.1,
+    "reldens": 42.09,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 42.09,
+    "y": 10.71,
+    "value": 3.1
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "West Midlands (UKG2)",
+    "count": 11,
+    "share": 0.0249,
+    "rca": 0.53,
+    "reldens": 35.08,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 35.08,
+    "y": 78.57,
+    "value": 0.53
+  },
+  {
+    "domain": "Control",
+    "geo": "West Midlands (UKG2)",
+    "count": 21,
+    "share": 0.1047,
+    "rca": 2.22,
+    "reldens": 30.45,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 30.45,
+    "y": 50,
+    "value": 2.22
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "West Midlands (UKG2)",
+    "count": 1,
+    "share": 0.0022,
+    "rca": 0.05,
+    "reldens": 33.66,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 33.66,
+    "y": 100,
+    "value": 0.05
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "West Midlands (UKG2)",
+    "count": 94,
+    "share": 0.1722,
+    "rca": 3.65,
+    "reldens": 43.5,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 43.5,
+    "y": 90.18,
+    "value": 3.65
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "West Midlands (UKG2)",
+    "count": 2,
+    "share": 0.0094,
+    "rca": 0.2,
+    "reldens": 52.42,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 52.42,
+    "y": 58.93,
+    "value": 0.2
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "West Midlands (UKG2)",
+    "count": 5,
+    "share": 0.0421,
+    "rca": 0.89,
+    "reldens": 35.59,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 35.59,
+    "y": 0,
+    "value": 0.89
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "West Midlands (UKG2)",
+    "count": 2,
+    "share": 0.0165,
+    "rca": 0.35,
+    "reldens": 18.56,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 18.56,
+    "y": 13.39,
+    "value": 0.35
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "West Midlands (UKG2)",
+    "count": 16,
+    "share": 0.1511,
+    "rca": 3.2,
+    "reldens": 30.85,
+    "comp": 3.57,
+    "comp_TCI": 25.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 30.85,
+    "y": 3.57,
+    "value": 3.2
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "West Midlands (UKG2)",
+    "count": 45,
+    "share": 0.0737,
+    "rca": 1.56,
+    "reldens": 37.38,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 37.38,
+    "y": 57.14,
+    "value": 1.56
+  },
+  {
+    "domain": "Handling",
+    "geo": "West Midlands (UKG2)",
+    "count": 10,
+    "share": 0.0436,
+    "rca": 0.92,
+    "reldens": 46.11,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 46.11,
+    "y": 44.64,
+    "value": 0.92
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "West Midlands (UKG2)",
+    "count": 7,
+    "share": 0.0817,
+    "rca": 1.73,
+    "reldens": 27.46,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 27.46,
+    "y": 14.29,
+    "value": 1.73
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "West Midlands (UKG2)",
+    "count": 6,
+    "share": 0.0359,
+    "rca": 0.76,
+    "reldens": 45.74,
+    "comp": 44.64,
+    "comp_TCI": 11.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 45.74,
+    "y": 44.64,
+    "value": 0.76
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "West Midlands (UKG2)",
+    "count": 14,
+    "share": 0.0622,
+    "rca": 1.32,
+    "reldens": 39.8,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 39.8,
+    "y": 71.43,
+    "value": 1.32
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "West Midlands (UKG2)",
+    "count": 21,
+    "share": 0.0976,
+    "rca": 2.07,
+    "reldens": 37.87,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 37.87,
+    "y": 46.43,
+    "value": 2.07
+  },
+  {
+    "domain": "Measurement",
+    "geo": "West Midlands (UKG2)",
+    "count": 26,
+    "share": 0.0471,
+    "rca": 1,
+    "reldens": 24.42,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 24.42,
+    "y": 66.07,
+    "value": 1
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "West Midlands (UKG2)",
+    "count": 16,
+    "share": 0.0624,
+    "rca": 1.32,
+    "reldens": 33.48,
+    "comp": 59.82,
+    "comp_TCI": 16.39,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 33.48,
+    "y": 59.82,
+    "value": 1.32
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "West Midlands (UKG2)",
+    "count": 9,
+    "share": 0.0174,
+    "rca": 0.37,
+    "reldens": 26.82,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 26.82,
+    "y": 60.71,
+    "value": 0.37
+  },
+  {
+    "domain": "Optics",
+    "geo": "West Midlands (UKG2)",
+    "count": 3,
+    "share": 0.0167,
+    "rca": 0.35,
+    "reldens": 29.06,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 29.06,
+    "y": 66.07,
+    "value": 0.35
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "West Midlands (UKG2)",
+    "count": 1,
+    "share": 0.0028,
+    "rca": 0.06,
+    "reldens": 29.76,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 29.76,
+    "y": 63.39,
+    "value": 0.06
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "West Midlands (UKG2)",
+    "count": 3,
+    "share": 0.0149,
+    "rca": 0.32,
+    "reldens": 41.35,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 41.35,
+    "y": 62.5,
+    "value": 0.32
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "West Midlands (UKG2)",
+    "count": 13,
+    "share": 0.0372,
+    "rca": 0.79,
+    "reldens": 47.93,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 47.93,
+    "y": 35.71,
+    "value": 0.79
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "West Midlands (UKG2)",
+    "count": 1,
+    "share": 0.0022,
+    "rca": 0.05,
+    "reldens": 7.93,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 7.93,
+    "y": 39.29,
+    "value": 0.05
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "West Midlands (UKG2)",
+    "count": 5,
+    "share": 0.0285,
+    "rca": 0.6,
+    "reldens": 47.09,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 47.09,
+    "y": 38.39,
+    "value": 0.6
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "West Midlands (UKG2)",
+    "count": 11,
+    "share": 0.091,
+    "rca": 1.93,
+    "reldens": 31.41,
+    "comp": 33.04,
+    "comp_TCI": 11.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 31.41,
+    "y": 33.04,
+    "value": 1.93
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "West Midlands (UKG2)",
+    "count": 4,
+    "share": 0.035,
+    "rca": 0.74,
+    "reldens": 45.22,
+    "comp": 23.21,
+    "comp_TCI": 16.05,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 45.22,
+    "y": 23.21,
+    "value": 0.74
+  },
+  {
+    "domain": "Transport",
+    "geo": "West Midlands (UKG2)",
+    "count": 22,
+    "share": 0.0444,
+    "rca": 0.94,
+    "reldens": 57.08,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 57.08,
+    "y": 86.61,
+    "value": 0.94
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

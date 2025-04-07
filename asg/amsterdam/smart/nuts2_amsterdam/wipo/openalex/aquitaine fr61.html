@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Aquitaine (FR61)",
+    "count": 7028,
+    "share": 0.4824,
+    "rca": 0.9,
+    "reldens": 49.59,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 49.59,
+    "y": 81.25,
+    "value": 0.9
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Aquitaine (FR61)",
+    "count": 797,
+    "share": 0.4889,
+    "rca": 0.91,
+    "reldens": 75.1,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 75.1,
+    "y": 35,
+    "value": 0.91
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Aquitaine (FR61)",
+    "count": 115,
+    "share": 0.5289,
+    "rca": 0.99,
+    "reldens": 33.86,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 33.86,
+    "y": 45,
+    "value": 0.99
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Aquitaine (FR61)",
+    "count": 1458,
+    "share": 0.6913,
+    "rca": 1.29,
+    "reldens": 66.12,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 66.12,
+    "y": 72.5,
+    "value": 1.29
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Aquitaine (FR61)",
+    "count": 17493,
+    "share": 0.5757,
+    "rca": 1.08,
+    "reldens": 36.34,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 36.34,
+    "y": 96.25,
+    "value": 1.08
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Aquitaine (FR61)",
+    "count": 585,
+    "share": 0.5289,
+    "rca": 0.99,
+    "reldens": 58.76,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 58.76,
+    "y": 25,
+    "value": 0.99
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Aquitaine (FR61)",
+    "count": 2000,
+    "share": 0.4367,
+    "rca": 0.82,
+    "reldens": 28.52,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 28.52,
+    "y": 30,
+    "value": 0.82
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Aquitaine (FR61)",
+    "count": 4081,
+    "share": 0.5799,
+    "rca": 1.08,
+    "reldens": 52.96,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 52.96,
+    "y": 35,
+    "value": 1.08
+  },
+  {
+    "domain": "Control",
+    "geo": "Aquitaine (FR61)",
+    "count": 164,
+    "share": 1.1097,
+    "rca": 2.07,
+    "reldens": 47.41,
+    "comp": 37.5,
+    "comp_TCI": 96.68,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 47.41,
+    "y": 37.5,
+    "value": 2.07
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Aquitaine (FR61)",
+    "count": 2155,
+    "share": 0.6854,
+    "rca": 1.28,
+    "reldens": 53.34,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 53.34,
+    "y": 37.5,
+    "value": 1.28
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Aquitaine (FR61)",
+    "count": 115,
+    "share": 0.2027,
+    "rca": 0.38,
+    "reldens": 63.44,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 63.44,
+    "y": 0,
+    "value": 0.38
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Aquitaine (FR61)",
+    "count": 285,
+    "share": 0.6173,
+    "rca": 1.15,
+    "reldens": 47.46,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 47.46,
+    "y": 40,
+    "value": 1.15
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Aquitaine (FR61)",
+    "count": 4820,
+    "share": 0.5226,
+    "rca": 0.98,
+    "reldens": 42.5,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 42.5,
+    "y": 32.5,
+    "value": 0.98
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Aquitaine (FR61)",
+    "count": 3080,
+    "share": 0.6216,
+    "rca": 1.16,
+    "reldens": 50.45,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 50.45,
+    "y": 27.5,
+    "value": 1.16
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Aquitaine (FR61)",
+    "count": 4486,
+    "share": 0.4859,
+    "rca": 0.91,
+    "reldens": 36.18,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 36.18,
+    "y": 32.5,
+    "value": 0.91
+  },
+  {
+    "domain": "Handling",
+    "geo": "Aquitaine (FR61)",
+    "count": 366,
+    "share": 0.4903,
+    "rca": 0.92,
+    "reldens": 52.44,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 52.44,
+    "y": 10,
+    "value": 0.92
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Aquitaine (FR61)",
+    "count": 798,
+    "share": 0.5791,
+    "rca": 1.08,
+    "reldens": 55.28,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 55.28,
+    "y": 12.5,
+    "value": 1.08
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Aquitaine (FR61)",
+    "count": 37,
+    "share": 0.2821,
+    "rca": 0.53,
+    "reldens": 38.8,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 38.8,
+    "y": 20,
+    "value": 0.53
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Aquitaine (FR61)",
+    "count": 1856,
+    "share": 0.937,
+    "rca": 1.75,
+    "reldens": 65.17,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 65.17,
+    "y": 55,
+    "value": 1.75
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Aquitaine (FR61)",
+    "count": 2030,
+    "share": 0.5145,
+    "rca": 0.96,
+    "reldens": 47.73,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 47.73,
+    "y": 50,
+    "value": 0.96
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Aquitaine (FR61)",
+    "count": 400,
+    "share": 0.4435,
+    "rca": 0.83,
+    "reldens": 30.35,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 30.35,
+    "y": 12.5,
+    "value": 0.83
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Aquitaine (FR61)",
+    "count": 19517,
+    "share": 0.4473,
+    "rca": 0.84,
+    "reldens": 49.43,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 49.43,
+    "y": 57.5,
+    "value": 0.84
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Aquitaine (FR61)",
+    "count": 6934,
+    "share": 0.7248,
+    "rca": 1.35,
+    "reldens": 61.34,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 61.34,
+    "y": 87.5,
+    "value": 1.35
+  },
+  {
+    "domain": "Optics",
+    "geo": "Aquitaine (FR61)",
+    "count": 3195,
+    "share": 0.5685,
+    "rca": 1.06,
+    "reldens": 57.15,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 57.15,
+    "y": 100,
+    "value": 1.06
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Aquitaine (FR61)",
+    "count": 946,
+    "share": 0.7059,
+    "rca": 1.32,
+    "reldens": 76.46,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 76.46,
+    "y": 43.75,
+    "value": 1.32
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Aquitaine (FR61)",
+    "count": 2518,
+    "share": 0.5092,
+    "rca": 0.95,
+    "reldens": 46.91,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 46.91,
+    "y": 60,
+    "value": 0.95
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Aquitaine (FR61)",
+    "count": 738,
+    "share": 0.662,
+    "rca": 1.24,
+    "reldens": 75.41,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 75.41,
+    "y": 67.5,
+    "value": 1.24
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Aquitaine (FR61)",
+    "count": 153,
+    "share": 0.7766,
+    "rca": 1.45,
+    "reldens": 39.3,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 39.3,
+    "y": 31.25,
+    "value": 1.45
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Aquitaine (FR61)",
+    "count": 55,
+    "share": 0.4573,
+    "rca": 0.85,
+    "reldens": 88.5,
+    "comp": 40,
+    "comp_TCI": 75.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 88.5,
+    "y": 40,
+    "value": 0.85
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Aquitaine (FR61)",
+    "count": 661,
+    "share": 0.7597,
+    "rca": 1.42,
+    "reldens": 50.2,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 50.2,
+    "y": 27.5,
+    "value": 1.42
+  },
+  {
+    "domain": "Transport",
+    "geo": "Aquitaine (FR61)",
+    "count": 259,
+    "share": 0.411,
+    "rca": 0.77,
+    "reldens": 28.23,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 28.23,
+    "y": 15,
+    "value": 0.77
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

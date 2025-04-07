@@ -1,0 +1,447 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Biotechnology",
+    "geo": "Leipzig (DED5)",
+    "count": 10.58,
+    "share": 0.034,
+    "rca": 0.55,
+    "reldens": 8.23,
+    "comp": 28.95,
+    "comp_TCI": 93.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 8.23,
+    "y": 28.95,
+    "value": 0.55
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Leipzig (DED5)",
+    "count": 5.78,
+    "share": 0.0788,
+    "rca": 1.28,
+    "reldens": 8.05,
+    "comp": 73.68,
+    "comp_TCI": 70.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 8.05,
+    "y": 73.68,
+    "value": 1.28
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Leipzig (DED5)",
+    "count": 5.78,
+    "share": 0.0378,
+    "rca": 0.61,
+    "reldens": 18.49,
+    "comp": 57.89,
+    "comp_TCI": 23.83,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 18.49,
+    "y": 57.89,
+    "value": 0.61
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Leipzig (DED5)",
+    "count": 70.46,
+    "share": 0.0445,
+    "rca": 0.72,
+    "reldens": 17.86,
+    "comp": 47.37,
+    "comp_TCI": 9.99,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 17.86,
+    "y": 47.37,
+    "value": 0.72
+  },
+  {
+    "domain": "Control",
+    "geo": "Leipzig (DED5)",
+    "count": 0.59,
+    "share": 0.0074,
+    "rca": 0.12,
+    "reldens": 15.83,
+    "comp": 0,
+    "comp_TCI": 51.55,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 15.83,
+    "y": 0,
+    "value": 0.12
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Leipzig (DED5)",
+    "count": 1.22,
+    "share": 0.0088,
+    "rca": 0.14,
+    "reldens": 11.11,
+    "comp": 57.89,
+    "comp_TCI": 28.77,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 11.11,
+    "y": 57.89,
+    "value": 0.14
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Leipzig (DED5)",
+    "count": 0.25,
+    "share": 0.001,
+    "rca": 0.02,
+    "reldens": 14.11,
+    "comp": 42.11,
+    "comp_TCI": 70.84,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 14.11,
+    "y": 42.11,
+    "value": 0.02
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Leipzig (DED5)",
+    "count": 5.78,
+    "share": 0.0177,
+    "rca": 0.29,
+    "reldens": 13.3,
+    "comp": 100,
+    "comp_TCI": 88.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 13.3,
+    "y": 100,
+    "value": 0.29
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Leipzig (DED5)",
+    "count": 27.09,
+    "share": 0.0321,
+    "rca": 0.52,
+    "reldens": 17.83,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 17.83,
+    "y": 68.42,
+    "value": 0.52
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Leipzig (DED5)",
+    "count": 12,
+    "share": 0.0272,
+    "rca": 0.44,
+    "reldens": 13.03,
+    "comp": 36.84,
+    "comp_TCI": 77.03,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 13.03,
+    "y": 36.84,
+    "value": 0.44
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Leipzig (DED5)",
+    "count": 10.58,
+    "share": 1.1498,
+    "rca": 18.63,
+    "reldens": 11.15,
+    "comp": 21.05,
+    "comp_TCI": 79.7,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 11.15,
+    "y": 21.05,
+    "value": 18.63
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Leipzig (DED5)",
+    "count": 69.82,
+    "share": 0.1241,
+    "rca": 2.01,
+    "reldens": 6.59,
+    "comp": 55.26,
+    "comp_TCI": 13.33,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 6.59,
+    "y": 55.26,
+    "value": 2.01
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Leipzig (DED5)",
+    "count": 10.58,
+    "share": 0.0433,
+    "rca": 0.7,
+    "reldens": 8.11,
+    "comp": 52.63,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 8.11,
+    "y": 52.63,
+    "value": 0.7
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Leipzig (DED5)",
+    "count": 3,
+    "share": 0.0389,
+    "rca": 0.63,
+    "reldens": 13.1,
+    "comp": 63.16,
+    "comp_TCI": 29.03,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 13.1,
+    "y": 63.16,
+    "value": 0.63
+  },
+  {
+    "domain": "Transport",
+    "geo": "Leipzig (DED5)",
+    "count": 189.87,
+    "share": 0.4023,
+    "rca": 6.52,
+    "reldens": 9.19,
+    "comp": 68.42,
+    "comp_TCI": 45.37,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 9.19,
+    "y": 68.42,
+    "value": 6.52
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

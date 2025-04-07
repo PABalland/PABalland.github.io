@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 14195,
+    "share": 0.9744,
+    "rca": 0.89,
+    "reldens": 46.91,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 46.91,
+    "y": 81.25,
+    "value": 0.89
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 1447,
+    "share": 0.8876,
+    "rca": 0.81,
+    "reldens": 91.92,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 91.92,
+    "y": 35,
+    "value": 0.81
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 185,
+    "share": 0.8508,
+    "rca": 0.78,
+    "reldens": 79.42,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 79.42,
+    "y": 45,
+    "value": 0.78
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 1098,
+    "share": 0.5206,
+    "rca": 0.48,
+    "reldens": 22.46,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 22.46,
+    "y": 72.5,
+    "value": 0.48
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 31014,
+    "share": 1.0207,
+    "rca": 0.93,
+    "reldens": 41.82,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 41.82,
+    "y": 96.25,
+    "value": 0.93
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 1648,
+    "share": 1.4899,
+    "rca": 1.36,
+    "reldens": 43.3,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 43.3,
+    "y": 25,
+    "value": 1.36
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 8743,
+    "share": 1.909,
+    "rca": 1.75,
+    "reldens": 68.17,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 68.17,
+    "y": 30,
+    "value": 1.75
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 8058,
+    "share": 1.1451,
+    "rca": 1.05,
+    "reldens": 54.51,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 54.51,
+    "y": 35,
+    "value": 1.05
+  },
+  {
+    "domain": "Control",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 265,
+    "share": 1.7931,
+    "rca": 1.64,
+    "reldens": 81.94,
+    "comp": 37.5,
+    "comp_TCI": 96.68,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 81.94,
+    "y": 37.5,
+    "value": 1.64
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 3480,
+    "share": 1.1068,
+    "rca": 1.01,
+    "reldens": 83.52,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 83.52,
+    "y": 37.5,
+    "value": 1.01
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 744,
+    "share": 1.3114,
+    "rca": 1.2,
+    "reldens": 82.69,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 82.69,
+    "y": 0,
+    "value": 1.2
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 863,
+    "share": 1.8691,
+    "rca": 1.71,
+    "reldens": 84.67,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 84.67,
+    "y": 40,
+    "value": 1.71
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 9578,
+    "share": 1.0386,
+    "rca": 0.95,
+    "reldens": 54.95,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 54.95,
+    "y": 32.5,
+    "value": 0.95
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 2546,
+    "share": 0.5138,
+    "rca": 0.47,
+    "reldens": 30.2,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 30.2,
+    "y": 27.5,
+    "value": 0.47
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 10220,
+    "share": 1.1069,
+    "rca": 1.01,
+    "reldens": 50.48,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 50.48,
+    "y": 32.5,
+    "value": 1.01
+  },
+  {
+    "domain": "Handling",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 822,
+    "share": 1.1011,
+    "rca": 1.01,
+    "reldens": 60.63,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 60.63,
+    "y": 10,
+    "value": 1.01
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 1450,
+    "share": 1.0523,
+    "rca": 0.96,
+    "reldens": 91.85,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 91.85,
+    "y": 12.5,
+    "value": 0.96
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 37,
+    "share": 0.2821,
+    "rca": 0.26,
+    "reldens": 60.78,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 60.78,
+    "y": 20,
+    "value": 0.26
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 1118,
+    "share": 0.5644,
+    "rca": 0.52,
+    "reldens": 21.61,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 21.61,
+    "y": 55,
+    "value": 0.52
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 2840,
+    "share": 0.7198,
+    "rca": 0.66,
+    "reldens": 49.52,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 49.52,
+    "y": 50,
+    "value": 0.66
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 1074,
+    "share": 1.1908,
+    "rca": 1.09,
+    "reldens": 56.46,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 56.46,
+    "y": 12.5,
+    "value": 1.09
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 55405,
+    "share": 1.2699,
+    "rca": 1.16,
+    "reldens": 31.19,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 31.19,
+    "y": 57.5,
+    "value": 1.16
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 7875,
+    "share": 0.8232,
+    "rca": 0.75,
+    "reldens": 42.48,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 42.48,
+    "y": 87.5,
+    "value": 0.75
+  },
+  {
+    "domain": "Optics",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 6649,
+    "share": 1.1831,
+    "rca": 1.08,
+    "reldens": 62.49,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 62.49,
+    "y": 100,
+    "value": 1.08
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 540,
+    "share": 0.4029,
+    "rca": 0.37,
+    "reldens": 13.58,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 13.58,
+    "y": 43.75,
+    "value": 0.37
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 5649,
+    "share": 1.1425,
+    "rca": 1.05,
+    "reldens": 43.36,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 43.36,
+    "y": 60,
+    "value": 1.05
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 1247,
+    "share": 1.1186,
+    "rca": 1.02,
+    "reldens": 37.95,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 37.95,
+    "y": 67.5,
+    "value": 1.02
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 124,
+    "share": 0.6294,
+    "rca": 0.58,
+    "reldens": 32.15,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 32.15,
+    "y": 31.25,
+    "value": 0.58
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 199,
+    "share": 1.6546,
+    "rca": 1.51,
+    "reldens": 85.67,
+    "comp": 40,
+    "comp_TCI": 75.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 85.67,
+    "y": 40,
+    "value": 1.51
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 1009,
+    "share": 1.1596,
+    "rca": 1.06,
+    "reldens": 76.72,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 76.72,
+    "y": 27.5,
+    "value": 1.06
+  },
+  {
+    "domain": "Transport",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 1710,
+    "share": 2.7132,
+    "rca": 2.48,
+    "reldens": 79.79,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 79.79,
+    "y": 15,
+    "value": 2.48
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

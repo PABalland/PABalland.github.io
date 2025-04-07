@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Tirol (AT33)",
+    "count": 4015,
+    "share": 0.2756,
+    "rca": 1.25,
+    "reldens": 64.97,
+    "comp": 81.25,
+    "comp_TCI": 1.7,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 64.97,
+    "y": 81.25,
+    "value": 1.25
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Tirol (AT33)",
+    "count": 393,
+    "share": 0.2411,
+    "rca": 1.1,
+    "reldens": 63.33,
+    "comp": 35,
+    "comp_TCI": 71.67,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 63.33,
+    "y": 35,
+    "value": 1.1
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Tirol (AT33)",
+    "count": 34,
+    "share": 0.1564,
+    "rca": 0.71,
+    "reldens": 85.89,
+    "comp": 45,
+    "comp_TCI": 35.46,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 85.89,
+    "y": 45,
+    "value": 0.71
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Tirol (AT33)",
+    "count": 344,
+    "share": 0.1631,
+    "rca": 0.74,
+    "reldens": 10.85,
+    "comp": 72.5,
+    "comp_TCI": 91.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 10.85,
+    "y": 72.5,
+    "value": 0.74
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Tirol (AT33)",
+    "count": 7399,
+    "share": 0.2435,
+    "rca": 1.11,
+    "reldens": 50.67,
+    "comp": 96.25,
+    "comp_TCI": 13.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 50.67,
+    "y": 96.25,
+    "value": 1.11
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Tirol (AT33)",
+    "count": 92,
+    "share": 0.0832,
+    "rca": 0.38,
+    "reldens": 6.94,
+    "comp": 25,
+    "comp_TCI": 92.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 6.94,
+    "y": 25,
+    "value": 0.38
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Tirol (AT33)",
+    "count": 983,
+    "share": 0.2146,
+    "rca": 0.98,
+    "reldens": 8.97,
+    "comp": 30,
+    "comp_TCI": 85.69,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 8.97,
+    "y": 30,
+    "value": 0.98
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Tirol (AT33)",
+    "count": 1589,
+    "share": 0.2258,
+    "rca": 1.03,
+    "reldens": 33.67,
+    "comp": 35,
+    "comp_TCI": 83.84,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 33.67,
+    "y": 35,
+    "value": 1.03
+  },
+  {
+    "domain": "Control",
+    "geo": "Tirol (AT33)",
+    "count": 8,
+    "share": 0.0541,
+    "rca": 0.25,
+    "reldens": 6.95,
+    "comp": 37.5,
+    "comp_TCI": 96.68,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 6.95,
+    "y": 37.5,
+    "value": 0.25
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Tirol (AT33)",
+    "count": 269,
+    "share": 0.0856,
+    "rca": 0.39,
+    "reldens": 44.28,
+    "comp": 37.5,
+    "comp_TCI": 84.7,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 44.28,
+    "y": 37.5,
+    "value": 0.39
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Tirol (AT33)",
+    "count": 37,
+    "share": 0.0652,
+    "rca": 0.3,
+    "reldens": 5.58,
+    "comp": 0,
+    "comp_TCI": 87.44,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 5.58,
+    "y": 0,
+    "value": 0.3
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Tirol (AT33)",
+    "count": 25,
+    "share": 0.0542,
+    "rca": 0.25,
+    "reldens": 3.73,
+    "comp": 40,
+    "comp_TCI": 92.55,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 3.73,
+    "y": 40,
+    "value": 0.25
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Tirol (AT33)",
+    "count": 1804,
+    "share": 0.1956,
+    "rca": 0.89,
+    "reldens": 16.95,
+    "comp": 32.5,
+    "comp_TCI": 72.31,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 16.95,
+    "y": 32.5,
+    "value": 0.89
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Tirol (AT33)",
+    "count": 835,
+    "share": 0.1685,
+    "rca": 0.77,
+    "reldens": 65.03,
+    "comp": 27.5,
+    "comp_TCI": 53.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 65.03,
+    "y": 27.5,
+    "value": 0.77
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Tirol (AT33)",
+    "count": 2029,
+    "share": 0.2198,
+    "rca": 1,
+    "reldens": 18.74,
+    "comp": 32.5,
+    "comp_TCI": 63.48,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 18.74,
+    "y": 32.5,
+    "value": 1
+  },
+  {
+    "domain": "Handling",
+    "geo": "Tirol (AT33)",
+    "count": 129,
+    "share": 0.1728,
+    "rca": 0.79,
+    "reldens": 14.37,
+    "comp": 10,
+    "comp_TCI": 99.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 14.37,
+    "y": 10,
+    "value": 0.79
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Tirol (AT33)",
+    "count": 224,
+    "share": 0.1626,
+    "rca": 0.74,
+    "reldens": 45.15,
+    "comp": 12.5,
+    "comp_TCI": 91.32,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 45.15,
+    "y": 12.5,
+    "value": 0.74
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Tirol (AT33)",
+    "count": 10,
+    "share": 0.0762,
+    "rca": 0.35,
+    "reldens": 1.56,
+    "comp": 20,
+    "comp_TCI": 98.44,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 1.56,
+    "y": 20,
+    "value": 0.35
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Tirol (AT33)",
+    "count": 356,
+    "share": 0.1797,
+    "rca": 0.82,
+    "reldens": 28.95,
+    "comp": 55,
+    "comp_TCI": 95.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 28.95,
+    "y": 55,
+    "value": 0.82
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Tirol (AT33)",
+    "count": 503,
+    "share": 0.1275,
+    "rca": 0.58,
+    "reldens": 9.33,
+    "comp": 50,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 9.33,
+    "y": 50,
+    "value": 0.58
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Tirol (AT33)",
+    "count": 101,
+    "share": 0.112,
+    "rca": 0.51,
+    "reldens": 4.42,
+    "comp": 12.5,
+    "comp_TCI": 98.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 4.42,
+    "y": 12.5,
+    "value": 0.51
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Tirol (AT33)",
+    "count": 10870,
+    "share": 0.2492,
+    "rca": 1.13,
+    "reldens": 62.66,
+    "comp": 57.5,
+    "comp_TCI": 4.29,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 62.66,
+    "y": 57.5,
+    "value": 1.13
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Tirol (AT33)",
+    "count": 1575,
+    "share": 0.1646,
+    "rca": 0.75,
+    "reldens": 22.01,
+    "comp": 87.5,
+    "comp_TCI": 96.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 22.01,
+    "y": 87.5,
+    "value": 0.75
+  },
+  {
+    "domain": "Optics",
+    "geo": "Tirol (AT33)",
+    "count": 1398,
+    "share": 0.2488,
+    "rca": 1.13,
+    "reldens": 31.13,
+    "comp": 100,
+    "comp_TCI": 75.13,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 31.13,
+    "y": 100,
+    "value": 1.13
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Tirol (AT33)",
+    "count": 333,
+    "share": 0.2485,
+    "rca": 1.13,
+    "reldens": 33.25,
+    "comp": 43.75,
+    "comp_TCI": 73.55,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 33.25,
+    "y": 43.75,
+    "value": 1.13
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Tirol (AT33)",
+    "count": 1066,
+    "share": 0.2156,
+    "rca": 0.98,
+    "reldens": 82.46,
+    "comp": 60,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 82.46,
+    "y": 60,
+    "value": 0.98
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Tirol (AT33)",
+    "count": 85,
+    "share": 0.0762,
+    "rca": 0.35,
+    "reldens": 20.8,
+    "comp": 67.5,
+    "comp_TCI": 91.66,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 20.8,
+    "y": 67.5,
+    "value": 0.35
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Tirol (AT33)",
+    "count": 8,
+    "share": 0.0406,
+    "rca": 0.18,
+    "reldens": 0.94,
+    "comp": 31.25,
+    "comp_TCI": 97.83,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 0.94,
+    "y": 31.25,
+    "value": 0.18
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Tirol (AT33)",
+    "count": 1,
+    "share": 0.0083,
+    "rca": 0.04,
+    "reldens": 31.93,
+    "comp": 40,
+    "comp_TCI": 75.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 31.93,
+    "y": 40,
+    "value": 0.04
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Tirol (AT33)",
+    "count": 74,
+    "share": 0.085,
+    "rca": 0.39,
+    "reldens": 5.08,
+    "comp": 27.5,
+    "comp_TCI": 95.11,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 5.08,
+    "y": 27.5,
+    "value": 0.39
+  },
+  {
+    "domain": "Transport",
+    "geo": "Tirol (AT33)",
+    "count": 46,
+    "share": 0.073,
+    "rca": 0.33,
+    "reldens": 17.93,
+    "comp": 15,
+    "comp_TCI": 91.76,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 17.93,
+    "y": 15,
+    "value": 0.33
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

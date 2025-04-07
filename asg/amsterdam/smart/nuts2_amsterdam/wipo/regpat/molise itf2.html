@@ -1,0 +1,651 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Molise (ITF2)",
+    "count": 10,
+    "share": 0.08,
+    "rca": 5.52,
+    "reldens": 72.24,
+    "comp": 8.93,
+    "comp_TCI": 33.18,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 72.24,
+    "y": 8.93,
+    "value": 5.52
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Molise (ITF2)",
+    "count": 5,
+    "share": 0.0166,
+    "rca": 1.15,
+    "reldens": 6.2,
+    "comp": 51.79,
+    "comp_TCI": 6.1,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 6.2,
+    "y": 51.79,
+    "value": 1.15
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Molise (ITF2)",
+    "count": 22,
+    "share": 0.0578,
+    "rca": 3.99,
+    "reldens": 65.77,
+    "comp": 50,
+    "comp_TCI": 32.41,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 65.77,
+    "y": 50,
+    "value": 3.99
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Molise (ITF2)",
+    "count": 3,
+    "share": 0.01,
+    "rca": 0.69,
+    "reldens": 16.24,
+    "comp": 40.18,
+    "comp_TCI": 12.17,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 16.24,
+    "y": 40.18,
+    "value": 0.69
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0054,
+    "rca": 0.37,
+    "reldens": 11.27,
+    "comp": 10.71,
+    "comp_TCI": 16.24,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 11.27,
+    "y": 10.71,
+    "value": 0.37
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Molise (ITF2)",
+    "count": 2,
+    "share": 0.0045,
+    "rca": 0.31,
+    "reldens": 8.34,
+    "comp": 78.57,
+    "comp_TCI": 80.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 8.34,
+    "y": 78.57,
+    "value": 0.31
+  },
+  {
+    "domain": "Control",
+    "geo": "Molise (ITF2)",
+    "count": 2,
+    "share": 0.01,
+    "rca": 0.69,
+    "reldens": 9.05,
+    "comp": 50,
+    "comp_TCI": 46.94,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 9.05,
+    "y": 50,
+    "value": 0.69
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0018,
+    "rca": 0.13,
+    "reldens": 6.83,
+    "comp": 90.18,
+    "comp_TCI": 27.8,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 6.83,
+    "y": 90.18,
+    "value": 0.13
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Molise (ITF2)",
+    "count": 2,
+    "share": 0.0094,
+    "rca": 0.65,
+    "reldens": 3.71,
+    "comp": 58.93,
+    "comp_TCI": 15.22,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 3.71,
+    "y": 58.93,
+    "value": 0.65
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0084,
+    "rca": 0.58,
+    "reldens": 8.36,
+    "comp": 0,
+    "comp_TCI": 14.89,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 8.36,
+    "y": 0,
+    "value": 0.58
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0083,
+    "rca": 0.57,
+    "reldens": 50.5,
+    "comp": 13.39,
+    "comp_TCI": 13.08,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 50.5,
+    "y": 13.39,
+    "value": 0.57
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Molise (ITF2)",
+    "count": 3,
+    "share": 0.0049,
+    "rca": 0.34,
+    "reldens": 10.13,
+    "comp": 57.14,
+    "comp_TCI": 14.35,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 10.13,
+    "y": 57.14,
+    "value": 0.34
+  },
+  {
+    "domain": "Handling",
+    "geo": "Molise (ITF2)",
+    "count": 2,
+    "share": 0.0087,
+    "rca": 0.6,
+    "reldens": 5.71,
+    "comp": 44.64,
+    "comp_TCI": 12.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 5.71,
+    "y": 44.64,
+    "value": 0.6
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0117,
+    "rca": 0.81,
+    "reldens": 5.03,
+    "comp": 14.29,
+    "comp_TCI": 52.23,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 5.03,
+    "y": 14.29,
+    "value": 0.81
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0044,
+    "rca": 0.31,
+    "reldens": 25.13,
+    "comp": 71.43,
+    "comp_TCI": 0.65,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 25.13,
+    "y": 71.43,
+    "value": 0.31
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0046,
+    "rca": 0.32,
+    "reldens": 8.36,
+    "comp": 46.43,
+    "comp_TCI": 7.3,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 8.36,
+    "y": 46.43,
+    "value": 0.32
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Molise (ITF2)",
+    "count": 11,
+    "share": 0.0199,
+    "rca": 1.37,
+    "reldens": 30.51,
+    "comp": 66.07,
+    "comp_TCI": 46.2,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 30.51,
+    "y": 66.07,
+    "value": 1.37
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Molise (ITF2)",
+    "count": 4,
+    "share": 0.0077,
+    "rca": 0.53,
+    "reldens": 21.09,
+    "comp": 60.71,
+    "comp_TCI": 35.85,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 21.09,
+    "y": 60.71,
+    "value": 0.53
+  },
+  {
+    "domain": "Optics",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0056,
+    "rca": 0.38,
+    "reldens": 13.1,
+    "comp": 66.07,
+    "comp_TCI": 41.93,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 13.1,
+    "y": 66.07,
+    "value": 0.38
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Molise (ITF2)",
+    "count": 4,
+    "share": 0.0111,
+    "rca": 0.76,
+    "reldens": 57.57,
+    "comp": 63.39,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 57.57,
+    "y": 63.39,
+    "value": 0.76
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.005,
+    "rca": 0.34,
+    "reldens": 5.94,
+    "comp": 62.5,
+    "comp_TCI": 20.94,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 5.94,
+    "y": 62.5,
+    "value": 0.34
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0029,
+    "rca": 0.2,
+    "reldens": 12.96,
+    "comp": 35.71,
+    "comp_TCI": 0,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 12.96,
+    "y": 35.71,
+    "value": 0.2
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Molise (ITF2)",
+    "count": 51,
+    "share": 0.1128,
+    "rca": 7.78,
+    "reldens": 46.14,
+    "comp": 39.29,
+    "comp_TCI": 34.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 46.14,
+    "y": 39.29,
+    "value": 7.78
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0096,
+    "rca": 0.66,
+    "reldens": 10.57,
+    "comp": 46.43,
+    "comp_TCI": 28.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 10.57,
+    "y": 46.43,
+    "value": 0.66
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0057,
+    "rca": 0.39,
+    "reldens": 9.51,
+    "comp": 38.39,
+    "comp_TCI": 1.2,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 9.51,
+    "y": 38.39,
+    "value": 0.39
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.0049,
+    "rca": 0.34,
+    "reldens": 4.88,
+    "comp": 78.57,
+    "comp_TCI": 90.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 4.88,
+    "y": 78.57,
+    "value": 0.34
+  },
+  {
+    "domain": "Transport",
+    "geo": "Molise (ITF2)",
+    "count": 1,
+    "share": 0.002,
+    "rca": 0.14,
+    "reldens": 6.9,
+    "comp": 86.61,
+    "comp_TCI": 28.79,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 6.9,
+    "y": 86.61,
+    "value": 0.14
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
