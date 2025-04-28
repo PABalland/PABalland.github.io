@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Nordjylland (DK05)",
+    "count": 1781,
+    "share": 0.1222,
+    "rca": 0.65,
+    "reldens": 40.83,
+    "comp": 85.23,
+    "comp_TCI": 100,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 40.83,
+    "y": 85.23,
+    "value": 0.65
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Nordjylland (DK05)",
+    "count": 680,
+    "share": 0.4171,
+    "rca": 2.23,
+    "reldens": 82.27,
+    "comp": 36.36,
+    "comp_TCI": 25.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 82.27,
+    "y": 36.36,
+    "value": 2.23
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Nordjylland (DK05)",
+    "count": 13,
+    "share": 0.0598,
+    "rca": 0.32,
+    "reldens": 87.29,
+    "comp": 45.45,
+    "comp_TCI": 66.08,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 87.29,
+    "y": 45.45,
+    "value": 0.32
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Nordjylland (DK05)",
+    "count": 221,
+    "share": 0.1048,
+    "rca": 0.56,
+    "reldens": 12.05,
+    "comp": 68.18,
+    "comp_TCI": 11.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 12.05,
+    "y": 68.18,
+    "value": 0.56
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Nordjylland (DK05)",
+    "count": 2734,
+    "share": 0.09,
+    "rca": 0.48,
+    "reldens": 29.82,
+    "comp": 100,
+    "comp_TCI": 85.98,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 29.82,
+    "y": 100,
+    "value": 0.48
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Nordjylland (DK05)",
+    "count": 205,
+    "share": 0.1853,
+    "rca": 0.99,
+    "reldens": 30.28,
+    "comp": 25,
+    "comp_TCI": 9.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 30.28,
+    "y": 25,
+    "value": 0.99
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Nordjylland (DK05)",
+    "count": 710,
+    "share": 0.155,
+    "rca": 0.83,
+    "reldens": 52.73,
+    "comp": 35.23,
+    "comp_TCI": 12.92,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 52.73,
+    "y": 35.23,
+    "value": 0.83
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Nordjylland (DK05)",
+    "count": 2200,
+    "share": 0.3126,
+    "rca": 1.67,
+    "reldens": 80.31,
+    "comp": 38.64,
+    "comp_TCI": 11.58,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 80.31,
+    "y": 38.64,
+    "value": 1.67
+  },
+  {
+    "domain": "Control",
+    "geo": "Nordjylland (DK05)",
+    "count": 65,
+    "share": 0.4398,
+    "rca": 2.35,
+    "reldens": 83.83,
+    "comp": 36.36,
+    "comp_TCI": 2.69,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 83.83,
+    "y": 36.36,
+    "value": 2.35
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Nordjylland (DK05)",
+    "count": 2251,
+    "share": 0.716,
+    "rca": 3.82,
+    "reldens": 82.39,
+    "comp": 36.36,
+    "comp_TCI": 14.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 82.39,
+    "y": 36.36,
+    "value": 3.82
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Nordjylland (DK05)",
+    "count": 2064,
+    "share": 3.638,
+    "rca": 19.41,
+    "reldens": 81.76,
+    "comp": 0,
+    "comp_TCI": 13.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 81.76,
+    "y": 0,
+    "value": 19.41
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Nordjylland (DK05)",
+    "count": 113,
+    "share": 0.2447,
+    "rca": 1.31,
+    "reldens": 61.39,
+    "comp": 38.64,
+    "comp_TCI": 8.28,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 61.39,
+    "y": 38.64,
+    "value": 1.31
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Nordjylland (DK05)",
+    "count": 1289,
+    "share": 0.1398,
+    "rca": 0.75,
+    "reldens": 36.2,
+    "comp": 34.09,
+    "comp_TCI": 28.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 36.2,
+    "y": 34.09,
+    "value": 0.75
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Nordjylland (DK05)",
+    "count": 579,
+    "share": 0.1169,
+    "rca": 0.62,
+    "reldens": 20.39,
+    "comp": 31.82,
+    "comp_TCI": 46.53,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 20.39,
+    "y": 31.82,
+    "value": 0.62
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Nordjylland (DK05)",
+    "count": 2817,
+    "share": 0.3051,
+    "rca": 1.63,
+    "reldens": 34.8,
+    "comp": 34.09,
+    "comp_TCI": 37.26,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 34.8,
+    "y": 34.09,
+    "value": 1.63
+  },
+  {
+    "domain": "Handling",
+    "geo": "Nordjylland (DK05)",
+    "count": 265,
+    "share": 0.355,
+    "rca": 1.89,
+    "reldens": 57.68,
+    "comp": 7.95,
+    "comp_TCI": 1.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 57.68,
+    "y": 7.95,
+    "value": 1.89
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Nordjylland (DK05)",
+    "count": 387,
+    "share": 0.2809,
+    "rca": 1.5,
+    "reldens": 85.91,
+    "comp": 11.36,
+    "comp_TCI": 7.07,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 85.91,
+    "y": 11.36,
+    "value": 1.5
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Nordjylland (DK05)",
+    "count": 4,
+    "share": 0.0305,
+    "rca": 0.16,
+    "reldens": 34.98,
+    "comp": 18.18,
+    "comp_TCI": 2.33,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 34.98,
+    "y": 18.18,
+    "value": 0.16
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Nordjylland (DK05)",
+    "count": 138,
+    "share": 0.0697,
+    "rca": 0.37,
+    "reldens": 9.93,
+    "comp": 50,
+    "comp_TCI": 6.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 9.93,
+    "y": 50,
+    "value": 0.37
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Nordjylland (DK05)",
+    "count": 417,
+    "share": 0.1057,
+    "rca": 0.56,
+    "reldens": 24.2,
+    "comp": 51.14,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 24.2,
+    "y": 51.14,
+    "value": 0.56
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Nordjylland (DK05)",
+    "count": 129,
+    "share": 0.143,
+    "rca": 0.76,
+    "reldens": 39.46,
+    "comp": 15.91,
+    "comp_TCI": 0.75,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 39.46,
+    "y": 15.91,
+    "value": 0.76
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Nordjylland (DK05)",
+    "count": 8842,
+    "share": 0.2027,
+    "rca": 1.08,
+    "reldens": 12.31,
+    "comp": 76.14,
+    "comp_TCI": 87.65,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 12.31,
+    "y": 76.14,
+    "value": 1.08
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Nordjylland (DK05)",
+    "count": 974,
+    "share": 0.1018,
+    "rca": 0.54,
+    "reldens": 24.92,
+    "comp": 79.55,
+    "comp_TCI": 6.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 24.92,
+    "y": 79.55,
+    "value": 0.54
+  },
+  {
+    "domain": "Optics",
+    "geo": "Nordjylland (DK05)",
+    "count": 328,
+    "share": 0.0584,
+    "rca": 0.31,
+    "reldens": 64.81,
+    "comp": 95.45,
+    "comp_TCI": 26.36,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 64.81,
+    "y": 95.45,
+    "value": 0.31
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Nordjylland (DK05)",
+    "count": 22,
+    "share": 0.0164,
+    "rca": 0.09,
+    "reldens": 3.27,
+    "comp": 40.91,
+    "comp_TCI": 29.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 3.27,
+    "y": 40.91,
+    "value": 0.09
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Nordjylland (DK05)",
+    "count": 723,
+    "share": 0.1462,
+    "rca": 0.78,
+    "reldens": 43.24,
+    "comp": 69.32,
+    "comp_TCI": 95.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 43.24,
+    "y": 69.32,
+    "value": 0.78
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Nordjylland (DK05)",
+    "count": 657,
+    "share": 0.5894,
+    "rca": 3.14,
+    "reldens": 26.69,
+    "comp": 65.91,
+    "comp_TCI": 10.02,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 26.69,
+    "y": 65.91,
+    "value": 3.14
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Nordjylland (DK05)",
+    "count": 5,
+    "share": 0.0254,
+    "rca": 0.14,
+    "reldens": 19.13,
+    "comp": 31.82,
+    "comp_TCI": 3.26,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 19.13,
+    "y": 31.82,
+    "value": 0.14
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Nordjylland (DK05)",
+    "count": 97,
+    "share": 0.8065,
+    "rca": 4.3,
+    "reldens": 54.23,
+    "comp": 40.91,
+    "comp_TCI": 25.51,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 54.23,
+    "y": 40.91,
+    "value": 4.3
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Nordjylland (DK05)",
+    "count": 306,
+    "share": 0.3517,
+    "rca": 1.88,
+    "reldens": 48.31,
+    "comp": 25,
+    "comp_TCI": 6.9,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 48.31,
+    "y": 25,
+    "value": 1.88
+  },
+  {
+    "domain": "Transport",
+    "geo": "Nordjylland (DK05)",
+    "count": 187,
+    "share": 0.2967,
+    "rca": 1.58,
+    "reldens": 53.71,
+    "comp": 13.64,
+    "comp_TCI": 7.54,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 53.71,
+    "y": 13.64,
+    "value": 1.58
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

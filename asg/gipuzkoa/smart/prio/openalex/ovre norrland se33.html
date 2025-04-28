@@ -1,0 +1,617 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Övre Norrland (SE33)",
+    "count": 7,
+    "share": 0.0315,
+    "rca": 0.19,
+    "reldens": 89.65,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 89.65,
+    "y": 47.5,
+    "value": 0.19
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Övre Norrland (SE33)",
+    "count": 319,
+    "share": 0.1013,
+    "rca": 0.61,
+    "reldens": 68.81,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 68.81,
+    "y": 95,
+    "value": 0.61
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Övre Norrland (SE33)",
+    "count": 42,
+    "share": 0.1304,
+    "rca": 0.79,
+    "reldens": 17.3,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 17.3,
+    "y": 16.25,
+    "value": 0.79
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Övre Norrland (SE33)",
+    "count": 49,
+    "share": 0.1402,
+    "rca": 0.85,
+    "reldens": 58.27,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 58.27,
+    "y": 43.75,
+    "value": 0.85
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Övre Norrland (SE33)",
+    "count": 827,
+    "share": 0.1985,
+    "rca": 1.2,
+    "reldens": 47.53,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 47.53,
+    "y": 73.75,
+    "value": 1.2
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Övre Norrland (SE33)",
+    "count": 133,
+    "share": 0.0596,
+    "rca": 0.36,
+    "reldens": 67.57,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 67.57,
+    "y": 100,
+    "value": 0.36
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Övre Norrland (SE33)",
+    "count": 44,
+    "share": 0.1163,
+    "rca": 0.7,
+    "reldens": 48.47,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 48.47,
+    "y": 48.75,
+    "value": 0.7
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Övre Norrland (SE33)",
+    "count": 256,
+    "share": 0.3043,
+    "rca": 1.84,
+    "reldens": 45.5,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 45.5,
+    "y": 75,
+    "value": 1.84
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Övre Norrland (SE33)",
+    "count": 158,
+    "share": 0.2128,
+    "rca": 1.29,
+    "reldens": 32.96,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 32.96,
+    "y": 65,
+    "value": 1.29
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Övre Norrland (SE33)",
+    "count": 476,
+    "share": 0.7957,
+    "rca": 4.82,
+    "reldens": 72.57,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 72.57,
+    "y": 22.5,
+    "value": 4.82
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Övre Norrland (SE33)",
+    "count": 115,
+    "share": 0.223,
+    "rca": 1.35,
+    "reldens": 95.86,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 95.86,
+    "y": 28.75,
+    "value": 1.35
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Övre Norrland (SE33)",
+    "count": 272,
+    "share": 0.2817,
+    "rca": 1.71,
+    "reldens": 47.84,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 47.84,
+    "y": 82.5,
+    "value": 1.71
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Övre Norrland (SE33)",
+    "count": 165,
+    "share": 0.4449,
+    "rca": 2.7,
+    "reldens": 93.1,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 93.1,
+    "y": 16.25,
+    "value": 2.7
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Övre Norrland (SE33)",
+    "count": 34,
+    "share": 0.1728,
+    "rca": 1.05,
+    "reldens": 93.73,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 93.73,
+    "y": 0,
+    "value": 1.05
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Övre Norrland (SE33)",
+    "count": 29,
+    "share": 0.248,
+    "rca": 1.5,
+    "reldens": 88.34,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 88.34,
+    "y": 10,
+    "value": 1.5
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Övre Norrland (SE33)",
+    "count": 420,
+    "share": 0.1115,
+    "rca": 0.68,
+    "reldens": 42.7,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 42.7,
+    "y": 52.5,
+    "value": 0.68
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Övre Norrland (SE33)",
+    "count": 72,
+    "share": 0.1127,
+    "rca": 0.68,
+    "reldens": 26.98,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 26.98,
+    "y": 22.5,
+    "value": 0.68
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Övre Norrland (SE33)",
+    "count": 96,
+    "share": 0.1756,
+    "rca": 1.06,
+    "reldens": 80.9,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 80.9,
+    "y": 52.5,
+    "value": 1.06
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Övre Norrland (SE33)",
+    "count": 174,
+    "share": 0.3779,
+    "rca": 2.29,
+    "reldens": 93.53,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 93.53,
+    "y": 21.25,
+    "value": 2.29
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Övre Norrland (SE33)",
+    "count": 274,
+    "share": 0.1124,
+    "rca": 0.68,
+    "reldens": 51.53,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 51.53,
+    "y": 70,
+    "value": 0.68
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Övre Norrland (SE33)",
+    "count": 77,
+    "share": 0.08,
+    "rca": 0.48,
+    "reldens": 39.83,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 39.83,
+    "y": 87.5,
+    "value": 0.48
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Övre Norrland (SE33)",
+    "count": 32,
+    "share": 0.1023,
+    "rca": 0.62,
+    "reldens": 74.92,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 74.92,
+    "y": 30,
+    "value": 0.62
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Övre Norrland (SE33)",
+    "count": 12,
+    "share": 0.0185,
+    "rca": 0.11,
+    "reldens": 71.71,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 71.71,
+    "y": 82.5,
+    "value": 0.11
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Övre Norrland (SE33)",
+    "count": 82,
+    "share": 0.1558,
+    "rca": 0.94,
+    "reldens": 82.75,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 82.75,
+    "y": 45,
+    "value": 0.94
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Övre Norrland (SE33)",
+    "count": 372,
+    "share": 0.1877,
+    "rca": 1.14,
+    "reldens": 45.89,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 45.89,
+    "y": 61.25,
+    "value": 1.14
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

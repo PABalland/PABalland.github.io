@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Andalucía (ES61)",
+    "count": 152,
+    "share": 0.6834,
+    "rca": 0.64,
+    "reldens": 1.79,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 1.79,
+    "y": 47.5,
+    "value": 0.64
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Andalucía (ES61)",
+    "count": 3358,
+    "share": 1.0662,
+    "rca": 0.99,
+    "reldens": 23.18,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 23.18,
+    "y": 95,
+    "value": 0.99
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Andalucía (ES61)",
+    "count": 525,
+    "share": 1.63,
+    "rca": 1.52,
+    "reldens": 83.49,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 83.49,
+    "y": 16.25,
+    "value": 1.52
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Andalucía (ES61)",
+    "count": 712,
+    "share": 2.0378,
+    "rca": 1.9,
+    "reldens": 73.37,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 73.37,
+    "y": 43.75,
+    "value": 1.9
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Andalucía (ES61)",
+    "count": 4407,
+    "share": 1.0579,
+    "rca": 0.99,
+    "reldens": 3.24,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 3.24,
+    "y": 73.75,
+    "value": 0.99
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Andalucía (ES61)",
+    "count": 2708,
+    "share": 1.2131,
+    "rca": 1.13,
+    "reldens": 1.97,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 1.97,
+    "y": 100,
+    "value": 1.13
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Andalucía (ES61)",
+    "count": 343,
+    "share": 0.9066,
+    "rca": 0.85,
+    "reldens": 3.93,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 3.93,
+    "y": 48.75,
+    "value": 0.85
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Andalucía (ES61)",
+    "count": 664,
+    "share": 0.7894,
+    "rca": 0.74,
+    "reldens": 0.7,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 0.7,
+    "y": 75,
+    "value": 0.74
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Andalucía (ES61)",
+    "count": 671,
+    "share": 0.9037,
+    "rca": 0.84,
+    "reldens": 35.5,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 35.5,
+    "y": 65,
+    "value": 0.84
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Andalucía (ES61)",
+    "count": 1414,
+    "share": 2.3638,
+    "rca": 2.21,
+    "reldens": 18.68,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 18.68,
+    "y": 22.5,
+    "value": 2.21
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Andalucía (ES61)",
+    "count": 350,
+    "share": 0.6787,
+    "rca": 0.63,
+    "reldens": 0.5,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 0.5,
+    "y": 28.75,
+    "value": 0.63
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Andalucía (ES61)",
+    "count": 1251,
+    "share": 1.2956,
+    "rca": 1.21,
+    "reldens": 75.64,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 75.64,
+    "y": 82.5,
+    "value": 1.21
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Andalucía (ES61)",
+    "count": 332,
+    "share": 0.8953,
+    "rca": 0.84,
+    "reldens": 2.41,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 2.41,
+    "y": 16.25,
+    "value": 0.84
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Andalucía (ES61)",
+    "count": 112,
+    "share": 0.5692,
+    "rca": 0.53,
+    "reldens": 9.02,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 9.02,
+    "y": 0,
+    "value": 0.53
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Andalucía (ES61)",
+    "count": 187,
+    "share": 1.5988,
+    "rca": 1.49,
+    "reldens": 8.05,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 8.05,
+    "y": 10,
+    "value": 1.49
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Andalucía (ES61)",
+    "count": 5569,
+    "share": 1.479,
+    "rca": 1.38,
+    "reldens": 36.77,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 36.77,
+    "y": 52.5,
+    "value": 1.38
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Andalucía (ES61)",
+    "count": 979,
+    "share": 1.532,
+    "rca": 1.43,
+    "reldens": 78.35,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 78.35,
+    "y": 22.5,
+    "value": 1.43
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Andalucía (ES61)",
+    "count": 520,
+    "share": 0.9511,
+    "rca": 0.89,
+    "reldens": 22.59,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 22.59,
+    "y": 52.5,
+    "value": 0.89
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Andalucía (ES61)",
+    "count": 408,
+    "share": 0.8861,
+    "rca": 0.83,
+    "reldens": 2.18,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 2.18,
+    "y": 21.25,
+    "value": 0.83
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Andalucía (ES61)",
+    "count": 1974,
+    "share": 0.8096,
+    "rca": 0.76,
+    "reldens": 7.76,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 7.76,
+    "y": 70,
+    "value": 0.76
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Andalucía (ES61)",
+    "count": 515,
+    "share": 0.5349,
+    "rca": 0.5,
+    "reldens": 3.78,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 3.78,
+    "y": 87.5,
+    "value": 0.5
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Andalucía (ES61)",
+    "count": 266,
+    "share": 0.8503,
+    "rca": 0.79,
+    "reldens": 0.69,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 0.69,
+    "y": 30,
+    "value": 0.79
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Andalucía (ES61)",
+    "count": 275,
+    "share": 0.4245,
+    "rca": 0.4,
+    "reldens": 2.02,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 2.02,
+    "y": 82.5,
+    "value": 0.4
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Andalucía (ES61)",
+    "count": 348,
+    "share": 0.6614,
+    "rca": 0.62,
+    "reldens": 4.45,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 4.45,
+    "y": 45,
+    "value": 0.62
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Andalucía (ES61)",
+    "count": 5,
+    "share": 0.1476,
+    "rca": 0.14,
+    "reldens": 7.41,
+    "comp": 50,
+    "comp_TCI": 32.63,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 7.41,
+    "y": 50,
+    "value": 0.14
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Andalucía (ES61)",
+    "count": 1408,
+    "share": 0.7106,
+    "rca": 0.66,
+    "reldens": 37.37,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 37.37,
+    "y": 61.25,
+    "value": 0.66
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

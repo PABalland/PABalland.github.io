@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 30,
+    "share": 0.1637,
+    "rca": 0.18,
+    "reldens": 2.89,
+    "comp": 100,
+    "comp_TCI": 36.53,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 2.89,
+    "y": 100,
+    "value": 0.18
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 94,
+    "share": 0.5343,
+    "rca": 0.57,
+    "reldens": 27.07,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 27.07,
+    "y": 37.21,
+    "value": 0.57
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 159,
+    "share": 1.0434,
+    "rca": 1.12,
+    "reldens": 45.11,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 45.11,
+    "y": 35.72,
+    "value": 1.12
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 38,
+    "share": 0.6064,
+    "rca": 0.65,
+    "reldens": 30.66,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 30.66,
+    "y": 30.18,
+    "value": 0.65
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 68,
+    "share": 0.3973,
+    "rca": 0.43,
+    "reldens": 14.32,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 14.32,
+    "y": 58.31,
+    "value": 0.43
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 124,
+    "share": 0.5715,
+    "rca": 0.61,
+    "reldens": 15.03,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 15.03,
+    "y": 43.68,
+    "value": 0.61
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 22,
+    "share": 0.3498,
+    "rca": 0.38,
+    "reldens": 14.77,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 14.77,
+    "y": 63.04,
+    "value": 0.38
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 201,
+    "share": 0.9979,
+    "rca": 1.07,
+    "reldens": 25.25,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 25.25,
+    "y": 46.55,
+    "value": 1.07
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 3,
+    "share": 0.3513,
+    "rca": 0.38,
+    "reldens": 16.79,
+    "comp": 20.54,
+    "comp_TCI": 20.85,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 16.79,
+    "y": 20.54,
+    "value": 0.38
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 48,
+    "share": 1.1337,
+    "rca": 1.22,
+    "reldens": 50.18,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 50.18,
+    "y": 31.61,
+    "value": 1.22
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 19,
+    "share": 0.2883,
+    "rca": 0.31,
+    "reldens": 12.2,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 12.2,
+    "y": 38.89,
+    "value": 0.31
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 70,
+    "share": 0.3786,
+    "rca": 0.41,
+    "reldens": 24.4,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 24.4,
+    "y": 37.03,
+    "value": 0.41
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 4,
+    "share": 0.0693,
+    "rca": 0.07,
+    "reldens": 8.86,
+    "comp": 49.1,
+    "comp_TCI": 18.45,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 8.86,
+    "y": 49.1,
+    "value": 0.07
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 40,
+    "share": 0.2964,
+    "rca": 0.32,
+    "reldens": 9.11,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 9.11,
+    "y": 47.67,
+    "value": 0.32
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 18,
+    "share": 0.2008,
+    "rca": 0.22,
+    "reldens": 9.56,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 9.56,
+    "y": 42.13,
+    "value": 0.22
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 515,
+    "share": 1.0207,
+    "rca": 1.09,
+    "reldens": 34.72,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 34.72,
+    "y": 37.71,
+    "value": 1.09
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 152,
+    "share": 1.2395,
+    "rca": 1.33,
+    "reldens": 45.77,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 45.77,
+    "y": 36.53,
+    "value": 1.33
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 24,
+    "share": 0.346,
+    "rca": 0.37,
+    "reldens": 26.78,
+    "comp": 65.15,
+    "comp_TCI": 39.11,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 26.78,
+    "y": 65.15,
+    "value": 0.37
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 46,
+    "share": 0.23,
+    "rca": 0.25,
+    "reldens": 7.93,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 7.93,
+    "y": 69.63,
+    "value": 0.25
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 540,
+    "share": 1.0309,
+    "rca": 1.11,
+    "reldens": 34.47,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 34.47,
+    "y": 39.83,
+    "value": 1.11
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 18,
+    "share": 0.1671,
+    "rca": 0.18,
+    "reldens": 13.38,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 13.38,
+    "y": 63.41,
+    "value": 0.18
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 59,
+    "share": 0.4492,
+    "rca": 0.48,
+    "reldens": 20.35,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 20.35,
+    "y": 71.13,
+    "value": 0.48
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 5,
+    "share": 0.1488,
+    "rca": 0.16,
+    "reldens": 8.31,
+    "comp": 50.78,
+    "comp_TCI": 18.98,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 8.31,
+    "y": 50.78,
+    "value": 0.16
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 49,
+    "share": 1.6588,
+    "rca": 1.78,
+    "reldens": 66.19,
+    "comp": 31.92,
+    "comp_TCI": 33.47,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 66.19,
+    "y": 31.92,
+    "value": 1.78
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 18,
+    "share": 0.3407,
+    "rca": 0.37,
+    "reldens": 15.9,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 15.9,
+    "y": 37.03,
+    "value": 0.37
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Emilia-Romagna (ITH5)",
+    "count": 8,
+    "share": 0.0736,
+    "rca": 0.08,
+    "reldens": 15.03,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 15.03,
+    "y": 68.39,
+    "value": 0.08
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

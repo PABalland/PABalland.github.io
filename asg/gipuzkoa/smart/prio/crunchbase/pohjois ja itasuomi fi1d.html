@@ -1,0 +1,413 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 19.03,
+    "share": 0.2168,
+    "rca": 0.88,
+    "reldens": 25.59,
+    "comp": 46.76,
+    "comp_TCI": 18,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 25.59,
+    "y": 46.76,
+    "value": 0.88
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 0.54,
+    "share": 0.0148,
+    "rca": 0.06,
+    "reldens": 6.81,
+    "comp": 40.63,
+    "comp_TCI": 19.49,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 6.81,
+    "y": 40.63,
+    "value": 0.06
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 20.78,
+    "share": 0.0832,
+    "rca": 0.34,
+    "reldens": 15.07,
+    "comp": 43.55,
+    "comp_TCI": 18.22,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 15.07,
+    "y": 43.55,
+    "value": 0.34
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 3.39,
+    "share": 0.0429,
+    "rca": 0.17,
+    "reldens": 4.74,
+    "comp": 51.46,
+    "comp_TCI": 24.05,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 4.74,
+    "y": 51.46,
+    "value": 0.17
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 1.51,
+    "share": 0.0198,
+    "rca": 0.08,
+    "reldens": 3.83,
+    "comp": 48.34,
+    "comp_TCI": 22.44,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 3.83,
+    "y": 48.34,
+    "value": 0.08
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 19.03,
+    "share": 0.0837,
+    "rca": 0.34,
+    "reldens": 15.01,
+    "comp": 45.82,
+    "comp_TCI": 18.56,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 15.01,
+    "y": 45.82,
+    "value": 0.34
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 3.01,
+    "share": 0.017,
+    "rca": 0.07,
+    "reldens": 4.53,
+    "comp": 46.17,
+    "comp_TCI": 21.89,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 4.53,
+    "y": 46.17,
+    "value": 0.07
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 31.98,
+    "share": 2.4212,
+    "rca": 9.85,
+    "reldens": 14.38,
+    "comp": 30.5,
+    "comp_TCI": 20.64,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 14.38,
+    "y": 30.5,
+    "value": 9.85
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 13.64,
+    "share": 0.1489,
+    "rca": 0.61,
+    "reldens": 14.29,
+    "comp": 43.9,
+    "comp_TCI": 15.58,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 14.29,
+    "y": 43.9,
+    "value": 0.61
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 0.22,
+    "share": 0.0195,
+    "rca": 0.08,
+    "reldens": 9.15,
+    "comp": 65.1,
+    "comp_TCI": 18.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 9.15,
+    "y": 65.1,
+    "value": 0.08
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 116.21,
+    "share": 0.9125,
+    "rca": 3.71,
+    "reldens": 25.07,
+    "comp": 48,
+    "comp_TCI": 19.92,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 25.07,
+    "y": 48,
+    "value": 3.71
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 0.23,
+    "share": 0.3386,
+    "rca": 1.38,
+    "reldens": 71.21,
+    "comp": 42.07,
+    "comp_TCI": 20.07,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 71.21,
+    "y": 42.07,
+    "value": 1.38
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 2.69,
+    "share": 0.0362,
+    "rca": 0.15,
+    "reldens": 7.48,
+    "comp": 47.5,
+    "comp_TCI": 21.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 7.48,
+    "y": 47.5,
+    "value": 0.15
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Valencia (ES52)",
+    "count": 6,
+    "share": 0.0327,
+    "rca": 0.08,
+    "reldens": 6.19,
+    "comp": 100,
+    "comp_TCI": 36.53,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 6.19,
+    "y": 100,
+    "value": 0.08
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Valencia (ES52)",
+    "count": 58,
+    "share": 0.3297,
+    "rca": 0.83,
+    "reldens": 72.44,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 72.44,
+    "y": 37.21,
+    "value": 0.83
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Valencia (ES52)",
+    "count": 128,
+    "share": 0.84,
+    "rca": 2.1,
+    "reldens": 58.4,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 58.4,
+    "y": 35.72,
+    "value": 2.1
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Valencia (ES52)",
+    "count": 70,
+    "share": 1.1171,
+    "rca": 2.8,
+    "reldens": 73.11,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 73.11,
+    "y": 30.18,
+    "value": 2.8
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Valencia (ES52)",
+    "count": 50,
+    "share": 0.2921,
+    "rca": 0.73,
+    "reldens": 20.54,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 20.54,
+    "y": 58.31,
+    "value": 0.73
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Valencia (ES52)",
+    "count": 102,
+    "share": 0.4701,
+    "rca": 1.18,
+    "reldens": 37.29,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 37.29,
+    "y": 43.68,
+    "value": 1.18
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Valencia (ES52)",
+    "count": 18,
+    "share": 0.2862,
+    "rca": 0.72,
+    "reldens": 27.12,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 27.12,
+    "y": 63.04,
+    "value": 0.72
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Valencia (ES52)",
+    "count": 37,
+    "share": 0.1837,
+    "rca": 0.46,
+    "reldens": 28.88,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 28.88,
+    "y": 46.55,
+    "value": 0.46
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Valencia (ES52)",
+    "count": 15,
+    "share": 1.7564,
+    "rca": 4.4,
+    "reldens": 77.68,
+    "comp": 20.54,
+    "comp_TCI": 20.85,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 77.68,
+    "y": 20.54,
+    "value": 4.4
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Valencia (ES52)",
+    "count": 28,
+    "share": 0.6613,
+    "rca": 1.66,
+    "reldens": 54.39,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 54.39,
+    "y": 31.61,
+    "value": 1.66
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Valencia (ES52)",
+    "count": 9,
+    "share": 0.1366,
+    "rca": 0.34,
+    "reldens": 15.63,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 15.63,
+    "y": 38.89,
+    "value": 0.34
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Valencia (ES52)",
+    "count": 140,
+    "share": 0.7572,
+    "rca": 1.9,
+    "reldens": 66.4,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 66.4,
+    "y": 37.03,
+    "value": 1.9
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Valencia (ES52)",
+    "count": 6,
+    "share": 0.104,
+    "rca": 0.26,
+    "reldens": 8.54,
+    "comp": 49.1,
+    "comp_TCI": 18.45,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 8.54,
+    "y": 49.1,
+    "value": 0.26
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Valencia (ES52)",
+    "count": 13,
+    "share": 0.0963,
+    "rca": 0.24,
+    "reldens": 10.33,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 10.33,
+    "y": 47.67,
+    "value": 0.24
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Valencia (ES52)",
+    "count": 19,
+    "share": 0.212,
+    "rca": 0.53,
+    "reldens": 17.69,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 17.69,
+    "y": 42.13,
+    "value": 0.53
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Valencia (ES52)",
+    "count": 259,
+    "share": 0.5133,
+    "rca": 1.29,
+    "reldens": 69.52,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 69.52,
+    "y": 37.71,
+    "value": 1.29
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Valencia (ES52)",
+    "count": 92,
+    "share": 0.7502,
+    "rca": 1.88,
+    "reldens": 65.53,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 65.53,
+    "y": 36.53,
+    "value": 1.88
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Valencia (ES52)",
+    "count": 22,
+    "share": 0.3171,
+    "rca": 0.79,
+    "reldens": 40.02,
+    "comp": 65.15,
+    "comp_TCI": 39.11,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 40.02,
+    "y": 65.15,
+    "value": 0.79
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Valencia (ES52)",
+    "count": 12,
+    "share": 0.06,
+    "rca": 0.15,
+    "reldens": 8.53,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 8.53,
+    "y": 69.63,
+    "value": 0.15
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Valencia (ES52)",
+    "count": 275,
+    "share": 0.525,
+    "rca": 1.31,
+    "reldens": 51.52,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 51.52,
+    "y": 39.83,
+    "value": 1.31
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Valencia (ES52)",
+    "count": 34,
+    "share": 0.3157,
+    "rca": 0.79,
+    "reldens": 48.11,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 48.11,
+    "y": 63.41,
+    "value": 0.79
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Valencia (ES52)",
+    "count": 18,
+    "share": 0.137,
+    "rca": 0.34,
+    "reldens": 20.52,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 20.52,
+    "y": 71.13,
+    "value": 0.34
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Valencia (ES52)",
+    "count": 13,
+    "share": 0.387,
+    "rca": 0.97,
+    "reldens": 35.38,
+    "comp": 50.78,
+    "comp_TCI": 18.98,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 35.38,
+    "y": 50.78,
+    "value": 0.97
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Valencia (ES52)",
+    "count": 14,
+    "share": 0.4739,
+    "rca": 1.19,
+    "reldens": 48.75,
+    "comp": 31.92,
+    "comp_TCI": 33.47,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 48.75,
+    "y": 31.92,
+    "value": 1.19
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Valencia (ES52)",
+    "count": 15,
+    "share": 0.2839,
+    "rca": 0.71,
+    "reldens": 37.17,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 37.17,
+    "y": 37.03,
+    "value": 0.71
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Valencia (ES52)",
+    "count": 23,
+    "share": 0.2118,
+    "rca": 0.53,
+    "reldens": 20.91,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 20.91,
+    "y": 68.39,
+    "value": 0.53
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

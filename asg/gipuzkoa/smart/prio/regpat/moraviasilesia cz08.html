@@ -1,0 +1,464 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 17,
+    "share": 0.0966,
+    "rca": 2.44,
+    "reldens": 30.81,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 30.81,
+    "y": 37.21,
+    "value": 2.44
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 6,
+    "share": 0.0394,
+    "rca": 1,
+    "reldens": 22.66,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 22.66,
+    "y": 35.72,
+    "value": 1
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 3,
+    "share": 0.0175,
+    "rca": 0.44,
+    "reldens": 20.37,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 20.37,
+    "y": 58.31,
+    "value": 0.44
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 7,
+    "share": 0.0323,
+    "rca": 0.82,
+    "reldens": 27.38,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 27.38,
+    "y": 43.68,
+    "value": 0.82
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 6,
+    "share": 0.0954,
+    "rca": 2.41,
+    "reldens": 38.63,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 38.63,
+    "y": 63.04,
+    "value": 2.41
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 5,
+    "share": 0.1181,
+    "rca": 2.99,
+    "reldens": 27.97,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 27.97,
+    "y": 31.61,
+    "value": 2.99
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 3,
+    "share": 0.0455,
+    "rca": 1.15,
+    "reldens": 25.85,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 25.85,
+    "y": 38.89,
+    "value": 1.15
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 6,
+    "share": 0.0324,
+    "rca": 0.82,
+    "reldens": 31.43,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 31.43,
+    "y": 37.03,
+    "value": 0.82
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 8,
+    "share": 0.0593,
+    "rca": 1.5,
+    "reldens": 28.89,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 28.89,
+    "y": 47.67,
+    "value": 1.5
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 39,
+    "share": 0.0773,
+    "rca": 1.95,
+    "reldens": 37.65,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 37.65,
+    "y": 37.71,
+    "value": 1.95
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 3,
+    "share": 0.015,
+    "rca": 0.38,
+    "reldens": 19.35,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 19.35,
+    "y": 69.63,
+    "value": 0.38
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 18,
+    "share": 0.0344,
+    "rca": 0.87,
+    "reldens": 25.32,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 25.32,
+    "y": 39.83,
+    "value": 0.87
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 5,
+    "share": 0.0464,
+    "rca": 1.17,
+    "reldens": 31.65,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 31.65,
+    "y": 63.41,
+    "value": 1.17
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 1,
+    "share": 0.0076,
+    "rca": 0.19,
+    "reldens": 25.55,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 25.55,
+    "y": 71.13,
+    "value": 0.19
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 1,
+    "share": 0.0298,
+    "rca": 0.75,
+    "reldens": 30.89,
+    "comp": 50.78,
+    "comp_TCI": 18.98,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 30.89,
+    "y": 50.78,
+    "value": 0.75
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Moravia-Silesia (CZ08)",
+    "count": 1,
+    "share": 0.0092,
+    "rca": 0.23,
+    "reldens": 13.81,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 13.81,
+    "y": 68.39,
+    "value": 0.23
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

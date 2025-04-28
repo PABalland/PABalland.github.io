@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 9790,
+    "share": 0.672,
+    "rca": 1.02,
+    "reldens": 56.68,
+    "comp": 85.23,
+    "comp_TCI": 100,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 56.68,
+    "y": 85.23,
+    "value": 1.02
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 1070,
+    "share": 0.6564,
+    "rca": 1,
+    "reldens": 17.96,
+    "comp": 36.36,
+    "comp_TCI": 25.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 17.96,
+    "y": 36.36,
+    "value": 1
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 222,
+    "share": 1.0209,
+    "rca": 1.55,
+    "reldens": 50.42,
+    "comp": 45.45,
+    "comp_TCI": 66.08,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 50.42,
+    "y": 45.45,
+    "value": 1.55
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 691,
+    "share": 0.3276,
+    "rca": 0.5,
+    "reldens": 18.98,
+    "comp": 68.18,
+    "comp_TCI": 11.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 18.98,
+    "y": 68.18,
+    "value": 0.5
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 19206,
+    "share": 0.6321,
+    "rca": 0.96,
+    "reldens": 78.46,
+    "comp": 100,
+    "comp_TCI": 85.98,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 78.46,
+    "y": 100,
+    "value": 0.96
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 799,
+    "share": 0.7223,
+    "rca": 1.1,
+    "reldens": 32.03,
+    "comp": 25,
+    "comp_TCI": 9.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 32.03,
+    "y": 25,
+    "value": 1.1
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 4426,
+    "share": 0.9664,
+    "rca": 1.47,
+    "reldens": 32.41,
+    "comp": 35.23,
+    "comp_TCI": 12.92,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 32.41,
+    "y": 35.23,
+    "value": 1.47
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 4238,
+    "share": 0.6022,
+    "rca": 0.91,
+    "reldens": 14.66,
+    "comp": 38.64,
+    "comp_TCI": 11.58,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 14.66,
+    "y": 38.64,
+    "value": 0.91
+  },
+  {
+    "domain": "Control",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 15,
+    "share": 0.1015,
+    "rca": 0.15,
+    "reldens": 3.54,
+    "comp": 36.36,
+    "comp_TCI": 2.69,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 3.54,
+    "y": 36.36,
+    "value": 0.15
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 1579,
+    "share": 0.5022,
+    "rca": 0.76,
+    "reldens": 10,
+    "comp": 36.36,
+    "comp_TCI": 14.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 10,
+    "y": 36.36,
+    "value": 0.76
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 241,
+    "share": 0.4248,
+    "rca": 0.64,
+    "reldens": 26.23,
+    "comp": 0,
+    "comp_TCI": 13.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 26.23,
+    "y": 0,
+    "value": 0.64
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 269,
+    "share": 0.5826,
+    "rca": 0.88,
+    "reldens": 22.79,
+    "comp": 38.64,
+    "comp_TCI": 8.28,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 22.79,
+    "y": 38.64,
+    "value": 0.88
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 9006,
+    "share": 0.9765,
+    "rca": 1.48,
+    "reldens": 51.98,
+    "comp": 34.09,
+    "comp_TCI": 28.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 51.98,
+    "y": 34.09,
+    "value": 1.48
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 4023,
+    "share": 0.8119,
+    "rca": 1.23,
+    "reldens": 47.94,
+    "comp": 31.82,
+    "comp_TCI": 46.53,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 47.94,
+    "y": 31.82,
+    "value": 1.23
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 8561,
+    "share": 0.9272,
+    "rca": 1.41,
+    "reldens": 51.27,
+    "comp": 34.09,
+    "comp_TCI": 37.26,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 51.27,
+    "y": 34.09,
+    "value": 1.41
+  },
+  {
+    "domain": "Handling",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 231,
+    "share": 0.3094,
+    "rca": 0.47,
+    "reldens": 11.88,
+    "comp": 7.95,
+    "comp_TCI": 1.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 11.88,
+    "y": 7.95,
+    "value": 0.47
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 784,
+    "share": 0.569,
+    "rca": 0.86,
+    "reldens": 12.45,
+    "comp": 11.36,
+    "comp_TCI": 7.07,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 12.45,
+    "y": 11.36,
+    "value": 0.86
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 12,
+    "share": 0.0915,
+    "rca": 0.14,
+    "reldens": 7.3,
+    "comp": 18.18,
+    "comp_TCI": 2.33,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 7.3,
+    "y": 18.18,
+    "value": 0.14
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 392,
+    "share": 0.1979,
+    "rca": 0.3,
+    "reldens": 23.57,
+    "comp": 50,
+    "comp_TCI": 6.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 23.57,
+    "y": 50,
+    "value": 0.3
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 1614,
+    "share": 0.4091,
+    "rca": 0.62,
+    "reldens": 24.75,
+    "comp": 51.14,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 24.75,
+    "y": 51.14,
+    "value": 0.62
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 370,
+    "share": 0.4102,
+    "rca": 0.62,
+    "reldens": 19.27,
+    "comp": 15.91,
+    "comp_TCI": 0.75,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 19.27,
+    "y": 15.91,
+    "value": 0.62
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 31779,
+    "share": 0.7284,
+    "rca": 1.11,
+    "reldens": 47.98,
+    "comp": 76.14,
+    "comp_TCI": 87.65,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 47.98,
+    "y": 76.14,
+    "value": 1.11
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 3413,
+    "share": 0.3568,
+    "rca": 0.54,
+    "reldens": 22.24,
+    "comp": 79.55,
+    "comp_TCI": 6.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 22.24,
+    "y": 79.55,
+    "value": 0.54
+  },
+  {
+    "domain": "Optics",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 1777,
+    "share": 0.3162,
+    "rca": 0.48,
+    "reldens": 20.23,
+    "comp": 95.45,
+    "comp_TCI": 26.36,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 20.23,
+    "y": 95.45,
+    "value": 0.48
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 295,
+    "share": 0.2201,
+    "rca": 0.33,
+    "reldens": 30.81,
+    "comp": 40.91,
+    "comp_TCI": 29.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 30.81,
+    "y": 40.91,
+    "value": 0.33
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 3884,
+    "share": 0.7855,
+    "rca": 1.19,
+    "reldens": 64.44,
+    "comp": 69.32,
+    "comp_TCI": 95.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 64.44,
+    "y": 69.32,
+    "value": 1.19
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 302,
+    "share": 0.2709,
+    "rca": 0.41,
+    "reldens": 7.39,
+    "comp": 65.91,
+    "comp_TCI": 10.02,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 7.39,
+    "y": 65.91,
+    "value": 0.41
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 70,
+    "share": 0.3553,
+    "rca": 0.54,
+    "reldens": 14.3,
+    "comp": 31.82,
+    "comp_TCI": 3.26,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 14.3,
+    "y": 31.82,
+    "value": 0.54
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 7,
+    "share": 0.0582,
+    "rca": 0.09,
+    "reldens": 1.18,
+    "comp": 40.91,
+    "comp_TCI": 25.51,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 1.18,
+    "y": 40.91,
+    "value": 0.09
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 326,
+    "share": 0.3747,
+    "rca": 0.57,
+    "reldens": 41.06,
+    "comp": 25,
+    "comp_TCI": 6.9,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 41.06,
+    "y": 25,
+    "value": 0.57
+  },
+  {
+    "domain": "Transport",
+    "geo": "Oslo og Akershus (NO01)",
+    "count": 302,
+    "share": 0.4792,
+    "rca": 0.73,
+    "reldens": 38.8,
+    "comp": 13.64,
+    "comp_TCI": 7.54,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 38.8,
+    "y": 13.64,
+    "value": 0.73
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,617 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Central Hungary (HU10)",
+    "count": 78,
+    "share": 0.4256,
+    "rca": 1.09,
+    "reldens": 65.03,
+    "comp": 100,
+    "comp_TCI": 36.53,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 65.03,
+    "y": 100,
+    "value": 1.09
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Central Hungary (HU10)",
+    "count": 47,
+    "share": 0.2671,
+    "rca": 0.68,
+    "reldens": 36.08,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 36.08,
+    "y": 37.21,
+    "value": 0.68
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Central Hungary (HU10)",
+    "count": 22,
+    "share": 0.1444,
+    "rca": 0.37,
+    "reldens": 20.14,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 20.14,
+    "y": 35.72,
+    "value": 0.37
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Central Hungary (HU10)",
+    "count": 10,
+    "share": 0.1596,
+    "rca": 0.41,
+    "reldens": 15.13,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 15.13,
+    "y": 30.18,
+    "value": 0.41
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Central Hungary (HU10)",
+    "count": 77,
+    "share": 0.4499,
+    "rca": 1.15,
+    "reldens": 58.35,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 58.35,
+    "y": 58.31,
+    "value": 1.15
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Central Hungary (HU10)",
+    "count": 100,
+    "share": 0.4609,
+    "rca": 1.18,
+    "reldens": 26.81,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 26.81,
+    "y": 43.68,
+    "value": 1.18
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Central Hungary (HU10)",
+    "count": 63,
+    "share": 1.0017,
+    "rca": 2.56,
+    "reldens": 70.5,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 70.5,
+    "y": 63.04,
+    "value": 2.56
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Central Hungary (HU10)",
+    "count": 67,
+    "share": 0.3326,
+    "rca": 0.85,
+    "reldens": 27.84,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 27.84,
+    "y": 46.55,
+    "value": 0.85
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Central Hungary (HU10)",
+    "count": 1,
+    "share": 0.0236,
+    "rca": 0.06,
+    "reldens": 15.98,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 15.98,
+    "y": 31.61,
+    "value": 0.06
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Central Hungary (HU10)",
+    "count": 31,
+    "share": 0.4703,
+    "rca": 1.2,
+    "reldens": 71.35,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 71.35,
+    "y": 38.89,
+    "value": 1.2
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Central Hungary (HU10)",
+    "count": 65,
+    "share": 0.3515,
+    "rca": 0.9,
+    "reldens": 34.44,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 34.44,
+    "y": 37.03,
+    "value": 0.9
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Central Hungary (HU10)",
+    "count": 129,
+    "share": 2.2361,
+    "rca": 5.72,
+    "reldens": 74.05,
+    "comp": 49.1,
+    "comp_TCI": 18.45,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 74.05,
+    "y": 49.1,
+    "value": 5.72
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Central Hungary (HU10)",
+    "count": 59,
+    "share": 0.4372,
+    "rca": 1.12,
+    "reldens": 70.65,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 70.65,
+    "y": 47.67,
+    "value": 1.12
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Central Hungary (HU10)",
+    "count": 30,
+    "share": 0.3348,
+    "rca": 0.86,
+    "reldens": 34.01,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 34.01,
+    "y": 42.13,
+    "value": 0.86
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Central Hungary (HU10)",
+    "count": 334,
+    "share": 0.6619,
+    "rca": 1.69,
+    "reldens": 54.57,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 54.57,
+    "y": 37.71,
+    "value": 1.69
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Central Hungary (HU10)",
+    "count": 28,
+    "share": 0.2283,
+    "rca": 0.58,
+    "reldens": 18.7,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 18.7,
+    "y": 36.53,
+    "value": 0.58
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Central Hungary (HU10)",
+    "count": 8,
+    "share": 0.1153,
+    "rca": 0.3,
+    "reldens": 19.54,
+    "comp": 65.15,
+    "comp_TCI": 39.11,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 19.54,
+    "y": 65.15,
+    "value": 0.3
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Central Hungary (HU10)",
+    "count": 160,
+    "share": 0.8001,
+    "rca": 2.05,
+    "reldens": 63.13,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 63.13,
+    "y": 69.63,
+    "value": 2.05
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Central Hungary (HU10)",
+    "count": 114,
+    "share": 0.2176,
+    "rca": 0.56,
+    "reldens": 24.79,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 24.79,
+    "y": 39.83,
+    "value": 0.56
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Central Hungary (HU10)",
+    "count": 25,
+    "share": 0.2321,
+    "rca": 0.59,
+    "reldens": 26.46,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 26.46,
+    "y": 63.41,
+    "value": 0.59
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Central Hungary (HU10)",
+    "count": 80,
+    "share": 0.6091,
+    "rca": 1.56,
+    "reldens": 54.74,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 54.74,
+    "y": 71.13,
+    "value": 1.56
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Central Hungary (HU10)",
+    "count": 9,
+    "share": 0.2679,
+    "rca": 0.69,
+    "reldens": 24.19,
+    "comp": 50.78,
+    "comp_TCI": 18.98,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 24.19,
+    "y": 50.78,
+    "value": 0.69
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Central Hungary (HU10)",
+    "count": 18,
+    "share": 0.6093,
+    "rca": 1.56,
+    "reldens": 61.26,
+    "comp": 31.92,
+    "comp_TCI": 33.47,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 61.26,
+    "y": 31.92,
+    "value": 1.56
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Central Hungary (HU10)",
+    "count": 25,
+    "share": 0.4732,
+    "rca": 1.21,
+    "reldens": 45.65,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 45.65,
+    "y": 37.03,
+    "value": 1.21
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Central Hungary (HU10)",
+    "count": 29,
+    "share": 0.267,
+    "rca": 0.68,
+    "reldens": 32.21,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 32.21,
+    "y": 68.39,
+    "value": 0.68
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

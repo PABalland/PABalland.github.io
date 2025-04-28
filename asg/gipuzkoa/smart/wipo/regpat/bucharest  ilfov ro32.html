@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 1,
+    "share": 0.008,
+    "rca": 0.27,
+    "reldens": 10.92,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 10.92,
+    "y": 7.14,
+    "value": 0.27
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 4,
+    "share": 0.0255,
+    "rca": 0.86,
+    "reldens": 28,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 28,
+    "y": 55.36,
+    "value": 0.86
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 13,
+    "share": 0.0432,
+    "rca": 1.45,
+    "reldens": 9.21,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 9.21,
+    "y": 63.39,
+    "value": 1.45
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 1,
+    "share": 0.0026,
+    "rca": 0.09,
+    "reldens": 8.17,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 8.17,
+    "y": 48.21,
+    "value": 0.09
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 15,
+    "share": 0.0502,
+    "rca": 1.68,
+    "reldens": 10.33,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 10.33,
+    "y": 37.5,
+    "value": 1.68
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 18,
+    "share": 0.0976,
+    "rca": 3.27,
+    "reldens": 22.63,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 22.63,
+    "y": 12.5,
+    "value": 3.27
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 61,
+    "share": 0.1382,
+    "rca": 4.64,
+    "reldens": 40.5,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 40.5,
+    "y": 83.04,
+    "value": 4.64
+  },
+  {
+    "domain": "Control",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 6,
+    "share": 0.0299,
+    "rca": 1,
+    "reldens": 38.02,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 38.02,
+    "y": 51.79,
+    "value": 1
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 39,
+    "share": 0.0861,
+    "rca": 2.89,
+    "reldens": 41.6,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 41.6,
+    "y": 100,
+    "value": 2.89
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 9,
+    "share": 0.0165,
+    "rca": 0.55,
+    "reldens": 12.86,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 12.86,
+    "y": 88.39,
+    "value": 0.55
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 4,
+    "share": 0.0187,
+    "rca": 0.63,
+    "reldens": 14.75,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 14.75,
+    "y": 58.93,
+    "value": 0.63
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 3,
+    "share": 0.0252,
+    "rca": 0.85,
+    "reldens": 39.07,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 39.07,
+    "y": 0,
+    "value": 0.85
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 1,
+    "share": 0.0082,
+    "rca": 0.28,
+    "reldens": 15.6,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 15.6,
+    "y": 19.64,
+    "value": 0.28
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 6,
+    "share": 0.0566,
+    "rca": 1.9,
+    "reldens": 30.63,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 30.63,
+    "y": 1.79,
+    "value": 1.9
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 10,
+    "share": 0.0164,
+    "rca": 0.55,
+    "reldens": 20.02,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 20.02,
+    "y": 60.71,
+    "value": 0.55
+  },
+  {
+    "domain": "Handling",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 4,
+    "share": 0.0174,
+    "rca": 0.58,
+    "reldens": 34.07,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 34.07,
+    "y": 44.64,
+    "value": 0.58
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 13,
+    "share": 0.1518,
+    "rca": 5.09,
+    "reldens": 65.95,
+    "comp": 12.5,
+    "comp_TCI": 54.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 65.95,
+    "y": 12.5,
+    "value": 5.09
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 6,
+    "share": 0.0267,
+    "rca": 0.89,
+    "reldens": 26.08,
+    "comp": 71.43,
+    "comp_TCI": 2.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 26.08,
+    "y": 71.43,
+    "value": 0.89
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 2,
+    "share": 0.0092,
+    "rca": 0.31,
+    "reldens": 18.49,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 18.49,
+    "y": 47.32,
+    "value": 0.31
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 16,
+    "share": 0.029,
+    "rca": 0.97,
+    "reldens": 24.66,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 24.66,
+    "y": 63.39,
+    "value": 0.97
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 2,
+    "share": 0.0078,
+    "rca": 0.26,
+    "reldens": 22.32,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 22.32,
+    "y": 57.14,
+    "value": 0.26
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 14,
+    "share": 0.027,
+    "rca": 0.91,
+    "reldens": 32.94,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 32.94,
+    "y": 59.82,
+    "value": 0.91
+  },
+  {
+    "domain": "Optics",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 1,
+    "share": 0.0056,
+    "rca": 0.19,
+    "reldens": 17.47,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 17.47,
+    "y": 66.07,
+    "value": 0.19
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 3,
+    "share": 0.0083,
+    "rca": 0.28,
+    "reldens": 22,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 22,
+    "y": 62.5,
+    "value": 0.28
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 4,
+    "share": 0.0199,
+    "rca": 0.67,
+    "reldens": 26.13,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 26.13,
+    "y": 58.04,
+    "value": 0.67
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 1,
+    "share": 0.0029,
+    "rca": 0.1,
+    "reldens": 17.57,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 17.57,
+    "y": 37.5,
+    "value": 0.1
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 4,
+    "share": 0.0088,
+    "rca": 0.3,
+    "reldens": 3.26,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 3.26,
+    "y": 37.5,
+    "value": 0.3
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 2,
+    "share": 0.0192,
+    "rca": 0.64,
+    "reldens": 13.65,
+    "comp": 46.43,
+    "comp_TCI": 22.6,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 13.65,
+    "y": 46.43,
+    "value": 0.64
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 1,
+    "share": 0.0049,
+    "rca": 0.17,
+    "reldens": 45.92,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 45.92,
+    "y": 78.57,
+    "value": 0.17
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 1,
+    "share": 0.0087,
+    "rca": 0.29,
+    "reldens": 21.92,
+    "comp": 19.64,
+    "comp_TCI": 14.8,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 21.92,
+    "y": 19.64,
+    "value": 0.29
+  },
+  {
+    "domain": "Transport",
+    "geo": "Bucharest - Ilfov (RO32)",
+    "count": 13,
+    "share": 0.0263,
+    "rca": 0.88,
+    "reldens": 28.52,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 28.52,
+    "y": 88.39,
+    "value": 0.88
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Île de France (FR10)",
+    "count": 1661,
+    "share": 7.4682,
+    "rca": 0.92,
+    "reldens": 86.54,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 86.54,
+    "y": 47.5,
+    "value": 0.92
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Île de France (FR10)",
+    "count": 25363,
+    "share": 8.0527,
+    "rca": 0.99,
+    "reldens": 1.17,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 1.17,
+    "y": 95,
+    "value": 0.99
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Île de France (FR10)",
+    "count": 2813,
+    "share": 8.7336,
+    "rca": 1.08,
+    "reldens": 3.75,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 3.75,
+    "y": 16.25,
+    "value": 1.08
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Île de France (FR10)",
+    "count": 2119,
+    "share": 6.0649,
+    "rca": 0.75,
+    "reldens": 53.85,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 53.85,
+    "y": 43.75,
+    "value": 0.75
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Île de France (FR10)",
+    "count": 35185,
+    "share": 8.4465,
+    "rca": 1.04,
+    "reldens": 57.41,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 57.41,
+    "y": 73.75,
+    "value": 1.04
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Île de France (FR10)",
+    "count": 28509,
+    "share": 12.7707,
+    "rca": 1.57,
+    "reldens": 91.65,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 91.65,
+    "y": 100,
+    "value": 1.57
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Île de France (FR10)",
+    "count": 2146,
+    "share": 5.6725,
+    "rca": 0.7,
+    "reldens": 26.64,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 26.64,
+    "y": 48.75,
+    "value": 0.7
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Île de France (FR10)",
+    "count": 5661,
+    "share": 6.7298,
+    "rca": 0.83,
+    "reldens": 1.56,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 1.56,
+    "y": 75,
+    "value": 0.83
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Île de France (FR10)",
+    "count": 5589,
+    "share": 7.5274,
+    "rca": 0.93,
+    "reldens": 3.13,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 3.13,
+    "y": 65,
+    "value": 0.93
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Île de France (FR10)",
+    "count": 3442,
+    "share": 5.754,
+    "rca": 0.71,
+    "reldens": 14.03,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 14.03,
+    "y": 22.5,
+    "value": 0.71
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Île de France (FR10)",
+    "count": 4654,
+    "share": 9.0246,
+    "rca": 1.11,
+    "reldens": 24.03,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 24.03,
+    "y": 28.75,
+    "value": 1.11
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Île de France (FR10)",
+    "count": 9929,
+    "share": 10.2829,
+    "rca": 1.27,
+    "reldens": 0.32,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 0.32,
+    "y": 82.5,
+    "value": 1.27
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Île de France (FR10)",
+    "count": 2117,
+    "share": 5.7087,
+    "rca": 0.7,
+    "reldens": 27.38,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 27.38,
+    "y": 16.25,
+    "value": 0.7
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Île de France (FR10)",
+    "count": 1058,
+    "share": 5.3766,
+    "rca": 0.66,
+    "reldens": 78.98,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 78.98,
+    "y": 0,
+    "value": 0.66
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Île de France (FR10)",
+    "count": 521,
+    "share": 4.4545,
+    "rca": 0.55,
+    "reldens": 77.48,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 77.48,
+    "y": 10,
+    "value": 0.55
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Île de France (FR10)",
+    "count": 26453,
+    "share": 7.0253,
+    "rca": 0.87,
+    "reldens": 21.65,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 21.65,
+    "y": 52.5,
+    "value": 0.87
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Île de France (FR10)",
+    "count": 3943,
+    "share": 6.1701,
+    "rca": 0.76,
+    "reldens": 66.31,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 66.31,
+    "y": 22.5,
+    "value": 0.76
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Île de France (FR10)",
+    "count": 3391,
+    "share": 6.2022,
+    "rca": 0.76,
+    "reldens": 10.18,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 10.18,
+    "y": 52.5,
+    "value": 0.76
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Île de France (FR10)",
+    "count": 2405,
+    "share": 5.2233,
+    "rca": 0.64,
+    "reldens": 43.48,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 43.48,
+    "y": 21.25,
+    "value": 0.64
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Île de France (FR10)",
+    "count": 14005,
+    "share": 5.7441,
+    "rca": 0.71,
+    "reldens": 37.96,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 37.96,
+    "y": 70,
+    "value": 0.71
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Île de France (FR10)",
+    "count": 11048,
+    "share": 11.475,
+    "rca": 1.41,
+    "reldens": 87.76,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 87.76,
+    "y": 87.5,
+    "value": 1.41
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Île de France (FR10)",
+    "count": 1591,
+    "share": 5.0858,
+    "rca": 0.63,
+    "reldens": 3.71,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 3.71,
+    "y": 30,
+    "value": 0.63
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Île de France (FR10)",
+    "count": 6582,
+    "share": 10.1612,
+    "rca": 1.25,
+    "reldens": 93.68,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 93.68,
+    "y": 82.5,
+    "value": 1.25
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Île de France (FR10)",
+    "count": 3986,
+    "share": 7.5758,
+    "rca": 0.93,
+    "reldens": 65.23,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 65.23,
+    "y": 45,
+    "value": 0.93
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Île de France (FR10)",
+    "count": 135,
+    "share": 3.9846,
+    "rca": 0.49,
+    "reldens": 79.01,
+    "comp": 50,
+    "comp_TCI": 32.63,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 79.01,
+    "y": 50,
+    "value": 0.49
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Île de France (FR10)",
+    "count": 18721,
+    "share": 9.4479,
+    "rca": 1.16,
+    "reldens": 12.4,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 12.4,
+    "y": 61.25,
+    "value": 1.16
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

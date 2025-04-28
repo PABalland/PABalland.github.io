@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 48.86,
+    "share": 1.2512,
+    "rca": 2.07,
+    "reldens": 60.16,
+    "comp": 28.95,
+    "comp_TCI": 76.99,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 60.16,
+    "y": 28.95,
+    "value": 2.07
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 183.27,
+    "share": 0.5898,
+    "rca": 0.98,
+    "reldens": 82.18,
+    "comp": 26.32,
+    "comp_TCI": 93.24,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 82.18,
+    "y": 26.32,
+    "value": 0.98
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 44.06,
+    "share": 0.6006,
+    "rca": 0.99,
+    "reldens": 70.03,
+    "comp": 68.42,
+    "comp_TCI": 69.07,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 70.03,
+    "y": 68.42,
+    "value": 0.99
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 6.34,
+    "share": 0.0414,
+    "rca": 0.07,
+    "reldens": 38.36,
+    "comp": 63.16,
+    "comp_TCI": 25.93,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 38.36,
+    "y": 63.16,
+    "value": 0.07
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 584.89,
+    "share": 0.3693,
+    "rca": 0.61,
+    "reldens": 36.81,
+    "comp": 47.37,
+    "comp_TCI": 10.29,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 36.81,
+    "y": 47.37,
+    "value": 0.61
+  },
+  {
+    "domain": "Control",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 12.53,
+    "share": 0.1563,
+    "rca": 0.26,
+    "reldens": 56.88,
+    "comp": 0,
+    "comp_TCI": 53.6,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 56.88,
+    "y": 0,
+    "value": 0.26
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 6.7,
+    "share": 0.0486,
+    "rca": 0.08,
+    "reldens": 19.32,
+    "comp": 52.63,
+    "comp_TCI": 29.49,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 19.32,
+    "y": 52.63,
+    "value": 0.08
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 407.82,
+    "share": 0.9587,
+    "rca": 1.59,
+    "reldens": 71.45,
+    "comp": 73.68,
+    "comp_TCI": 77.81,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 71.45,
+    "y": 73.68,
+    "value": 1.59
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 201.99,
+    "share": 0.8192,
+    "rca": 1.36,
+    "reldens": 58.17,
+    "comp": 44.74,
+    "comp_TCI": 70.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 58.17,
+    "y": 44.74,
+    "value": 1.36
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 134.21,
+    "share": 0.712,
+    "rca": 1.18,
+    "reldens": 44.07,
+    "comp": 34.21,
+    "comp_TCI": 51.99,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 44.07,
+    "y": 34.21,
+    "value": 1.18
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 24.69,
+    "share": 0.5136,
+    "rca": 0.85,
+    "reldens": 14.24,
+    "comp": 7.89,
+    "comp_TCI": 39.95,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 14.24,
+    "y": 7.89,
+    "value": 0.85
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 419.79,
+    "share": 1.2846,
+    "rca": 2.13,
+    "reldens": 68.17,
+    "comp": 100,
+    "comp_TCI": 86.75,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 68.17,
+    "y": 100,
+    "value": 2.13
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 159.04,
+    "share": 0.1887,
+    "rca": 0.31,
+    "reldens": 27.85,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 27.85,
+    "y": 68.42,
+    "value": 0.31
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 23.7,
+    "share": 1.5982,
+    "rca": 2.65,
+    "reldens": 53.36,
+    "comp": 23.68,
+    "comp_TCI": 70,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 53.36,
+    "y": 23.68,
+    "value": 2.65
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 238.44,
+    "share": 0.7759,
+    "rca": 1.29,
+    "reldens": 55.77,
+    "comp": 10.53,
+    "comp_TCI": 72.37,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 55.77,
+    "y": 10.53,
+    "value": 1.29
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 1.62,
+    "share": 0.6461,
+    "rca": 1.07,
+    "reldens": 46.35,
+    "comp": 31.58,
+    "comp_TCI": 62.04,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 46.35,
+    "y": 31.58,
+    "value": 1.07
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 366.86,
+    "share": 0.8324,
+    "rca": 1.38,
+    "reldens": 45.79,
+    "comp": 36.84,
+    "comp_TCI": 76.58,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 45.79,
+    "y": 36.84,
+    "value": 1.38
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 61.26,
+    "share": 6.6578,
+    "rca": 11.03,
+    "reldens": 68.11,
+    "comp": 21.05,
+    "comp_TCI": 78.74,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 68.11,
+    "y": 21.05,
+    "value": 11.03
+  },
+  {
+    "domain": "Optics",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 167.34,
+    "share": 14.831,
+    "rca": 24.56,
+    "reldens": 72.82,
+    "comp": 78.95,
+    "comp_TCI": 98.42,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 72.82,
+    "y": 78.95,
+    "value": 24.56
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 6.86,
+    "share": 0.0122,
+    "rca": 0.02,
+    "reldens": 38.43,
+    "comp": 57.89,
+    "comp_TCI": 15.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 38.43,
+    "y": 57.89,
+    "value": 0.02
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 1.8,
+    "share": 0.184,
+    "rca": 0.3,
+    "reldens": 54.36,
+    "comp": 78.95,
+    "comp_TCI": 9.51,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 54.36,
+    "y": 78.95,
+    "value": 0.3
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 224.44,
+    "share": 0.9176,
+    "rca": 1.52,
+    "reldens": 48.01,
+    "comp": 52.63,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 48.01,
+    "y": 52.63,
+    "value": 1.52
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 316.24,
+    "share": 5.3524,
+    "rca": 8.87,
+    "reldens": 75.69,
+    "comp": 78.95,
+    "comp_TCI": 95.31,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 75.69,
+    "y": 78.95,
+    "value": 8.87
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 121.45,
+    "share": 1.576,
+    "rca": 2.61,
+    "reldens": 29.95,
+    "comp": 63.16,
+    "comp_TCI": 26.99,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 29.95,
+    "y": 63.16,
+    "value": 2.61
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 1.57,
+    "share": 0.2586,
+    "rca": 0.43,
+    "reldens": 43.67,
+    "comp": 36.84,
+    "comp_TCI": 54.24,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 43.67,
+    "y": 36.84,
+    "value": 0.43
+  },
+  {
+    "domain": "Transport",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 375.41,
+    "share": 0.7954,
+    "rca": 1.32,
+    "reldens": 39.9,
+    "comp": 68.42,
+    "comp_TCI": 46.99,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 39.9,
+    "y": 68.42,
+    "value": 1.32
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

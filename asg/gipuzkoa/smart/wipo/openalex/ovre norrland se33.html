@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Övre Norrland (SE33)",
+    "count": 2290,
+    "share": 0.1572,
+    "rca": 0.95,
+    "reldens": 20.7,
+    "comp": 85.23,
+    "comp_TCI": 100,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 20.7,
+    "y": 85.23,
+    "value": 0.95
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Övre Norrland (SE33)",
+    "count": 285,
+    "share": 0.1748,
+    "rca": 1.06,
+    "reldens": 65.48,
+    "comp": 36.36,
+    "comp_TCI": 25.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 65.48,
+    "y": 36.36,
+    "value": 1.06
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Övre Norrland (SE33)",
+    "count": 39,
+    "share": 0.1794,
+    "rca": 1.09,
+    "reldens": 41.2,
+    "comp": 45.45,
+    "comp_TCI": 66.08,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 41.2,
+    "y": 45.45,
+    "value": 1.09
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Övre Norrland (SE33)",
+    "count": 383,
+    "share": 0.1816,
+    "rca": 1.1,
+    "reldens": 43.54,
+    "comp": 68.18,
+    "comp_TCI": 11.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 43.54,
+    "y": 68.18,
+    "value": 1.1
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Övre Norrland (SE33)",
+    "count": 4395,
+    "share": 0.1446,
+    "rca": 0.88,
+    "reldens": 18.59,
+    "comp": 100,
+    "comp_TCI": 85.98,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 18.59,
+    "y": 100,
+    "value": 0.88
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Övre Norrland (SE33)",
+    "count": 461,
+    "share": 0.4168,
+    "rca": 2.52,
+    "reldens": 78.69,
+    "comp": 25,
+    "comp_TCI": 9.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 78.69,
+    "y": 25,
+    "value": 2.52
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Övre Norrland (SE33)",
+    "count": 1276,
+    "share": 0.2786,
+    "rca": 1.69,
+    "reldens": 79.65,
+    "comp": 35.23,
+    "comp_TCI": 12.92,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 79.65,
+    "y": 35.23,
+    "value": 1.69
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Övre Norrland (SE33)",
+    "count": 1399,
+    "share": 0.1988,
+    "rca": 1.2,
+    "reldens": 54.85,
+    "comp": 38.64,
+    "comp_TCI": 11.58,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 54.85,
+    "y": 38.64,
+    "value": 1.2
+  },
+  {
+    "domain": "Control",
+    "geo": "Övre Norrland (SE33)",
+    "count": 33,
+    "share": 0.2233,
+    "rca": 1.35,
+    "reldens": 64.03,
+    "comp": 36.36,
+    "comp_TCI": 2.69,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 64.03,
+    "y": 36.36,
+    "value": 1.35
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Övre Norrland (SE33)",
+    "count": 459,
+    "share": 0.146,
+    "rca": 0.88,
+    "reldens": 69.93,
+    "comp": 36.36,
+    "comp_TCI": 14.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 69.93,
+    "y": 36.36,
+    "value": 0.88
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Övre Norrland (SE33)",
+    "count": 134,
+    "share": 0.2362,
+    "rca": 1.43,
+    "reldens": 60.08,
+    "comp": 0,
+    "comp_TCI": 13.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 60.08,
+    "y": 0,
+    "value": 1.43
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Övre Norrland (SE33)",
+    "count": 150,
+    "share": 0.3249,
+    "rca": 1.97,
+    "reldens": 95.12,
+    "comp": 38.64,
+    "comp_TCI": 8.28,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 95.12,
+    "y": 38.64,
+    "value": 1.97
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Övre Norrland (SE33)",
+    "count": 2690,
+    "share": 0.2917,
+    "rca": 1.77,
+    "reldens": 62.16,
+    "comp": 34.09,
+    "comp_TCI": 28.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 62.16,
+    "y": 34.09,
+    "value": 1.77
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Övre Norrland (SE33)",
+    "count": 689,
+    "share": 0.1391,
+    "rca": 0.84,
+    "reldens": 24.27,
+    "comp": 31.82,
+    "comp_TCI": 46.53,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 24.27,
+    "y": 31.82,
+    "value": 0.84
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Övre Norrland (SE33)",
+    "count": 1948,
+    "share": 0.211,
+    "rca": 1.28,
+    "reldens": 69.34,
+    "comp": 34.09,
+    "comp_TCI": 37.26,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 69.34,
+    "y": 34.09,
+    "value": 1.28
+  },
+  {
+    "domain": "Handling",
+    "geo": "Övre Norrland (SE33)",
+    "count": 166,
+    "share": 0.2224,
+    "rca": 1.35,
+    "reldens": 82.52,
+    "comp": 7.95,
+    "comp_TCI": 1.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 82.52,
+    "y": 7.95,
+    "value": 1.35
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Övre Norrland (SE33)",
+    "count": 319,
+    "share": 0.2315,
+    "rca": 1.4,
+    "reldens": 79.63,
+    "comp": 11.36,
+    "comp_TCI": 7.07,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 79.63,
+    "y": 11.36,
+    "value": 1.4
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Övre Norrland (SE33)",
+    "count": 48,
+    "share": 0.366,
+    "rca": 2.22,
+    "reldens": 79.74,
+    "comp": 18.18,
+    "comp_TCI": 2.33,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 79.74,
+    "y": 18.18,
+    "value": 2.22
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Övre Norrland (SE33)",
+    "count": 362,
+    "share": 0.1828,
+    "rca": 1.11,
+    "reldens": 42.51,
+    "comp": 50,
+    "comp_TCI": 6.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 42.51,
+    "y": 50,
+    "value": 1.11
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Övre Norrland (SE33)",
+    "count": 1097,
+    "share": 0.278,
+    "rca": 1.68,
+    "reldens": 72.38,
+    "comp": 51.14,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 72.38,
+    "y": 51.14,
+    "value": 1.68
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Övre Norrland (SE33)",
+    "count": 319,
+    "share": 0.3537,
+    "rca": 2.14,
+    "reldens": 81.94,
+    "comp": 15.91,
+    "comp_TCI": 0.75,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 81.94,
+    "y": 15.91,
+    "value": 2.14
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Övre Norrland (SE33)",
+    "count": 5463,
+    "share": 0.1252,
+    "rca": 0.76,
+    "reldens": 21.03,
+    "comp": 76.14,
+    "comp_TCI": 87.65,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 21.03,
+    "y": 76.14,
+    "value": 0.76
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Övre Norrland (SE33)",
+    "count": 1527,
+    "share": 0.1596,
+    "rca": 0.97,
+    "reldens": 66.72,
+    "comp": 79.55,
+    "comp_TCI": 6.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 66.72,
+    "y": 79.55,
+    "value": 0.97
+  },
+  {
+    "domain": "Optics",
+    "geo": "Övre Norrland (SE33)",
+    "count": 493,
+    "share": 0.0877,
+    "rca": 0.53,
+    "reldens": 35.05,
+    "comp": 95.45,
+    "comp_TCI": 26.36,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 35.05,
+    "y": 95.45,
+    "value": 0.53
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Övre Norrland (SE33)",
+    "count": 84,
+    "share": 0.0627,
+    "rca": 0.38,
+    "reldens": 40.08,
+    "comp": 40.91,
+    "comp_TCI": 29.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 40.08,
+    "y": 40.91,
+    "value": 0.38
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Övre Norrland (SE33)",
+    "count": 566,
+    "share": 0.1145,
+    "rca": 0.69,
+    "reldens": 5.83,
+    "comp": 69.32,
+    "comp_TCI": 95.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 5.83,
+    "y": 69.32,
+    "value": 0.69
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Övre Norrland (SE33)",
+    "count": 109,
+    "share": 0.0978,
+    "rca": 0.59,
+    "reldens": 45.34,
+    "comp": 65.91,
+    "comp_TCI": 10.02,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 45.34,
+    "y": 65.91,
+    "value": 0.59
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Övre Norrland (SE33)",
+    "count": 38,
+    "share": 0.1929,
+    "rca": 1.17,
+    "reldens": 84.21,
+    "comp": 31.82,
+    "comp_TCI": 3.26,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 84.21,
+    "y": 31.82,
+    "value": 1.17
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Övre Norrland (SE33)",
+    "count": 4,
+    "share": 0.0333,
+    "rca": 0.2,
+    "reldens": 13.31,
+    "comp": 40.91,
+    "comp_TCI": 25.51,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 13.31,
+    "y": 40.91,
+    "value": 0.2
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Övre Norrland (SE33)",
+    "count": 179,
+    "share": 0.2057,
+    "rca": 1.24,
+    "reldens": 89.09,
+    "comp": 25,
+    "comp_TCI": 6.9,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 89.09,
+    "y": 25,
+    "value": 1.24
+  },
+  {
+    "domain": "Transport",
+    "geo": "Övre Norrland (SE33)",
+    "count": 103,
+    "share": 0.1634,
+    "rca": 0.99,
+    "reldens": 92.04,
+    "comp": 13.64,
+    "comp_TCI": 7.54,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 92.04,
+    "y": 13.64,
+    "value": 0.99
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

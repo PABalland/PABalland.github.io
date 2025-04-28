@@ -1,0 +1,600 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Province of Trento (ITH2)",
+    "count": 1,
+    "share": 0.0055,
+    "rca": 0.08,
+    "reldens": 10.72,
+    "comp": 100,
+    "comp_TCI": 36.53,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 10.72,
+    "y": 100,
+    "value": 0.08
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Province of Trento (ITH2)",
+    "count": 11,
+    "share": 0.0625,
+    "rca": 0.92,
+    "reldens": 54.54,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 54.54,
+    "y": 37.21,
+    "value": 0.92
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Province of Trento (ITH2)",
+    "count": 29,
+    "share": 0.1903,
+    "rca": 2.81,
+    "reldens": 51.98,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 51.98,
+    "y": 35.72,
+    "value": 2.81
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Province of Trento (ITH2)",
+    "count": 7,
+    "share": 0.1117,
+    "rca": 1.65,
+    "reldens": 45.71,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 45.71,
+    "y": 30.18,
+    "value": 1.65
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Province of Trento (ITH2)",
+    "count": 13,
+    "share": 0.076,
+    "rca": 1.12,
+    "reldens": 32.23,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 32.23,
+    "y": 58.31,
+    "value": 1.12
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Province of Trento (ITH2)",
+    "count": 29,
+    "share": 0.1337,
+    "rca": 1.97,
+    "reldens": 31.44,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 31.44,
+    "y": 43.68,
+    "value": 1.97
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Province of Trento (ITH2)",
+    "count": 3,
+    "share": 0.0477,
+    "rca": 0.7,
+    "reldens": 25.68,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 25.68,
+    "y": 63.04,
+    "value": 0.7
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Province of Trento (ITH2)",
+    "count": 19,
+    "share": 0.0943,
+    "rca": 1.39,
+    "reldens": 23.76,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 23.76,
+    "y": 46.55,
+    "value": 1.39
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Province of Trento (ITH2)",
+    "count": 8,
+    "share": 0.189,
+    "rca": 2.79,
+    "reldens": 32.01,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 32.01,
+    "y": 31.61,
+    "value": 2.79
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Province of Trento (ITH2)",
+    "count": 3,
+    "share": 0.0455,
+    "rca": 0.67,
+    "reldens": 26.69,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 26.69,
+    "y": 38.89,
+    "value": 0.67
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Province of Trento (ITH2)",
+    "count": 41,
+    "share": 0.2217,
+    "rca": 3.27,
+    "reldens": 50.02,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 50.02,
+    "y": 37.03,
+    "value": 3.27
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Province of Trento (ITH2)",
+    "count": 1,
+    "share": 0.0173,
+    "rca": 0.26,
+    "reldens": 18.4,
+    "comp": 49.1,
+    "comp_TCI": 18.45,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 18.4,
+    "y": 49.1,
+    "value": 0.26
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Province of Trento (ITH2)",
+    "count": 2,
+    "share": 0.0148,
+    "rca": 0.22,
+    "reldens": 19.84,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 19.84,
+    "y": 47.67,
+    "value": 0.22
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Province of Trento (ITH2)",
+    "count": 8,
+    "share": 0.0893,
+    "rca": 1.32,
+    "reldens": 19.4,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 19.4,
+    "y": 42.13,
+    "value": 1.32
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Province of Trento (ITH2)",
+    "count": 42,
+    "share": 0.0832,
+    "rca": 1.23,
+    "reldens": 53.67,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 53.67,
+    "y": 37.71,
+    "value": 1.23
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Province of Trento (ITH2)",
+    "count": 2,
+    "share": 0.0163,
+    "rca": 0.24,
+    "reldens": 21.07,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 21.07,
+    "y": 36.53,
+    "value": 0.24
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Province of Trento (ITH2)",
+    "count": 3,
+    "share": 0.0432,
+    "rca": 0.64,
+    "reldens": 30.77,
+    "comp": 65.15,
+    "comp_TCI": 39.11,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 30.77,
+    "y": 65.15,
+    "value": 0.64
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Province of Trento (ITH2)",
+    "count": 3,
+    "share": 0.015,
+    "rca": 0.22,
+    "reldens": 15.46,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 15.46,
+    "y": 69.63,
+    "value": 0.22
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Province of Trento (ITH2)",
+    "count": 54,
+    "share": 0.1031,
+    "rca": 1.52,
+    "reldens": 31.26,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 31.26,
+    "y": 39.83,
+    "value": 1.52
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Province of Trento (ITH2)",
+    "count": 20,
+    "share": 0.1857,
+    "rca": 2.74,
+    "reldens": 57.19,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 57.19,
+    "y": 63.41,
+    "value": 2.74
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Province of Trento (ITH2)",
+    "count": 8,
+    "share": 0.0609,
+    "rca": 0.9,
+    "reldens": 30.07,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 30.07,
+    "y": 71.13,
+    "value": 0.9
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Province of Trento (ITH2)",
+    "count": 5,
+    "share": 0.1488,
+    "rca": 2.2,
+    "reldens": 50.3,
+    "comp": 50.78,
+    "comp_TCI": 18.98,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 50.3,
+    "y": 50.78,
+    "value": 2.2
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Province of Trento (ITH2)",
+    "count": 2,
+    "share": 0.0379,
+    "rca": 0.56,
+    "reldens": 28.49,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 28.49,
+    "y": 37.03,
+    "value": 0.56
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Province of Trento (ITH2)",
+    "count": 1,
+    "share": 0.0092,
+    "rca": 0.14,
+    "reldens": 25.29,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 25.29,
+    "y": 68.39,
+    "value": 0.14
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,617 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 1,
+    "share": 0.0045,
+    "rca": 0.08,
+    "reldens": 73.85,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 73.85,
+    "y": 47.5,
+    "value": 0.08
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 123,
+    "share": 0.039,
+    "rca": 0.67,
+    "reldens": 23.76,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 23.76,
+    "y": 95,
+    "value": 0.67
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 8,
+    "share": 0.0248,
+    "rca": 0.43,
+    "reldens": 85.17,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 85.17,
+    "y": 16.25,
+    "value": 0.43
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 192,
+    "share": 0.5495,
+    "rca": 9.48,
+    "reldens": 52.98,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 52.98,
+    "y": 43.75,
+    "value": 9.48
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 97,
+    "share": 0.0233,
+    "rca": 0.4,
+    "reldens": 14.88,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 14.88,
+    "y": 73.75,
+    "value": 0.4
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 59,
+    "share": 0.0264,
+    "rca": 0.46,
+    "reldens": 46.44,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 46.44,
+    "y": 100,
+    "value": 0.46
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 4,
+    "share": 0.0106,
+    "rca": 0.18,
+    "reldens": 58.44,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 58.44,
+    "y": 48.75,
+    "value": 0.18
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 12,
+    "share": 0.0143,
+    "rca": 0.25,
+    "reldens": 94.24,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 94.24,
+    "y": 75,
+    "value": 0.25
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 26,
+    "share": 0.035,
+    "rca": 0.6,
+    "reldens": 36.76,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 36.76,
+    "y": 65,
+    "value": 0.6
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 214,
+    "share": 0.3578,
+    "rca": 6.17,
+    "reldens": 32.57,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 32.57,
+    "y": 22.5,
+    "value": 6.17
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 12,
+    "share": 0.0233,
+    "rca": 0.4,
+    "reldens": 12.14,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 12.14,
+    "y": 28.75,
+    "value": 0.4
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 70,
+    "share": 0.0725,
+    "rca": 1.25,
+    "reldens": 86.66,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 86.66,
+    "y": 82.5,
+    "value": 1.25
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 3,
+    "share": 0.0081,
+    "rca": 0.14,
+    "reldens": 4.3,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 4.3,
+    "y": 16.25,
+    "value": 0.14
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 18,
+    "share": 0.0915,
+    "rca": 1.58,
+    "reldens": 12.45,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 12.45,
+    "y": 0,
+    "value": 1.58
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 32,
+    "share": 0.2736,
+    "rca": 4.72,
+    "reldens": 92.17,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 92.17,
+    "y": 10,
+    "value": 4.72
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 249,
+    "share": 0.0661,
+    "rca": 1.14,
+    "reldens": 33.42,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 33.42,
+    "y": 52.5,
+    "value": 1.14
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 139,
+    "share": 0.2175,
+    "rca": 3.75,
+    "reldens": 28.21,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 28.21,
+    "y": 22.5,
+    "value": 3.75
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 40,
+    "share": 0.0732,
+    "rca": 1.26,
+    "reldens": 40.05,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 40.05,
+    "y": 52.5,
+    "value": 1.26
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 3,
+    "share": 0.0065,
+    "rca": 0.11,
+    "reldens": 4.18,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 4.18,
+    "y": 21.25,
+    "value": 0.11
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 63,
+    "share": 0.0258,
+    "rca": 0.45,
+    "reldens": 14.51,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 14.51,
+    "y": 70,
+    "value": 0.45
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 18,
+    "share": 0.0187,
+    "rca": 0.32,
+    "reldens": 7.61,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 7.61,
+    "y": 87.5,
+    "value": 0.32
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 21,
+    "share": 0.0671,
+    "rca": 1.16,
+    "reldens": 15.52,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 15.52,
+    "y": 30,
+    "value": 1.16
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 8,
+    "share": 0.0124,
+    "rca": 0.21,
+    "reldens": 3.35,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 3.35,
+    "y": 82.5,
+    "value": 0.21
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 4,
+    "share": 0.0076,
+    "rca": 0.13,
+    "reldens": 45.62,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 45.62,
+    "y": 45,
+    "value": 0.13
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Warmińsko-Mazurskie (PL62)",
+    "count": 177,
+    "share": 0.0893,
+    "rca": 1.54,
+    "reldens": 38.42,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 38.42,
+    "y": 61.25,
+    "value": 1.54
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

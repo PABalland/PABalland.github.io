@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 5339,
+    "share": 0.3665,
+    "rca": 0.85,
+    "reldens": 47.71,
+    "comp": 85.23,
+    "comp_TCI": 100,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 47.71,
+    "y": 85.23,
+    "value": 0.85
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 981,
+    "share": 0.6018,
+    "rca": 1.4,
+    "reldens": 66.67,
+    "comp": 36.36,
+    "comp_TCI": 25.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 66.67,
+    "y": 36.36,
+    "value": 1.4
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 83,
+    "share": 0.3817,
+    "rca": 0.89,
+    "reldens": 44.3,
+    "comp": 45.45,
+    "comp_TCI": 66.08,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 44.3,
+    "y": 45.45,
+    "value": 0.89
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 1267,
+    "share": 0.6007,
+    "rca": 1.39,
+    "reldens": 77.85,
+    "comp": 68.18,
+    "comp_TCI": 11.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 77.85,
+    "y": 68.18,
+    "value": 1.39
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 13095,
+    "share": 0.431,
+    "rca": 1,
+    "reldens": 26.13,
+    "comp": 100,
+    "comp_TCI": 85.98,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 26.13,
+    "y": 100,
+    "value": 1
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 574,
+    "share": 0.5189,
+    "rca": 1.2,
+    "reldens": 51.59,
+    "comp": 25,
+    "comp_TCI": 9.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 51.59,
+    "y": 25,
+    "value": 1.2
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 1362,
+    "share": 0.2974,
+    "rca": 0.69,
+    "reldens": 50.91,
+    "comp": 35.23,
+    "comp_TCI": 12.92,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 50.91,
+    "y": 35.23,
+    "value": 0.69
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 4046,
+    "share": 0.575,
+    "rca": 1.33,
+    "reldens": 59.37,
+    "comp": 38.64,
+    "comp_TCI": 11.58,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 59.37,
+    "y": 38.64,
+    "value": 1.33
+  },
+  {
+    "domain": "Control",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 36,
+    "share": 0.2436,
+    "rca": 0.57,
+    "reldens": 51.99,
+    "comp": 36.36,
+    "comp_TCI": 2.69,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 51.99,
+    "y": 36.36,
+    "value": 0.57
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 1165,
+    "share": 0.3705,
+    "rca": 0.86,
+    "reldens": 56.31,
+    "comp": 36.36,
+    "comp_TCI": 14.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 56.31,
+    "y": 36.36,
+    "value": 0.86
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 113,
+    "share": 0.1992,
+    "rca": 0.46,
+    "reldens": 29.63,
+    "comp": 0,
+    "comp_TCI": 13.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 29.63,
+    "y": 0,
+    "value": 0.46
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 121,
+    "share": 0.2621,
+    "rca": 0.61,
+    "reldens": 22.73,
+    "comp": 38.64,
+    "comp_TCI": 8.28,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 22.73,
+    "y": 38.64,
+    "value": 0.61
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 4494,
+    "share": 0.4873,
+    "rca": 1.13,
+    "reldens": 44.03,
+    "comp": 34.09,
+    "comp_TCI": 28.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 44.03,
+    "y": 34.09,
+    "value": 1.13
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 1277,
+    "share": 0.2577,
+    "rca": 0.6,
+    "reldens": 58.34,
+    "comp": 31.82,
+    "comp_TCI": 46.53,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 58.34,
+    "y": 31.82,
+    "value": 0.6
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 2446,
+    "share": 0.2649,
+    "rca": 0.61,
+    "reldens": 48.82,
+    "comp": 34.09,
+    "comp_TCI": 37.26,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 48.82,
+    "y": 34.09,
+    "value": 0.61
+  },
+  {
+    "domain": "Handling",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 499,
+    "share": 0.6684,
+    "rca": 1.55,
+    "reldens": 50.73,
+    "comp": 7.95,
+    "comp_TCI": 1.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 50.73,
+    "y": 7.95,
+    "value": 1.55
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 886,
+    "share": 0.643,
+    "rca": 1.49,
+    "reldens": 64.32,
+    "comp": 11.36,
+    "comp_TCI": 7.07,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 64.32,
+    "y": 11.36,
+    "value": 1.49
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 99,
+    "share": 0.7549,
+    "rca": 1.75,
+    "reldens": 47.8,
+    "comp": 18.18,
+    "comp_TCI": 2.33,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 47.8,
+    "y": 18.18,
+    "value": 1.75
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 1666,
+    "share": 0.841,
+    "rca": 1.95,
+    "reldens": 67.01,
+    "comp": 50,
+    "comp_TCI": 6.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 67.01,
+    "y": 50,
+    "value": 1.95
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 1670,
+    "share": 0.4233,
+    "rca": 0.98,
+    "reldens": 62.47,
+    "comp": 51.14,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 62.47,
+    "y": 51.14,
+    "value": 0.98
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 348,
+    "share": 0.3859,
+    "rca": 0.9,
+    "reldens": 41.33,
+    "comp": 15.91,
+    "comp_TCI": 0.75,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 41.33,
+    "y": 15.91,
+    "value": 0.9
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 16802,
+    "share": 0.3851,
+    "rca": 0.89,
+    "reldens": 47.84,
+    "comp": 76.14,
+    "comp_TCI": 87.65,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 47.84,
+    "y": 76.14,
+    "value": 0.89
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 5993,
+    "share": 0.6265,
+    "rca": 1.45,
+    "reldens": 74.87,
+    "comp": 79.55,
+    "comp_TCI": 6.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 74.87,
+    "y": 79.55,
+    "value": 1.45
+  },
+  {
+    "domain": "Optics",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 3010,
+    "share": 0.5356,
+    "rca": 1.24,
+    "reldens": 50.73,
+    "comp": 95.45,
+    "comp_TCI": 26.36,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 50.73,
+    "y": 95.45,
+    "value": 1.24
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 971,
+    "share": 0.7246,
+    "rca": 1.68,
+    "reldens": 76.07,
+    "comp": 40.91,
+    "comp_TCI": 29.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 76.07,
+    "y": 40.91,
+    "value": 1.68
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 2128,
+    "share": 0.4304,
+    "rca": 1,
+    "reldens": 36.13,
+    "comp": 69.32,
+    "comp_TCI": 95.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 36.13,
+    "y": 69.32,
+    "value": 1
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 608,
+    "share": 0.5454,
+    "rca": 1.27,
+    "reldens": 75.78,
+    "comp": 65.91,
+    "comp_TCI": 10.02,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 75.78,
+    "y": 65.91,
+    "value": 1.27
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 95,
+    "share": 0.4822,
+    "rca": 1.12,
+    "reldens": 38.21,
+    "comp": 31.82,
+    "comp_TCI": 3.26,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 38.21,
+    "y": 31.82,
+    "value": 1.12
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 34,
+    "share": 0.2827,
+    "rca": 0.66,
+    "reldens": 36.77,
+    "comp": 40.91,
+    "comp_TCI": 25.51,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 36.77,
+    "y": 40.91,
+    "value": 0.66
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 242,
+    "share": 0.2781,
+    "rca": 0.65,
+    "reldens": 45.11,
+    "comp": 25,
+    "comp_TCI": 6.9,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 45.11,
+    "y": 25,
+    "value": 0.65
+  },
+  {
+    "domain": "Transport",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 279,
+    "share": 0.4427,
+    "rca": 1.03,
+    "reldens": 41.55,
+    "comp": 13.64,
+    "comp_TCI": 7.54,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 41.55,
+    "y": 13.64,
+    "value": 1.03
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 38,
+    "share": 0.1709,
+    "rca": 0.41,
+    "reldens": 80.16,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 80.16,
+    "y": 47.5,
+    "value": 0.41
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 1092,
+    "share": 0.3467,
+    "rca": 0.83,
+    "reldens": 77.65,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 77.65,
+    "y": 95,
+    "value": 0.83
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 146,
+    "share": 0.4533,
+    "rca": 1.09,
+    "reldens": 16.51,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 16.51,
+    "y": 16.25,
+    "value": 1.09
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 76,
+    "share": 0.2175,
+    "rca": 0.52,
+    "reldens": 41.92,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 41.92,
+    "y": 43.75,
+    "value": 0.52
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 1638,
+    "share": 0.3932,
+    "rca": 0.94,
+    "reldens": 24.65,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 24.65,
+    "y": 73.75,
+    "value": 0.94
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 538,
+    "share": 0.241,
+    "rca": 0.58,
+    "reldens": 45.95,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 45.95,
+    "y": 100,
+    "value": 0.58
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 136,
+    "share": 0.3595,
+    "rca": 0.86,
+    "reldens": 78.82,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 78.82,
+    "y": 48.75,
+    "value": 0.86
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 363,
+    "share": 0.4315,
+    "rca": 1.03,
+    "reldens": 51,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 51,
+    "y": 75,
+    "value": 1.03
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 364,
+    "share": 0.4902,
+    "rca": 1.17,
+    "reldens": 33.27,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 33.27,
+    "y": 65,
+    "value": 1.17
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 258,
+    "share": 0.4313,
+    "rca": 1.03,
+    "reldens": 49.85,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 49.85,
+    "y": 22.5,
+    "value": 1.03
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 177,
+    "share": 0.3432,
+    "rca": 0.82,
+    "reldens": 57.44,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 57.44,
+    "y": 28.75,
+    "value": 0.82
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 245,
+    "share": 0.2537,
+    "rca": 0.61,
+    "reldens": 52.4,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 52.4,
+    "y": 82.5,
+    "value": 0.61
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 131,
+    "share": 0.3532,
+    "rca": 0.85,
+    "reldens": 70.5,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 70.5,
+    "y": 16.25,
+    "value": 0.85
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 109,
+    "share": 0.5539,
+    "rca": 1.33,
+    "reldens": 18.31,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 18.31,
+    "y": 0,
+    "value": 1.33
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 57,
+    "share": 0.4874,
+    "rca": 1.17,
+    "reldens": 92.85,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 92.85,
+    "y": 10,
+    "value": 1.17
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 2287,
+    "share": 0.6074,
+    "rca": 1.45,
+    "reldens": 29.38,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 29.38,
+    "y": 52.5,
+    "value": 1.45
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 244,
+    "share": 0.3818,
+    "rca": 0.91,
+    "reldens": 67.53,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 67.53,
+    "y": 22.5,
+    "value": 0.91
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 206,
+    "share": 0.3768,
+    "rca": 0.9,
+    "reldens": 88.51,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 88.51,
+    "y": 52.5,
+    "value": 0.9
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 222,
+    "share": 0.4822,
+    "rca": 1.15,
+    "reldens": 4.62,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 4.62,
+    "y": 21.25,
+    "value": 1.15
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 902,
+    "share": 0.37,
+    "rca": 0.89,
+    "reldens": 18.96,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 18.96,
+    "y": 70,
+    "value": 0.89
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 281,
+    "share": 0.2919,
+    "rca": 0.7,
+    "reldens": 7.92,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 7.92,
+    "y": 87.5,
+    "value": 0.7
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 518,
+    "share": 1.6558,
+    "rca": 3.96,
+    "reldens": 63.21,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 63.21,
+    "y": 30,
+    "value": 3.96
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 227,
+    "share": 0.3504,
+    "rca": 0.84,
+    "reldens": 4.51,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 4.51,
+    "y": 82.5,
+    "value": 0.84
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 237,
+    "share": 0.4504,
+    "rca": 1.08,
+    "reldens": 55.15,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 55.15,
+    "y": 45,
+    "value": 1.08
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 5,
+    "share": 0.1476,
+    "rca": 0.35,
+    "reldens": 89.3,
+    "comp": 50,
+    "comp_TCI": 32.63,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 89.3,
+    "y": 50,
+    "value": 0.35
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Derbyshire and Nottinghamshire (UKF1)",
+    "count": 981,
+    "share": 0.4951,
+    "rca": 1.19,
+    "reldens": 51.26,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 51.26,
+    "y": 61.25,
+    "value": 1.19
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

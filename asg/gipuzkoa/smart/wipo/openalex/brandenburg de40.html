@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Brandenburg (DE40)",
+    "count": 3104,
+    "share": 0.2131,
+    "rca": 0.66,
+    "reldens": 32.14,
+    "comp": 85.23,
+    "comp_TCI": 100,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 32.14,
+    "y": 85.23,
+    "value": 0.66
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Brandenburg (DE40)",
+    "count": 493,
+    "share": 0.3024,
+    "rca": 0.94,
+    "reldens": 83.81,
+    "comp": 36.36,
+    "comp_TCI": 25.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 83.81,
+    "y": 36.36,
+    "value": 0.94
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Brandenburg (DE40)",
+    "count": 210,
+    "share": 0.9657,
+    "rca": 3,
+    "reldens": 31.06,
+    "comp": 45.45,
+    "comp_TCI": 66.08,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 31.06,
+    "y": 45.45,
+    "value": 3
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Brandenburg (DE40)",
+    "count": 540,
+    "share": 0.256,
+    "rca": 0.8,
+    "reldens": 74.05,
+    "comp": 68.18,
+    "comp_TCI": 11.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 74.05,
+    "y": 68.18,
+    "value": 0.8
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Brandenburg (DE40)",
+    "count": 6654,
+    "share": 0.219,
+    "rca": 0.68,
+    "reldens": 39.62,
+    "comp": 100,
+    "comp_TCI": 85.98,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 39.62,
+    "y": 100,
+    "value": 0.68
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Brandenburg (DE40)",
+    "count": 640,
+    "share": 0.5786,
+    "rca": 1.8,
+    "reldens": 71.26,
+    "comp": 25,
+    "comp_TCI": 9.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 71.26,
+    "y": 25,
+    "value": 1.8
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Brandenburg (DE40)",
+    "count": 5080,
+    "share": 1.1092,
+    "rca": 3.45,
+    "reldens": 50.58,
+    "comp": 35.23,
+    "comp_TCI": 12.92,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 50.58,
+    "y": 35.23,
+    "value": 3.45
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Brandenburg (DE40)",
+    "count": 2988,
+    "share": 0.4246,
+    "rca": 1.32,
+    "reldens": 57.95,
+    "comp": 38.64,
+    "comp_TCI": 11.58,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 57.95,
+    "y": 38.64,
+    "value": 1.32
+  },
+  {
+    "domain": "Control",
+    "geo": "Brandenburg (DE40)",
+    "count": 35,
+    "share": 0.2368,
+    "rca": 0.74,
+    "reldens": 49.9,
+    "comp": 36.36,
+    "comp_TCI": 2.69,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 49.9,
+    "y": 36.36,
+    "value": 0.74
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Brandenburg (DE40)",
+    "count": 1206,
+    "share": 0.3836,
+    "rca": 1.19,
+    "reldens": 52.2,
+    "comp": 36.36,
+    "comp_TCI": 14.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 52.2,
+    "y": 36.36,
+    "value": 1.19
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Brandenburg (DE40)",
+    "count": 106,
+    "share": 0.1868,
+    "rca": 0.58,
+    "reldens": 76.47,
+    "comp": 0,
+    "comp_TCI": 13.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 76.47,
+    "y": 0,
+    "value": 0.58
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Brandenburg (DE40)",
+    "count": 126,
+    "share": 0.2729,
+    "rca": 0.85,
+    "reldens": 67.4,
+    "comp": 38.64,
+    "comp_TCI": 8.28,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 67.4,
+    "y": 38.64,
+    "value": 0.85
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Brandenburg (DE40)",
+    "count": 6084,
+    "share": 0.6597,
+    "rca": 2.05,
+    "reldens": 68.57,
+    "comp": 34.09,
+    "comp_TCI": 28.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 68.57,
+    "y": 34.09,
+    "value": 2.05
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Brandenburg (DE40)",
+    "count": 1628,
+    "share": 0.3286,
+    "rca": 1.02,
+    "reldens": 24.68,
+    "comp": 31.82,
+    "comp_TCI": 46.53,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 24.68,
+    "y": 31.82,
+    "value": 1.02
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Brandenburg (DE40)",
+    "count": 8733,
+    "share": 0.9459,
+    "rca": 2.94,
+    "reldens": 66.64,
+    "comp": 34.09,
+    "comp_TCI": 37.26,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 66.64,
+    "y": 34.09,
+    "value": 2.94
+  },
+  {
+    "domain": "Handling",
+    "geo": "Brandenburg (DE40)",
+    "count": 113,
+    "share": 0.1514,
+    "rca": 0.47,
+    "reldens": 44.06,
+    "comp": 7.95,
+    "comp_TCI": 1.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 44.06,
+    "y": 7.95,
+    "value": 0.47
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Brandenburg (DE40)",
+    "count": 613,
+    "share": 0.4449,
+    "rca": 1.38,
+    "reldens": 57.67,
+    "comp": 11.36,
+    "comp_TCI": 7.07,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 57.67,
+    "y": 11.36,
+    "value": 1.38
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Brandenburg (DE40)",
+    "count": 15,
+    "share": 0.1144,
+    "rca": 0.36,
+    "reldens": 30.2,
+    "comp": 18.18,
+    "comp_TCI": 2.33,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 30.2,
+    "y": 18.18,
+    "value": 0.36
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Brandenburg (DE40)",
+    "count": 756,
+    "share": 0.3816,
+    "rca": 1.19,
+    "reldens": 43.68,
+    "comp": 50,
+    "comp_TCI": 6.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 43.68,
+    "y": 50,
+    "value": 1.19
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Brandenburg (DE40)",
+    "count": 1195,
+    "share": 0.3029,
+    "rca": 0.94,
+    "reldens": 45.33,
+    "comp": 51.14,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 45.33,
+    "y": 51.14,
+    "value": 0.94
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Brandenburg (DE40)",
+    "count": 231,
+    "share": 0.2561,
+    "rca": 0.8,
+    "reldens": 37.79,
+    "comp": 15.91,
+    "comp_TCI": 0.75,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 37.79,
+    "y": 15.91,
+    "value": 0.8
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Brandenburg (DE40)",
+    "count": 4842,
+    "share": 0.111,
+    "rca": 0.35,
+    "reldens": 27.24,
+    "comp": 76.14,
+    "comp_TCI": 87.65,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 27.24,
+    "y": 76.14,
+    "value": 0.35
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Brandenburg (DE40)",
+    "count": 3294,
+    "share": 0.3443,
+    "rca": 1.07,
+    "reldens": 51.77,
+    "comp": 79.55,
+    "comp_TCI": 6.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 51.77,
+    "y": 79.55,
+    "value": 1.07
+  },
+  {
+    "domain": "Optics",
+    "geo": "Brandenburg (DE40)",
+    "count": 3219,
+    "share": 0.5728,
+    "rca": 1.78,
+    "reldens": 59.68,
+    "comp": 95.45,
+    "comp_TCI": 26.36,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 59.68,
+    "y": 95.45,
+    "value": 1.78
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Brandenburg (DE40)",
+    "count": 254,
+    "share": 0.1895,
+    "rca": 0.59,
+    "reldens": 47.85,
+    "comp": 40.91,
+    "comp_TCI": 29.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 47.85,
+    "y": 40.91,
+    "value": 0.59
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Brandenburg (DE40)",
+    "count": 437,
+    "share": 0.0884,
+    "rca": 0.27,
+    "reldens": 18.32,
+    "comp": 69.32,
+    "comp_TCI": 95.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 18.32,
+    "y": 69.32,
+    "value": 0.27
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Brandenburg (DE40)",
+    "count": 481,
+    "share": 0.4315,
+    "rca": 1.34,
+    "reldens": 68.96,
+    "comp": 65.91,
+    "comp_TCI": 10.02,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 68.96,
+    "y": 65.91,
+    "value": 1.34
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Brandenburg (DE40)",
+    "count": 23,
+    "share": 0.1168,
+    "rca": 0.36,
+    "reldens": 43.96,
+    "comp": 31.82,
+    "comp_TCI": 3.26,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 43.96,
+    "y": 31.82,
+    "value": 0.36
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Brandenburg (DE40)",
+    "count": 9,
+    "share": 0.0748,
+    "rca": 0.23,
+    "reldens": 89.44,
+    "comp": 40.91,
+    "comp_TCI": 25.51,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 89.44,
+    "y": 40.91,
+    "value": 0.23
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Brandenburg (DE40)",
+    "count": 307,
+    "share": 0.3528,
+    "rca": 1.1,
+    "reldens": 53.01,
+    "comp": 25,
+    "comp_TCI": 6.9,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 53.01,
+    "y": 25,
+    "value": 1.1
+  },
+  {
+    "domain": "Transport",
+    "geo": "Brandenburg (DE40)",
+    "count": 103,
+    "share": 0.1634,
+    "rca": 0.51,
+    "reldens": 63.8,
+    "comp": 13.64,
+    "comp_TCI": 7.54,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 63.8,
+    "y": 13.64,
+    "value": 0.51
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

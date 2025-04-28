@@ -1,0 +1,736 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Auvergne (FR72)",
+    "count": 10,
+    "share": 0.08,
+    "rca": 0.19,
+    "reldens": 4.39,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 4.39,
+    "y": 7.14,
+    "value": 0.19
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Auvergne (FR72)",
+    "count": 4,
+    "share": 0.0255,
+    "rca": 0.06,
+    "reldens": 9.4,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 9.4,
+    "y": 55.36,
+    "value": 0.06
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Auvergne (FR72)",
+    "count": 76,
+    "share": 0.2526,
+    "rca": 0.59,
+    "reldens": 34.11,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 34.11,
+    "y": 63.39,
+    "value": 0.59
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Auvergne (FR72)",
+    "count": 108,
+    "share": 0.2838,
+    "rca": 0.67,
+    "reldens": 12.69,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 12.69,
+    "y": 48.21,
+    "value": 0.67
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Auvergne (FR72)",
+    "count": 62,
+    "share": 0.2075,
+    "rca": 0.49,
+    "reldens": 18.26,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 18.26,
+    "y": 37.5,
+    "value": 0.49
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Auvergne (FR72)",
+    "count": 12,
+    "share": 0.0651,
+    "rca": 0.15,
+    "reldens": 20.23,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 20.23,
+    "y": 12.5,
+    "value": 0.15
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Auvergne (FR72)",
+    "count": 65,
+    "share": 0.1473,
+    "rca": 0.35,
+    "reldens": 6.15,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 6.15,
+    "y": 83.04,
+    "value": 0.35
+  },
+  {
+    "domain": "Control",
+    "geo": "Auvergne (FR72)",
+    "count": 28,
+    "share": 0.1395,
+    "rca": 0.33,
+    "reldens": 16.04,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 16.04,
+    "y": 51.79,
+    "value": 0.33
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Auvergne (FR72)",
+    "count": 31,
+    "share": 0.0568,
+    "rca": 0.13,
+    "reldens": 20.67,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 20.67,
+    "y": 88.39,
+    "value": 0.13
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Auvergne (FR72)",
+    "count": 5,
+    "share": 0.0234,
+    "rca": 0.05,
+    "reldens": 15.84,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 15.84,
+    "y": 58.93,
+    "value": 0.05
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Auvergne (FR72)",
+    "count": 11,
+    "share": 0.0925,
+    "rca": 0.22,
+    "reldens": 14.78,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 14.78,
+    "y": 0,
+    "value": 0.22
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Auvergne (FR72)",
+    "count": 57,
+    "share": 0.47,
+    "rca": 1.1,
+    "reldens": 13.84,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 13.84,
+    "y": 19.64,
+    "value": 1.1
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Auvergne (FR72)",
+    "count": 17,
+    "share": 0.1603,
+    "rca": 0.38,
+    "reldens": 20.75,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 20.75,
+    "y": 1.79,
+    "value": 0.38
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Auvergne (FR72)",
+    "count": 195,
+    "share": 0.3192,
+    "rca": 0.75,
+    "reldens": 21.04,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 21.04,
+    "y": 60.71,
+    "value": 0.75
+  },
+  {
+    "domain": "Handling",
+    "geo": "Auvergne (FR72)",
+    "count": 83,
+    "share": 0.3614,
+    "rca": 0.85,
+    "reldens": 20.21,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 20.21,
+    "y": 44.64,
+    "value": 0.85
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Auvergne (FR72)",
+    "count": 13,
+    "share": 0.1518,
+    "rca": 0.36,
+    "reldens": 6.6,
+    "comp": 12.5,
+    "comp_TCI": 54.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 6.6,
+    "y": 12.5,
+    "value": 0.36
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Auvergne (FR72)",
+    "count": 48,
+    "share": 0.2861,
+    "rca": 0.67,
+    "reldens": 25.9,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 25.9,
+    "y": 42.86,
+    "value": 0.67
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Auvergne (FR72)",
+    "count": 542,
+    "share": 2.4097,
+    "rca": 5.66,
+    "reldens": 23.98,
+    "comp": 71.43,
+    "comp_TCI": 2.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 23.98,
+    "y": 71.43,
+    "value": 5.66
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Auvergne (FR72)",
+    "count": 114,
+    "share": 0.5271,
+    "rca": 1.24,
+    "reldens": 13.46,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 13.46,
+    "y": 47.32,
+    "value": 1.24
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Auvergne (FR72)",
+    "count": 88,
+    "share": 0.1592,
+    "rca": 0.37,
+    "reldens": 8.61,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 8.61,
+    "y": 63.39,
+    "value": 0.37
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Auvergne (FR72)",
+    "count": 40,
+    "share": 0.1558,
+    "rca": 0.37,
+    "reldens": 24.4,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 24.4,
+    "y": 57.14,
+    "value": 0.37
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Auvergne (FR72)",
+    "count": 58,
+    "share": 0.112,
+    "rca": 0.26,
+    "reldens": 16.09,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 16.09,
+    "y": 59.82,
+    "value": 0.26
+  },
+  {
+    "domain": "Optics",
+    "geo": "Auvergne (FR72)",
+    "count": 15,
+    "share": 0.0836,
+    "rca": 0.2,
+    "reldens": 16.81,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 16.81,
+    "y": 66.07,
+    "value": 0.2
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Auvergne (FR72)",
+    "count": 95,
+    "share": 0.2626,
+    "rca": 0.62,
+    "reldens": 17.65,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 17.65,
+    "y": 62.5,
+    "value": 0.62
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Auvergne (FR72)",
+    "count": 116,
+    "share": 0.576,
+    "rca": 1.35,
+    "reldens": 11.64,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 11.64,
+    "y": 58.04,
+    "value": 1.35
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Auvergne (FR72)",
+    "count": 603,
+    "share": 1.7223,
+    "rca": 4.05,
+    "reldens": 29.82,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 29.82,
+    "y": 37.5,
+    "value": 4.05
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Auvergne (FR72)",
+    "count": 74,
+    "share": 0.1636,
+    "rca": 0.38,
+    "reldens": 17.59,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 17.59,
+    "y": 37.5,
+    "value": 0.38
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Auvergne (FR72)",
+    "count": 55,
+    "share": 0.3111,
+    "rca": 0.73,
+    "reldens": 29.35,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 29.35,
+    "y": 41.96,
+    "value": 0.73
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Auvergne (FR72)",
+    "count": 39,
+    "share": 0.1922,
+    "rca": 0.45,
+    "reldens": 3.72,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 3.72,
+    "y": 78.57,
+    "value": 0.45
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Auvergne (FR72)",
+    "count": 35,
+    "share": 0.2893,
+    "rca": 0.68,
+    "reldens": 33.17,
+    "comp": 25.89,
+    "comp_TCI": 6.89,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 33.17,
+    "y": 25.89,
+    "value": 0.68
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Auvergne (FR72)",
+    "count": 9,
+    "share": 0.0785,
+    "rca": 0.18,
+    "reldens": 18.39,
+    "comp": 19.64,
+    "comp_TCI": 14.8,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 18.39,
+    "y": 19.64,
+    "value": 0.18
+  },
+  {
+    "domain": "Transport",
+    "geo": "Auvergne (FR72)",
+    "count": 1259,
+    "share": 2.5427,
+    "rca": 5.98,
+    "reldens": 6.81,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 6.81,
+    "y": 88.39,
+    "value": 5.98
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

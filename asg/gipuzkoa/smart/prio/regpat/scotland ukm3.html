@@ -1,0 +1,532 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Scotland (UKM3)",
+    "count": 11,
+    "share": 0.06,
+    "rca": 0.53,
+    "reldens": 13.22,
+    "comp": 100,
+    "comp_TCI": 36.53,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 13.22,
+    "y": 100,
+    "value": 0.53
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Scotland (UKM3)",
+    "count": 27,
+    "share": 0.1535,
+    "rca": 1.36,
+    "reldens": 74.37,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 74.37,
+    "y": 37.21,
+    "value": 1.36
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Scotland (UKM3)",
+    "count": 30,
+    "share": 0.1969,
+    "rca": 1.75,
+    "reldens": 46.43,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 46.43,
+    "y": 35.72,
+    "value": 1.75
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Scotland (UKM3)",
+    "count": 7,
+    "share": 0.1117,
+    "rca": 0.99,
+    "reldens": 51.68,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 51.68,
+    "y": 30.18,
+    "value": 0.99
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Scotland (UKM3)",
+    "count": 13,
+    "share": 0.076,
+    "rca": 0.68,
+    "reldens": 33.47,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 33.47,
+    "y": 58.31,
+    "value": 0.68
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Scotland (UKM3)",
+    "count": 42,
+    "share": 0.1936,
+    "rca": 1.72,
+    "reldens": 45.37,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 45.37,
+    "y": 43.68,
+    "value": 1.72
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Scotland (UKM3)",
+    "count": 13,
+    "share": 0.307,
+    "rca": 2.73,
+    "reldens": 25.3,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 25.3,
+    "y": 31.61,
+    "value": 2.73
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Scotland (UKM3)",
+    "count": 5,
+    "share": 0.0759,
+    "rca": 0.67,
+    "reldens": 37.82,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 37.82,
+    "y": 38.89,
+    "value": 0.67
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Scotland (UKM3)",
+    "count": 28,
+    "share": 0.1514,
+    "rca": 1.35,
+    "reldens": 54.86,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 54.86,
+    "y": 37.03,
+    "value": 1.35
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Scotland (UKM3)",
+    "count": 7,
+    "share": 0.1213,
+    "rca": 1.08,
+    "reldens": 20.54,
+    "comp": 49.1,
+    "comp_TCI": 18.45,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 20.54,
+    "y": 49.1,
+    "value": 1.08
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Scotland (UKM3)",
+    "count": 23,
+    "share": 0.1704,
+    "rca": 1.52,
+    "reldens": 20.62,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 20.62,
+    "y": 47.67,
+    "value": 1.52
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Scotland (UKM3)",
+    "count": 5,
+    "share": 0.0558,
+    "rca": 0.5,
+    "reldens": 31.11,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 31.11,
+    "y": 42.13,
+    "value": 0.5
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Scotland (UKM3)",
+    "count": 62,
+    "share": 0.1229,
+    "rca": 1.09,
+    "reldens": 70.44,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 70.44,
+    "y": 37.71,
+    "value": 1.09
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Scotland (UKM3)",
+    "count": 14,
+    "share": 0.1142,
+    "rca": 1.01,
+    "reldens": 28.4,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 28.4,
+    "y": 36.53,
+    "value": 1.01
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Scotland (UKM3)",
+    "count": 13,
+    "share": 0.065,
+    "rca": 0.58,
+    "reldens": 27.83,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 27.83,
+    "y": 69.63,
+    "value": 0.58
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Scotland (UKM3)",
+    "count": 119,
+    "share": 0.2272,
+    "rca": 2.02,
+    "reldens": 55.99,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 55.99,
+    "y": 39.83,
+    "value": 2.02
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Scotland (UKM3)",
+    "count": 25,
+    "share": 0.2321,
+    "rca": 2.06,
+    "reldens": 53.59,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 53.59,
+    "y": 63.41,
+    "value": 2.06
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Scotland (UKM3)",
+    "count": 8,
+    "share": 0.2382,
+    "rca": 2.12,
+    "reldens": 47.69,
+    "comp": 50.78,
+    "comp_TCI": 18.98,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 47.69,
+    "y": 50.78,
+    "value": 2.12
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Scotland (UKM3)",
+    "count": 16,
+    "share": 0.3029,
+    "rca": 2.69,
+    "reldens": 29.78,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 29.78,
+    "y": 37.03,
+    "value": 2.69
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Scotland (UKM3)",
+    "count": 15,
+    "share": 0.1381,
+    "rca": 1.23,
+    "reldens": 30.24,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 30.24,
+    "y": 68.39,
+    "value": 1.23
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

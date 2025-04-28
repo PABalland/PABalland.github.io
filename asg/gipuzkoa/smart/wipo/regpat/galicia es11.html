@@ -1,0 +1,770 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Galicia (ES11)",
+    "count": 21,
+    "share": 0.1679,
+    "rca": 2.09,
+    "reldens": 40.76,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 40.76,
+    "y": 7.14,
+    "value": 2.09
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Galicia (ES11)",
+    "count": 3,
+    "share": 0.0192,
+    "rca": 0.24,
+    "reldens": 12.53,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 12.53,
+    "y": 55.36,
+    "value": 0.24
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Galicia (ES11)",
+    "count": 43,
+    "share": 0.1429,
+    "rca": 1.78,
+    "reldens": 31.9,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 31.9,
+    "y": 63.39,
+    "value": 1.78
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Galicia (ES11)",
+    "count": 58,
+    "share": 0.1524,
+    "rca": 1.9,
+    "reldens": 71.15,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 71.15,
+    "y": 48.21,
+    "value": 1.9
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Galicia (ES11)",
+    "count": 19,
+    "share": 0.0636,
+    "rca": 0.79,
+    "reldens": 46.81,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 46.81,
+    "y": 37.5,
+    "value": 0.79
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Galicia (ES11)",
+    "count": 31,
+    "share": 0.1681,
+    "rca": 2.1,
+    "reldens": 30.65,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 30.65,
+    "y": 12.5,
+    "value": 2.1
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Galicia (ES11)",
+    "count": 11,
+    "share": 0.0249,
+    "rca": 0.31,
+    "reldens": 17.81,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 17.81,
+    "y": 83.04,
+    "value": 0.31
+  },
+  {
+    "domain": "Control",
+    "geo": "Galicia (ES11)",
+    "count": 18,
+    "share": 0.0897,
+    "rca": 1.12,
+    "reldens": 21.24,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 21.24,
+    "y": 51.79,
+    "value": 1.12
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Galicia (ES11)",
+    "count": 14,
+    "share": 0.0309,
+    "rca": 0.39,
+    "reldens": 11.64,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 11.64,
+    "y": 100,
+    "value": 0.39
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Galicia (ES11)",
+    "count": 21,
+    "share": 0.0384,
+    "rca": 0.48,
+    "reldens": 22.14,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 22.14,
+    "y": 88.39,
+    "value": 0.48
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Galicia (ES11)",
+    "count": 6,
+    "share": 0.0281,
+    "rca": 0.35,
+    "reldens": 26.83,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 26.83,
+    "y": 58.93,
+    "value": 0.35
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Galicia (ES11)",
+    "count": 13,
+    "share": 0.1093,
+    "rca": 1.36,
+    "reldens": 18.79,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 18.79,
+    "y": 0,
+    "value": 1.36
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Galicia (ES11)",
+    "count": 11,
+    "share": 0.0907,
+    "rca": 1.13,
+    "reldens": 66.37,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 66.37,
+    "y": 19.64,
+    "value": 1.13
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Galicia (ES11)",
+    "count": 10,
+    "share": 0.0943,
+    "rca": 1.18,
+    "reldens": 24.78,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 24.78,
+    "y": 1.79,
+    "value": 1.18
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Galicia (ES11)",
+    "count": 44,
+    "share": 0.072,
+    "rca": 0.9,
+    "reldens": 30.63,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 30.63,
+    "y": 60.71,
+    "value": 0.9
+  },
+  {
+    "domain": "Handling",
+    "geo": "Galicia (ES11)",
+    "count": 18,
+    "share": 0.0784,
+    "rca": 0.98,
+    "reldens": 36.84,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 36.84,
+    "y": 44.64,
+    "value": 0.98
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Galicia (ES11)",
+    "count": 6,
+    "share": 0.07,
+    "rca": 0.87,
+    "reldens": 25.7,
+    "comp": 12.5,
+    "comp_TCI": 54.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 25.7,
+    "y": 12.5,
+    "value": 0.87
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Galicia (ES11)",
+    "count": 8,
+    "share": 0.0477,
+    "rca": 0.59,
+    "reldens": 23.59,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 23.59,
+    "y": 42.86,
+    "value": 0.59
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Galicia (ES11)",
+    "count": 11,
+    "share": 0.0489,
+    "rca": 0.61,
+    "reldens": 43.32,
+    "comp": 71.43,
+    "comp_TCI": 2.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 43.32,
+    "y": 71.43,
+    "value": 0.61
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Galicia (ES11)",
+    "count": 7,
+    "share": 0.0324,
+    "rca": 0.4,
+    "reldens": 28.63,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 28.63,
+    "y": 47.32,
+    "value": 0.4
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Galicia (ES11)",
+    "count": 44,
+    "share": 0.0796,
+    "rca": 0.99,
+    "reldens": 47.27,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 47.27,
+    "y": 63.39,
+    "value": 0.99
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Galicia (ES11)",
+    "count": 14,
+    "share": 0.0545,
+    "rca": 0.68,
+    "reldens": 37.02,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 37.02,
+    "y": 57.14,
+    "value": 0.68
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Galicia (ES11)",
+    "count": 28,
+    "share": 0.0541,
+    "rca": 0.67,
+    "reldens": 30.13,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 30.13,
+    "y": 59.82,
+    "value": 0.67
+  },
+  {
+    "domain": "Optics",
+    "geo": "Galicia (ES11)",
+    "count": 1,
+    "share": 0.0056,
+    "rca": 0.07,
+    "reldens": 18.69,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 18.69,
+    "y": 66.07,
+    "value": 0.07
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Galicia (ES11)",
+    "count": 55,
+    "share": 0.1521,
+    "rca": 1.9,
+    "reldens": 65.52,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 65.52,
+    "y": 62.5,
+    "value": 1.9
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Galicia (ES11)",
+    "count": 2,
+    "share": 0.0099,
+    "rca": 0.12,
+    "reldens": 29.25,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 29.25,
+    "y": 58.04,
+    "value": 0.12
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Galicia (ES11)",
+    "count": 21,
+    "share": 0.06,
+    "rca": 0.75,
+    "reldens": 33.08,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 33.08,
+    "y": 37.5,
+    "value": 0.75
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Galicia (ES11)",
+    "count": 115,
+    "share": 0.2543,
+    "rca": 3.17,
+    "reldens": 80.17,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 80.17,
+    "y": 37.5,
+    "value": 3.17
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Galicia (ES11)",
+    "count": 1,
+    "share": 0.0096,
+    "rca": 0.12,
+    "reldens": 21.92,
+    "comp": 46.43,
+    "comp_TCI": 22.6,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 21.92,
+    "y": 46.43,
+    "value": 0.12
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Galicia (ES11)",
+    "count": 17,
+    "share": 0.0962,
+    "rca": 1.2,
+    "reldens": 17.56,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 17.56,
+    "y": 41.96,
+    "value": 1.2
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Galicia (ES11)",
+    "count": 1,
+    "share": 0.0049,
+    "rca": 0.06,
+    "reldens": 6.79,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 6.79,
+    "y": 78.57,
+    "value": 0.06
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Galicia (ES11)",
+    "count": 9,
+    "share": 0.0744,
+    "rca": 0.93,
+    "reldens": 29.08,
+    "comp": 25.89,
+    "comp_TCI": 6.89,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 29.08,
+    "y": 25.89,
+    "value": 0.93
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Galicia (ES11)",
+    "count": 3,
+    "share": 0.0262,
+    "rca": 0.33,
+    "reldens": 28.86,
+    "comp": 19.64,
+    "comp_TCI": 14.8,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 28.86,
+    "y": 19.64,
+    "value": 0.33
+  },
+  {
+    "domain": "Transport",
+    "geo": "Galicia (ES11)",
+    "count": 64,
+    "share": 0.1293,
+    "rca": 1.61,
+    "reldens": 21.98,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 21.98,
+    "y": 88.39,
+    "value": 1.61
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,566 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 25.34,
+    "share": 0.6489,
+    "rca": 0.9,
+    "reldens": 4.4,
+    "comp": 28.95,
+    "comp_TCI": 76.99,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 4.4,
+    "y": 28.95,
+    "value": 0.9
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 21.31,
+    "share": 0.2004,
+    "rca": 0.28,
+    "reldens": 15.68,
+    "comp": 39.47,
+    "comp_TCI": 41.62,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 15.68,
+    "y": 39.47,
+    "value": 0.28
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 0.56,
+    "share": 0.0094,
+    "rca": 0.01,
+    "reldens": 24.74,
+    "comp": 71.05,
+    "comp_TCI": 13.11,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 24.74,
+    "y": 71.05,
+    "value": 0.01
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 162.13,
+    "share": 0.5218,
+    "rca": 0.72,
+    "reldens": 9.11,
+    "comp": 26.32,
+    "comp_TCI": 93.24,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 9.11,
+    "y": 26.32,
+    "value": 0.72
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 201.56,
+    "share": 2.7475,
+    "rca": 3.8,
+    "reldens": 28.25,
+    "comp": 68.42,
+    "comp_TCI": 69.07,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 28.25,
+    "y": 68.42,
+    "value": 3.8
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 505.45,
+    "share": 3.3049,
+    "rca": 4.57,
+    "reldens": 27.41,
+    "comp": 63.16,
+    "comp_TCI": 25.93,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 27.41,
+    "y": 63.16,
+    "value": 4.57
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 852.58,
+    "share": 0.5384,
+    "rca": 0.74,
+    "reldens": 31.5,
+    "comp": 47.37,
+    "comp_TCI": 10.29,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 31.5,
+    "y": 47.37,
+    "value": 0.74
+  },
+  {
+    "domain": "Control",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 0.54,
+    "share": 0.0067,
+    "rca": 0.01,
+    "reldens": 18.13,
+    "comp": 0,
+    "comp_TCI": 53.6,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 18.13,
+    "y": 0,
+    "value": 0.01
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 49.96,
+    "share": 0.362,
+    "rca": 0.5,
+    "reldens": 27.32,
+    "comp": 52.63,
+    "comp_TCI": 29.49,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 27.32,
+    "y": 52.63,
+    "value": 0.5
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 387.81,
+    "share": 0.9117,
+    "rca": 1.26,
+    "reldens": 32.95,
+    "comp": 73.68,
+    "comp_TCI": 77.81,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 32.95,
+    "y": 73.68,
+    "value": 1.26
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 86.69,
+    "share": 0.3516,
+    "rca": 0.49,
+    "reldens": 49.66,
+    "comp": 44.74,
+    "comp_TCI": 70.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 49.66,
+    "y": 44.74,
+    "value": 0.49
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 23.84,
+    "share": 0.1265,
+    "rca": 0.17,
+    "reldens": 15.75,
+    "comp": 34.21,
+    "comp_TCI": 51.99,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 15.75,
+    "y": 34.21,
+    "value": 0.17
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 270.79,
+    "share": 0.8287,
+    "rca": 1.15,
+    "reldens": 37.02,
+    "comp": 100,
+    "comp_TCI": 86.75,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 37.02,
+    "y": 100,
+    "value": 1.15
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 1632.48,
+    "share": 1.9366,
+    "rca": 2.68,
+    "reldens": 15.28,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 15.28,
+    "y": 68.42,
+    "value": 2.68
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 3.86,
+    "share": 0.0126,
+    "rca": 0.02,
+    "reldens": 25.91,
+    "comp": 10.53,
+    "comp_TCI": 72.37,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 25.91,
+    "y": 10.53,
+    "value": 0.02
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 30.97,
+    "share": 12.3514,
+    "rca": 17.07,
+    "reldens": 13.74,
+    "comp": 31.58,
+    "comp_TCI": 62.04,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 13.74,
+    "y": 31.58,
+    "value": 17.07
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 205.36,
+    "share": 0.466,
+    "rca": 0.64,
+    "reldens": 7.81,
+    "comp": 36.84,
+    "comp_TCI": 76.58,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 7.81,
+    "y": 36.84,
+    "value": 0.64
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 115.42,
+    "share": 0.2052,
+    "rca": 0.28,
+    "reldens": 20.55,
+    "comp": 57.89,
+    "comp_TCI": 15.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 20.55,
+    "y": 57.89,
+    "value": 0.28
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 70.78,
+    "share": 0.2894,
+    "rca": 0.4,
+    "reldens": 4.49,
+    "comp": 52.63,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 4.49,
+    "y": 52.63,
+    "value": 0.4
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 10.07,
+    "share": 0.1704,
+    "rca": 0.24,
+    "reldens": 29.33,
+    "comp": 78.95,
+    "comp_TCI": 95.31,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 29.33,
+    "y": 78.95,
+    "value": 0.24
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 146.31,
+    "share": 1.8986,
+    "rca": 2.62,
+    "reldens": 15.89,
+    "comp": 63.16,
+    "comp_TCI": 26.99,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 15.89,
+    "y": 63.16,
+    "value": 2.62
+  },
+  {
+    "domain": "Transport",
+    "geo": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 159.6,
+    "share": 0.3382,
+    "rca": 0.47,
+    "reldens": 28.17,
+    "comp": 68.42,
+    "comp_TCI": 46.99,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 28.17,
+    "y": 68.42,
+    "value": 0.47
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

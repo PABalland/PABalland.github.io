@@ -1,0 +1,702 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Sardinia (ITG2)",
+    "count": 4,
+    "share": 0.0255,
+    "rca": 0.98,
+    "reldens": 14.73,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 14.73,
+    "y": 55.36,
+    "value": 0.98
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Sardinia (ITG2)",
+    "count": 21,
+    "share": 0.0698,
+    "rca": 2.68,
+    "reldens": 58.73,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 58.73,
+    "y": 63.39,
+    "value": 2.68
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Sardinia (ITG2)",
+    "count": 18,
+    "share": 0.0473,
+    "rca": 1.81,
+    "reldens": 68.02,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 68.02,
+    "y": 48.21,
+    "value": 1.81
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Sardinia (ITG2)",
+    "count": 11,
+    "share": 0.0368,
+    "rca": 1.41,
+    "reldens": 63.05,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 63.05,
+    "y": 37.5,
+    "value": 1.41
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Sardinia (ITG2)",
+    "count": 1,
+    "share": 0.0054,
+    "rca": 0.21,
+    "reldens": 33.89,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 33.89,
+    "y": 12.5,
+    "value": 0.21
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Sardinia (ITG2)",
+    "count": 6,
+    "share": 0.0136,
+    "rca": 0.52,
+    "reldens": 18.67,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 18.67,
+    "y": 83.04,
+    "value": 0.52
+  },
+  {
+    "domain": "Control",
+    "geo": "Sardinia (ITG2)",
+    "count": 5,
+    "share": 0.0249,
+    "rca": 0.96,
+    "reldens": 18.93,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 18.93,
+    "y": 51.79,
+    "value": 0.96
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Sardinia (ITG2)",
+    "count": 2,
+    "share": 0.0037,
+    "rca": 0.14,
+    "reldens": 43.46,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 43.46,
+    "y": 88.39,
+    "value": 0.14
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Sardinia (ITG2)",
+    "count": 2,
+    "share": 0.0094,
+    "rca": 0.36,
+    "reldens": 47.68,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 47.68,
+    "y": 58.93,
+    "value": 0.36
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Sardinia (ITG2)",
+    "count": 9,
+    "share": 0.0757,
+    "rca": 2.9,
+    "reldens": 69.84,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 69.84,
+    "y": 0,
+    "value": 2.9
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Sardinia (ITG2)",
+    "count": 6,
+    "share": 0.0495,
+    "rca": 1.9,
+    "reldens": 80.5,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 80.5,
+    "y": 19.64,
+    "value": 1.9
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Sardinia (ITG2)",
+    "count": 3,
+    "share": 0.0283,
+    "rca": 1.09,
+    "reldens": 34.52,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 34.52,
+    "y": 1.79,
+    "value": 1.09
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Sardinia (ITG2)",
+    "count": 20,
+    "share": 0.0327,
+    "rca": 1.26,
+    "reldens": 36.72,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 36.72,
+    "y": 60.71,
+    "value": 1.26
+  },
+  {
+    "domain": "Handling",
+    "geo": "Sardinia (ITG2)",
+    "count": 3,
+    "share": 0.0131,
+    "rca": 0.5,
+    "reldens": 35.37,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 35.37,
+    "y": 44.64,
+    "value": 0.5
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Sardinia (ITG2)",
+    "count": 9,
+    "share": 0.04,
+    "rca": 1.54,
+    "reldens": 47.24,
+    "comp": 71.43,
+    "comp_TCI": 2.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 47.24,
+    "y": 71.43,
+    "value": 1.54
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Sardinia (ITG2)",
+    "count": 10,
+    "share": 0.0462,
+    "rca": 1.77,
+    "reldens": 45.41,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 45.41,
+    "y": 47.32,
+    "value": 1.77
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Sardinia (ITG2)",
+    "count": 3,
+    "share": 0.0054,
+    "rca": 0.21,
+    "reldens": 29.4,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 29.4,
+    "y": 63.39,
+    "value": 0.21
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Sardinia (ITG2)",
+    "count": 3,
+    "share": 0.0117,
+    "rca": 0.45,
+    "reldens": 26.57,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 26.57,
+    "y": 57.14,
+    "value": 0.45
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Sardinia (ITG2)",
+    "count": 23,
+    "share": 0.0444,
+    "rca": 1.7,
+    "reldens": 39.86,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 39.86,
+    "y": 59.82,
+    "value": 1.7
+  },
+  {
+    "domain": "Optics",
+    "geo": "Sardinia (ITG2)",
+    "count": 1,
+    "share": 0.0056,
+    "rca": 0.21,
+    "reldens": 25.97,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 25.97,
+    "y": 66.07,
+    "value": 0.21
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Sardinia (ITG2)",
+    "count": 14,
+    "share": 0.0387,
+    "rca": 1.49,
+    "reldens": 87.55,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 87.55,
+    "y": 62.5,
+    "value": 1.49
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Sardinia (ITG2)",
+    "count": 7,
+    "share": 0.0348,
+    "rca": 1.33,
+    "reldens": 39.7,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 39.7,
+    "y": 58.04,
+    "value": 1.33
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Sardinia (ITG2)",
+    "count": 6,
+    "share": 0.0171,
+    "rca": 0.66,
+    "reldens": 54.58,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 54.58,
+    "y": 37.5,
+    "value": 0.66
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Sardinia (ITG2)",
+    "count": 33,
+    "share": 0.073,
+    "rca": 2.8,
+    "reldens": 85.89,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 85.89,
+    "y": 37.5,
+    "value": 2.8
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Sardinia (ITG2)",
+    "count": 1,
+    "share": 0.0096,
+    "rca": 0.37,
+    "reldens": 25.37,
+    "comp": 46.43,
+    "comp_TCI": 22.6,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 25.37,
+    "y": 46.43,
+    "value": 0.37
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Sardinia (ITG2)",
+    "count": 2,
+    "share": 0.0113,
+    "rca": 0.43,
+    "reldens": 43.02,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 43.02,
+    "y": 41.96,
+    "value": 0.43
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Sardinia (ITG2)",
+    "count": 5,
+    "share": 0.0246,
+    "rca": 0.95,
+    "reldens": 6.7,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 6.7,
+    "y": 78.57,
+    "value": 0.95
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Sardinia (ITG2)",
+    "count": 1,
+    "share": 0.0083,
+    "rca": 0.32,
+    "reldens": 54.91,
+    "comp": 25.89,
+    "comp_TCI": 6.89,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 54.91,
+    "y": 25.89,
+    "value": 0.32
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Sardinia (ITG2)",
+    "count": 5,
+    "share": 0.0436,
+    "rca": 1.67,
+    "reldens": 49.3,
+    "comp": 19.64,
+    "comp_TCI": 14.8,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 49.3,
+    "y": 19.64,
+    "value": 1.67
+  },
+  {
+    "domain": "Transport",
+    "geo": "Sardinia (ITG2)",
+    "count": 9,
+    "share": 0.0182,
+    "rca": 0.7,
+    "reldens": 23.6,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 23.6,
+    "y": 88.39,
+    "value": 0.7
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Lietuva (LT00)",
+    "count": 32,
+    "share": 0.1439,
+    "rca": 0.62,
+    "reldens": 21.17,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 21.17,
+    "y": 47.5,
+    "value": 0.62
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Lietuva (LT00)",
+    "count": 536,
+    "share": 0.1702,
+    "rca": 0.74,
+    "reldens": 13.24,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 13.24,
+    "y": 95,
+    "value": 0.74
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Lietuva (LT00)",
+    "count": 76,
+    "share": 0.236,
+    "rca": 1.02,
+    "reldens": 89.71,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 89.71,
+    "y": 16.25,
+    "value": 1.02
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Lietuva (LT00)",
+    "count": 81,
+    "share": 0.2318,
+    "rca": 1.01,
+    "reldens": 63.94,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 63.94,
+    "y": 43.75,
+    "value": 1.01
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Lietuva (LT00)",
+    "count": 859,
+    "share": 0.2062,
+    "rca": 0.9,
+    "reldens": 79.55,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 79.55,
+    "y": 73.75,
+    "value": 0.9
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Lietuva (LT00)",
+    "count": 200,
+    "share": 0.0896,
+    "rca": 0.39,
+    "reldens": 27.76,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 27.76,
+    "y": 100,
+    "value": 0.39
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Lietuva (LT00)",
+    "count": 128,
+    "share": 0.3383,
+    "rca": 1.47,
+    "reldens": 65.43,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 65.43,
+    "y": 48.75,
+    "value": 1.47
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Lietuva (LT00)",
+    "count": 162,
+    "share": 0.1926,
+    "rca": 0.84,
+    "reldens": 97.52,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 97.52,
+    "y": 75,
+    "value": 0.84
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Lietuva (LT00)",
+    "count": 157,
+    "share": 0.2114,
+    "rca": 0.92,
+    "reldens": 31.38,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 31.38,
+    "y": 65,
+    "value": 0.92
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Lietuva (LT00)",
+    "count": 411,
+    "share": 0.6871,
+    "rca": 2.98,
+    "reldens": 21.44,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 21.44,
+    "y": 22.5,
+    "value": 2.98
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Lietuva (LT00)",
+    "count": 187,
+    "share": 0.3626,
+    "rca": 1.57,
+    "reldens": 77.02,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 77.02,
+    "y": 28.75,
+    "value": 1.57
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Lietuva (LT00)",
+    "count": 215,
+    "share": 0.2227,
+    "rca": 0.97,
+    "reldens": 71.09,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 71.09,
+    "y": 82.5,
+    "value": 0.97
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Lietuva (LT00)",
+    "count": 90,
+    "share": 0.2427,
+    "rca": 1.05,
+    "reldens": 89.74,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 89.74,
+    "y": 16.25,
+    "value": 1.05
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Lietuva (LT00)",
+    "count": 110,
+    "share": 0.559,
+    "rca": 2.43,
+    "reldens": 62.11,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 62.11,
+    "y": 0,
+    "value": 2.43
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Lietuva (LT00)",
+    "count": 41,
+    "share": 0.3505,
+    "rca": 1.52,
+    "reldens": 14.36,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 14.36,
+    "y": 10,
+    "value": 1.52
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Lietuva (LT00)",
+    "count": 558,
+    "share": 0.1482,
+    "rca": 0.64,
+    "reldens": 21.56,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 21.56,
+    "y": 52.5,
+    "value": 0.64
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Lietuva (LT00)",
+    "count": 357,
+    "share": 0.5586,
+    "rca": 2.43,
+    "reldens": 76.26,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 76.26,
+    "y": 22.5,
+    "value": 2.43
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Lietuva (LT00)",
+    "count": 197,
+    "share": 0.3603,
+    "rca": 1.56,
+    "reldens": 30.63,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 30.63,
+    "y": 52.5,
+    "value": 1.56
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Lietuva (LT00)",
+    "count": 174,
+    "share": 0.3779,
+    "rca": 1.64,
+    "reldens": 91.87,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 91.87,
+    "y": 21.25,
+    "value": 1.64
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Lietuva (LT00)",
+    "count": 512,
+    "share": 0.21,
+    "rca": 0.91,
+    "reldens": 13.27,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 13.27,
+    "y": 70,
+    "value": 0.91
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Lietuva (LT00)",
+    "count": 533,
+    "share": 0.5536,
+    "rca": 2.4,
+    "reldens": 47.44,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 47.44,
+    "y": 87.5,
+    "value": 2.4
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Lietuva (LT00)",
+    "count": 107,
+    "share": 0.342,
+    "rca": 1.49,
+    "reldens": 37.88,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 37.88,
+    "y": 30,
+    "value": 1.49
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Lietuva (LT00)",
+    "count": 164,
+    "share": 0.2532,
+    "rca": 1.1,
+    "reldens": 35.91,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 35.91,
+    "y": 82.5,
+    "value": 1.1
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Lietuva (LT00)",
+    "count": 85,
+    "share": 0.1616,
+    "rca": 0.7,
+    "reldens": 35.05,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 35.05,
+    "y": 45,
+    "value": 0.7
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Lietuva (LT00)",
+    "count": 10,
+    "share": 0.2952,
+    "rca": 1.28,
+    "reldens": 8.64,
+    "comp": 50,
+    "comp_TCI": 32.63,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 8.64,
+    "y": 50,
+    "value": 1.28
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Lietuva (LT00)",
+    "count": 346,
+    "share": 0.1746,
+    "rca": 0.76,
+    "reldens": 52.65,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 52.65,
+    "y": 61.25,
+    "value": 0.76
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

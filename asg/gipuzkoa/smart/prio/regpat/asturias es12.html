@@ -1,0 +1,481 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Asturias (ES12)",
+    "count": 1,
+    "share": 0.0057,
+    "rca": 0.07,
+    "reldens": 27.92,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 27.92,
+    "y": 37.21,
+    "value": 0.07
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Asturias (ES12)",
+    "count": 3,
+    "share": 0.0197,
+    "rca": 0.26,
+    "reldens": 12.81,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 12.81,
+    "y": 35.72,
+    "value": 0.26
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Asturias (ES12)",
+    "count": 4,
+    "share": 0.0638,
+    "rca": 0.83,
+    "reldens": 22,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 22,
+    "y": 30.18,
+    "value": 0.83
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Asturias (ES12)",
+    "count": 16,
+    "share": 0.0935,
+    "rca": 1.22,
+    "reldens": 28.37,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 28.37,
+    "y": 58.31,
+    "value": 1.22
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Asturias (ES12)",
+    "count": 5,
+    "share": 0.023,
+    "rca": 0.3,
+    "reldens": 25.45,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 25.45,
+    "y": 43.68,
+    "value": 0.3
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Asturias (ES12)",
+    "count": 1,
+    "share": 0.0159,
+    "rca": 0.21,
+    "reldens": 11.93,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 11.93,
+    "y": 63.04,
+    "value": 0.21
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Asturias (ES12)",
+    "count": 22,
+    "share": 0.1092,
+    "rca": 1.42,
+    "reldens": 26.53,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 26.53,
+    "y": 46.55,
+    "value": 1.42
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Asturias (ES12)",
+    "count": 19,
+    "share": 0.1028,
+    "rca": 1.34,
+    "reldens": 31.06,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 31.06,
+    "y": 37.03,
+    "value": 1.34
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Asturias (ES12)",
+    "count": 23,
+    "share": 0.0456,
+    "rca": 0.59,
+    "reldens": 17.21,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 17.21,
+    "y": 37.71,
+    "value": 0.59
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Asturias (ES12)",
+    "count": 7,
+    "share": 0.0571,
+    "rca": 0.74,
+    "reldens": 11.57,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 11.57,
+    "y": 36.53,
+    "value": 0.74
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Asturias (ES12)",
+    "count": 2,
+    "share": 0.01,
+    "rca": 0.13,
+    "reldens": 10.47,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 10.47,
+    "y": 69.63,
+    "value": 0.13
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Asturias (ES12)",
+    "count": 26,
+    "share": 0.0496,
+    "rca": 0.65,
+    "reldens": 30.4,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 30.4,
+    "y": 39.83,
+    "value": 0.65
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Asturias (ES12)",
+    "count": 1,
+    "share": 0.0093,
+    "rca": 0.12,
+    "reldens": 22.46,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 22.46,
+    "y": 63.41,
+    "value": 0.12
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Asturias (ES12)",
+    "count": 2,
+    "share": 0.0152,
+    "rca": 0.2,
+    "reldens": 14.86,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 14.86,
+    "y": 71.13,
+    "value": 0.2
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Asturias (ES12)",
+    "count": 1,
+    "share": 0.0298,
+    "rca": 0.39,
+    "reldens": 26.66,
+    "comp": 50.78,
+    "comp_TCI": 18.98,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 26.66,
+    "y": 50.78,
+    "value": 0.39
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Asturias (ES12)",
+    "count": 3,
+    "share": 0.0568,
+    "rca": 0.74,
+    "reldens": 28.87,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 28.87,
+    "y": 37.03,
+    "value": 0.74
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Asturias (ES12)",
+    "count": 46,
+    "share": 0.4235,
+    "rca": 5.51,
+    "reldens": 27.49,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 27.49,
+    "y": 68.39,
+    "value": 5.51
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

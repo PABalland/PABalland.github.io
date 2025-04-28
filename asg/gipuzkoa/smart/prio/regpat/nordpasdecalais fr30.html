@@ -1,0 +1,600 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 3,
+    "share": 0.0164,
+    "rca": 0.06,
+    "reldens": 1.66,
+    "comp": 100,
+    "comp_TCI": 36.53,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 1.66,
+    "y": 100,
+    "value": 0.06
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 55,
+    "share": 0.3126,
+    "rca": 1.06,
+    "reldens": 48.77,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 48.77,
+    "y": 37.21,
+    "value": 1.06
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 25,
+    "share": 0.164,
+    "rca": 0.55,
+    "reldens": 27.75,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 27.75,
+    "y": 35.72,
+    "value": 0.55
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 41,
+    "share": 0.6543,
+    "rca": 2.21,
+    "reldens": 39.47,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 39.47,
+    "y": 30.18,
+    "value": 2.21
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 21,
+    "share": 0.1227,
+    "rca": 0.41,
+    "reldens": 11.77,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 11.77,
+    "y": 58.31,
+    "value": 0.41
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 42,
+    "share": 0.1936,
+    "rca": 0.65,
+    "reldens": 15.95,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 15.95,
+    "y": 43.68,
+    "value": 0.65
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 10,
+    "share": 0.159,
+    "rca": 0.54,
+    "reldens": 12.19,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 12.19,
+    "y": 63.04,
+    "value": 0.54
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 12,
+    "share": 0.0596,
+    "rca": 0.2,
+    "reldens": 11.89,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 11.89,
+    "y": 46.55,
+    "value": 0.2
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 9,
+    "share": 0.2126,
+    "rca": 0.72,
+    "reldens": 37.72,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 37.72,
+    "y": 31.61,
+    "value": 0.72
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 16,
+    "share": 0.2428,
+    "rca": 0.82,
+    "reldens": 6.61,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 6.61,
+    "y": 38.89,
+    "value": 0.82
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 67,
+    "share": 0.3624,
+    "rca": 1.22,
+    "reldens": 59.09,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 59.09,
+    "y": 37.03,
+    "value": 1.22
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 6,
+    "share": 0.104,
+    "rca": 0.35,
+    "reldens": 5.78,
+    "comp": 49.1,
+    "comp_TCI": 18.45,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 5.78,
+    "y": 49.1,
+    "value": 0.35
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 20,
+    "share": 0.1482,
+    "rca": 0.5,
+    "reldens": 5.83,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 5.83,
+    "y": 47.67,
+    "value": 0.5
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 4,
+    "share": 0.0446,
+    "rca": 0.15,
+    "reldens": 8.62,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 8.62,
+    "y": 42.13,
+    "value": 0.15
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 342,
+    "share": 0.6778,
+    "rca": 2.29,
+    "reldens": 81.26,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 81.26,
+    "y": 37.71,
+    "value": 2.29
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 197,
+    "share": 1.6065,
+    "rca": 5.42,
+    "reldens": 76.45,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 76.45,
+    "y": 36.53,
+    "value": 5.42
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 4,
+    "share": 0.0577,
+    "rca": 0.19,
+    "reldens": 13.5,
+    "comp": 65.15,
+    "comp_TCI": 39.11,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 13.5,
+    "y": 65.15,
+    "value": 0.19
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 21,
+    "share": 0.105,
+    "rca": 0.35,
+    "reldens": 5.15,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 5.15,
+    "y": 69.63,
+    "value": 0.35
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 146,
+    "share": 0.2787,
+    "rca": 0.94,
+    "reldens": 38.43,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 38.43,
+    "y": 39.83,
+    "value": 0.94
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 4,
+    "share": 0.0371,
+    "rca": 0.13,
+    "reldens": 9.42,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 9.42,
+    "y": 63.41,
+    "value": 0.13
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 13,
+    "share": 0.099,
+    "rca": 0.33,
+    "reldens": 11.99,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 11.99,
+    "y": 71.13,
+    "value": 0.33
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 4,
+    "share": 0.1354,
+    "rca": 0.46,
+    "reldens": 14.39,
+    "comp": 31.92,
+    "comp_TCI": 33.47,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 14.39,
+    "y": 31.92,
+    "value": 0.46
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 20,
+    "share": 0.3786,
+    "rca": 1.28,
+    "reldens": 19.75,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 19.75,
+    "y": 37.03,
+    "value": 1.28
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Nord-Pas-de-Calais (FR30)",
+    "count": 5,
+    "share": 0.046,
+    "rca": 0.16,
+    "reldens": 11.26,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 11.26,
+    "y": 68.39,
+    "value": 0.16
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

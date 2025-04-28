@@ -1,0 +1,447 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 1.72,
+    "share": 0.0252,
+    "rca": 0.03,
+    "reldens": 8.35,
+    "comp": 67.28,
+    "comp_TCI": 22.81,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 8.35,
+    "y": 67.28,
+    "value": 0.03
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 108.14,
+    "share": 1.2321,
+    "rca": 1.55,
+    "reldens": 69.78,
+    "comp": 46.76,
+    "comp_TCI": 18,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 69.78,
+    "y": 46.76,
+    "value": 1.55
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 84.78,
+    "share": 2.3289,
+    "rca": 2.93,
+    "reldens": 23.18,
+    "comp": 40.63,
+    "comp_TCI": 19.49,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 23.18,
+    "y": 40.63,
+    "value": 2.93
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 152.46,
+    "share": 0.6101,
+    "rca": 0.77,
+    "reldens": 12.12,
+    "comp": 43.55,
+    "comp_TCI": 18.22,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 12.12,
+    "y": 43.55,
+    "value": 0.77
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 27.65,
+    "share": 0.3641,
+    "rca": 0.46,
+    "reldens": 23.02,
+    "comp": 60.41,
+    "comp_TCI": 22.23,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 23.02,
+    "y": 60.41,
+    "value": 0.46
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 0.5,
+    "share": 0.0283,
+    "rca": 0.04,
+    "reldens": 8.85,
+    "comp": 35.64,
+    "comp_TCI": 22.83,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 8.85,
+    "y": 35.64,
+    "value": 0.04
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 1.38,
+    "share": 0.0175,
+    "rca": 0.02,
+    "reldens": 4.76,
+    "comp": 51.46,
+    "comp_TCI": 24.05,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 4.76,
+    "y": 51.46,
+    "value": 0.02
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 2.01,
+    "share": 0.0264,
+    "rca": 0.03,
+    "reldens": 3.08,
+    "comp": 48.34,
+    "comp_TCI": 22.44,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 3.08,
+    "y": 48.34,
+    "value": 0.03
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 1.8,
+    "share": 0.196,
+    "rca": 0.25,
+    "reldens": 6.63,
+    "comp": 72.02,
+    "comp_TCI": 25.45,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 6.63,
+    "y": 72.02,
+    "value": 0.25
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 223.01,
+    "share": 0.9814,
+    "rca": 1.24,
+    "reldens": 59.8,
+    "comp": 45.82,
+    "comp_TCI": 18.56,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 59.8,
+    "y": 45.82,
+    "value": 1.24
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 49.43,
+    "share": 0.28,
+    "rca": 0.35,
+    "reldens": 18.07,
+    "comp": 46.17,
+    "comp_TCI": 21.89,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 18.07,
+    "y": 46.17,
+    "value": 0.35
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 347.9,
+    "share": 3.7977,
+    "rca": 4.79,
+    "reldens": 60.36,
+    "comp": 43.9,
+    "comp_TCI": 15.58,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 60.36,
+    "y": 43.9,
+    "value": 4.79
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 167.34,
+    "share": 14.831,
+    "rca": 18.69,
+    "reldens": 64.84,
+    "comp": 65.1,
+    "comp_TCI": 18.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 64.84,
+    "y": 65.1,
+    "value": 18.69
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 168.66,
+    "share": 1.3243,
+    "rca": 1.67,
+    "reldens": 13.8,
+    "comp": 48,
+    "comp_TCI": 19.92,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 13.8,
+    "y": 48,
+    "value": 1.67
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 12.53,
+    "share": 0.2955,
+    "rca": 0.37,
+    "reldens": 17.09,
+    "comp": 42.21,
+    "comp_TCI": 18.82,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 17.09,
+    "y": 42.21,
+    "value": 0.37
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

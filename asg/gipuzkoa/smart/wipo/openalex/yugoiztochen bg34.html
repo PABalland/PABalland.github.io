@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 214,
+    "share": 0.0147,
+    "rca": 1.12,
+    "reldens": 47.41,
+    "comp": 85.23,
+    "comp_TCI": 100,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 47.41,
+    "y": 85.23,
+    "value": 1.12
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 13,
+    "share": 0.008,
+    "rca": 0.61,
+    "reldens": 54.75,
+    "comp": 36.36,
+    "comp_TCI": 25.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 54.75,
+    "y": 36.36,
+    "value": 0.61
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 44,
+    "share": 0.0209,
+    "rca": 1.59,
+    "reldens": 18.12,
+    "comp": 68.18,
+    "comp_TCI": 11.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 18.12,
+    "y": 68.18,
+    "value": 1.59
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 459,
+    "share": 0.0151,
+    "rca": 1.15,
+    "reldens": 54.12,
+    "comp": 100,
+    "comp_TCI": 85.98,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 54.12,
+    "y": 100,
+    "value": 1.15
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 86,
+    "share": 0.0778,
+    "rca": 5.93,
+    "reldens": 38.1,
+    "comp": 25,
+    "comp_TCI": 9.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 38.1,
+    "y": 25,
+    "value": 5.93
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 30,
+    "share": 0.0066,
+    "rca": 0.5,
+    "reldens": 24.99,
+    "comp": 35.23,
+    "comp_TCI": 12.92,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 24.99,
+    "y": 35.23,
+    "value": 0.5
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 98,
+    "share": 0.0139,
+    "rca": 1.06,
+    "reldens": 25.84,
+    "comp": 38.64,
+    "comp_TCI": 11.58,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 25.84,
+    "y": 38.64,
+    "value": 1.06
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 32,
+    "share": 0.0102,
+    "rca": 0.78,
+    "reldens": 44.54,
+    "comp": 36.36,
+    "comp_TCI": 14.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 44.54,
+    "y": 36.36,
+    "value": 0.78
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 9,
+    "share": 0.0159,
+    "rca": 1.21,
+    "reldens": 13.42,
+    "comp": 0,
+    "comp_TCI": 13.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 13.42,
+    "y": 0,
+    "value": 1.21
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 107,
+    "share": 0.0116,
+    "rca": 0.88,
+    "reldens": 35.52,
+    "comp": 34.09,
+    "comp_TCI": 28.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 35.52,
+    "y": 34.09,
+    "value": 0.88
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 234,
+    "share": 0.0472,
+    "rca": 3.6,
+    "reldens": 66.16,
+    "comp": 31.82,
+    "comp_TCI": 46.53,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 66.16,
+    "y": 31.82,
+    "value": 3.6
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 97,
+    "share": 0.0105,
+    "rca": 0.8,
+    "reldens": 39.7,
+    "comp": 34.09,
+    "comp_TCI": 37.26,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 39.7,
+    "y": 34.09,
+    "value": 0.8
+  },
+  {
+    "domain": "Handling",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 18,
+    "share": 0.0241,
+    "rca": 1.84,
+    "reldens": 28.93,
+    "comp": 7.95,
+    "comp_TCI": 1.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 28.93,
+    "y": 7.95,
+    "value": 1.84
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 44,
+    "share": 0.0319,
+    "rca": 2.43,
+    "reldens": 60.74,
+    "comp": 11.36,
+    "comp_TCI": 7.07,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 60.74,
+    "y": 11.36,
+    "value": 2.43
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 20,
+    "share": 0.0101,
+    "rca": 0.77,
+    "reldens": 48.75,
+    "comp": 50,
+    "comp_TCI": 6.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 48.75,
+    "y": 50,
+    "value": 0.77
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 29,
+    "share": 0.0074,
+    "rca": 0.56,
+    "reldens": 26.19,
+    "comp": 51.14,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 26.19,
+    "y": 51.14,
+    "value": 0.56
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 9,
+    "share": 0.01,
+    "rca": 0.76,
+    "reldens": 18.53,
+    "comp": 15.91,
+    "comp_TCI": 0.75,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 18.53,
+    "y": 15.91,
+    "value": 0.76
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 412,
+    "share": 0.0094,
+    "rca": 0.72,
+    "reldens": 78,
+    "comp": 76.14,
+    "comp_TCI": 87.65,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 78,
+    "y": 76.14,
+    "value": 0.72
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 93,
+    "share": 0.0097,
+    "rca": 0.74,
+    "reldens": 39.32,
+    "comp": 79.55,
+    "comp_TCI": 6.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 39.32,
+    "y": 79.55,
+    "value": 0.74
+  },
+  {
+    "domain": "Optics",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 19,
+    "share": 0.0034,
+    "rca": 0.26,
+    "reldens": 21.37,
+    "comp": 95.45,
+    "comp_TCI": 26.36,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 21.37,
+    "y": 95.45,
+    "value": 0.26
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 25,
+    "share": 0.0187,
+    "rca": 1.42,
+    "reldens": 61.61,
+    "comp": 40.91,
+    "comp_TCI": 29.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 61.61,
+    "y": 40.91,
+    "value": 1.42
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 77,
+    "share": 0.0156,
+    "rca": 1.19,
+    "reldens": 52.58,
+    "comp": 69.32,
+    "comp_TCI": 95.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 52.58,
+    "y": 69.32,
+    "value": 1.19
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 1,
+    "share": 0.0009,
+    "rca": 0.07,
+    "reldens": 33.02,
+    "comp": 65.91,
+    "comp_TCI": 10.02,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 33.02,
+    "y": 65.91,
+    "value": 0.07
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 1,
+    "share": 0.0083,
+    "rca": 0.63,
+    "reldens": 1.29,
+    "comp": 40.91,
+    "comp_TCI": 25.51,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 1.29,
+    "y": 40.91,
+    "value": 0.63
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 12,
+    "share": 0.0138,
+    "rca": 1.05,
+    "reldens": 27.03,
+    "comp": 25,
+    "comp_TCI": 6.9,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 27.03,
+    "y": 25,
+    "value": 1.05
+  },
+  {
+    "domain": "Transport",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 1,
+    "share": 0.0016,
+    "rca": 0.12,
+    "reldens": 30.98,
+    "comp": 13.64,
+    "comp_TCI": 7.54,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 30.98,
+    "y": 13.64,
+    "value": 0.12
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,668 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Álava (ES211)",
+    "count": 1,
+    "share": 0.008,
+    "rca": 0.29,
+    "reldens": 21.6,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 21.6,
+    "y": 7.14,
+    "value": 0.29
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Álava (ES211)",
+    "count": 4,
+    "share": 0.0133,
+    "rca": 0.49,
+    "reldens": 32.79,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 32.79,
+    "y": 63.39,
+    "value": 0.49
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Álava (ES211)",
+    "count": 9,
+    "share": 0.0236,
+    "rca": 0.87,
+    "reldens": 59.84,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 59.84,
+    "y": 48.21,
+    "value": 0.87
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Álava (ES211)",
+    "count": 7,
+    "share": 0.0234,
+    "rca": 0.86,
+    "reldens": 33.1,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 33.1,
+    "y": 37.5,
+    "value": 0.86
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Álava (ES211)",
+    "count": 5,
+    "share": 0.0271,
+    "rca": 1,
+    "reldens": 28.25,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 28.25,
+    "y": 12.5,
+    "value": 1
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Álava (ES211)",
+    "count": 5,
+    "share": 0.0113,
+    "rca": 0.42,
+    "reldens": 17.98,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 17.98,
+    "y": 83.04,
+    "value": 0.42
+  },
+  {
+    "domain": "Control",
+    "geo": "Álava (ES211)",
+    "count": 5,
+    "share": 0.0249,
+    "rca": 0.91,
+    "reldens": 25.27,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 25.27,
+    "y": 51.79,
+    "value": 0.91
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Álava (ES211)",
+    "count": 7,
+    "share": 0.0154,
+    "rca": 0.57,
+    "reldens": 13.35,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 13.35,
+    "y": 100,
+    "value": 0.57
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Álava (ES211)",
+    "count": 34,
+    "share": 0.0622,
+    "rca": 2.28,
+    "reldens": 33.28,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 33.28,
+    "y": 88.39,
+    "value": 2.28
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Álava (ES211)",
+    "count": 7,
+    "share": 0.0328,
+    "rca": 1.2,
+    "reldens": 33,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 33,
+    "y": 58.93,
+    "value": 1.2
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Álava (ES211)",
+    "count": 10,
+    "share": 0.0824,
+    "rca": 3.03,
+    "reldens": 51.86,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 51.86,
+    "y": 19.64,
+    "value": 3.03
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Álava (ES211)",
+    "count": 3,
+    "share": 0.0283,
+    "rca": 1.04,
+    "reldens": 28.15,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 28.15,
+    "y": 1.79,
+    "value": 1.04
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Álava (ES211)",
+    "count": 34,
+    "share": 0.0556,
+    "rca": 2.04,
+    "reldens": 34.64,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 34.64,
+    "y": 60.71,
+    "value": 2.04
+  },
+  {
+    "domain": "Handling",
+    "geo": "Álava (ES211)",
+    "count": 21,
+    "share": 0.0914,
+    "rca": 3.36,
+    "reldens": 27.64,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 27.64,
+    "y": 44.64,
+    "value": 3.36
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Álava (ES211)",
+    "count": 3,
+    "share": 0.0179,
+    "rca": 0.66,
+    "reldens": 30.63,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 30.63,
+    "y": 42.86,
+    "value": 0.66
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Álava (ES211)",
+    "count": 6,
+    "share": 0.0267,
+    "rca": 0.98,
+    "reldens": 28.48,
+    "comp": 71.43,
+    "comp_TCI": 2.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 28.48,
+    "y": 71.43,
+    "value": 0.98
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Álava (ES211)",
+    "count": 1,
+    "share": 0.0046,
+    "rca": 0.17,
+    "reldens": 38.09,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 38.09,
+    "y": 47.32,
+    "value": 0.17
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Álava (ES211)",
+    "count": 10,
+    "share": 0.0181,
+    "rca": 0.66,
+    "reldens": 21.4,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 21.4,
+    "y": 63.39,
+    "value": 0.66
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Álava (ES211)",
+    "count": 4,
+    "share": 0.0156,
+    "rca": 0.57,
+    "reldens": 35.39,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 35.39,
+    "y": 57.14,
+    "value": 0.57
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Álava (ES211)",
+    "count": 20,
+    "share": 0.0386,
+    "rca": 1.42,
+    "reldens": 24.19,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 24.19,
+    "y": 59.82,
+    "value": 1.42
+  },
+  {
+    "domain": "Optics",
+    "geo": "Álava (ES211)",
+    "count": 3,
+    "share": 0.0167,
+    "rca": 0.61,
+    "reldens": 20.88,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 20.88,
+    "y": 66.07,
+    "value": 0.61
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Álava (ES211)",
+    "count": 13,
+    "share": 0.0359,
+    "rca": 1.32,
+    "reldens": 50.36,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 50.36,
+    "y": 62.5,
+    "value": 1.32
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Álava (ES211)",
+    "count": 5,
+    "share": 0.0248,
+    "rca": 0.91,
+    "reldens": 39,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 39,
+    "y": 58.04,
+    "value": 0.91
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Álava (ES211)",
+    "count": 7,
+    "share": 0.02,
+    "rca": 0.73,
+    "reldens": 32.29,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 32.29,
+    "y": 37.5,
+    "value": 0.73
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Álava (ES211)",
+    "count": 18,
+    "share": 0.0398,
+    "rca": 1.46,
+    "reldens": 46.78,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 46.78,
+    "y": 37.5,
+    "value": 1.46
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Álava (ES211)",
+    "count": 5,
+    "share": 0.0283,
+    "rca": 1.04,
+    "reldens": 20.2,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 20.2,
+    "y": 41.96,
+    "value": 1.04
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Álava (ES211)",
+    "count": 4,
+    "share": 0.0197,
+    "rca": 0.72,
+    "reldens": 8.01,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 8.01,
+    "y": 78.57,
+    "value": 0.72
+  },
+  {
+    "domain": "Transport",
+    "geo": "Álava (ES211)",
+    "count": 3,
+    "share": 0.0061,
+    "rca": 0.22,
+    "reldens": 35.27,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 35.27,
+    "y": 88.39,
+    "value": 0.22
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

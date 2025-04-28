@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 10888,
+    "share": 0.7474,
+    "rca": 1,
+    "reldens": 24.97,
+    "comp": 85.23,
+    "comp_TCI": 100,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 24.97,
+    "y": 85.23,
+    "value": 1
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 1671,
+    "share": 1.0251,
+    "rca": 1.37,
+    "reldens": 72.05,
+    "comp": 36.36,
+    "comp_TCI": 25.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 72.05,
+    "y": 36.36,
+    "value": 1.37
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 180,
+    "share": 0.8278,
+    "rca": 1.1,
+    "reldens": 46.44,
+    "comp": 45.45,
+    "comp_TCI": 66.08,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 46.44,
+    "y": 45.45,
+    "value": 1.1
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 1331,
+    "share": 0.6311,
+    "rca": 0.84,
+    "reldens": 10.52,
+    "comp": 68.18,
+    "comp_TCI": 11.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 10.52,
+    "y": 68.18,
+    "value": 0.84
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 20858,
+    "share": 0.6865,
+    "rca": 0.91,
+    "reldens": 26.29,
+    "comp": 100,
+    "comp_TCI": 85.98,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 26.29,
+    "y": 100,
+    "value": 0.91
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 737,
+    "share": 0.6663,
+    "rca": 0.89,
+    "reldens": 20.65,
+    "comp": 25,
+    "comp_TCI": 9.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 20.65,
+    "y": 25,
+    "value": 0.89
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 2836,
+    "share": 0.6192,
+    "rca": 0.83,
+    "reldens": 36.28,
+    "comp": 35.23,
+    "comp_TCI": 12.92,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 36.28,
+    "y": 35.23,
+    "value": 0.83
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 6183,
+    "share": 0.8786,
+    "rca": 1.17,
+    "reldens": 64.33,
+    "comp": 38.64,
+    "comp_TCI": 11.58,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 64.33,
+    "y": 38.64,
+    "value": 1.17
+  },
+  {
+    "domain": "Control",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 18,
+    "share": 0.1218,
+    "rca": 0.16,
+    "reldens": 54.77,
+    "comp": 36.36,
+    "comp_TCI": 2.69,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 54.77,
+    "y": 36.36,
+    "value": 0.16
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 3368,
+    "share": 1.0712,
+    "rca": 1.43,
+    "reldens": 68.32,
+    "comp": 36.36,
+    "comp_TCI": 14.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 68.32,
+    "y": 36.36,
+    "value": 1.43
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 521,
+    "share": 0.9183,
+    "rca": 1.22,
+    "reldens": 57.62,
+    "comp": 0,
+    "comp_TCI": 13.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 57.62,
+    "y": 0,
+    "value": 1.22
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 127,
+    "share": 0.2751,
+    "rca": 0.37,
+    "reldens": 17.71,
+    "comp": 38.64,
+    "comp_TCI": 8.28,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 17.71,
+    "y": 38.64,
+    "value": 0.37
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 12538,
+    "share": 1.3595,
+    "rca": 1.81,
+    "reldens": 30.82,
+    "comp": 34.09,
+    "comp_TCI": 28.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 30.82,
+    "y": 34.09,
+    "value": 1.81
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 3942,
+    "share": 0.7956,
+    "rca": 1.06,
+    "reldens": 16.93,
+    "comp": 31.82,
+    "comp_TCI": 46.53,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 16.93,
+    "y": 31.82,
+    "value": 1.06
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 12326,
+    "share": 1.335,
+    "rca": 1.78,
+    "reldens": 47.51,
+    "comp": 34.09,
+    "comp_TCI": 37.26,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 47.51,
+    "y": 34.09,
+    "value": 1.78
+  },
+  {
+    "domain": "Handling",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 329,
+    "share": 0.4407,
+    "rca": 0.59,
+    "reldens": 30.13,
+    "comp": 7.95,
+    "comp_TCI": 1.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 30.13,
+    "y": 7.95,
+    "value": 0.59
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 1070,
+    "share": 0.7765,
+    "rca": 1.03,
+    "reldens": 55.53,
+    "comp": 11.36,
+    "comp_TCI": 7.07,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 55.53,
+    "y": 11.36,
+    "value": 1.03
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 24,
+    "share": 0.183,
+    "rca": 0.24,
+    "reldens": 1.95,
+    "comp": 18.18,
+    "comp_TCI": 2.33,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 1.95,
+    "y": 18.18,
+    "value": 0.24
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 1243,
+    "share": 0.6275,
+    "rca": 0.84,
+    "reldens": 12.38,
+    "comp": 50,
+    "comp_TCI": 6.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 12.38,
+    "y": 50,
+    "value": 0.84
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 2844,
+    "share": 0.7208,
+    "rca": 0.96,
+    "reldens": 15.07,
+    "comp": 51.14,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 15.07,
+    "y": 51.14,
+    "value": 0.96
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 578,
+    "share": 0.6409,
+    "rca": 0.85,
+    "reldens": 8.98,
+    "comp": 15.91,
+    "comp_TCI": 0.75,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 8.98,
+    "y": 15.91,
+    "value": 0.85
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 25172,
+    "share": 0.577,
+    "rca": 0.77,
+    "reldens": 19.5,
+    "comp": 76.14,
+    "comp_TCI": 87.65,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 19.5,
+    "y": 76.14,
+    "value": 0.77
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 6787,
+    "share": 0.7095,
+    "rca": 0.95,
+    "reldens": 17.24,
+    "comp": 79.55,
+    "comp_TCI": 6.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 17.24,
+    "y": 79.55,
+    "value": 0.95
+  },
+  {
+    "domain": "Optics",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 3537,
+    "share": 0.6294,
+    "rca": 0.84,
+    "reldens": 46.22,
+    "comp": 95.45,
+    "comp_TCI": 26.36,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 46.22,
+    "y": 95.45,
+    "value": 0.84
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 468,
+    "share": 0.3492,
+    "rca": 0.47,
+    "reldens": 13.74,
+    "comp": 40.91,
+    "comp_TCI": 29.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 13.74,
+    "y": 40.91,
+    "value": 0.47
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 3314,
+    "share": 0.6702,
+    "rca": 0.89,
+    "reldens": 15.91,
+    "comp": 69.32,
+    "comp_TCI": 95.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 15.91,
+    "y": 69.32,
+    "value": 0.89
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 761,
+    "share": 0.6826,
+    "rca": 0.91,
+    "reldens": 28.07,
+    "comp": 65.91,
+    "comp_TCI": 10.02,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 28.07,
+    "y": 65.91,
+    "value": 0.91
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 134,
+    "share": 0.6802,
+    "rca": 0.91,
+    "reldens": 4.09,
+    "comp": 31.82,
+    "comp_TCI": 3.26,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 4.09,
+    "y": 31.82,
+    "value": 0.91
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 159,
+    "share": 1.322,
+    "rca": 1.76,
+    "reldens": 53.44,
+    "comp": 40.91,
+    "comp_TCI": 25.51,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 53.44,
+    "y": 40.91,
+    "value": 1.76
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 580,
+    "share": 0.6666,
+    "rca": 0.89,
+    "reldens": 19.33,
+    "comp": 25,
+    "comp_TCI": 6.9,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 19.33,
+    "y": 25,
+    "value": 0.89
+  },
+  {
+    "domain": "Transport",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 396,
+    "share": 0.6283,
+    "rca": 0.84,
+    "reldens": 42.93,
+    "comp": 13.64,
+    "comp_TCI": 7.54,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 42.93,
+    "y": 13.64,
+    "value": 0.84
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

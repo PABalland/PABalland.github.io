@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 55,
+    "share": 0.2473,
+    "rca": 0.7,
+    "reldens": 13.46,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 13.46,
+    "y": 47.5,
+    "value": 0.7
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 1216,
+    "share": 0.3861,
+    "rca": 1.1,
+    "reldens": 97.94,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 97.94,
+    "y": 95,
+    "value": 1.1
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 93,
+    "share": 0.2887,
+    "rca": 0.82,
+    "reldens": 19.22,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 19.22,
+    "y": 16.25,
+    "value": 0.82
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 66,
+    "share": 0.1889,
+    "rca": 0.54,
+    "reldens": 29.9,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 29.9,
+    "y": 43.75,
+    "value": 0.54
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 1179,
+    "share": 0.283,
+    "rca": 0.81,
+    "reldens": 58.44,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 58.44,
+    "y": 73.75,
+    "value": 0.81
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 315,
+    "share": 0.1411,
+    "rca": 0.4,
+    "reldens": 2.46,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 2.46,
+    "y": 100,
+    "value": 0.4
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 171,
+    "share": 0.452,
+    "rca": 1.29,
+    "reldens": 72.05,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 72.05,
+    "y": 48.75,
+    "value": 1.29
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 463,
+    "share": 0.5504,
+    "rca": 1.57,
+    "reldens": 98.31,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 98.31,
+    "y": 75,
+    "value": 1.57
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 300,
+    "share": 0.404,
+    "rca": 1.15,
+    "reldens": 95.4,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 95.4,
+    "y": 65,
+    "value": 1.15
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 217,
+    "share": 0.3628,
+    "rca": 1.03,
+    "reldens": 81.42,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 81.42,
+    "y": 22.5,
+    "value": 1.03
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 248,
+    "share": 0.4809,
+    "rca": 1.37,
+    "reldens": 74.86,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 74.86,
+    "y": 28.75,
+    "value": 1.37
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 282,
+    "share": 0.292,
+    "rca": 0.83,
+    "reldens": 67.73,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 67.73,
+    "y": 82.5,
+    "value": 0.83
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 267,
+    "share": 0.72,
+    "rca": 2.05,
+    "reldens": 87.37,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 87.37,
+    "y": 16.25,
+    "value": 2.05
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 149,
+    "share": 0.7572,
+    "rca": 2.16,
+    "reldens": 56.88,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 56.88,
+    "y": 0,
+    "value": 2.16
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 43,
+    "share": 0.3676,
+    "rca": 1.05,
+    "reldens": 20.95,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 20.95,
+    "y": 10,
+    "value": 1.05
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 1333,
+    "share": 0.354,
+    "rca": 1.01,
+    "reldens": 74.57,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 74.57,
+    "y": 52.5,
+    "value": 1.01
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 158,
+    "share": 0.2472,
+    "rca": 0.7,
+    "reldens": 24.46,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 24.46,
+    "y": 22.5,
+    "value": 0.7
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 295,
+    "share": 0.5396,
+    "rca": 1.54,
+    "reldens": 89.51,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 89.51,
+    "y": 52.5,
+    "value": 1.54
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 360,
+    "share": 0.7819,
+    "rca": 2.23,
+    "reldens": 89.83,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 89.83,
+    "y": 21.25,
+    "value": 2.23
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 970,
+    "share": 0.3978,
+    "rca": 1.13,
+    "reldens": 58.39,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 58.39,
+    "y": 70,
+    "value": 1.13
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 336,
+    "share": 0.349,
+    "rca": 0.99,
+    "reldens": 5.91,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 5.91,
+    "y": 87.5,
+    "value": 0.99
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 324,
+    "share": 1.0357,
+    "rca": 2.95,
+    "reldens": 94.44,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 94.44,
+    "y": 30,
+    "value": 2.95
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 44,
+    "share": 0.0679,
+    "rca": 0.19,
+    "reldens": 10.63,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 10.63,
+    "y": 82.5,
+    "value": 0.19
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 137,
+    "share": 0.2604,
+    "rca": 0.74,
+    "reldens": 37.07,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 37.07,
+    "y": 45,
+    "value": 0.74
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 25,
+    "share": 0.7379,
+    "rca": 2.1,
+    "reldens": 7.41,
+    "comp": 50,
+    "comp_TCI": 32.63,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 7.41,
+    "y": 50,
+    "value": 2.1
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Northumberland and Tyne and Wear (UKC2)",
+    "count": 610,
+    "share": 0.3078,
+    "rca": 0.88,
+    "reldens": 52.36,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 52.36,
+    "y": 61.25,
+    "value": 0.88
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

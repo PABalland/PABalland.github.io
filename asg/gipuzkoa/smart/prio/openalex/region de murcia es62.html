@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Región de Murcia (ES62)",
+    "count": 64,
+    "share": 0.2878,
+    "rca": 1.95,
+    "reldens": 12.84,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 12.84,
+    "y": 47.5,
+    "value": 1.95
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Región de Murcia (ES62)",
+    "count": 558,
+    "share": 0.1772,
+    "rca": 1.2,
+    "reldens": 10.4,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 10.4,
+    "y": 95,
+    "value": 1.2
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Región de Murcia (ES62)",
+    "count": 126,
+    "share": 0.3912,
+    "rca": 2.65,
+    "reldens": 87.88,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 87.88,
+    "y": 16.25,
+    "value": 2.65
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Región de Murcia (ES62)",
+    "count": 163,
+    "share": 0.4665,
+    "rca": 3.16,
+    "reldens": 55.77,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 55.77,
+    "y": 43.75,
+    "value": 3.16
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Región de Murcia (ES62)",
+    "count": 484,
+    "share": 0.1162,
+    "rca": 0.79,
+    "reldens": 46.75,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 46.75,
+    "y": 73.75,
+    "value": 0.79
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Región de Murcia (ES62)",
+    "count": 140,
+    "share": 0.0627,
+    "rca": 0.42,
+    "reldens": 7.13,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 7.13,
+    "y": 100,
+    "value": 0.42
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Región de Murcia (ES62)",
+    "count": 30,
+    "share": 0.0793,
+    "rca": 0.54,
+    "reldens": 21.76,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 21.76,
+    "y": 48.75,
+    "value": 0.54
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Región de Murcia (ES62)",
+    "count": 65,
+    "share": 0.0773,
+    "rca": 0.52,
+    "reldens": 0.38,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 0.38,
+    "y": 75,
+    "value": 0.52
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Región de Murcia (ES62)",
+    "count": 91,
+    "share": 0.1226,
+    "rca": 0.83,
+    "reldens": 61.27,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 61.27,
+    "y": 65,
+    "value": 0.83
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Región de Murcia (ES62)",
+    "count": 87,
+    "share": 0.1454,
+    "rca": 0.98,
+    "reldens": 26.68,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 26.68,
+    "y": 22.5,
+    "value": 0.98
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Región de Murcia (ES62)",
+    "count": 86,
+    "share": 0.1668,
+    "rca": 1.13,
+    "reldens": 74.19,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 74.19,
+    "y": 28.75,
+    "value": 1.13
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Región de Murcia (ES62)",
+    "count": 98,
+    "share": 0.1015,
+    "rca": 0.69,
+    "reldens": 50.88,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 50.88,
+    "y": 82.5,
+    "value": 0.69
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Región de Murcia (ES62)",
+    "count": 128,
+    "share": 0.3452,
+    "rca": 2.34,
+    "reldens": 89.1,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 89.1,
+    "y": 16.25,
+    "value": 2.34
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Región de Murcia (ES62)",
+    "count": 45,
+    "share": 0.2287,
+    "rca": 1.55,
+    "reldens": 58.32,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 58.32,
+    "y": 0,
+    "value": 1.55
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Región de Murcia (ES62)",
+    "count": 56,
+    "share": 0.4788,
+    "rca": 3.24,
+    "reldens": 20.1,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 20.1,
+    "y": 10,
+    "value": 3.24
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Región de Murcia (ES62)",
+    "count": 805,
+    "share": 0.2138,
+    "rca": 1.45,
+    "reldens": 59.71,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 59.71,
+    "y": 52.5,
+    "value": 1.45
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Región de Murcia (ES62)",
+    "count": 204,
+    "share": 0.3192,
+    "rca": 2.16,
+    "reldens": 74.75,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 74.75,
+    "y": 22.5,
+    "value": 2.16
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Región de Murcia (ES62)",
+    "count": 33,
+    "share": 0.0604,
+    "rca": 0.41,
+    "reldens": 1.26,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 1.26,
+    "y": 52.5,
+    "value": 0.41
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Región de Murcia (ES62)",
+    "count": 124,
+    "share": 0.2693,
+    "rca": 1.82,
+    "reldens": 90.84,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 90.84,
+    "y": 21.25,
+    "value": 1.82
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Región de Murcia (ES62)",
+    "count": 348,
+    "share": 0.1427,
+    "rca": 0.97,
+    "reldens": 47.08,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 47.08,
+    "y": 70,
+    "value": 0.97
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Región de Murcia (ES62)",
+    "count": 69,
+    "share": 0.0717,
+    "rca": 0.49,
+    "reldens": 7.73,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 7.73,
+    "y": 87.5,
+    "value": 0.49
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Región de Murcia (ES62)",
+    "count": 10,
+    "share": 0.032,
+    "rca": 0.22,
+    "reldens": 2.44,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 2.44,
+    "y": 30,
+    "value": 0.22
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Región de Murcia (ES62)",
+    "count": 26,
+    "share": 0.0401,
+    "rca": 0.27,
+    "reldens": 10.04,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 10.04,
+    "y": 82.5,
+    "value": 0.27
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Región de Murcia (ES62)",
+    "count": 36,
+    "share": 0.0684,
+    "rca": 0.46,
+    "reldens": 27.82,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 27.82,
+    "y": 45,
+    "value": 0.46
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Región de Murcia (ES62)",
+    "count": 6,
+    "share": 0.1771,
+    "rca": 1.2,
+    "reldens": 7.41,
+    "comp": 50,
+    "comp_TCI": 32.63,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 7.41,
+    "y": 50,
+    "value": 1.2
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Región de Murcia (ES62)",
+    "count": 176,
+    "share": 0.0888,
+    "rca": 0.6,
+    "reldens": 64.45,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 64.45,
+    "y": 61.25,
+    "value": 0.6
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

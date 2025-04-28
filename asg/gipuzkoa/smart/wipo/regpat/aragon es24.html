@@ -1,0 +1,753 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Aragon (ES24)",
+    "count": 9,
+    "share": 0.072,
+    "rca": 0.41,
+    "reldens": 3,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 3,
+    "y": 7.14,
+    "value": 0.41
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Aragon (ES24)",
+    "count": 18,
+    "share": 0.1149,
+    "rca": 0.66,
+    "reldens": 10.78,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 10.78,
+    "y": 55.36,
+    "value": 0.66
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Aragon (ES24)",
+    "count": 96,
+    "share": 0.319,
+    "rca": 1.83,
+    "reldens": 4.6,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 4.6,
+    "y": 63.39,
+    "value": 1.83
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Aragon (ES24)",
+    "count": 59,
+    "share": 0.155,
+    "rca": 0.89,
+    "reldens": 3.07,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 3.07,
+    "y": 48.21,
+    "value": 0.89
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Aragon (ES24)",
+    "count": 30,
+    "share": 0.1004,
+    "rca": 0.58,
+    "reldens": 13.29,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 13.29,
+    "y": 37.5,
+    "value": 0.58
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Aragon (ES24)",
+    "count": 16,
+    "share": 0.0868,
+    "rca": 0.5,
+    "reldens": 16.02,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 16.02,
+    "y": 12.5,
+    "value": 0.5
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Aragon (ES24)",
+    "count": 16,
+    "share": 0.0363,
+    "rca": 0.21,
+    "reldens": 5.89,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 5.89,
+    "y": 83.04,
+    "value": 0.21
+  },
+  {
+    "domain": "Control",
+    "geo": "Aragon (ES24)",
+    "count": 20,
+    "share": 0.0997,
+    "rca": 0.57,
+    "reldens": 9.43,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 9.43,
+    "y": 51.79,
+    "value": 0.57
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Aragon (ES24)",
+    "count": 4,
+    "share": 0.0088,
+    "rca": 0.05,
+    "reldens": 3.21,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 3.21,
+    "y": 100,
+    "value": 0.05
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Aragon (ES24)",
+    "count": 615,
+    "share": 1.126,
+    "rca": 6.46,
+    "reldens": 7.21,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 7.21,
+    "y": 88.39,
+    "value": 6.46
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Aragon (ES24)",
+    "count": 29,
+    "share": 0.1357,
+    "rca": 0.78,
+    "reldens": 17.56,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 17.56,
+    "y": 58.93,
+    "value": 0.78
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Aragon (ES24)",
+    "count": 9,
+    "share": 0.0757,
+    "rca": 0.43,
+    "reldens": 14.62,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 14.62,
+    "y": 0,
+    "value": 0.43
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Aragon (ES24)",
+    "count": 19,
+    "share": 0.1567,
+    "rca": 0.9,
+    "reldens": 11.44,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 11.44,
+    "y": 19.64,
+    "value": 0.9
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Aragon (ES24)",
+    "count": 68,
+    "share": 0.6413,
+    "rca": 3.68,
+    "reldens": 8.97,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 8.97,
+    "y": 1.79,
+    "value": 3.68
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Aragon (ES24)",
+    "count": 65,
+    "share": 0.1064,
+    "rca": 0.61,
+    "reldens": 23.46,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 23.46,
+    "y": 60.71,
+    "value": 0.61
+  },
+  {
+    "domain": "Handling",
+    "geo": "Aragon (ES24)",
+    "count": 17,
+    "share": 0.074,
+    "rca": 0.42,
+    "reldens": 11.94,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 11.94,
+    "y": 44.64,
+    "value": 0.42
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Aragon (ES24)",
+    "count": 11,
+    "share": 0.0656,
+    "rca": 0.38,
+    "reldens": 11.59,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 11.59,
+    "y": 42.86,
+    "value": 0.38
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Aragon (ES24)",
+    "count": 6,
+    "share": 0.0267,
+    "rca": 0.15,
+    "reldens": 25.27,
+    "comp": 71.43,
+    "comp_TCI": 2.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 25.27,
+    "y": 71.43,
+    "value": 0.15
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Aragon (ES24)",
+    "count": 15,
+    "share": 0.0694,
+    "rca": 0.4,
+    "reldens": 17.96,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 17.96,
+    "y": 47.32,
+    "value": 0.4
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Aragon (ES24)",
+    "count": 57,
+    "share": 0.1032,
+    "rca": 0.59,
+    "reldens": 8.09,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 8.09,
+    "y": 63.39,
+    "value": 0.59
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Aragon (ES24)",
+    "count": 30,
+    "share": 0.1169,
+    "rca": 0.67,
+    "reldens": 15.28,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 15.28,
+    "y": 57.14,
+    "value": 0.67
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Aragon (ES24)",
+    "count": 37,
+    "share": 0.0714,
+    "rca": 0.41,
+    "reldens": 11.73,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 11.73,
+    "y": 59.82,
+    "value": 0.41
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Aragon (ES24)",
+    "count": 4,
+    "share": 0.4292,
+    "rca": 2.46,
+    "reldens": 7.61,
+    "comp": 44.64,
+    "comp_TCI": 28.86,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 7.61,
+    "y": 44.64,
+    "value": 2.46
+  },
+  {
+    "domain": "Optics",
+    "geo": "Aragon (ES24)",
+    "count": 4,
+    "share": 0.0223,
+    "rca": 0.13,
+    "reldens": 14.4,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 14.4,
+    "y": 66.07,
+    "value": 0.13
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Aragon (ES24)",
+    "count": 28,
+    "share": 0.0774,
+    "rca": 0.44,
+    "reldens": 14.14,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 14.14,
+    "y": 62.5,
+    "value": 0.44
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Aragon (ES24)",
+    "count": 15,
+    "share": 0.0745,
+    "rca": 0.43,
+    "reldens": 21.04,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 21.04,
+    "y": 58.04,
+    "value": 0.43
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Aragon (ES24)",
+    "count": 27,
+    "share": 0.0771,
+    "rca": 0.44,
+    "reldens": 10.59,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 10.59,
+    "y": 37.5,
+    "value": 0.44
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Aragon (ES24)",
+    "count": 47,
+    "share": 0.1039,
+    "rca": 0.6,
+    "reldens": 2.08,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 2.08,
+    "y": 37.5,
+    "value": 0.6
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Aragon (ES24)",
+    "count": 9,
+    "share": 0.0863,
+    "rca": 0.49,
+    "reldens": 20.37,
+    "comp": 46.43,
+    "comp_TCI": 22.6,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 20.37,
+    "y": 46.43,
+    "value": 0.49
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Aragon (ES24)",
+    "count": 15,
+    "share": 0.0849,
+    "rca": 0.49,
+    "reldens": 16.76,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 16.76,
+    "y": 41.96,
+    "value": 0.49
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Aragon (ES24)",
+    "count": 8,
+    "share": 0.0661,
+    "rca": 0.38,
+    "reldens": 14.75,
+    "comp": 25.89,
+    "comp_TCI": 6.89,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 14.75,
+    "y": 25.89,
+    "value": 0.38
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Aragon (ES24)",
+    "count": 208,
+    "share": 1.8142,
+    "rca": 10.4,
+    "reldens": 13.99,
+    "comp": 19.64,
+    "comp_TCI": 14.8,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 13.99,
+    "y": 19.64,
+    "value": 10.4
+  },
+  {
+    "domain": "Transport",
+    "geo": "Aragon (ES24)",
+    "count": 15,
+    "share": 0.0303,
+    "rca": 0.17,
+    "reldens": 15.6,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 15.6,
+    "y": 88.39,
+    "value": 0.17
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

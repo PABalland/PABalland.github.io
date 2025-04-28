@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 189,
+    "share": 0.8498,
+    "rca": 1.48,
+    "reldens": 86.15,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 86.15,
+    "y": 47.5,
+    "value": 1.48
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 1741,
+    "share": 0.5528,
+    "rca": 0.97,
+    "reldens": 55.36,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 55.36,
+    "y": 95,
+    "value": 0.97
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 206,
+    "share": 0.6396,
+    "rca": 1.12,
+    "reldens": 4.63,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 4.63,
+    "y": 16.25,
+    "value": 1.12
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 63,
+    "share": 0.1803,
+    "rca": 0.32,
+    "reldens": 27.02,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 27.02,
+    "y": 43.75,
+    "value": 0.32
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 2841,
+    "share": 0.682,
+    "rca": 1.19,
+    "reldens": 67.23,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 67.23,
+    "y": 73.75,
+    "value": 1.19
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 970,
+    "share": 0.4345,
+    "rca": 0.76,
+    "reldens": 96.81,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 96.81,
+    "y": 100,
+    "value": 0.76
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 159,
+    "share": 0.4203,
+    "rca": 0.73,
+    "reldens": 35.08,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 35.08,
+    "y": 48.75,
+    "value": 0.73
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 597,
+    "share": 0.7097,
+    "rca": 1.24,
+    "reldens": 1.65,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 1.65,
+    "y": 75,
+    "value": 1.24
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 432,
+    "share": 0.5818,
+    "rca": 1.02,
+    "reldens": 0.95,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 0.95,
+    "y": 65,
+    "value": 1.02
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 230,
+    "share": 0.3845,
+    "rca": 0.67,
+    "reldens": 48.49,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 48.49,
+    "y": 22.5,
+    "value": 0.67
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 728,
+    "share": 1.4117,
+    "rca": 2.47,
+    "reldens": 35.22,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 35.22,
+    "y": 28.75,
+    "value": 2.47
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 263,
+    "share": 0.2724,
+    "rca": 0.48,
+    "reldens": 8.79,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 8.79,
+    "y": 82.5,
+    "value": 0.48
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 177,
+    "share": 0.4773,
+    "rca": 0.83,
+    "reldens": 29.96,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 29.96,
+    "y": 16.25,
+    "value": 0.83
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 297,
+    "share": 1.5093,
+    "rca": 2.64,
+    "reldens": 79.57,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 79.57,
+    "y": 0,
+    "value": 2.64
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 40,
+    "share": 0.342,
+    "rca": 0.6,
+    "reldens": 87.27,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 87.27,
+    "y": 10,
+    "value": 0.6
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 2118,
+    "share": 0.5625,
+    "rca": 0.98,
+    "reldens": 16.49,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 16.49,
+    "y": 52.5,
+    "value": 0.98
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 339,
+    "share": 0.5305,
+    "rca": 0.93,
+    "reldens": 62.48,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 62.48,
+    "y": 22.5,
+    "value": 0.93
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 217,
+    "share": 0.3969,
+    "rca": 0.69,
+    "reldens": 58.58,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 58.58,
+    "y": 52.5,
+    "value": 0.69
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 209,
+    "share": 0.4539,
+    "rca": 0.79,
+    "reldens": 45.93,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 45.93,
+    "y": 21.25,
+    "value": 0.79
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 1214,
+    "share": 0.4979,
+    "rca": 0.87,
+    "reldens": 47.87,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 47.87,
+    "y": 70,
+    "value": 0.87
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 674,
+    "share": 0.7,
+    "rca": 1.22,
+    "reldens": 91.41,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 91.41,
+    "y": 87.5,
+    "value": 1.22
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 103,
+    "share": 0.3292,
+    "rca": 0.58,
+    "reldens": 60.38,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 60.38,
+    "y": 30,
+    "value": 0.58
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 384,
+    "share": 0.5928,
+    "rca": 1.04,
+    "reldens": 95.25,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 95.25,
+    "y": 82.5,
+    "value": 1.04
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 285,
+    "share": 0.5417,
+    "rca": 0.95,
+    "reldens": 66.83,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 66.83,
+    "y": 45,
+    "value": 0.95
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 16,
+    "share": 0.4723,
+    "rca": 0.83,
+    "reldens": 80.66,
+    "comp": 50,
+    "comp_TCI": 32.63,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 80.66,
+    "y": 50,
+    "value": 0.83
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Prov. Vlaams-Brabant (BE24)",
+    "count": 1236,
+    "share": 0.6238,
+    "rca": 1.09,
+    "reldens": 33.45,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 33.45,
+    "y": 61.25,
+    "value": 1.09
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

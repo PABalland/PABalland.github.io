@@ -1,0 +1,804 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "West Sweden (SE23)",
+    "count": 75,
+    "share": 0.5997,
+    "rca": 0.61,
+    "reldens": 7.35,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 7.35,
+    "y": 7.14,
+    "value": 0.61
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "West Sweden (SE23)",
+    "count": 104,
+    "share": 0.6637,
+    "rca": 0.67,
+    "reldens": 43.09,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 43.09,
+    "y": 55.36,
+    "value": 0.67
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "West Sweden (SE23)",
+    "count": 65,
+    "share": 1.4693,
+    "rca": 1.49,
+    "reldens": 37.87,
+    "comp": 41.07,
+    "comp_TCI": 61.85,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 37.87,
+    "y": 41.07,
+    "value": 1.49
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "West Sweden (SE23)",
+    "count": 83,
+    "share": 0.2758,
+    "rca": 0.28,
+    "reldens": 38.5,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 38.5,
+    "y": 63.39,
+    "value": 0.28
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "West Sweden (SE23)",
+    "count": 182,
+    "share": 0.4783,
+    "rca": 0.48,
+    "reldens": 6.83,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 6.83,
+    "y": 48.21,
+    "value": 0.48
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "West Sweden (SE23)",
+    "count": 148,
+    "share": 0.4954,
+    "rca": 0.5,
+    "reldens": 42.17,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 42.17,
+    "y": 37.5,
+    "value": 0.5
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "West Sweden (SE23)",
+    "count": 218,
+    "share": 1.1824,
+    "rca": 1.2,
+    "reldens": 50.3,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 50.3,
+    "y": 12.5,
+    "value": 1.2
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "West Sweden (SE23)",
+    "count": 252,
+    "share": 0.571,
+    "rca": 0.58,
+    "reldens": 44.96,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 44.96,
+    "y": 83.04,
+    "value": 0.58
+  },
+  {
+    "domain": "Control",
+    "geo": "West Sweden (SE23)",
+    "count": 319,
+    "share": 1.5895,
+    "rca": 1.61,
+    "reldens": 40.67,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 40.67,
+    "y": 51.79,
+    "value": 1.61
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "West Sweden (SE23)",
+    "count": 967,
+    "share": 2.1339,
+    "rca": 2.16,
+    "reldens": 50.82,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 50.82,
+    "y": 100,
+    "value": 2.16
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "West Sweden (SE23)",
+    "count": 515,
+    "share": 0.9429,
+    "rca": 0.95,
+    "reldens": 52.39,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 52.39,
+    "y": 88.39,
+    "value": 0.95
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "West Sweden (SE23)",
+    "count": 233,
+    "share": 1.0904,
+    "rca": 1.1,
+    "reldens": 59.64,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 59.64,
+    "y": 58.93,
+    "value": 1.1
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "West Sweden (SE23)",
+    "count": 142,
+    "share": 1.1941,
+    "rca": 1.21,
+    "reldens": 31.37,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 31.37,
+    "y": 0,
+    "value": 1.21
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "West Sweden (SE23)",
+    "count": 49,
+    "share": 0.404,
+    "rca": 0.41,
+    "reldens": 14.41,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 14.41,
+    "y": 19.64,
+    "value": 0.41
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "West Sweden (SE23)",
+    "count": 106,
+    "share": 0.9997,
+    "rca": 1.01,
+    "reldens": 34.86,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 34.86,
+    "y": 1.79,
+    "value": 1.01
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "West Sweden (SE23)",
+    "count": 641,
+    "share": 1.0492,
+    "rca": 1.06,
+    "reldens": 37.22,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 37.22,
+    "y": 60.71,
+    "value": 1.06
+  },
+  {
+    "domain": "Handling",
+    "geo": "West Sweden (SE23)",
+    "count": 160,
+    "share": 0.6966,
+    "rca": 0.71,
+    "reldens": 52.35,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 52.35,
+    "y": 44.64,
+    "value": 0.71
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "West Sweden (SE23)",
+    "count": 80,
+    "share": 0.9339,
+    "rca": 0.95,
+    "reldens": 49.24,
+    "comp": 12.5,
+    "comp_TCI": 54.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 49.24,
+    "y": 12.5,
+    "value": 0.95
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "West Sweden (SE23)",
+    "count": 230,
+    "share": 1.3708,
+    "rca": 1.39,
+    "reldens": 32.23,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 32.23,
+    "y": 42.86,
+    "value": 1.39
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "West Sweden (SE23)",
+    "count": 269,
+    "share": 1.196,
+    "rca": 1.21,
+    "reldens": 15.72,
+    "comp": 71.43,
+    "comp_TCI": 2.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 15.72,
+    "y": 71.43,
+    "value": 1.21
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "West Sweden (SE23)",
+    "count": 62,
+    "share": 0.2867,
+    "rca": 0.29,
+    "reldens": 41.26,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 41.26,
+    "y": 47.32,
+    "value": 0.29
+  },
+  {
+    "domain": "Measurement",
+    "geo": "West Sweden (SE23)",
+    "count": 430,
+    "share": 0.7781,
+    "rca": 0.79,
+    "reldens": 30.34,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 30.34,
+    "y": 63.39,
+    "value": 0.79
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "West Sweden (SE23)",
+    "count": 308,
+    "share": 1.1998,
+    "rca": 1.21,
+    "reldens": 59.06,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 59.06,
+    "y": 57.14,
+    "value": 1.21
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "West Sweden (SE23)",
+    "count": 503,
+    "share": 0.9711,
+    "rca": 0.98,
+    "reldens": 27.54,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 27.54,
+    "y": 59.82,
+    "value": 0.98
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "West Sweden (SE23)",
+    "count": 8,
+    "share": 0.8584,
+    "rca": 0.87,
+    "reldens": 16.58,
+    "comp": 44.64,
+    "comp_TCI": 28.86,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 16.58,
+    "y": 44.64,
+    "value": 0.87
+  },
+  {
+    "domain": "Optics",
+    "geo": "West Sweden (SE23)",
+    "count": 64,
+    "share": 0.3569,
+    "rca": 0.36,
+    "reldens": 27.39,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 27.39,
+    "y": 66.07,
+    "value": 0.36
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "West Sweden (SE23)",
+    "count": 109,
+    "share": 0.3014,
+    "rca": 0.31,
+    "reldens": 15.47,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 15.47,
+    "y": 62.5,
+    "value": 0.31
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "West Sweden (SE23)",
+    "count": 133,
+    "share": 0.6604,
+    "rca": 0.67,
+    "reldens": 41.82,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 41.82,
+    "y": 58.04,
+    "value": 0.67
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "West Sweden (SE23)",
+    "count": 288,
+    "share": 0.8226,
+    "rca": 0.83,
+    "reldens": 43.55,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 43.55,
+    "y": 37.5,
+    "value": 0.83
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "West Sweden (SE23)",
+    "count": 178,
+    "share": 0.3935,
+    "rca": 0.4,
+    "reldens": 5.73,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 5.73,
+    "y": 37.5,
+    "value": 0.4
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "West Sweden (SE23)",
+    "count": 97,
+    "share": 0.9303,
+    "rca": 0.94,
+    "reldens": 24.89,
+    "comp": 46.43,
+    "comp_TCI": 22.6,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 24.89,
+    "y": 46.43,
+    "value": 0.94
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "West Sweden (SE23)",
+    "count": 85,
+    "share": 0.4808,
+    "rca": 0.49,
+    "reldens": 34.13,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 34.13,
+    "y": 41.96,
+    "value": 0.49
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "West Sweden (SE23)",
+    "count": 678,
+    "share": 3.342,
+    "rca": 3.38,
+    "reldens": 46.07,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 46.07,
+    "y": 78.57,
+    "value": 3.38
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "West Sweden (SE23)",
+    "count": 178,
+    "share": 1.4713,
+    "rca": 1.49,
+    "reldens": 24.84,
+    "comp": 25.89,
+    "comp_TCI": 6.89,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 24.84,
+    "y": 25.89,
+    "value": 1.49
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "West Sweden (SE23)",
+    "count": 84,
+    "share": 0.7327,
+    "rca": 0.74,
+    "reldens": 54.73,
+    "comp": 19.64,
+    "comp_TCI": 14.8,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 54.73,
+    "y": 19.64,
+    "value": 0.74
+  },
+  {
+    "domain": "Transport",
+    "geo": "West Sweden (SE23)",
+    "count": 1164,
+    "share": 2.3508,
+    "rca": 2.38,
+    "reldens": 55.82,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 55.82,
+    "y": 88.39,
+    "value": 2.38
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

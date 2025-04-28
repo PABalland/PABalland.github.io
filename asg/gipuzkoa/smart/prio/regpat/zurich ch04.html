@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Zürich (CH04)",
+    "count": 34,
+    "share": 0.1855,
+    "rca": 0.14,
+    "reldens": 14.88,
+    "comp": 100,
+    "comp_TCI": 36.53,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 14.88,
+    "y": 100,
+    "value": 0.14
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Zürich (CH04)",
+    "count": 334,
+    "share": 1.8984,
+    "rca": 1.48,
+    "reldens": 78.57,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 78.57,
+    "y": 37.21,
+    "value": 1.48
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Zürich (CH04)",
+    "count": 73,
+    "share": 0.479,
+    "rca": 0.37,
+    "reldens": 22.86,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 22.86,
+    "y": 35.72,
+    "value": 0.37
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Zürich (CH04)",
+    "count": 47,
+    "share": 0.7501,
+    "rca": 0.58,
+    "reldens": 33.62,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 33.62,
+    "y": 30.18,
+    "value": 0.58
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Zürich (CH04)",
+    "count": 481,
+    "share": 2.8104,
+    "rca": 2.19,
+    "reldens": 70.38,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 70.38,
+    "y": 58.31,
+    "value": 2.19
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Zürich (CH04)",
+    "count": 267,
+    "share": 1.2306,
+    "rca": 0.96,
+    "reldens": 41.93,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 41.93,
+    "y": 43.68,
+    "value": 0.96
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Zürich (CH04)",
+    "count": 37,
+    "share": 0.5883,
+    "rca": 0.46,
+    "reldens": 26.55,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 26.55,
+    "y": 63.04,
+    "value": 0.46
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Zürich (CH04)",
+    "count": 141,
+    "share": 0.7,
+    "rca": 0.54,
+    "reldens": 21.65,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 21.65,
+    "y": 46.55,
+    "value": 0.54
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Zürich (CH04)",
+    "count": 6,
+    "share": 0.7026,
+    "rca": 0.55,
+    "reldens": 73.75,
+    "comp": 20.54,
+    "comp_TCI": 20.85,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 73.75,
+    "y": 20.54,
+    "value": 0.55
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Zürich (CH04)",
+    "count": 97,
+    "share": 2.291,
+    "rca": 1.78,
+    "reldens": 35.42,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 35.42,
+    "y": 31.61,
+    "value": 1.78
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Zürich (CH04)",
+    "count": 180,
+    "share": 2.731,
+    "rca": 2.12,
+    "reldens": 54.89,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 54.89,
+    "y": 38.89,
+    "value": 2.12
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Zürich (CH04)",
+    "count": 367,
+    "share": 1.9849,
+    "rca": 1.54,
+    "reldens": 62.93,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 62.93,
+    "y": 37.03,
+    "value": 1.54
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Zürich (CH04)",
+    "count": 91,
+    "share": 1.5774,
+    "rca": 1.23,
+    "reldens": 44.85,
+    "comp": 49.1,
+    "comp_TCI": 18.45,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 44.85,
+    "y": 49.1,
+    "value": 1.23
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Zürich (CH04)",
+    "count": 265,
+    "share": 1.9638,
+    "rca": 1.53,
+    "reldens": 56.08,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 56.08,
+    "y": 47.67,
+    "value": 1.53
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Zürich (CH04)",
+    "count": 31,
+    "share": 0.3459,
+    "rca": 0.27,
+    "reldens": 20.71,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 20.71,
+    "y": 42.13,
+    "value": 0.27
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Zürich (CH04)",
+    "count": 933,
+    "share": 1.8491,
+    "rca": 1.44,
+    "reldens": 70.51,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 70.51,
+    "y": 37.71,
+    "value": 1.44
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Zürich (CH04)",
+    "count": 166,
+    "share": 1.3537,
+    "rca": 1.05,
+    "reldens": 43.26,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 43.26,
+    "y": 36.53,
+    "value": 1.05
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Zürich (CH04)",
+    "count": 31,
+    "share": 0.4469,
+    "rca": 0.35,
+    "reldens": 17.06,
+    "comp": 65.15,
+    "comp_TCI": 39.11,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 17.06,
+    "y": 65.15,
+    "value": 0.35
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Zürich (CH04)",
+    "count": 227,
+    "share": 1.1352,
+    "rca": 0.88,
+    "reldens": 39.89,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 39.89,
+    "y": 69.63,
+    "value": 0.88
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Zürich (CH04)",
+    "count": 769,
+    "share": 1.4681,
+    "rca": 1.14,
+    "reldens": 57.92,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 57.92,
+    "y": 39.83,
+    "value": 1.14
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Zürich (CH04)",
+    "count": 109,
+    "share": 1.012,
+    "rca": 0.79,
+    "reldens": 53.73,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 53.73,
+    "y": 63.41,
+    "value": 0.79
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Zürich (CH04)",
+    "count": 77,
+    "share": 0.5863,
+    "rca": 0.46,
+    "reldens": 17.34,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 17.34,
+    "y": 71.13,
+    "value": 0.46
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Zürich (CH04)",
+    "count": 88,
+    "share": 2.6198,
+    "rca": 2.04,
+    "reldens": 42.07,
+    "comp": 50.78,
+    "comp_TCI": 18.98,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 42.07,
+    "y": 50.78,
+    "value": 2.04
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Zürich (CH04)",
+    "count": 58,
+    "share": 1.9634,
+    "rca": 1.53,
+    "reldens": 63.1,
+    "comp": 31.92,
+    "comp_TCI": 33.47,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 63.1,
+    "y": 31.92,
+    "value": 1.53
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Zürich (CH04)",
+    "count": 48,
+    "share": 0.9086,
+    "rca": 0.71,
+    "reldens": 26.84,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 26.84,
+    "y": 37.03,
+    "value": 0.71
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Zürich (CH04)",
+    "count": 56,
+    "share": 0.5156,
+    "rca": 0.4,
+    "reldens": 21.89,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 21.89,
+    "y": 68.39,
+    "value": 0.4
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

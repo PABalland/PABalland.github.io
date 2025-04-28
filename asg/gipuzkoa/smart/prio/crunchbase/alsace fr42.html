@@ -1,0 +1,328 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Alsace (FR42)",
+    "count": 47.01,
+    "share": 0.5356,
+    "rca": 3.86,
+    "reldens": 73.78,
+    "comp": 46.76,
+    "comp_TCI": 18,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 73.78,
+    "y": 46.76,
+    "value": 3.86
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Alsace (FR42)",
+    "count": 9.33,
+    "share": 0.0373,
+    "rca": 0.27,
+    "reldens": 20.78,
+    "comp": 43.55,
+    "comp_TCI": 18.22,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 20.78,
+    "y": 43.55,
+    "value": 0.27
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Alsace (FR42)",
+    "count": 8.61,
+    "share": 0.7571,
+    "rca": 5.45,
+    "reldens": 38.21,
+    "comp": 52.84,
+    "comp_TCI": 20.82,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 38.21,
+    "y": 52.84,
+    "value": 5.45
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Alsace (FR42)",
+    "count": 8.61,
+    "share": 0.109,
+    "rca": 0.78,
+    "reldens": 14.84,
+    "comp": 51.46,
+    "comp_TCI": 24.05,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 14.84,
+    "y": 51.46,
+    "value": 0.78
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Alsace (FR42)",
+    "count": 123.25,
+    "share": 0.5424,
+    "rca": 3.9,
+    "reldens": 70.83,
+    "comp": 45.82,
+    "comp_TCI": 18.56,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 70.83,
+    "y": 45.82,
+    "value": 3.9
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Alsace (FR42)",
+    "count": 2.58,
+    "share": 0.0146,
+    "rca": 0.11,
+    "reldens": 8.28,
+    "comp": 46.17,
+    "comp_TCI": 21.89,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 8.28,
+    "y": 46.17,
+    "value": 0.11
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Alsace (FR42)",
+    "count": 30.59,
+    "share": 0.3339,
+    "rca": 2.4,
+    "reldens": 56.52,
+    "comp": 43.9,
+    "comp_TCI": 15.58,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 56.52,
+    "y": 43.9,
+    "value": 2.4
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Alsace (FR42)",
+    "count": 8.61,
+    "share": 0.1158,
+    "rca": 0.83,
+    "reldens": 19.81,
+    "comp": 47.5,
+    "comp_TCI": 21.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 19.81,
+    "y": 47.5,
+    "value": 0.83
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

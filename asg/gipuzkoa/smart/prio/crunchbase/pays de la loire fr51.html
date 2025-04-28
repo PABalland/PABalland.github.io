@@ -1,0 +1,396 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 21.23,
+    "share": 0.2419,
+    "rca": 0.84,
+    "reldens": 34.06,
+    "comp": 46.76,
+    "comp_TCI": 18,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 34.06,
+    "y": 46.76,
+    "value": 0.84
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 21.33,
+    "share": 0.5859,
+    "rca": 2.04,
+    "reldens": 43.06,
+    "comp": 40.63,
+    "comp_TCI": 19.49,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 43.06,
+    "y": 40.63,
+    "value": 2.04
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 7.09,
+    "share": 2.164,
+    "rca": 7.53,
+    "reldens": 42.03,
+    "comp": 37.02,
+    "comp_TCI": 18.75,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 42.03,
+    "y": 37.02,
+    "value": 7.53
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 5.77,
+    "share": 0.0231,
+    "rca": 0.08,
+    "reldens": 14.45,
+    "comp": 43.55,
+    "comp_TCI": 18.22,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 14.45,
+    "y": 43.55,
+    "value": 0.08
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 6.47,
+    "share": 0.0852,
+    "rca": 0.3,
+    "reldens": 20.77,
+    "comp": 60.41,
+    "comp_TCI": 22.23,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 20.77,
+    "y": 60.41,
+    "value": 0.3
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 1.37,
+    "share": 0.0173,
+    "rca": 0.06,
+    "reldens": 13.17,
+    "comp": 51.46,
+    "comp_TCI": 24.05,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 13.17,
+    "y": 51.46,
+    "value": 0.06
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 1.77,
+    "share": 0.0232,
+    "rca": 0.08,
+    "reldens": 14.11,
+    "comp": 48.34,
+    "comp_TCI": 22.44,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 14.11,
+    "y": 48.34,
+    "value": 0.08
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 23.41,
+    "share": 0.103,
+    "rca": 0.36,
+    "reldens": 23.43,
+    "comp": 45.82,
+    "comp_TCI": 18.56,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 23.43,
+    "y": 45.82,
+    "value": 0.36
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 17.46,
+    "share": 0.0989,
+    "rca": 0.34,
+    "reldens": 28.96,
+    "comp": 46.17,
+    "comp_TCI": 21.89,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 28.96,
+    "y": 46.17,
+    "value": 0.34
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 21.04,
+    "share": 1.5929,
+    "rca": 5.54,
+    "reldens": 19.51,
+    "comp": 30.5,
+    "comp_TCI": 20.64,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 19.51,
+    "y": 30.5,
+    "value": 5.54
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 5.39,
+    "share": 0.0588,
+    "rca": 0.2,
+    "reldens": 12.54,
+    "comp": 43.9,
+    "comp_TCI": 15.58,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 12.54,
+    "y": 43.9,
+    "value": 0.2
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Pays de la Loire (FR51)",
+    "count": 4.36,
+    "share": 0.1028,
+    "rca": 0.36,
+    "reldens": 15.46,
+    "comp": 42.21,
+    "comp_TCI": 18.82,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 15.46,
+    "y": 42.21,
+    "value": 0.36
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

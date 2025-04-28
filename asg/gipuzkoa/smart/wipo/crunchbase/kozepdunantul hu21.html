@@ -1,0 +1,413 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Biotechnology",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 0.85,
+    "share": 0.0027,
+    "rca": 0.76,
+    "reldens": 19.06,
+    "comp": 26.32,
+    "comp_TCI": 93.24,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 19.06,
+    "y": 26.32,
+    "value": 0.76
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 1.93,
+    "share": 0.0126,
+    "rca": 3.51,
+    "reldens": 51.04,
+    "comp": 63.16,
+    "comp_TCI": 25.93,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 51.04,
+    "y": 63.16,
+    "value": 3.51
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 7.18,
+    "share": 0.0045,
+    "rca": 1.26,
+    "reldens": 42.35,
+    "comp": 47.37,
+    "comp_TCI": 10.29,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 42.35,
+    "y": 47.37,
+    "value": 1.26
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 1.29,
+    "share": 0.0094,
+    "rca": 2.6,
+    "reldens": 40.68,
+    "comp": 52.63,
+    "comp_TCI": 29.49,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 40.68,
+    "y": 52.63,
+    "value": 2.6
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 0.27,
+    "share": 0.0006,
+    "rca": 0.18,
+    "reldens": 32.91,
+    "comp": 73.68,
+    "comp_TCI": 77.81,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 32.91,
+    "y": 73.68,
+    "value": 0.18
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 0.9,
+    "share": 0.0048,
+    "rca": 1.33,
+    "reldens": 38.31,
+    "comp": 34.21,
+    "comp_TCI": 51.99,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 38.31,
+    "y": 34.21,
+    "value": 1.33
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 0.05,
+    "share": 0.001,
+    "rca": 0.29,
+    "reldens": 43.41,
+    "comp": 7.89,
+    "comp_TCI": 39.95,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 43.41,
+    "y": 7.89,
+    "value": 0.29
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 0.22,
+    "share": 0.0007,
+    "rca": 0.19,
+    "reldens": 29.31,
+    "comp": 100,
+    "comp_TCI": 86.75,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 29.31,
+    "y": 100,
+    "value": 0.19
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 5.67,
+    "share": 0.0067,
+    "rca": 1.87,
+    "reldens": 55.83,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 55.83,
+    "y": 68.42,
+    "value": 1.87
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 1.72,
+    "share": 0.0056,
+    "rca": 1.55,
+    "reldens": 20.44,
+    "comp": 10.53,
+    "comp_TCI": 72.37,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 20.44,
+    "y": 10.53,
+    "value": 1.55
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 1.01,
+    "share": 0.0023,
+    "rca": 0.64,
+    "reldens": 23.29,
+    "comp": 36.84,
+    "comp_TCI": 76.58,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 23.29,
+    "y": 36.84,
+    "value": 0.64
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 1.19,
+    "share": 0.0021,
+    "rca": 0.59,
+    "reldens": 54.11,
+    "comp": 57.89,
+    "comp_TCI": 15.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 54.11,
+    "y": 57.89,
+    "value": 0.59
+  },
+  {
+    "domain": "Transport",
+    "geo": "Közép-Dunántúl (HU21)",
+    "count": 2.41,
+    "share": 0.0051,
+    "rca": 1.42,
+    "reldens": 44.37,
+    "comp": 68.42,
+    "comp_TCI": 46.99,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 44.37,
+    "y": 68.42,
+    "value": 1.42
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,702 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Severozápad (CZ04)",
+    "count": 122,
+    "share": 0.0084,
+    "rca": 0.59,
+    "reldens": 32.94,
+    "comp": 85.23,
+    "comp_TCI": 100,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 32.94,
+    "y": 85.23,
+    "value": 0.59
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Severozápad (CZ04)",
+    "count": 6,
+    "share": 0.0037,
+    "rca": 0.26,
+    "reldens": 20.49,
+    "comp": 36.36,
+    "comp_TCI": 25.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 20.49,
+    "y": 36.36,
+    "value": 0.26
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Severozápad (CZ04)",
+    "count": 2,
+    "share": 0.0092,
+    "rca": 0.64,
+    "reldens": 0.79,
+    "comp": 45.45,
+    "comp_TCI": 66.08,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 0.79,
+    "y": 45.45,
+    "value": 0.64
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Severozápad (CZ04)",
+    "count": 82,
+    "share": 0.0389,
+    "rca": 2.72,
+    "reldens": 87.74,
+    "comp": 68.18,
+    "comp_TCI": 11.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 87.74,
+    "y": 68.18,
+    "value": 2.72
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Severozápad (CZ04)",
+    "count": 260,
+    "share": 0.0086,
+    "rca": 0.6,
+    "reldens": 45.34,
+    "comp": 100,
+    "comp_TCI": 85.98,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 45.34,
+    "y": 100,
+    "value": 0.6
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Severozápad (CZ04)",
+    "count": 113,
+    "share": 0.1022,
+    "rca": 7.15,
+    "reldens": 94.59,
+    "comp": 25,
+    "comp_TCI": 9.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 94.59,
+    "y": 25,
+    "value": 7.15
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Severozápad (CZ04)",
+    "count": 117,
+    "share": 0.0256,
+    "rca": 1.79,
+    "reldens": 85.9,
+    "comp": 35.23,
+    "comp_TCI": 12.92,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 85.9,
+    "y": 35.23,
+    "value": 1.79
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Severozápad (CZ04)",
+    "count": 58,
+    "share": 0.0082,
+    "rca": 0.58,
+    "reldens": 37.22,
+    "comp": 38.64,
+    "comp_TCI": 11.58,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 37.22,
+    "y": 38.64,
+    "value": 0.58
+  },
+  {
+    "domain": "Control",
+    "geo": "Severozápad (CZ04)",
+    "count": 1,
+    "share": 0.0068,
+    "rca": 0.47,
+    "reldens": 53.44,
+    "comp": 36.36,
+    "comp_TCI": 2.69,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 53.44,
+    "y": 36.36,
+    "value": 0.47
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Severozápad (CZ04)",
+    "count": 16,
+    "share": 0.0051,
+    "rca": 0.36,
+    "reldens": 21.26,
+    "comp": 36.36,
+    "comp_TCI": 14.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 21.26,
+    "y": 36.36,
+    "value": 0.36
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Severozápad (CZ04)",
+    "count": 6,
+    "share": 0.0106,
+    "rca": 0.74,
+    "reldens": 52.59,
+    "comp": 0,
+    "comp_TCI": 13.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 52.59,
+    "y": 0,
+    "value": 0.74
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Severozápad (CZ04)",
+    "count": 7,
+    "share": 0.0152,
+    "rca": 1.06,
+    "reldens": 89.4,
+    "comp": 38.64,
+    "comp_TCI": 8.28,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 89.4,
+    "y": 38.64,
+    "value": 1.06
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Severozápad (CZ04)",
+    "count": 232,
+    "share": 0.0252,
+    "rca": 1.76,
+    "reldens": 80.18,
+    "comp": 34.09,
+    "comp_TCI": 28.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 80.18,
+    "y": 34.09,
+    "value": 1.76
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Severozápad (CZ04)",
+    "count": 81,
+    "share": 0.0164,
+    "rca": 1.14,
+    "reldens": 30.24,
+    "comp": 31.82,
+    "comp_TCI": 46.53,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 30.24,
+    "y": 31.82,
+    "value": 1.14
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Severozápad (CZ04)",
+    "count": 197,
+    "share": 0.0213,
+    "rca": 1.49,
+    "reldens": 66.96,
+    "comp": 34.09,
+    "comp_TCI": 37.26,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 66.96,
+    "y": 34.09,
+    "value": 1.49
+  },
+  {
+    "domain": "Handling",
+    "geo": "Severozápad (CZ04)",
+    "count": 25,
+    "share": 0.0335,
+    "rca": 2.35,
+    "reldens": 70.16,
+    "comp": 7.95,
+    "comp_TCI": 1.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 70.16,
+    "y": 7.95,
+    "value": 2.35
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Severozápad (CZ04)",
+    "count": 25,
+    "share": 0.0181,
+    "rca": 1.27,
+    "reldens": 37.51,
+    "comp": 11.36,
+    "comp_TCI": 7.07,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 37.51,
+    "y": 11.36,
+    "value": 1.27
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Severozápad (CZ04)",
+    "count": 36,
+    "share": 0.2745,
+    "rca": 19.23,
+    "reldens": 90.27,
+    "comp": 18.18,
+    "comp_TCI": 2.33,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 90.27,
+    "y": 18.18,
+    "value": 19.23
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Severozápad (CZ04)",
+    "count": 76,
+    "share": 0.0384,
+    "rca": 2.69,
+    "reldens": 79.6,
+    "comp": 50,
+    "comp_TCI": 6.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 79.6,
+    "y": 50,
+    "value": 2.69
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Severozápad (CZ04)",
+    "count": 171,
+    "share": 0.0433,
+    "rca": 3.04,
+    "reldens": 83.41,
+    "comp": 51.14,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 83.41,
+    "y": 51.14,
+    "value": 3.04
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Severozápad (CZ04)",
+    "count": 28,
+    "share": 0.031,
+    "rca": 2.17,
+    "reldens": 89.8,
+    "comp": 15.91,
+    "comp_TCI": 0.75,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 89.8,
+    "y": 15.91,
+    "value": 2.17
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Severozápad (CZ04)",
+    "count": 349,
+    "share": 0.008,
+    "rca": 0.56,
+    "reldens": 17.88,
+    "comp": 76.14,
+    "comp_TCI": 87.65,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 17.88,
+    "y": 76.14,
+    "value": 0.56
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Severozápad (CZ04)",
+    "count": 256,
+    "share": 0.0268,
+    "rca": 1.87,
+    "reldens": 66.25,
+    "comp": 79.55,
+    "comp_TCI": 6.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 66.25,
+    "y": 79.55,
+    "value": 1.87
+  },
+  {
+    "domain": "Optics",
+    "geo": "Severozápad (CZ04)",
+    "count": 16,
+    "share": 0.0028,
+    "rca": 0.2,
+    "reldens": 38.11,
+    "comp": 95.45,
+    "comp_TCI": 26.36,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 38.11,
+    "y": 95.45,
+    "value": 0.2
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Severozápad (CZ04)",
+    "count": 21,
+    "share": 0.0157,
+    "rca": 1.1,
+    "reldens": 59.49,
+    "comp": 40.91,
+    "comp_TCI": 29.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 59.49,
+    "y": 40.91,
+    "value": 1.1
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Severozápad (CZ04)",
+    "count": 21,
+    "share": 0.0042,
+    "rca": 0.3,
+    "reldens": 20.53,
+    "comp": 69.32,
+    "comp_TCI": 95.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 20.53,
+    "y": 69.32,
+    "value": 0.3
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Severozápad (CZ04)",
+    "count": 9,
+    "share": 0.0081,
+    "rca": 0.57,
+    "reldens": 66.32,
+    "comp": 65.91,
+    "comp_TCI": 10.02,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 66.32,
+    "y": 65.91,
+    "value": 0.57
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Severozápad (CZ04)",
+    "count": 10,
+    "share": 0.0508,
+    "rca": 3.56,
+    "reldens": 98.82,
+    "comp": 31.82,
+    "comp_TCI": 3.26,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 98.82,
+    "y": 31.82,
+    "value": 3.56
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Severozápad (CZ04)",
+    "count": 18,
+    "share": 0.0207,
+    "rca": 1.45,
+    "reldens": 92.43,
+    "comp": 25,
+    "comp_TCI": 6.9,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 92.43,
+    "y": 25,
+    "value": 1.45
+  },
+  {
+    "domain": "Transport",
+    "geo": "Severozápad (CZ04)",
+    "count": 16,
+    "share": 0.0254,
+    "rca": 1.78,
+    "reldens": 72.8,
+    "comp": 13.64,
+    "comp_TCI": 7.54,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 72.8,
+    "y": 13.64,
+    "value": 1.78
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

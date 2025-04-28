@@ -1,0 +1,651 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 2,
+    "share": 0.016,
+    "rca": 0.85,
+    "reldens": 6.96,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 6.96,
+    "y": 7.14,
+    "value": 0.85
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 1,
+    "share": 0.0064,
+    "rca": 0.34,
+    "reldens": 43.97,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 43.97,
+    "y": 55.36,
+    "value": 0.34
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 6,
+    "share": 0.0158,
+    "rca": 0.84,
+    "reldens": 5.42,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 5.42,
+    "y": 48.21,
+    "value": 0.84
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 4,
+    "share": 0.0134,
+    "rca": 0.71,
+    "reldens": 39.11,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 39.11,
+    "y": 37.5,
+    "value": 0.71
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 7,
+    "share": 0.038,
+    "rca": 2.02,
+    "reldens": 49.35,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 49.35,
+    "y": 12.5,
+    "value": 2.02
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 6,
+    "share": 0.0136,
+    "rca": 0.72,
+    "reldens": 43.08,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 43.08,
+    "y": 83.04,
+    "value": 0.72
+  },
+  {
+    "domain": "Control",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 7,
+    "share": 0.0349,
+    "rca": 1.86,
+    "reldens": 49.17,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 49.17,
+    "y": 51.79,
+    "value": 1.86
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 12,
+    "share": 0.0265,
+    "rca": 1.41,
+    "reldens": 48.43,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 48.43,
+    "y": 100,
+    "value": 1.41
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 18,
+    "share": 0.033,
+    "rca": 1.76,
+    "reldens": 43.95,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 43.95,
+    "y": 88.39,
+    "value": 1.76
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 2,
+    "share": 0.0094,
+    "rca": 0.5,
+    "reldens": 66.88,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 66.88,
+    "y": 58.93,
+    "value": 0.5
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 4,
+    "share": 0.0336,
+    "rca": 1.79,
+    "reldens": 26.65,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 26.65,
+    "y": 0,
+    "value": 1.79
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 2,
+    "share": 0.0165,
+    "rca": 0.88,
+    "reldens": 16.02,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 16.02,
+    "y": 19.64,
+    "value": 0.88
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 3,
+    "share": 0.0283,
+    "rca": 1.51,
+    "reldens": 42.63,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 42.63,
+    "y": 1.79,
+    "value": 1.51
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 15,
+    "share": 0.0246,
+    "rca": 1.31,
+    "reldens": 43.39,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 43.39,
+    "y": 60.71,
+    "value": 1.31
+  },
+  {
+    "domain": "Handling",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 6,
+    "share": 0.0261,
+    "rca": 1.39,
+    "reldens": 44.56,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 44.56,
+    "y": 44.64,
+    "value": 1.39
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 7,
+    "share": 0.0417,
+    "rca": 2.22,
+    "reldens": 37.24,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 37.24,
+    "y": 42.86,
+    "value": 2.22
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 1,
+    "share": 0.0046,
+    "rca": 0.25,
+    "reldens": 42.22,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 42.22,
+    "y": 47.32,
+    "value": 0.25
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 7,
+    "share": 0.0127,
+    "rca": 0.67,
+    "reldens": 32.17,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 32.17,
+    "y": 63.39,
+    "value": 0.67
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 17,
+    "share": 0.0662,
+    "rca": 3.53,
+    "reldens": 56.78,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 56.78,
+    "y": 57.14,
+    "value": 3.53
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 1,
+    "share": 0.0019,
+    "rca": 0.1,
+    "reldens": 27.35,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 27.35,
+    "y": 59.82,
+    "value": 0.1
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 1,
+    "share": 0.0028,
+    "rca": 0.15,
+    "reldens": 8.86,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 8.86,
+    "y": 62.5,
+    "value": 0.15
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 2,
+    "share": 0.0057,
+    "rca": 0.3,
+    "reldens": 30.49,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 30.49,
+    "y": 37.5,
+    "value": 0.3
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 8,
+    "share": 0.0177,
+    "rca": 0.94,
+    "reldens": 3.84,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 3.84,
+    "y": 37.5,
+    "value": 0.94
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 2,
+    "share": 0.0113,
+    "rca": 0.6,
+    "reldens": 30.11,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 30.11,
+    "y": 41.96,
+    "value": 0.6
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 6,
+    "share": 0.0296,
+    "rca": 1.58,
+    "reldens": 41.41,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 41.41,
+    "y": 78.57,
+    "value": 1.58
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 2,
+    "share": 0.0165,
+    "rca": 0.88,
+    "reldens": 25.86,
+    "comp": 25.89,
+    "comp_TCI": 6.89,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 25.86,
+    "y": 25.89,
+    "value": 0.88
+  },
+  {
+    "domain": "Transport",
+    "geo": "Western Transdanubia (HU22)",
+    "count": 26,
+    "share": 0.0525,
+    "rca": 2.8,
+    "reldens": 61.37,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 61.37,
+    "y": 88.39,
+    "value": 2.8
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

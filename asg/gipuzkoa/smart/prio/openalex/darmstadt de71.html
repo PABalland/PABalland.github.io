@@ -1,0 +1,617 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Darmstadt (DE71)",
+    "count": 80,
+    "share": 0.3597,
+    "rca": 0.55,
+    "reldens": 90.27,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 90.27,
+    "y": 47.5,
+    "value": 0.55
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Darmstadt (DE71)",
+    "count": 2035,
+    "share": 0.6461,
+    "rca": 0.99,
+    "reldens": 76.66,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 76.66,
+    "y": 95,
+    "value": 0.99
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Darmstadt (DE71)",
+    "count": 119,
+    "share": 0.3695,
+    "rca": 0.56,
+    "reldens": 16.19,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 16.19,
+    "y": 16.25,
+    "value": 0.56
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Darmstadt (DE71)",
+    "count": 60,
+    "share": 0.1717,
+    "rca": 0.26,
+    "reldens": 25.77,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 25.77,
+    "y": 43.75,
+    "value": 0.26
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Darmstadt (DE71)",
+    "count": 3365,
+    "share": 0.8078,
+    "rca": 1.23,
+    "reldens": 63.99,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 63.99,
+    "y": 73.75,
+    "value": 1.23
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Darmstadt (DE71)",
+    "count": 1323,
+    "share": 0.5926,
+    "rca": 0.91,
+    "reldens": 67.57,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 67.57,
+    "y": 100,
+    "value": 0.91
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Darmstadt (DE71)",
+    "count": 298,
+    "share": 0.7877,
+    "rca": 1.2,
+    "reldens": 43.09,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 43.09,
+    "y": 48.75,
+    "value": 1.2
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Darmstadt (DE71)",
+    "count": 420,
+    "share": 0.4993,
+    "rca": 0.76,
+    "reldens": 49.32,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 49.32,
+    "y": 75,
+    "value": 0.76
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Darmstadt (DE71)",
+    "count": 510,
+    "share": 0.6869,
+    "rca": 1.05,
+    "reldens": 7.15,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 7.15,
+    "y": 65,
+    "value": 1.05
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Darmstadt (DE71)",
+    "count": 250,
+    "share": 0.4179,
+    "rca": 0.64,
+    "reldens": 60.66,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 60.66,
+    "y": 22.5,
+    "value": 0.64
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Darmstadt (DE71)",
+    "count": 538,
+    "share": 1.0432,
+    "rca": 1.59,
+    "reldens": 97.32,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 97.32,
+    "y": 28.75,
+    "value": 1.59
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Darmstadt (DE71)",
+    "count": 279,
+    "share": 0.289,
+    "rca": 0.44,
+    "reldens": 21.01,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 21.01,
+    "y": 82.5,
+    "value": 0.44
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Darmstadt (DE71)",
+    "count": 271,
+    "share": 0.7308,
+    "rca": 1.12,
+    "reldens": 95.77,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 95.77,
+    "y": 16.25,
+    "value": 1.12
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Darmstadt (DE71)",
+    "count": 199,
+    "share": 1.0113,
+    "rca": 1.54,
+    "reldens": 85.79,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 85.79,
+    "y": 0,
+    "value": 1.54
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Darmstadt (DE71)",
+    "count": 47,
+    "share": 0.4018,
+    "rca": 0.61,
+    "reldens": 90.65,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 90.65,
+    "y": 10,
+    "value": 0.61
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Darmstadt (DE71)",
+    "count": 2398,
+    "share": 0.6368,
+    "rca": 0.97,
+    "reldens": 21.05,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 21.05,
+    "y": 52.5,
+    "value": 0.97
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Darmstadt (DE71)",
+    "count": 235,
+    "share": 0.3677,
+    "rca": 0.56,
+    "reldens": 19.99,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 19.99,
+    "y": 22.5,
+    "value": 0.56
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Darmstadt (DE71)",
+    "count": 419,
+    "share": 0.7664,
+    "rca": 1.17,
+    "reldens": 10.8,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 10.8,
+    "y": 52.5,
+    "value": 1.17
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Darmstadt (DE71)",
+    "count": 304,
+    "share": 0.6602,
+    "rca": 1.01,
+    "reldens": 96.33,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 96.33,
+    "y": 21.25,
+    "value": 1.01
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Darmstadt (DE71)",
+    "count": 1906,
+    "share": 0.7817,
+    "rca": 1.19,
+    "reldens": 50.13,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 50.13,
+    "y": 70,
+    "value": 1.19
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Darmstadt (DE71)",
+    "count": 354,
+    "share": 0.3677,
+    "rca": 0.56,
+    "reldens": 43.85,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 43.85,
+    "y": 87.5,
+    "value": 0.56
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Darmstadt (DE71)",
+    "count": 176,
+    "share": 0.5626,
+    "rca": 0.86,
+    "reldens": 42.68,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 42.68,
+    "y": 30,
+    "value": 0.86
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Darmstadt (DE71)",
+    "count": 288,
+    "share": 0.4446,
+    "rca": 0.68,
+    "reldens": 71.75,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 71.75,
+    "y": 82.5,
+    "value": 0.68
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Darmstadt (DE71)",
+    "count": 399,
+    "share": 0.7583,
+    "rca": 1.16,
+    "reldens": 85.95,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 85.95,
+    "y": 45,
+    "value": 1.16
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Darmstadt (DE71)",
+    "count": 1723,
+    "share": 0.8695,
+    "rca": 1.33,
+    "reldens": 31.55,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 31.55,
+    "y": 61.25,
+    "value": 1.33
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

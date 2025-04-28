@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 156,
+    "share": 0.7014,
+    "rca": 2.09,
+    "reldens": 90.43,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 90.43,
+    "y": 47.5,
+    "value": 2.09
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 816,
+    "share": 0.2591,
+    "rca": 0.77,
+    "reldens": 13.35,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 13.35,
+    "y": 95,
+    "value": 0.77
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 213,
+    "share": 0.6613,
+    "rca": 1.97,
+    "reldens": 94.98,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 94.98,
+    "y": 16.25,
+    "value": 1.97
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 157,
+    "share": 0.4494,
+    "rca": 1.34,
+    "reldens": 68.27,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 68.27,
+    "y": 43.75,
+    "value": 1.34
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 1738,
+    "share": 0.4172,
+    "rca": 1.24,
+    "reldens": 54.81,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 54.81,
+    "y": 73.75,
+    "value": 1.24
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 428,
+    "share": 0.1917,
+    "rca": 0.57,
+    "reldens": 72.24,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 72.24,
+    "y": 100,
+    "value": 0.57
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 266,
+    "share": 0.7031,
+    "rca": 2.1,
+    "reldens": 45.27,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 45.27,
+    "y": 48.75,
+    "value": 2.1
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 155,
+    "share": 0.1843,
+    "rca": 0.55,
+    "reldens": 5.6,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 5.6,
+    "y": 75,
+    "value": 0.55
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 201,
+    "share": 0.2707,
+    "rca": 0.81,
+    "reldens": 31.53,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 31.53,
+    "y": 65,
+    "value": 0.81
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 272,
+    "share": 0.4547,
+    "rca": 1.35,
+    "reldens": 7.13,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 7.13,
+    "y": 22.5,
+    "value": 1.35
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 193,
+    "share": 0.3743,
+    "rca": 1.12,
+    "reldens": 97.75,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 97.75,
+    "y": 28.75,
+    "value": 1.12
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 112,
+    "share": 0.116,
+    "rca": 0.35,
+    "reldens": 60.38,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 60.38,
+    "y": 82.5,
+    "value": 0.35
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 355,
+    "share": 0.9573,
+    "rca": 2.85,
+    "reldens": 98.5,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 98.5,
+    "y": 16.25,
+    "value": 2.85
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 172,
+    "share": 0.8741,
+    "rca": 2.6,
+    "reldens": 87.33,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 87.33,
+    "y": 0,
+    "value": 2.6
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 18,
+    "share": 0.1539,
+    "rca": 0.46,
+    "reldens": 91.1,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 91.1,
+    "y": 10,
+    "value": 0.46
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 1113,
+    "share": 0.2956,
+    "rca": 0.88,
+    "reldens": 11.17,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 11.17,
+    "y": 52.5,
+    "value": 0.88
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 314,
+    "share": 0.4914,
+    "rca": 1.46,
+    "reldens": 79,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 79,
+    "y": 22.5,
+    "value": 1.46
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 149,
+    "share": 0.2725,
+    "rca": 0.81,
+    "reldens": 22.28,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 22.28,
+    "y": 52.5,
+    "value": 0.81
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 397,
+    "share": 0.8622,
+    "rca": 2.57,
+    "reldens": 99.02,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 99.02,
+    "y": 21.25,
+    "value": 2.57
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 575,
+    "share": 0.2358,
+    "rca": 0.7,
+    "reldens": 40.44,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 40.44,
+    "y": 70,
+    "value": 0.7
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 301,
+    "share": 0.3126,
+    "rca": 0.93,
+    "reldens": 45.74,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 45.74,
+    "y": 87.5,
+    "value": 0.93
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 96,
+    "share": 0.3069,
+    "rca": 0.91,
+    "reldens": 30.68,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 30.68,
+    "y": 30,
+    "value": 0.91
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 21,
+    "share": 0.0324,
+    "rca": 0.1,
+    "reldens": 71.47,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 71.47,
+    "y": 82.5,
+    "value": 0.1
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 236,
+    "share": 0.4485,
+    "rca": 1.34,
+    "reldens": 85.81,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 85.81,
+    "y": 45,
+    "value": 1.34
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 3,
+    "share": 0.0886,
+    "rca": 0.26,
+    "reldens": 93,
+    "comp": 50,
+    "comp_TCI": 32.63,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 93,
+    "y": 50,
+    "value": 0.26
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Kentriki Makedonia (EL52)",
+    "count": 766,
+    "share": 0.3866,
+    "rca": 1.15,
+    "reldens": 50.11,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 50.11,
+    "y": 61.25,
+    "value": 1.15
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

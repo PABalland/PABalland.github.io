@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Veneto (ITH3)",
+    "count": 11015,
+    "share": 0.7561,
+    "rca": 1.12,
+    "reldens": 60.11,
+    "comp": 85.23,
+    "comp_TCI": 100,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 60.11,
+    "y": 85.23,
+    "value": 1.12
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Veneto (ITH3)",
+    "count": 1011,
+    "share": 0.6202,
+    "rca": 0.92,
+    "reldens": 20.81,
+    "comp": 36.36,
+    "comp_TCI": 25.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 20.81,
+    "y": 36.36,
+    "value": 0.92
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Veneto (ITH3)",
+    "count": 210,
+    "share": 0.9657,
+    "rca": 1.43,
+    "reldens": 45.22,
+    "comp": 45.45,
+    "comp_TCI": 66.08,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 45.22,
+    "y": 45.45,
+    "value": 1.43
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Veneto (ITH3)",
+    "count": 896,
+    "share": 0.4248,
+    "rca": 0.63,
+    "reldens": 6.32,
+    "comp": 68.18,
+    "comp_TCI": 11.22,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 6.32,
+    "y": 68.18,
+    "value": 0.63
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Veneto (ITH3)",
+    "count": 21085,
+    "share": 0.694,
+    "rca": 1.02,
+    "reldens": 43.99,
+    "comp": 100,
+    "comp_TCI": 85.98,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 43.99,
+    "y": 100,
+    "value": 1.02
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Veneto (ITH3)",
+    "count": 395,
+    "share": 0.3571,
+    "rca": 0.53,
+    "reldens": 17.13,
+    "comp": 25,
+    "comp_TCI": 9.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 17.13,
+    "y": 25,
+    "value": 0.53
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Veneto (ITH3)",
+    "count": 3277,
+    "share": 0.7155,
+    "rca": 1.06,
+    "reldens": 5.05,
+    "comp": 35.23,
+    "comp_TCI": 12.92,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 5.05,
+    "y": 35.23,
+    "value": 1.06
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Veneto (ITH3)",
+    "count": 3874,
+    "share": 0.5505,
+    "rca": 0.81,
+    "reldens": 18.7,
+    "comp": 38.64,
+    "comp_TCI": 11.58,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 18.7,
+    "y": 38.64,
+    "value": 0.81
+  },
+  {
+    "domain": "Control",
+    "geo": "Veneto (ITH3)",
+    "count": 80,
+    "share": 0.5413,
+    "rca": 0.8,
+    "reldens": 11.28,
+    "comp": 36.36,
+    "comp_TCI": 2.69,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 11.28,
+    "y": 36.36,
+    "value": 0.8
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Veneto (ITH3)",
+    "count": 1673,
+    "share": 0.5321,
+    "rca": 0.79,
+    "reldens": 24.28,
+    "comp": 36.36,
+    "comp_TCI": 14.27,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 24.28,
+    "y": 36.36,
+    "value": 0.79
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Veneto (ITH3)",
+    "count": 442,
+    "share": 0.7791,
+    "rca": 1.15,
+    "reldens": 4.32,
+    "comp": 0,
+    "comp_TCI": 13.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 4.32,
+    "y": 0,
+    "value": 1.15
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Veneto (ITH3)",
+    "count": 157,
+    "share": 0.34,
+    "rca": 0.5,
+    "reldens": 19.76,
+    "comp": 38.64,
+    "comp_TCI": 8.28,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 19.76,
+    "y": 38.64,
+    "value": 0.5
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Veneto (ITH3)",
+    "count": 4583,
+    "share": 0.4969,
+    "rca": 0.73,
+    "reldens": 24.74,
+    "comp": 34.09,
+    "comp_TCI": 28.81,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 24.74,
+    "y": 34.09,
+    "value": 0.73
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Veneto (ITH3)",
+    "count": 3078,
+    "share": 0.6212,
+    "rca": 0.92,
+    "reldens": 59.22,
+    "comp": 31.82,
+    "comp_TCI": 46.53,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 59.22,
+    "y": 31.82,
+    "value": 0.92
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Veneto (ITH3)",
+    "count": 4895,
+    "share": 0.5302,
+    "rca": 0.78,
+    "reldens": 35.91,
+    "comp": 34.09,
+    "comp_TCI": 37.26,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 35.91,
+    "y": 34.09,
+    "value": 0.78
+  },
+  {
+    "domain": "Handling",
+    "geo": "Veneto (ITH3)",
+    "count": 503,
+    "share": 0.6738,
+    "rca": 0.99,
+    "reldens": 11.24,
+    "comp": 7.95,
+    "comp_TCI": 1.13,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 11.24,
+    "y": 7.95,
+    "value": 0.99
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Veneto (ITH3)",
+    "count": 697,
+    "share": 0.5058,
+    "rca": 0.75,
+    "reldens": 14.08,
+    "comp": 11.36,
+    "comp_TCI": 7.07,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 14.08,
+    "y": 11.36,
+    "value": 0.75
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Veneto (ITH3)",
+    "count": 57,
+    "share": 0.4346,
+    "rca": 0.64,
+    "reldens": 6.08,
+    "comp": 18.18,
+    "comp_TCI": 2.33,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 6.08,
+    "y": 18.18,
+    "value": 0.64
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Veneto (ITH3)",
+    "count": 908,
+    "share": 0.4584,
+    "rca": 0.68,
+    "reldens": 22.11,
+    "comp": 50,
+    "comp_TCI": 6.4,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 22.11,
+    "y": 50,
+    "value": 0.68
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Veneto (ITH3)",
+    "count": 1901,
+    "share": 0.4818,
+    "rca": 0.71,
+    "reldens": 18.4,
+    "comp": 51.14,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 18.4,
+    "y": 51.14,
+    "value": 0.71
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Veneto (ITH3)",
+    "count": 439,
+    "share": 0.4868,
+    "rca": 0.72,
+    "reldens": 20.28,
+    "comp": 15.91,
+    "comp_TCI": 0.75,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 20.28,
+    "y": 15.91,
+    "value": 0.72
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Veneto (ITH3)",
+    "count": 35842,
+    "share": 0.8215,
+    "rca": 1.21,
+    "reldens": 57.53,
+    "comp": 76.14,
+    "comp_TCI": 87.65,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 57.53,
+    "y": 76.14,
+    "value": 1.21
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Veneto (ITH3)",
+    "count": 5117,
+    "share": 0.5349,
+    "rca": 0.79,
+    "reldens": 18.97,
+    "comp": 79.55,
+    "comp_TCI": 6.21,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 18.97,
+    "y": 79.55,
+    "value": 0.79
+  },
+  {
+    "domain": "Optics",
+    "geo": "Veneto (ITH3)",
+    "count": 5329,
+    "share": 0.9482,
+    "rca": 1.4,
+    "reldens": 17.14,
+    "comp": 95.45,
+    "comp_TCI": 26.36,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 17.14,
+    "y": 95.45,
+    "value": 1.4
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Veneto (ITH3)",
+    "count": 839,
+    "share": 0.6261,
+    "rca": 0.92,
+    "reldens": 33.42,
+    "comp": 40.91,
+    "comp_TCI": 29.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 33.42,
+    "y": 40.91,
+    "value": 0.92
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Veneto (ITH3)",
+    "count": 3080,
+    "share": 0.6229,
+    "rca": 0.92,
+    "reldens": 78.2,
+    "comp": 69.32,
+    "comp_TCI": 95.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 78.2,
+    "y": 69.32,
+    "value": 0.92
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Veneto (ITH3)",
+    "count": 568,
+    "share": 0.5095,
+    "rca": 0.75,
+    "reldens": 22.33,
+    "comp": 65.91,
+    "comp_TCI": 10.02,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 22.33,
+    "y": 65.91,
+    "value": 0.75
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Veneto (ITH3)",
+    "count": 73,
+    "share": 0.3706,
+    "rca": 0.55,
+    "reldens": 2.5,
+    "comp": 31.82,
+    "comp_TCI": 3.26,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 2.5,
+    "y": 31.82,
+    "value": 0.55
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Veneto (ITH3)",
+    "count": 37,
+    "share": 0.3076,
+    "rca": 0.45,
+    "reldens": 31.56,
+    "comp": 40.91,
+    "comp_TCI": 25.51,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 31.56,
+    "y": 40.91,
+    "value": 0.45
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Veneto (ITH3)",
+    "count": 498,
+    "share": 0.5723,
+    "rca": 0.84,
+    "reldens": 10.41,
+    "comp": 25,
+    "comp_TCI": 6.9,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 10.41,
+    "y": 25,
+    "value": 0.84
+  },
+  {
+    "domain": "Transport",
+    "geo": "Veneto (ITH3)",
+    "count": 245,
+    "share": 0.3887,
+    "rca": 0.57,
+    "reldens": 27.52,
+    "comp": 13.64,
+    "comp_TCI": 7.54,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 27.52,
+    "y": 13.64,
+    "value": 0.57
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

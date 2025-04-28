@@ -1,0 +1,804 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Karlsruhe (DE12)",
+    "count": 281,
+    "share": 2.2469,
+    "rca": 1.32,
+    "reldens": 50.97,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 50.97,
+    "y": 7.14,
+    "value": 1.32
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Karlsruhe (DE12)",
+    "count": 249,
+    "share": 1.5891,
+    "rca": 0.93,
+    "reldens": 35.88,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 35.88,
+    "y": 55.36,
+    "value": 0.93
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Karlsruhe (DE12)",
+    "count": 41,
+    "share": 0.9268,
+    "rca": 0.54,
+    "reldens": 45.54,
+    "comp": 41.07,
+    "comp_TCI": 61.85,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 45.54,
+    "y": 41.07,
+    "value": 0.54
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Karlsruhe (DE12)",
+    "count": 556,
+    "share": 1.8478,
+    "rca": 1.08,
+    "reldens": 18.52,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 18.52,
+    "y": 63.39,
+    "value": 1.08
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Karlsruhe (DE12)",
+    "count": 519,
+    "share": 1.3638,
+    "rca": 0.8,
+    "reldens": 37.5,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 37.5,
+    "y": 48.21,
+    "value": 0.8
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Karlsruhe (DE12)",
+    "count": 526,
+    "share": 1.7606,
+    "rca": 1.03,
+    "reldens": 30.04,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 30.04,
+    "y": 37.5,
+    "value": 1.03
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Karlsruhe (DE12)",
+    "count": 125,
+    "share": 0.678,
+    "rca": 0.4,
+    "reldens": 56.98,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 56.98,
+    "y": 12.5,
+    "value": 0.4
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Karlsruhe (DE12)",
+    "count": 890,
+    "share": 2.0167,
+    "rca": 1.18,
+    "reldens": 36.29,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 36.29,
+    "y": 83.04,
+    "value": 1.18
+  },
+  {
+    "domain": "Control",
+    "geo": "Karlsruhe (DE12)",
+    "count": 715,
+    "share": 3.5627,
+    "rca": 2.09,
+    "reldens": 56.03,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 56.03,
+    "y": 51.79,
+    "value": 2.09
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Karlsruhe (DE12)",
+    "count": 457,
+    "share": 1.0085,
+    "rca": 0.59,
+    "reldens": 56.02,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 56.02,
+    "y": 100,
+    "value": 0.59
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Karlsruhe (DE12)",
+    "count": 1478,
+    "share": 2.706,
+    "rca": 1.59,
+    "reldens": 50.27,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 50.27,
+    "y": 88.39,
+    "value": 1.59
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Karlsruhe (DE12)",
+    "count": 329,
+    "share": 1.5396,
+    "rca": 0.9,
+    "reldens": 69.7,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 69.7,
+    "y": 58.93,
+    "value": 0.9
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Karlsruhe (DE12)",
+    "count": 184,
+    "share": 1.5473,
+    "rca": 0.91,
+    "reldens": 63.47,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 63.47,
+    "y": 0,
+    "value": 0.91
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Karlsruhe (DE12)",
+    "count": 120,
+    "share": 0.9894,
+    "rca": 0.58,
+    "reldens": 20.32,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 20.32,
+    "y": 19.64,
+    "value": 0.58
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Karlsruhe (DE12)",
+    "count": 118,
+    "share": 1.1129,
+    "rca": 0.65,
+    "reldens": 44.68,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 44.68,
+    "y": 1.79,
+    "value": 0.65
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Karlsruhe (DE12)",
+    "count": 1374,
+    "share": 2.249,
+    "rca": 1.32,
+    "reldens": 46.23,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 46.23,
+    "y": 60.71,
+    "value": 1.32
+  },
+  {
+    "domain": "Handling",
+    "geo": "Karlsruhe (DE12)",
+    "count": 318,
+    "share": 1.3845,
+    "rca": 0.81,
+    "reldens": 47.92,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 47.92,
+    "y": 44.64,
+    "value": 0.81
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Karlsruhe (DE12)",
+    "count": 181,
+    "share": 2.113,
+    "rca": 1.24,
+    "reldens": 59.43,
+    "comp": 12.5,
+    "comp_TCI": 54.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 59.43,
+    "y": 12.5,
+    "value": 1.24
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Karlsruhe (DE12)",
+    "count": 377,
+    "share": 2.247,
+    "rca": 1.32,
+    "reldens": 34.77,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 34.77,
+    "y": 42.86,
+    "value": 1.32
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Karlsruhe (DE12)",
+    "count": 262,
+    "share": 1.1649,
+    "rca": 0.68,
+    "reldens": 35.93,
+    "comp": 71.43,
+    "comp_TCI": 2.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 35.93,
+    "y": 71.43,
+    "value": 0.68
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Karlsruhe (DE12)",
+    "count": 243,
+    "share": 1.1235,
+    "rca": 0.66,
+    "reldens": 53.1,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 53.1,
+    "y": 47.32,
+    "value": 0.66
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Karlsruhe (DE12)",
+    "count": 1241,
+    "share": 2.2457,
+    "rca": 1.32,
+    "reldens": 51.72,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 51.72,
+    "y": 63.39,
+    "value": 1.32
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Karlsruhe (DE12)",
+    "count": 1126,
+    "share": 4.3864,
+    "rca": 2.57,
+    "reldens": 46.28,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 46.28,
+    "y": 57.14,
+    "value": 2.57
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Karlsruhe (DE12)",
+    "count": 702,
+    "share": 1.3553,
+    "rca": 0.79,
+    "reldens": 45.69,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 45.69,
+    "y": 59.82,
+    "value": 0.79
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Karlsruhe (DE12)",
+    "count": 11,
+    "share": 1.1803,
+    "rca": 0.69,
+    "reldens": 37.55,
+    "comp": 44.64,
+    "comp_TCI": 28.86,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 37.55,
+    "y": 44.64,
+    "value": 0.69
+  },
+  {
+    "domain": "Optics",
+    "geo": "Karlsruhe (DE12)",
+    "count": 233,
+    "share": 1.2994,
+    "rca": 0.76,
+    "reldens": 35.1,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 35.1,
+    "y": 66.07,
+    "value": 0.76
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Karlsruhe (DE12)",
+    "count": 481,
+    "share": 1.3298,
+    "rca": 0.78,
+    "reldens": 32.37,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 32.37,
+    "y": 62.5,
+    "value": 0.78
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Karlsruhe (DE12)",
+    "count": 185,
+    "share": 0.9186,
+    "rca": 0.54,
+    "reldens": 35.83,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 35.83,
+    "y": 58.04,
+    "value": 0.54
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Karlsruhe (DE12)",
+    "count": 381,
+    "share": 1.0882,
+    "rca": 0.64,
+    "reldens": 35.06,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 35.06,
+    "y": 37.5,
+    "value": 0.64
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Karlsruhe (DE12)",
+    "count": 565,
+    "share": 1.2492,
+    "rca": 0.73,
+    "reldens": 17.18,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 17.18,
+    "y": 37.5,
+    "value": 0.73
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Karlsruhe (DE12)",
+    "count": 42,
+    "share": 0.4028,
+    "rca": 0.24,
+    "reldens": 39.76,
+    "comp": 46.43,
+    "comp_TCI": 22.6,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 39.76,
+    "y": 46.43,
+    "value": 0.24
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Karlsruhe (DE12)",
+    "count": 189,
+    "share": 1.0692,
+    "rca": 0.63,
+    "reldens": 34.64,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 34.64,
+    "y": 41.96,
+    "value": 0.63
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Karlsruhe (DE12)",
+    "count": 153,
+    "share": 0.7542,
+    "rca": 0.44,
+    "reldens": 28.43,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 28.43,
+    "y": 78.57,
+    "value": 0.44
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Karlsruhe (DE12)",
+    "count": 119,
+    "share": 0.9836,
+    "rca": 0.58,
+    "reldens": 31.01,
+    "comp": 25.89,
+    "comp_TCI": 6.89,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 31.01,
+    "y": 25.89,
+    "value": 0.58
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Karlsruhe (DE12)",
+    "count": 217,
+    "share": 1.8927,
+    "rca": 1.11,
+    "reldens": 45.78,
+    "comp": 19.64,
+    "comp_TCI": 14.8,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 45.78,
+    "y": 19.64,
+    "value": 1.11
+  },
+  {
+    "domain": "Transport",
+    "geo": "Karlsruhe (DE12)",
+    "count": 919,
+    "share": 1.856,
+    "rca": 1.09,
+    "reldens": 61.36,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 61.36,
+    "y": 88.39,
+    "value": 1.09
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

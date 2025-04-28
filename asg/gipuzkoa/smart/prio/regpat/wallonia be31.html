@@ -1,0 +1,600 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Wallonia (BE31)",
+    "count": 6,
+    "share": 0.0327,
+    "rca": 0.2,
+    "reldens": 6.53,
+    "comp": 100,
+    "comp_TCI": 36.53,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 6.53,
+    "y": 100,
+    "value": 0.2
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Wallonia (BE31)",
+    "count": 54,
+    "share": 0.3069,
+    "rca": 1.85,
+    "reldens": 54.62,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 54.62,
+    "y": 37.21,
+    "value": 1.85
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Wallonia (BE31)",
+    "count": 17,
+    "share": 0.1116,
+    "rca": 0.67,
+    "reldens": 36.25,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 36.25,
+    "y": 35.72,
+    "value": 0.67
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Wallonia (BE31)",
+    "count": 9,
+    "share": 0.1436,
+    "rca": 0.87,
+    "reldens": 48.81,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 48.81,
+    "y": 30.18,
+    "value": 0.87
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Wallonia (BE31)",
+    "count": 11,
+    "share": 0.0643,
+    "rca": 0.39,
+    "reldens": 19.23,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 19.23,
+    "y": 58.31,
+    "value": 0.39
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Wallonia (BE31)",
+    "count": 29,
+    "share": 0.1337,
+    "rca": 0.81,
+    "reldens": 32.33,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 32.33,
+    "y": 43.68,
+    "value": 0.81
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Wallonia (BE31)",
+    "count": 6,
+    "share": 0.0954,
+    "rca": 0.58,
+    "reldens": 10.58,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 10.58,
+    "y": 63.04,
+    "value": 0.58
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Wallonia (BE31)",
+    "count": 13,
+    "share": 0.0645,
+    "rca": 0.39,
+    "reldens": 21.86,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 21.86,
+    "y": 46.55,
+    "value": 0.39
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Wallonia (BE31)",
+    "count": 7,
+    "share": 0.8197,
+    "rca": 4.95,
+    "reldens": 60.92,
+    "comp": 20.54,
+    "comp_TCI": 20.85,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 60.92,
+    "y": 20.54,
+    "value": 4.95
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Wallonia (BE31)",
+    "count": 4,
+    "share": 0.0945,
+    "rca": 0.57,
+    "reldens": 39.5,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 39.5,
+    "y": 31.61,
+    "value": 0.57
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Wallonia (BE31)",
+    "count": 12,
+    "share": 0.1821,
+    "rca": 1.1,
+    "reldens": 18.76,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 18.76,
+    "y": 38.89,
+    "value": 1.1
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Wallonia (BE31)",
+    "count": 58,
+    "share": 0.3137,
+    "rca": 1.89,
+    "reldens": 51.42,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 51.42,
+    "y": 37.03,
+    "value": 1.89
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Wallonia (BE31)",
+    "count": 3,
+    "share": 0.052,
+    "rca": 0.31,
+    "reldens": 15.13,
+    "comp": 49.1,
+    "comp_TCI": 18.45,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 15.13,
+    "y": 49.1,
+    "value": 0.31
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Wallonia (BE31)",
+    "count": 10,
+    "share": 0.0741,
+    "rca": 0.45,
+    "reldens": 24.05,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 24.05,
+    "y": 47.67,
+    "value": 0.45
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Wallonia (BE31)",
+    "count": 3,
+    "share": 0.0335,
+    "rca": 0.2,
+    "reldens": 13.52,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 13.52,
+    "y": 42.13,
+    "value": 0.2
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Wallonia (BE31)",
+    "count": 222,
+    "share": 0.44,
+    "rca": 2.66,
+    "reldens": 64.11,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 64.11,
+    "y": 37.71,
+    "value": 2.66
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Wallonia (BE31)",
+    "count": 19,
+    "share": 0.1549,
+    "rca": 0.94,
+    "reldens": 39.39,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 39.39,
+    "y": 36.53,
+    "value": 0.94
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Wallonia (BE31)",
+    "count": 3,
+    "share": 0.0432,
+    "rca": 0.26,
+    "reldens": 31.56,
+    "comp": 65.15,
+    "comp_TCI": 39.11,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 31.56,
+    "y": 65.15,
+    "value": 0.26
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Wallonia (BE31)",
+    "count": 10,
+    "share": 0.05,
+    "rca": 0.3,
+    "reldens": 17.25,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 17.25,
+    "y": 69.63,
+    "value": 0.3
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Wallonia (BE31)",
+    "count": 120,
+    "share": 0.2291,
+    "rca": 1.38,
+    "reldens": 35.04,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 35.04,
+    "y": 39.83,
+    "value": 1.38
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Wallonia (BE31)",
+    "count": 7,
+    "share": 0.065,
+    "rca": 0.39,
+    "reldens": 13.56,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 13.56,
+    "y": 63.41,
+    "value": 0.39
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Wallonia (BE31)",
+    "count": 1,
+    "share": 0.0076,
+    "rca": 0.05,
+    "reldens": 8.98,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 8.98,
+    "y": 71.13,
+    "value": 0.05
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Wallonia (BE31)",
+    "count": 2,
+    "share": 0.0677,
+    "rca": 0.41,
+    "reldens": 11.29,
+    "comp": 31.92,
+    "comp_TCI": 33.47,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 11.29,
+    "y": 31.92,
+    "value": 0.41
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Wallonia (BE31)",
+    "count": 4,
+    "share": 0.0368,
+    "rca": 0.22,
+    "reldens": 14.41,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 14.41,
+    "y": 68.39,
+    "value": 0.22
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

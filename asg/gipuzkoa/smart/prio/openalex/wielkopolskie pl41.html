@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 61,
+    "share": 0.2743,
+    "rca": 1.07,
+    "reldens": 0.86,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 0.86,
+    "y": 47.5,
+    "value": 1.07
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 834,
+    "share": 0.2648,
+    "rca": 1.03,
+    "reldens": 98.2,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 98.2,
+    "y": 95,
+    "value": 1.03
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 105,
+    "share": 0.326,
+    "rca": 1.27,
+    "reldens": 68.74,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 68.74,
+    "y": 16.25,
+    "value": 1.27
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 33,
+    "share": 0.0945,
+    "rca": 0.37,
+    "reldens": 49.04,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 49.04,
+    "y": 43.75,
+    "value": 0.37
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 847,
+    "share": 0.2033,
+    "rca": 0.79,
+    "reldens": 42.44,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 42.44,
+    "y": 73.75,
+    "value": 0.79
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 102,
+    "share": 0.0457,
+    "rca": 0.18,
+    "reldens": 21.62,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 21.62,
+    "y": 100,
+    "value": 0.18
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 82,
+    "share": 0.2168,
+    "rca": 0.85,
+    "reldens": 60.12,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 60.12,
+    "y": 48.75,
+    "value": 0.85
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 349,
+    "share": 0.4149,
+    "rca": 1.62,
+    "reldens": 51.67,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 51.67,
+    "y": 75,
+    "value": 1.62
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 227,
+    "share": 0.3057,
+    "rca": 1.19,
+    "reldens": 95.96,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 95.96,
+    "y": 65,
+    "value": 1.19
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 393,
+    "share": 0.657,
+    "rca": 2.56,
+    "reldens": 70.71,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 70.71,
+    "y": 22.5,
+    "value": 2.56
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 85,
+    "share": 0.1648,
+    "rca": 0.64,
+    "reldens": 3.36,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 3.36,
+    "y": 28.75,
+    "value": 0.64
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 190,
+    "share": 0.1968,
+    "rca": 0.77,
+    "reldens": 65.65,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 65.65,
+    "y": 82.5,
+    "value": 0.77
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 72,
+    "share": 0.1942,
+    "rca": 0.76,
+    "reldens": 4.95,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 4.95,
+    "y": 16.25,
+    "value": 0.76
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 31,
+    "share": 0.1575,
+    "rca": 0.61,
+    "reldens": 13.94,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 13.94,
+    "y": 0,
+    "value": 0.61
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 51,
+    "share": 0.436,
+    "rca": 1.7,
+    "reldens": 9.23,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 9.23,
+    "y": 10,
+    "value": 1.7
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 1195,
+    "share": 0.3174,
+    "rca": 1.24,
+    "reldens": 80.58,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 80.58,
+    "y": 52.5,
+    "value": 1.24
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 319,
+    "share": 0.4992,
+    "rca": 1.95,
+    "reldens": 68.61,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 68.61,
+    "y": 22.5,
+    "value": 1.95
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 112,
+    "share": 0.2048,
+    "rca": 0.8,
+    "reldens": 89.66,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 89.66,
+    "y": 52.5,
+    "value": 0.8
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 99,
+    "share": 0.215,
+    "rca": 0.84,
+    "reldens": 4.28,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 4.28,
+    "y": 21.25,
+    "value": 0.84
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 692,
+    "share": 0.2838,
+    "rca": 1.11,
+    "reldens": 56.16,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 56.16,
+    "y": 70,
+    "value": 1.11
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 185,
+    "share": 0.1921,
+    "rca": 0.75,
+    "reldens": 57.67,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 57.67,
+    "y": 87.5,
+    "value": 0.75
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 214,
+    "share": 0.6841,
+    "rca": 2.67,
+    "reldens": 60.05,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 60.05,
+    "y": 30,
+    "value": 2.67
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 225,
+    "share": 0.3474,
+    "rca": 1.36,
+    "reldens": 0.96,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 0.96,
+    "y": 82.5,
+    "value": 1.36
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 210,
+    "share": 0.3991,
+    "rca": 1.56,
+    "reldens": 13.28,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 13.28,
+    "y": 45,
+    "value": 1.56
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 2,
+    "share": 0.059,
+    "rca": 0.23,
+    "reldens": 16.87,
+    "comp": 50,
+    "comp_TCI": 32.63,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 16.87,
+    "y": 50,
+    "value": 0.23
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Wielkopolskie (PL41)",
+    "count": 328,
+    "share": 0.1655,
+    "rca": 0.65,
+    "reldens": 72.49,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 72.49,
+    "y": 61.25,
+    "value": 0.65
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

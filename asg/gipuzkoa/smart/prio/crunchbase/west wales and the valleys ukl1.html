@@ -1,0 +1,328 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "West Wales and The Valleys (UKL1)",
+    "count": 10.95,
+    "share": 0.1603,
+    "rca": 5.53,
+    "reldens": 24.45,
+    "comp": 67.28,
+    "comp_TCI": 22.81,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 24.45,
+    "y": 67.28,
+    "value": 5.53
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "West Wales and The Valleys (UKL1)",
+    "count": 1.1,
+    "share": 0.0125,
+    "rca": 0.43,
+    "reldens": 11.34,
+    "comp": 46.76,
+    "comp_TCI": 18,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 11.34,
+    "y": 46.76,
+    "value": 0.43
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "West Wales and The Valleys (UKL1)",
+    "count": 0.63,
+    "share": 0.0173,
+    "rca": 0.6,
+    "reldens": 39.54,
+    "comp": 40.63,
+    "comp_TCI": 19.49,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 39.54,
+    "y": 40.63,
+    "value": 0.6
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "West Wales and The Valleys (UKL1)",
+    "count": 4.29,
+    "share": 1.3094,
+    "rca": 45.14,
+    "reldens": 34.59,
+    "comp": 37.02,
+    "comp_TCI": 18.75,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 34.59,
+    "y": 37.02,
+    "value": 45.14
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "West Wales and The Valleys (UKL1)",
+    "count": 3.68,
+    "share": 0.0147,
+    "rca": 0.51,
+    "reldens": 15.24,
+    "comp": 43.55,
+    "comp_TCI": 18.22,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 15.24,
+    "y": 43.55,
+    "value": 0.51
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "West Wales and The Valleys (UKL1)",
+    "count": 1.1,
+    "share": 0.0048,
+    "rca": 0.17,
+    "reldens": 12.26,
+    "comp": 45.82,
+    "comp_TCI": 18.56,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 12.26,
+    "y": 45.82,
+    "value": 0.17
+  },
+  {
+    "domain": "Food technology",
+    "geo": "West Wales and The Valleys (UKL1)",
+    "count": 4.29,
+    "share": 0.0243,
+    "rca": 0.84,
+    "reldens": 7.96,
+    "comp": 46.17,
+    "comp_TCI": 21.89,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 7.96,
+    "y": 46.17,
+    "value": 0.84
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "West Wales and The Valleys (UKL1)",
+    "count": 0.68,
+    "share": 0.0074,
+    "rca": 0.26,
+    "reldens": 12.6,
+    "comp": 43.9,
+    "comp_TCI": 15.58,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 12.6,
+    "y": 43.9,
+    "value": 0.26
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

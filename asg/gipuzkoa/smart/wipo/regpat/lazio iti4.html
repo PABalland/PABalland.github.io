@@ -1,0 +1,787 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Lazio (ITI4)",
+    "count": 98,
+    "share": 0.7836,
+    "rca": 1.93,
+    "reldens": 82.96,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 82.96,
+    "y": 7.14,
+    "value": 1.93
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Lazio (ITI4)",
+    "count": 34,
+    "share": 0.217,
+    "rca": 0.53,
+    "reldens": 26.77,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 26.77,
+    "y": 55.36,
+    "value": 0.53
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Lazio (ITI4)",
+    "count": 10,
+    "share": 0.226,
+    "rca": 0.56,
+    "reldens": 31.36,
+    "comp": 41.07,
+    "comp_TCI": 61.85,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 31.36,
+    "y": 41.07,
+    "value": 0.56
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Lazio (ITI4)",
+    "count": 78,
+    "share": 0.2592,
+    "rca": 0.64,
+    "reldens": 17.2,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 17.2,
+    "y": 63.39,
+    "value": 0.64
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Lazio (ITI4)",
+    "count": 271,
+    "share": 0.7121,
+    "rca": 1.75,
+    "reldens": 77.56,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 77.56,
+    "y": 48.21,
+    "value": 1.75
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Lazio (ITI4)",
+    "count": 112,
+    "share": 0.3749,
+    "rca": 0.92,
+    "reldens": 40.37,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 40.37,
+    "y": 37.5,
+    "value": 0.92
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Lazio (ITI4)",
+    "count": 75,
+    "share": 0.4068,
+    "rca": 1,
+    "reldens": 27.69,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 27.69,
+    "y": 12.5,
+    "value": 1
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Lazio (ITI4)",
+    "count": 221,
+    "share": 0.5008,
+    "rca": 1.23,
+    "reldens": 41.28,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 41.28,
+    "y": 83.04,
+    "value": 1.23
+  },
+  {
+    "domain": "Control",
+    "geo": "Lazio (ITI4)",
+    "count": 101,
+    "share": 0.5033,
+    "rca": 1.24,
+    "reldens": 49.94,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 49.94,
+    "y": 51.79,
+    "value": 1.24
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Lazio (ITI4)",
+    "count": 122,
+    "share": 0.2692,
+    "rca": 0.66,
+    "reldens": 48.77,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 48.77,
+    "y": 100,
+    "value": 0.66
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Lazio (ITI4)",
+    "count": 110,
+    "share": 0.2014,
+    "rca": 0.5,
+    "reldens": 22.55,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 22.55,
+    "y": 88.39,
+    "value": 0.5
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Lazio (ITI4)",
+    "count": 27,
+    "share": 0.1264,
+    "rca": 0.31,
+    "reldens": 28.86,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 28.86,
+    "y": 58.93,
+    "value": 0.31
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Lazio (ITI4)",
+    "count": 93,
+    "share": 0.782,
+    "rca": 1.92,
+    "reldens": 15.87,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 15.87,
+    "y": 0,
+    "value": 1.92
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Lazio (ITI4)",
+    "count": 52,
+    "share": 0.4287,
+    "rca": 1.05,
+    "reldens": 50.12,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 50.12,
+    "y": 19.64,
+    "value": 1.05
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Lazio (ITI4)",
+    "count": 29,
+    "share": 0.2735,
+    "rca": 0.67,
+    "reldens": 43.6,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 43.6,
+    "y": 1.79,
+    "value": 0.67
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Lazio (ITI4)",
+    "count": 215,
+    "share": 0.3519,
+    "rca": 0.87,
+    "reldens": 28.43,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 28.43,
+    "y": 60.71,
+    "value": 0.87
+  },
+  {
+    "domain": "Handling",
+    "geo": "Lazio (ITI4)",
+    "count": 59,
+    "share": 0.2569,
+    "rca": 0.63,
+    "reldens": 38.04,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 38.04,
+    "y": 44.64,
+    "value": 0.63
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Lazio (ITI4)",
+    "count": 48,
+    "share": 0.5604,
+    "rca": 1.38,
+    "reldens": 59.01,
+    "comp": 12.5,
+    "comp_TCI": 54.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 59.01,
+    "y": 12.5,
+    "value": 1.38
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Lazio (ITI4)",
+    "count": 32,
+    "share": 0.1907,
+    "rca": 0.47,
+    "reldens": 18.24,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 18.24,
+    "y": 42.86,
+    "value": 0.47
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Lazio (ITI4)",
+    "count": 65,
+    "share": 0.289,
+    "rca": 0.71,
+    "reldens": 11.81,
+    "comp": 71.43,
+    "comp_TCI": 2.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 11.81,
+    "y": 71.43,
+    "value": 0.71
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Lazio (ITI4)",
+    "count": 61,
+    "share": 0.282,
+    "rca": 0.69,
+    "reldens": 14.02,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 14.02,
+    "y": 47.32,
+    "value": 0.69
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Lazio (ITI4)",
+    "count": 307,
+    "share": 0.5555,
+    "rca": 1.37,
+    "reldens": 56.79,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 56.79,
+    "y": 63.39,
+    "value": 1.37
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Lazio (ITI4)",
+    "count": 40,
+    "share": 0.1558,
+    "rca": 0.38,
+    "reldens": 36.18,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 36.18,
+    "y": 57.14,
+    "value": 0.38
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Lazio (ITI4)",
+    "count": 312,
+    "share": 0.6024,
+    "rca": 1.48,
+    "reldens": 42.91,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 42.91,
+    "y": 59.82,
+    "value": 1.48
+  },
+  {
+    "domain": "Optics",
+    "geo": "Lazio (ITI4)",
+    "count": 59,
+    "share": 0.329,
+    "rca": 0.81,
+    "reldens": 24.82,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 24.82,
+    "y": 66.07,
+    "value": 0.81
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Lazio (ITI4)",
+    "count": 112,
+    "share": 0.3096,
+    "rca": 0.76,
+    "reldens": 54.5,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 54.5,
+    "y": 62.5,
+    "value": 0.76
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Lazio (ITI4)",
+    "count": 66,
+    "share": 0.3277,
+    "rca": 0.81,
+    "reldens": 29.87,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 29.87,
+    "y": 58.04,
+    "value": 0.81
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Lazio (ITI4)",
+    "count": 140,
+    "share": 0.3999,
+    "rca": 0.98,
+    "reldens": 25.46,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 25.46,
+    "y": 37.5,
+    "value": 0.98
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Lazio (ITI4)",
+    "count": 359,
+    "share": 0.7937,
+    "rca": 1.95,
+    "reldens": 62.58,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 62.58,
+    "y": 37.5,
+    "value": 1.95
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Lazio (ITI4)",
+    "count": 39,
+    "share": 0.374,
+    "rca": 0.92,
+    "reldens": 12.02,
+    "comp": 46.43,
+    "comp_TCI": 22.6,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 12.02,
+    "y": 46.43,
+    "value": 0.92
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Lazio (ITI4)",
+    "count": 30,
+    "share": 0.1697,
+    "rca": 0.42,
+    "reldens": 10.78,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 10.78,
+    "y": 41.96,
+    "value": 0.42
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Lazio (ITI4)",
+    "count": 71,
+    "share": 0.35,
+    "rca": 0.86,
+    "reldens": 23.74,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 23.74,
+    "y": 78.57,
+    "value": 0.86
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Lazio (ITI4)",
+    "count": 16,
+    "share": 0.1322,
+    "rca": 0.33,
+    "reldens": 15.76,
+    "comp": 25.89,
+    "comp_TCI": 6.89,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 15.76,
+    "y": 25.89,
+    "value": 0.33
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Lazio (ITI4)",
+    "count": 44,
+    "share": 0.3838,
+    "rca": 0.94,
+    "reldens": 26.78,
+    "comp": 19.64,
+    "comp_TCI": 14.8,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 26.78,
+    "y": 19.64,
+    "value": 0.94
+  },
+  {
+    "domain": "Transport",
+    "geo": "Lazio (ITI4)",
+    "count": 281,
+    "share": 0.5675,
+    "rca": 1.4,
+    "reldens": 31.05,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 31.05,
+    "y": 88.39,
+    "value": 1.4
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,804 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Oberbayern (DE21)",
+    "count": 735,
+    "share": 5.8772,
+    "rca": 1.16,
+    "reldens": 45.93,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 45.93,
+    "y": 7.14,
+    "value": 1.16
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Oberbayern (DE21)",
+    "count": 1336,
+    "share": 8.5264,
+    "rca": 1.69,
+    "reldens": 59.69,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 59.69,
+    "y": 55.36,
+    "value": 1.69
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Oberbayern (DE21)",
+    "count": 559,
+    "share": 12.6356,
+    "rca": 2.5,
+    "reldens": 76.37,
+    "comp": 41.07,
+    "comp_TCI": 61.85,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 76.37,
+    "y": 41.07,
+    "value": 2.5
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Oberbayern (DE21)",
+    "count": 708,
+    "share": 2.3529,
+    "rca": 0.47,
+    "reldens": 12.74,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 12.74,
+    "y": 63.39,
+    "value": 0.47
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Oberbayern (DE21)",
+    "count": 1496,
+    "share": 3.9312,
+    "rca": 0.78,
+    "reldens": 31.15,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 31.15,
+    "y": 48.21,
+    "value": 0.78
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Oberbayern (DE21)",
+    "count": 1011,
+    "share": 3.384,
+    "rca": 0.67,
+    "reldens": 22.47,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 22.47,
+    "y": 37.5,
+    "value": 0.67
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Oberbayern (DE21)",
+    "count": 489,
+    "share": 2.6523,
+    "rca": 0.52,
+    "reldens": 38.05,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 38.05,
+    "y": 12.5,
+    "value": 0.52
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Oberbayern (DE21)",
+    "count": 3462,
+    "share": 7.8448,
+    "rca": 1.55,
+    "reldens": 70,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 70,
+    "y": 83.04,
+    "value": 1.55
+  },
+  {
+    "domain": "Control",
+    "geo": "Oberbayern (DE21)",
+    "count": 1836,
+    "share": 9.1484,
+    "rca": 1.81,
+    "reldens": 64.04,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 64.04,
+    "y": 51.79,
+    "value": 1.81
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Oberbayern (DE21)",
+    "count": 4245,
+    "share": 9.3675,
+    "rca": 1.85,
+    "reldens": 92.86,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 92.86,
+    "y": 100,
+    "value": 1.85
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Oberbayern (DE21)",
+    "count": 3465,
+    "share": 6.344,
+    "rca": 1.25,
+    "reldens": 50.53,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 50.53,
+    "y": 88.39,
+    "value": 1.25
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Oberbayern (DE21)",
+    "count": 1032,
+    "share": 4.8294,
+    "rca": 0.96,
+    "reldens": 50.08,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 50.08,
+    "y": 58.93,
+    "value": 0.96
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Oberbayern (DE21)",
+    "count": 526,
+    "share": 4.4231,
+    "rca": 0.87,
+    "reldens": 28.68,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 28.68,
+    "y": 0,
+    "value": 0.87
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Oberbayern (DE21)",
+    "count": 241,
+    "share": 1.987,
+    "rca": 0.39,
+    "reldens": 10.33,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 10.33,
+    "y": 19.64,
+    "value": 0.39
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Oberbayern (DE21)",
+    "count": 366,
+    "share": 3.4518,
+    "rca": 0.68,
+    "reldens": 39.94,
+    "comp": 1.79,
+    "comp_TCI": 23.66,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 39.94,
+    "y": 1.79,
+    "value": 0.68
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Oberbayern (DE21)",
+    "count": 3435,
+    "share": 5.6224,
+    "rca": 1.11,
+    "reldens": 42.47,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 42.47,
+    "y": 60.71,
+    "value": 1.11
+  },
+  {
+    "domain": "Handling",
+    "geo": "Oberbayern (DE21)",
+    "count": 713,
+    "share": 3.1043,
+    "rca": 0.61,
+    "reldens": 34.13,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 34.13,
+    "y": 44.64,
+    "value": 0.61
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Oberbayern (DE21)",
+    "count": 523,
+    "share": 6.1055,
+    "rca": 1.21,
+    "reldens": 79.66,
+    "comp": 12.5,
+    "comp_TCI": 54.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 79.66,
+    "y": 12.5,
+    "value": 1.21
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Oberbayern (DE21)",
+    "count": 767,
+    "share": 4.5715,
+    "rca": 0.9,
+    "reldens": 24.21,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 24.21,
+    "y": 42.86,
+    "value": 0.9
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Oberbayern (DE21)",
+    "count": 468,
+    "share": 2.0807,
+    "rca": 0.41,
+    "reldens": 12.19,
+    "comp": 71.43,
+    "comp_TCI": 2.92,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 12.19,
+    "y": 71.43,
+    "value": 0.41
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Oberbayern (DE21)",
+    "count": 1049,
+    "share": 4.8502,
+    "rca": 0.96,
+    "reldens": 29.51,
+    "comp": 47.32,
+    "comp_TCI": 10.73,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 29.51,
+    "y": 47.32,
+    "value": 0.96
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Oberbayern (DE21)",
+    "count": 3090,
+    "share": 5.5915,
+    "rca": 1.11,
+    "reldens": 54.59,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 54.59,
+    "y": 63.39,
+    "value": 1.11
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Oberbayern (DE21)",
+    "count": 1289,
+    "share": 5.0214,
+    "rca": 0.99,
+    "reldens": 40.8,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 40.8,
+    "y": 57.14,
+    "value": 0.99
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Oberbayern (DE21)",
+    "count": 1274,
+    "share": 2.4596,
+    "rca": 0.49,
+    "reldens": 42.05,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 42.05,
+    "y": 59.82,
+    "value": 0.49
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Oberbayern (DE21)",
+    "count": 34,
+    "share": 3.6481,
+    "rca": 0.72,
+    "reldens": 36.6,
+    "comp": 44.64,
+    "comp_TCI": 28.86,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 36.6,
+    "y": 44.64,
+    "value": 0.72
+  },
+  {
+    "domain": "Optics",
+    "geo": "Oberbayern (DE21)",
+    "count": 743,
+    "share": 4.1437,
+    "rca": 0.82,
+    "reldens": 43.77,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 43.77,
+    "y": 66.07,
+    "value": 0.82
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Oberbayern (DE21)",
+    "count": 586,
+    "share": 1.6201,
+    "rca": 0.32,
+    "reldens": 11.09,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 11.09,
+    "y": 62.5,
+    "value": 0.32
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Oberbayern (DE21)",
+    "count": 646,
+    "share": 3.2077,
+    "rca": 0.63,
+    "reldens": 30.79,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 30.79,
+    "y": 58.04,
+    "value": 0.63
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Oberbayern (DE21)",
+    "count": 1055,
+    "share": 3.0133,
+    "rca": 0.6,
+    "reldens": 21.69,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 21.69,
+    "y": 37.5,
+    "value": 0.6
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Oberbayern (DE21)",
+    "count": 1102,
+    "share": 2.4364,
+    "rca": 0.48,
+    "reldens": 14.26,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 14.26,
+    "y": 37.5,
+    "value": 0.48
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Oberbayern (DE21)",
+    "count": 454,
+    "share": 4.3541,
+    "rca": 0.86,
+    "reldens": 43.05,
+    "comp": 46.43,
+    "comp_TCI": 22.6,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 43.05,
+    "y": 46.43,
+    "value": 0.86
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Oberbayern (DE21)",
+    "count": 496,
+    "share": 2.8059,
+    "rca": 0.55,
+    "reldens": 20.13,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 20.13,
+    "y": 41.96,
+    "value": 0.55
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Oberbayern (DE21)",
+    "count": 2068,
+    "share": 10.1937,
+    "rca": 2.02,
+    "reldens": 84.42,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 84.42,
+    "y": 78.57,
+    "value": 2.02
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Oberbayern (DE21)",
+    "count": 276,
+    "share": 2.2814,
+    "rca": 0.45,
+    "reldens": 14.65,
+    "comp": 25.89,
+    "comp_TCI": 6.89,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 14.65,
+    "y": 25.89,
+    "value": 0.45
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Oberbayern (DE21)",
+    "count": 820,
+    "share": 7.1522,
+    "rca": 1.41,
+    "reldens": 34.66,
+    "comp": 19.64,
+    "comp_TCI": 14.8,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 34.66,
+    "y": 19.64,
+    "value": 1.41
+  },
+  {
+    "domain": "Transport",
+    "geo": "Oberbayern (DE21)",
+    "count": 4751,
+    "share": 9.5953,
+    "rca": 1.9,
+    "reldens": 53.94,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 53.94,
+    "y": 88.39,
+    "value": 1.9
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Dresden (DED2)",
+    "count": 33,
+    "share": 0.1801,
+    "rca": 0.42,
+    "reldens": 14.88,
+    "comp": 100,
+    "comp_TCI": 36.53,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 14.88,
+    "y": 100,
+    "value": 0.42
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Dresden (DED2)",
+    "count": 35,
+    "share": 0.1989,
+    "rca": 0.46,
+    "reldens": 15.64,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 15.64,
+    "y": 37.21,
+    "value": 0.46
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Dresden (DED2)",
+    "count": 18,
+    "share": 0.1181,
+    "rca": 0.28,
+    "reldens": 21.67,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 21.67,
+    "y": 35.72,
+    "value": 0.28
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Dresden (DED2)",
+    "count": 26,
+    "share": 0.4149,
+    "rca": 0.97,
+    "reldens": 38.89,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 38.89,
+    "y": 30.18,
+    "value": 0.97
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Dresden (DED2)",
+    "count": 41,
+    "share": 0.2396,
+    "rca": 0.56,
+    "reldens": 15.58,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 15.58,
+    "y": 58.31,
+    "value": 0.56
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Dresden (DED2)",
+    "count": 161,
+    "share": 0.7421,
+    "rca": 1.73,
+    "reldens": 53.76,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 53.76,
+    "y": 43.68,
+    "value": 1.73
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Dresden (DED2)",
+    "count": 6,
+    "share": 0.0954,
+    "rca": 0.22,
+    "reldens": 13.36,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 13.36,
+    "y": 63.04,
+    "value": 0.22
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Dresden (DED2)",
+    "count": 159,
+    "share": 0.7894,
+    "rca": 1.84,
+    "reldens": 49.47,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 49.47,
+    "y": 46.55,
+    "value": 1.84
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Dresden (DED2)",
+    "count": 11,
+    "share": 1.2881,
+    "rca": 3.01,
+    "reldens": 61.1,
+    "comp": 20.54,
+    "comp_TCI": 20.85,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 61.1,
+    "y": 20.54,
+    "value": 3.01
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Dresden (DED2)",
+    "count": 13,
+    "share": 0.307,
+    "rca": 0.72,
+    "reldens": 40.38,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 40.38,
+    "y": 31.61,
+    "value": 0.72
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Dresden (DED2)",
+    "count": 11,
+    "share": 0.1669,
+    "rca": 0.39,
+    "reldens": 8.59,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 8.59,
+    "y": 38.89,
+    "value": 0.39
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Dresden (DED2)",
+    "count": 65,
+    "share": 0.3515,
+    "rca": 0.82,
+    "reldens": 27.21,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 27.21,
+    "y": 37.03,
+    "value": 0.82
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Dresden (DED2)",
+    "count": 6,
+    "share": 0.104,
+    "rca": 0.24,
+    "reldens": 11.13,
+    "comp": 49.1,
+    "comp_TCI": 18.45,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 11.13,
+    "y": 49.1,
+    "value": 0.24
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Dresden (DED2)",
+    "count": 39,
+    "share": 0.289,
+    "rca": 0.68,
+    "reldens": 11.61,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 11.61,
+    "y": 47.67,
+    "value": 0.68
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Dresden (DED2)",
+    "count": 42,
+    "share": 0.4686,
+    "rca": 1.1,
+    "reldens": 20.55,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 20.55,
+    "y": 42.13,
+    "value": 1.1
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Dresden (DED2)",
+    "count": 75,
+    "share": 0.1486,
+    "rca": 0.35,
+    "reldens": 20.04,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 20.04,
+    "y": 37.71,
+    "value": 0.35
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Dresden (DED2)",
+    "count": 11,
+    "share": 0.0897,
+    "rca": 0.21,
+    "reldens": 15.22,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 15.22,
+    "y": 36.53,
+    "value": 0.21
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Dresden (DED2)",
+    "count": 52,
+    "share": 0.7496,
+    "rca": 1.75,
+    "reldens": 62.08,
+    "comp": 65.15,
+    "comp_TCI": 39.11,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 62.08,
+    "y": 65.15,
+    "value": 1.75
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Dresden (DED2)",
+    "count": 40,
+    "share": 0.2,
+    "rca": 0.47,
+    "reldens": 18.36,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 18.36,
+    "y": 69.63,
+    "value": 0.47
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Dresden (DED2)",
+    "count": 126,
+    "share": 0.2406,
+    "rca": 0.56,
+    "reldens": 24.87,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 24.87,
+    "y": 39.83,
+    "value": 0.56
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Dresden (DED2)",
+    "count": 88,
+    "share": 0.817,
+    "rca": 1.91,
+    "reldens": 59.62,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 59.62,
+    "y": 63.41,
+    "value": 1.91
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Dresden (DED2)",
+    "count": 25,
+    "share": 0.1904,
+    "rca": 0.44,
+    "reldens": 19.25,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 19.25,
+    "y": 71.13,
+    "value": 0.44
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Dresden (DED2)",
+    "count": 31,
+    "share": 0.9229,
+    "rca": 2.16,
+    "reldens": 57.39,
+    "comp": 50.78,
+    "comp_TCI": 18.98,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 57.39,
+    "y": 50.78,
+    "value": 2.16
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Dresden (DED2)",
+    "count": 11,
+    "share": 0.3724,
+    "rca": 0.87,
+    "reldens": 43.96,
+    "comp": 31.92,
+    "comp_TCI": 33.47,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 43.96,
+    "y": 31.92,
+    "value": 0.87
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Dresden (DED2)",
+    "count": 23,
+    "share": 0.4354,
+    "rca": 1.02,
+    "reldens": 34.45,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 34.45,
+    "y": 37.03,
+    "value": 1.02
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Dresden (DED2)",
+    "count": 21,
+    "share": 0.1933,
+    "rca": 0.45,
+    "reldens": 24.56,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 24.56,
+    "y": 68.39,
+    "value": 0.45
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

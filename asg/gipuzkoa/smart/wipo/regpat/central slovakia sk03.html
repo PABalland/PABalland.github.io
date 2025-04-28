@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Central Slovakia (SK03)",
+    "count": 3,
+    "share": 0.024,
+    "rca": 2.11,
+    "reldens": 82.11,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 82.11,
+    "y": 7.14,
+    "value": 2.11
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Central Slovakia (SK03)",
+    "count": 1,
+    "share": 0.0064,
+    "rca": 0.56,
+    "reldens": 37.96,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 37.96,
+    "y": 55.36,
+    "value": 0.56
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Central Slovakia (SK03)",
+    "count": 5,
+    "share": 0.0166,
+    "rca": 1.46,
+    "reldens": 15.47,
+    "comp": 63.39,
+    "comp_TCI": 12.23,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 15.47,
+    "y": 63.39,
+    "value": 1.46
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Central Slovakia (SK03)",
+    "count": 10,
+    "share": 0.0263,
+    "rca": 2.31,
+    "reldens": 79.32,
+    "comp": 48.21,
+    "comp_TCI": 40.47,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 79.32,
+    "y": 48.21,
+    "value": 2.31
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Central Slovakia (SK03)",
+    "count": 1,
+    "share": 0.0034,
+    "rca": 0.29,
+    "reldens": 29.66,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 29.66,
+    "y": 37.5,
+    "value": 0.29
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Central Slovakia (SK03)",
+    "count": 2,
+    "share": 0.0108,
+    "rca": 0.95,
+    "reldens": 31.55,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 31.55,
+    "y": 12.5,
+    "value": 0.95
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Central Slovakia (SK03)",
+    "count": 9,
+    "share": 0.0204,
+    "rca": 1.79,
+    "reldens": 51.02,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 51.02,
+    "y": 83.04,
+    "value": 1.79
+  },
+  {
+    "domain": "Control",
+    "geo": "Central Slovakia (SK03)",
+    "count": 1,
+    "share": 0.005,
+    "rca": 0.44,
+    "reldens": 57.25,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 57.25,
+    "y": 51.79,
+    "value": 0.44
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Central Slovakia (SK03)",
+    "count": 6,
+    "share": 0.0132,
+    "rca": 1.16,
+    "reldens": 43.57,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 43.57,
+    "y": 100,
+    "value": 1.16
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Central Slovakia (SK03)",
+    "count": 10,
+    "share": 0.0183,
+    "rca": 1.61,
+    "reldens": 23.25,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 23.25,
+    "y": 88.39,
+    "value": 1.61
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Central Slovakia (SK03)",
+    "count": 1,
+    "share": 0.0084,
+    "rca": 0.74,
+    "reldens": 20.07,
+    "comp": 0,
+    "comp_TCI": 16.29,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 20.07,
+    "y": 0,
+    "value": 0.74
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Central Slovakia (SK03)",
+    "count": 3,
+    "share": 0.0247,
+    "rca": 2.18,
+    "reldens": 56.46,
+    "comp": 19.64,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 56.46,
+    "y": 19.64,
+    "value": 2.18
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Central Slovakia (SK03)",
+    "count": 2,
+    "share": 0.0033,
+    "rca": 0.29,
+    "reldens": 42.43,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 42.43,
+    "y": 60.71,
+    "value": 0.29
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Central Slovakia (SK03)",
+    "count": 3,
+    "share": 0.035,
+    "rca": 3.08,
+    "reldens": 61.25,
+    "comp": 12.5,
+    "comp_TCI": 54.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 61.25,
+    "y": 12.5,
+    "value": 3.08
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Central Slovakia (SK03)",
+    "count": 1,
+    "share": 0.006,
+    "rca": 0.52,
+    "reldens": 18.53,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 18.53,
+    "y": 42.86,
+    "value": 0.52
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Central Slovakia (SK03)",
+    "count": 10,
+    "share": 0.0181,
+    "rca": 1.59,
+    "reldens": 56.53,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 56.53,
+    "y": 63.39,
+    "value": 1.59
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Central Slovakia (SK03)",
+    "count": 1,
+    "share": 0.0039,
+    "rca": 0.34,
+    "reldens": 32.27,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 32.27,
+    "y": 57.14,
+    "value": 0.34
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Central Slovakia (SK03)",
+    "count": 8,
+    "share": 0.0154,
+    "rca": 1.36,
+    "reldens": 49.77,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 49.77,
+    "y": 59.82,
+    "value": 1.36
+  },
+  {
+    "domain": "Optics",
+    "geo": "Central Slovakia (SK03)",
+    "count": 2,
+    "share": 0.0112,
+    "rca": 0.98,
+    "reldens": 35.15,
+    "comp": 66.07,
+    "comp_TCI": 40.54,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 35.15,
+    "y": 66.07,
+    "value": 0.98
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Central Slovakia (SK03)",
+    "count": 3,
+    "share": 0.0083,
+    "rca": 0.73,
+    "reldens": 67.84,
+    "comp": 62.5,
+    "comp_TCI": 27.57,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 67.84,
+    "y": 62.5,
+    "value": 0.73
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Central Slovakia (SK03)",
+    "count": 9,
+    "share": 0.0447,
+    "rca": 3.93,
+    "reldens": 30.63,
+    "comp": 58.04,
+    "comp_TCI": 19.25,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 30.63,
+    "y": 58.04,
+    "value": 3.93
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Central Slovakia (SK03)",
+    "count": 1,
+    "share": 0.0029,
+    "rca": 0.25,
+    "reldens": 30.02,
+    "comp": 37.5,
+    "comp_TCI": 2.65,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 30.02,
+    "y": 37.5,
+    "value": 0.25
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Central Slovakia (SK03)",
+    "count": 6,
+    "share": 0.0133,
+    "rca": 1.17,
+    "reldens": 64.94,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 64.94,
+    "y": 37.5,
+    "value": 1.17
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Central Slovakia (SK03)",
+    "count": 1,
+    "share": 0.0057,
+    "rca": 0.5,
+    "reldens": 23.11,
+    "comp": 41.96,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 23.11,
+    "y": 41.96,
+    "value": 0.5
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Central Slovakia (SK03)",
+    "count": 1,
+    "share": 0.0049,
+    "rca": 0.43,
+    "reldens": 52.59,
+    "comp": 78.57,
+    "comp_TCI": 87.63,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 52.59,
+    "y": 78.57,
+    "value": 0.43
+  },
+  {
+    "domain": "Transport",
+    "geo": "Central Slovakia (SK03)",
+    "count": 6,
+    "share": 0.0121,
+    "rca": 1.07,
+    "reldens": 29.17,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 29.17,
+    "y": 88.39,
+    "value": 1.07
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

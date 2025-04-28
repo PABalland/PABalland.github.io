@@ -1,0 +1,515 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Burgundy (FR26)",
+    "count": 10,
+    "share": 0.0568,
+    "rca": 0.66,
+    "reldens": 63.08,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 63.08,
+    "y": 37.21,
+    "value": 0.66
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Burgundy (FR26)",
+    "count": 14,
+    "share": 0.0919,
+    "rca": 1.07,
+    "reldens": 39.22,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 39.22,
+    "y": 35.72,
+    "value": 1.07
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Burgundy (FR26)",
+    "count": 13,
+    "share": 0.2075,
+    "rca": 2.41,
+    "reldens": 48.64,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 48.64,
+    "y": 30.18,
+    "value": 2.41
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Burgundy (FR26)",
+    "count": 4,
+    "share": 0.0234,
+    "rca": 0.27,
+    "reldens": 10.81,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 10.81,
+    "y": 58.31,
+    "value": 0.27
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Burgundy (FR26)",
+    "count": 9,
+    "share": 0.0415,
+    "rca": 0.48,
+    "reldens": 24.81,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 24.81,
+    "y": 43.68,
+    "value": 0.48
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Burgundy (FR26)",
+    "count": 1,
+    "share": 0.005,
+    "rca": 0.06,
+    "reldens": 25.44,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 25.44,
+    "y": 46.55,
+    "value": 0.06
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Burgundy (FR26)",
+    "count": 2,
+    "share": 0.0303,
+    "rca": 0.35,
+    "reldens": 11.37,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 11.37,
+    "y": 38.89,
+    "value": 0.35
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Burgundy (FR26)",
+    "count": 27,
+    "share": 0.146,
+    "rca": 1.7,
+    "reldens": 46.37,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 46.37,
+    "y": 37.03,
+    "value": 1.7
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Burgundy (FR26)",
+    "count": 4,
+    "share": 0.0296,
+    "rca": 0.34,
+    "reldens": 6.96,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 6.96,
+    "y": 47.67,
+    "value": 0.34
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Burgundy (FR26)",
+    "count": 7,
+    "share": 0.0781,
+    "rca": 0.91,
+    "reldens": 14.42,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 14.42,
+    "y": 42.13,
+    "value": 0.91
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Burgundy (FR26)",
+    "count": 86,
+    "share": 0.1704,
+    "rca": 1.98,
+    "reldens": 71.43,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 71.43,
+    "y": 37.71,
+    "value": 1.98
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Burgundy (FR26)",
+    "count": 25,
+    "share": 0.2039,
+    "rca": 2.37,
+    "reldens": 55.59,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 55.59,
+    "y": 36.53,
+    "value": 2.37
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Burgundy (FR26)",
+    "count": 4,
+    "share": 0.0577,
+    "rca": 0.67,
+    "reldens": 26.06,
+    "comp": 65.15,
+    "comp_TCI": 39.11,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 26.06,
+    "y": 65.15,
+    "value": 0.67
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Burgundy (FR26)",
+    "count": 2,
+    "share": 0.01,
+    "rca": 0.12,
+    "reldens": 5.67,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 5.67,
+    "y": 69.63,
+    "value": 0.12
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Burgundy (FR26)",
+    "count": 71,
+    "share": 0.1356,
+    "rca": 1.57,
+    "reldens": 46.61,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 46.61,
+    "y": 39.83,
+    "value": 1.57
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Burgundy (FR26)",
+    "count": 10,
+    "share": 0.0928,
+    "rca": 1.08,
+    "reldens": 35.4,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 35.4,
+    "y": 63.41,
+    "value": 1.08
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Burgundy (FR26)",
+    "count": 1,
+    "share": 0.0076,
+    "rca": 0.09,
+    "reldens": 12.28,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 12.28,
+    "y": 71.13,
+    "value": 0.09
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Burgundy (FR26)",
+    "count": 2,
+    "share": 0.0677,
+    "rca": 0.79,
+    "reldens": 17.77,
+    "comp": 31.92,
+    "comp_TCI": 33.47,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 17.77,
+    "y": 31.92,
+    "value": 0.79
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Burgundy (FR26)",
+    "count": 2,
+    "share": 0.0379,
+    "rca": 0.44,
+    "reldens": 10.57,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 10.57,
+    "y": 37.03,
+    "value": 0.44
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

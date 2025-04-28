@@ -1,0 +1,532 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Center (RO12)",
+    "count": 2,
+    "share": 0.016,
+    "rca": 1.66,
+    "reldens": 45.7,
+    "comp": 7.14,
+    "comp_TCI": 37.75,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 45.7,
+    "y": 7.14,
+    "value": 1.66
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Center (RO12)",
+    "count": 5,
+    "share": 0.0319,
+    "rca": 3.31,
+    "reldens": 28.47,
+    "comp": 55.36,
+    "comp_TCI": 57.74,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 28.47,
+    "y": 55.36,
+    "value": 3.31
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Center (RO12)",
+    "count": 1,
+    "share": 0.0034,
+    "rca": 0.35,
+    "reldens": 21.88,
+    "comp": 37.5,
+    "comp_TCI": 14.88,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 21.88,
+    "y": 37.5,
+    "value": 0.35
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Center (RO12)",
+    "count": 5,
+    "share": 0.0271,
+    "rca": 2.81,
+    "reldens": 45.14,
+    "comp": 12.5,
+    "comp_TCI": 14.71,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 45.14,
+    "y": 12.5,
+    "value": 2.81
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Center (RO12)",
+    "count": 13,
+    "share": 0.0295,
+    "rca": 3.05,
+    "reldens": 45.49,
+    "comp": 83.04,
+    "comp_TCI": 81.05,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 45.49,
+    "y": 83.04,
+    "value": 3.05
+  },
+  {
+    "domain": "Control",
+    "geo": "Center (RO12)",
+    "count": 6,
+    "share": 0.0299,
+    "rca": 3.1,
+    "reldens": 62.11,
+    "comp": 51.79,
+    "comp_TCI": 40.38,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 62.11,
+    "y": 51.79,
+    "value": 3.1
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Center (RO12)",
+    "count": 2,
+    "share": 0.0037,
+    "rca": 0.38,
+    "reldens": 31.3,
+    "comp": 88.39,
+    "comp_TCI": 18.25,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 31.3,
+    "y": 88.39,
+    "value": 0.38
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Center (RO12)",
+    "count": 1,
+    "share": 0.0047,
+    "rca": 0.48,
+    "reldens": 38.93,
+    "comp": 58.93,
+    "comp_TCI": 16.71,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 38.93,
+    "y": 58.93,
+    "value": 0.48
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Center (RO12)",
+    "count": 1,
+    "share": 0.0016,
+    "rca": 0.17,
+    "reldens": 24.62,
+    "comp": 60.71,
+    "comp_TCI": 16.67,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 24.62,
+    "y": 60.71,
+    "value": 0.17
+  },
+  {
+    "domain": "Handling",
+    "geo": "Center (RO12)",
+    "count": 3,
+    "share": 0.0131,
+    "rca": 1.35,
+    "reldens": 46.59,
+    "comp": 44.64,
+    "comp_TCI": 9.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 46.59,
+    "y": 44.64,
+    "value": 1.35
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Center (RO12)",
+    "count": 1,
+    "share": 0.0117,
+    "rca": 1.21,
+    "reldens": 60.64,
+    "comp": 12.5,
+    "comp_TCI": 54.87,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 60.64,
+    "y": 12.5,
+    "value": 1.21
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Center (RO12)",
+    "count": 2,
+    "share": 0.0119,
+    "rca": 1.23,
+    "reldens": 32.79,
+    "comp": 42.86,
+    "comp_TCI": 4.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 32.79,
+    "y": 42.86,
+    "value": 1.23
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Center (RO12)",
+    "count": 6,
+    "share": 0.0109,
+    "rca": 1.12,
+    "reldens": 47.06,
+    "comp": 63.39,
+    "comp_TCI": 47.12,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 47.06,
+    "y": 63.39,
+    "value": 1.12
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Center (RO12)",
+    "count": 7,
+    "share": 0.0273,
+    "rca": 2.82,
+    "reldens": 46.17,
+    "comp": 57.14,
+    "comp_TCI": 9.04,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 46.17,
+    "y": 57.14,
+    "value": 2.82
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Center (RO12)",
+    "count": 3,
+    "share": 0.0058,
+    "rca": 0.6,
+    "reldens": 42.72,
+    "comp": 59.82,
+    "comp_TCI": 41.09,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 42.72,
+    "y": 59.82,
+    "value": 0.6
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Center (RO12)",
+    "count": 1,
+    "share": 0.0022,
+    "rca": 0.23,
+    "reldens": 11.5,
+    "comp": 37.5,
+    "comp_TCI": 40.02,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 11.5,
+    "y": 37.5,
+    "value": 0.23
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Center (RO12)",
+    "count": 1,
+    "share": 0.0096,
+    "rca": 0.99,
+    "reldens": 29.61,
+    "comp": 46.43,
+    "comp_TCI": 22.6,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 29.61,
+    "y": 46.43,
+    "value": 0.99
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Center (RO12)",
+    "count": 3,
+    "share": 0.0248,
+    "rca": 2.57,
+    "reldens": 22.21,
+    "comp": 25.89,
+    "comp_TCI": 6.89,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 22.21,
+    "y": 25.89,
+    "value": 2.57
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Center (RO12)",
+    "count": 1,
+    "share": 0.0087,
+    "rca": 0.9,
+    "reldens": 26.55,
+    "comp": 19.64,
+    "comp_TCI": 14.8,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 26.55,
+    "y": 19.64,
+    "value": 0.9
+  },
+  {
+    "domain": "Transport",
+    "geo": "Center (RO12)",
+    "count": 26,
+    "share": 0.0525,
+    "rca": 5.44,
+    "reldens": 48.52,
+    "comp": 88.39,
+    "comp_TCI": 19.96,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 48.52,
+    "y": 88.39,
+    "value": 5.44
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

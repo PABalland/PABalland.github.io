@@ -1,0 +1,617 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 10,
+    "share": 0.045,
+    "rca": 0.47,
+    "reldens": 14.55,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 14.55,
+    "y": 47.5,
+    "value": 0.47
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 316,
+    "share": 0.1003,
+    "rca": 1.04,
+    "reldens": 30.77,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 30.77,
+    "y": 95,
+    "value": 1.04
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 34,
+    "share": 0.1056,
+    "rca": 1.1,
+    "reldens": 88.28,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 88.28,
+    "y": 16.25,
+    "value": 1.1
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 38,
+    "share": 0.1088,
+    "rca": 1.13,
+    "reldens": 56.15,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 56.15,
+    "y": 43.75,
+    "value": 1.13
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 218,
+    "share": 0.0523,
+    "rca": 0.54,
+    "reldens": 36.15,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 36.15,
+    "y": 73.75,
+    "value": 0.54
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 386,
+    "share": 0.1729,
+    "rca": 1.8,
+    "reldens": 3.19,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 3.19,
+    "y": 100,
+    "value": 1.8
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 24,
+    "share": 0.0634,
+    "rca": 0.66,
+    "reldens": 61.79,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 61.79,
+    "y": 48.75,
+    "value": 0.66
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 17,
+    "share": 0.0202,
+    "rca": 0.21,
+    "reldens": 50.72,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 50.72,
+    "y": 75,
+    "value": 0.21
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 51,
+    "share": 0.0687,
+    "rca": 0.71,
+    "reldens": 66.5,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 66.5,
+    "y": 65,
+    "value": 0.71
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 16,
+    "share": 0.0268,
+    "rca": 0.28,
+    "reldens": 27.43,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 27.43,
+    "y": 22.5,
+    "value": 0.28
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 40,
+    "share": 0.0776,
+    "rca": 0.81,
+    "reldens": 74.58,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 74.58,
+    "y": 28.75,
+    "value": 0.81
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 29,
+    "share": 0.03,
+    "rca": 0.31,
+    "reldens": 52.08,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 52.08,
+    "y": 82.5,
+    "value": 0.31
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 48,
+    "share": 0.1294,
+    "rca": 1.35,
+    "reldens": 69.56,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 69.56,
+    "y": 16.25,
+    "value": 1.35
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 20,
+    "share": 0.1016,
+    "rca": 1.06,
+    "reldens": 20.39,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 20.39,
+    "y": 0,
+    "value": 1.06
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 15,
+    "share": 0.1282,
+    "rca": 1.33,
+    "reldens": 19.93,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 19.93,
+    "y": 10,
+    "value": 1.33
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 706,
+    "share": 0.1875,
+    "rca": 1.95,
+    "reldens": 66.49,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 66.49,
+    "y": 52.5,
+    "value": 1.95
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 68,
+    "share": 0.1064,
+    "rca": 1.11,
+    "reldens": 78.21,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 78.21,
+    "y": 22.5,
+    "value": 1.11
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 11,
+    "share": 0.0201,
+    "rca": 0.21,
+    "reldens": 18.8,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 18.8,
+    "y": 52.5,
+    "value": 0.21
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 61,
+    "share": 0.1325,
+    "rca": 1.38,
+    "reldens": 53.75,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 53.75,
+    "y": 21.25,
+    "value": 1.38
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 393,
+    "share": 0.1612,
+    "rca": 1.68,
+    "reldens": 47.04,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 47.04,
+    "y": 70,
+    "value": 1.68
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 17,
+    "share": 0.0177,
+    "rca": 0.18,
+    "reldens": 8.83,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 8.83,
+    "y": 87.5,
+    "value": 0.18
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 48,
+    "share": 0.1534,
+    "rca": 1.59,
+    "reldens": 1.42,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 1.42,
+    "y": 30,
+    "value": 1.59
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 7,
+    "share": 0.0108,
+    "rca": 0.11,
+    "reldens": 7.69,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 7.69,
+    "y": 82.5,
+    "value": 0.11
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 22,
+    "share": 0.0418,
+    "rca": 0.43,
+    "reldens": 28.65,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 28.65,
+    "y": 45,
+    "value": 0.43
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Shropshire and Staffordshire (UKG2)",
+    "count": 49,
+    "share": 0.0247,
+    "rca": 0.26,
+    "reldens": 45.27,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 45.27,
+    "y": 61.25,
+    "value": 0.26
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

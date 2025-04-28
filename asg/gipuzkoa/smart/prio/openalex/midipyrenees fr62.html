@@ -1,0 +1,634 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "5G",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 114,
+    "share": 0.5126,
+    "rca": 0.68,
+    "reldens": 84.44,
+    "comp": 47.5,
+    "comp_TCI": 92.03,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "5G",
+    "x": 84.44,
+    "y": 47.5,
+    "value": 0.68
+  },
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 1684,
+    "share": 0.5347,
+    "rca": 0.71,
+    "reldens": 68.95,
+    "comp": 95,
+    "comp_TCI": 18.4,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 68.95,
+    "y": 95,
+    "value": 0.71
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 326,
+    "share": 1.0121,
+    "rca": 1.34,
+    "reldens": 71.21,
+    "comp": 16.25,
+    "comp_TCI": 38.77,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 71.21,
+    "y": 16.25,
+    "value": 1.34
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 227,
+    "share": 0.6497,
+    "rca": 0.86,
+    "reldens": 87.69,
+    "comp": 43.75,
+    "comp_TCI": 5.51,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 87.69,
+    "y": 43.75,
+    "value": 0.86
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 4249,
+    "share": 1.02,
+    "rca": 1.35,
+    "reldens": 14.83,
+    "comp": 73.75,
+    "comp_TCI": 98.99,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 14.83,
+    "y": 73.75,
+    "value": 1.35
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 1715,
+    "share": 0.7682,
+    "rca": 1.02,
+    "reldens": 67.08,
+    "comp": 100,
+    "comp_TCI": 61.95,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 67.08,
+    "y": 100,
+    "value": 1.02
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 254,
+    "share": 0.6714,
+    "rca": 0.89,
+    "reldens": 31.37,
+    "comp": 48.75,
+    "comp_TCI": 99.56,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 31.37,
+    "y": 48.75,
+    "value": 0.89
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 543,
+    "share": 0.6455,
+    "rca": 0.85,
+    "reldens": 2.07,
+    "comp": 75,
+    "comp_TCI": 97.51,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 2.07,
+    "y": 75,
+    "value": 0.85
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 760,
+    "share": 1.0236,
+    "rca": 1.35,
+    "reldens": 33.54,
+    "comp": 65,
+    "comp_TCI": 48.92,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 33.54,
+    "y": 65,
+    "value": 1.35
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 578,
+    "share": 0.9662,
+    "rca": 1.28,
+    "reldens": 61.21,
+    "comp": 22.5,
+    "comp_TCI": 49.08,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 61.21,
+    "y": 22.5,
+    "value": 1.28
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 194,
+    "share": 0.3762,
+    "rca": 0.5,
+    "reldens": 40.76,
+    "comp": 28.75,
+    "comp_TCI": 82.95,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 40.76,
+    "y": 28.75,
+    "value": 0.5
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 1070,
+    "share": 1.1081,
+    "rca": 1.46,
+    "reldens": 45.77,
+    "comp": 82.5,
+    "comp_TCI": 0,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 45.77,
+    "y": 82.5,
+    "value": 1.46
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 419,
+    "share": 1.1299,
+    "rca": 1.49,
+    "reldens": 9.54,
+    "comp": 16.25,
+    "comp_TCI": 87.19,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 9.54,
+    "y": 16.25,
+    "value": 1.49
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 63,
+    "share": 0.3202,
+    "rca": 0.42,
+    "reldens": 42.81,
+    "comp": 0,
+    "comp_TCI": 87.59,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 42.81,
+    "y": 0,
+    "value": 0.42
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 70,
+    "share": 0.5985,
+    "rca": 0.79,
+    "reldens": 79.84,
+    "comp": 10,
+    "comp_TCI": 51.75,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 79.84,
+    "y": 10,
+    "value": 0.79
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 1737,
+    "share": 0.4613,
+    "rca": 0.61,
+    "reldens": 38.14,
+    "comp": 52.5,
+    "comp_TCI": 20.22,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 38.14,
+    "y": 52.5,
+    "value": 0.61
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 514,
+    "share": 0.8043,
+    "rca": 1.06,
+    "reldens": 71.28,
+    "comp": 22.5,
+    "comp_TCI": 27.96,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 71.28,
+    "y": 22.5,
+    "value": 1.06
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 394,
+    "share": 0.7206,
+    "rca": 0.95,
+    "reldens": 28.91,
+    "comp": 52.5,
+    "comp_TCI": 79.66,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 28.91,
+    "y": 52.5,
+    "value": 0.95
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 315,
+    "share": 0.6841,
+    "rca": 0.9,
+    "reldens": 57.46,
+    "comp": 21.25,
+    "comp_TCI": 80.24,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 57.46,
+    "y": 21.25,
+    "value": 0.9
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 1035,
+    "share": 0.4245,
+    "rca": 0.56,
+    "reldens": 48.93,
+    "comp": 70,
+    "comp_TCI": 39.9,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 48.93,
+    "y": 70,
+    "value": 0.56
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 495,
+    "share": 0.5141,
+    "rca": 0.68,
+    "reldens": 42.45,
+    "comp": 87.5,
+    "comp_TCI": 100,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 42.45,
+    "y": 87.5,
+    "value": 0.68
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 175,
+    "share": 0.5594,
+    "rca": 0.74,
+    "reldens": 6.18,
+    "comp": 30,
+    "comp_TCI": 91.5,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 6.18,
+    "y": 30,
+    "value": 0.74
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 338,
+    "share": 0.5218,
+    "rca": 0.69,
+    "reldens": 65.02,
+    "comp": 82.5,
+    "comp_TCI": 97.05,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 65.02,
+    "y": 82.5,
+    "value": 0.69
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 509,
+    "share": 0.9674,
+    "rca": 1.28,
+    "reldens": 71,
+    "comp": 45,
+    "comp_TCI": 93.31,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 71,
+    "y": 45,
+    "value": 1.28
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 3,
+    "share": 0.0886,
+    "rca": 0.12,
+    "reldens": 90.95,
+    "comp": 50,
+    "comp_TCI": 32.63,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 90.95,
+    "y": 50,
+    "value": 0.12
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Midi-Pyrénées (FR62)",
+    "count": 3009,
+    "share": 1.5185,
+    "rca": 2.01,
+    "reldens": 25.28,
+    "comp": 61.25,
+    "comp_TCI": 92.72,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 25.28,
+    "y": 61.25,
+    "value": 2.01
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

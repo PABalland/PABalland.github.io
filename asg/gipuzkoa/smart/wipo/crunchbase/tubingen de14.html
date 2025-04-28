@@ -1,0 +1,464 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Tübingen (DE14)",
+    "count": 56.08,
+    "share": 1.4361,
+    "rca": 23.94,
+    "reldens": 72.78,
+    "comp": 28.95,
+    "comp_TCI": 76.99,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 72.78,
+    "y": 28.95,
+    "value": 23.94
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Tübingen (DE14)",
+    "count": 6,
+    "share": 0.0564,
+    "rca": 0.94,
+    "reldens": 22.76,
+    "comp": 39.47,
+    "comp_TCI": 41.62,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 22.76,
+    "y": 39.47,
+    "value": 0.94
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Tübingen (DE14)",
+    "count": 84.86,
+    "share": 0.2731,
+    "rca": 4.55,
+    "reldens": 61.62,
+    "comp": 26.32,
+    "comp_TCI": 93.24,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 61.62,
+    "y": 26.32,
+    "value": 4.55
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Tübingen (DE14)",
+    "count": 0.28,
+    "share": 0.0018,
+    "rca": 0.03,
+    "reldens": 6.19,
+    "comp": 63.16,
+    "comp_TCI": 25.93,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 6.19,
+    "y": 63.16,
+    "value": 0.03
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Tübingen (DE14)",
+    "count": 36.5,
+    "share": 0.023,
+    "rca": 0.38,
+    "reldens": 15.13,
+    "comp": 47.37,
+    "comp_TCI": 10.29,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 15.13,
+    "y": 47.37,
+    "value": 0.38
+  },
+  {
+    "domain": "Control",
+    "geo": "Tübingen (DE14)",
+    "count": 1.73,
+    "share": 0.0216,
+    "rca": 0.36,
+    "reldens": 7.87,
+    "comp": 0,
+    "comp_TCI": 53.6,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 7.87,
+    "y": 0,
+    "value": 0.36
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Tübingen (DE14)",
+    "count": 0.66,
+    "share": 0.0027,
+    "rca": 0.04,
+    "reldens": 4.96,
+    "comp": 44.74,
+    "comp_TCI": 70.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 4.96,
+    "y": 44.74,
+    "value": 0.04
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Tübingen (DE14)",
+    "count": 6,
+    "share": 0.1248,
+    "rca": 2.08,
+    "reldens": 1.64,
+    "comp": 7.89,
+    "comp_TCI": 39.95,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 1.64,
+    "y": 7.89,
+    "value": 2.08
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Tübingen (DE14)",
+    "count": 0.34,
+    "share": 0.001,
+    "rca": 0.02,
+    "reldens": 2.99,
+    "comp": 100,
+    "comp_TCI": 86.75,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 2.99,
+    "y": 100,
+    "value": 0.02
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Tübingen (DE14)",
+    "count": 7.88,
+    "share": 0.0094,
+    "rca": 0.16,
+    "reldens": 9.44,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 9.44,
+    "y": 68.42,
+    "value": 0.16
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Tübingen (DE14)",
+    "count": 1.98,
+    "share": 0.0064,
+    "rca": 0.11,
+    "reldens": 10.85,
+    "comp": 10.53,
+    "comp_TCI": 72.37,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 10.85,
+    "y": 10.53,
+    "value": 0.11
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Tübingen (DE14)",
+    "count": 0.32,
+    "share": 0.1276,
+    "rca": 2.13,
+    "reldens": 20.93,
+    "comp": 31.58,
+    "comp_TCI": 62.04,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 20.93,
+    "y": 31.58,
+    "value": 2.13
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Tübingen (DE14)",
+    "count": 90.62,
+    "share": 0.2056,
+    "rca": 3.43,
+    "reldens": 53.66,
+    "comp": 36.84,
+    "comp_TCI": 76.58,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 53.66,
+    "y": 36.84,
+    "value": 3.43
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Tübingen (DE14)",
+    "count": 6.02,
+    "share": 0.0107,
+    "rca": 0.18,
+    "reldens": 20.19,
+    "comp": 57.89,
+    "comp_TCI": 15.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 20.19,
+    "y": 57.89,
+    "value": 0.18
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Tübingen (DE14)",
+    "count": 84.52,
+    "share": 0.3456,
+    "rca": 5.76,
+    "reldens": 74.25,
+    "comp": 52.63,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 74.25,
+    "y": 52.63,
+    "value": 5.76
+  },
+  {
+    "domain": "Transport",
+    "geo": "Tübingen (DE14)",
+    "count": 27.71,
+    "share": 0.0587,
+    "rca": 0.98,
+    "reldens": 3.58,
+    "comp": 68.42,
+    "comp_TCI": 46.99,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 3.58,
+    "y": 68.42,
+    "value": 0.98
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

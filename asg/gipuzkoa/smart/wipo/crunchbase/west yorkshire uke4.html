@@ -1,0 +1,583 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 10.13,
+    "share": 0.2594,
+    "rca": 1.09,
+    "reldens": 3.7,
+    "comp": 28.95,
+    "comp_TCI": 76.99,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 3.7,
+    "y": 28.95,
+    "value": 1.09
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 48.58,
+    "share": 0.4569,
+    "rca": 1.92,
+    "reldens": 25.39,
+    "comp": 39.47,
+    "comp_TCI": 41.62,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 25.39,
+    "y": 39.47,
+    "value": 1.92
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 58.32,
+    "share": 0.1877,
+    "rca": 0.79,
+    "reldens": 28.66,
+    "comp": 26.32,
+    "comp_TCI": 93.24,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 28.66,
+    "y": 26.32,
+    "value": 0.79
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 26.18,
+    "share": 0.3569,
+    "rca": 1.5,
+    "reldens": 46.43,
+    "comp": 68.42,
+    "comp_TCI": 69.07,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 46.43,
+    "y": 68.42,
+    "value": 1.5
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 10.16,
+    "share": 0.0664,
+    "rca": 0.28,
+    "reldens": 29.79,
+    "comp": 63.16,
+    "comp_TCI": 25.93,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 29.79,
+    "y": 63.16,
+    "value": 0.28
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 328.05,
+    "share": 0.2071,
+    "rca": 0.87,
+    "reldens": 27.23,
+    "comp": 47.37,
+    "comp_TCI": 10.29,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 27.23,
+    "y": 47.37,
+    "value": 0.87
+  },
+  {
+    "domain": "Control",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 3.87,
+    "share": 0.0483,
+    "rca": 0.2,
+    "reldens": 39.51,
+    "comp": 0,
+    "comp_TCI": 53.6,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 39.51,
+    "y": 0,
+    "value": 0.2
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 18.03,
+    "share": 0.1307,
+    "rca": 0.55,
+    "reldens": 26.16,
+    "comp": 52.63,
+    "comp_TCI": 29.49,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 26.16,
+    "y": 52.63,
+    "value": 0.55
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 94.3,
+    "share": 0.2217,
+    "rca": 0.93,
+    "reldens": 58.27,
+    "comp": 73.68,
+    "comp_TCI": 77.81,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 58.27,
+    "y": 73.68,
+    "value": 0.93
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 105.13,
+    "share": 0.4264,
+    "rca": 1.79,
+    "reldens": 45.7,
+    "comp": 44.74,
+    "comp_TCI": 70.94,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 45.7,
+    "y": 44.74,
+    "value": 1.79
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 133.64,
+    "share": 0.7089,
+    "rca": 2.98,
+    "reldens": 27.74,
+    "comp": 34.21,
+    "comp_TCI": 51.99,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 27.74,
+    "y": 34.21,
+    "value": 2.98
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 16.54,
+    "share": 0.344,
+    "rca": 1.45,
+    "reldens": 36.88,
+    "comp": 7.89,
+    "comp_TCI": 39.95,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 36.88,
+    "y": 7.89,
+    "value": 1.45
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 222.16,
+    "share": 0.6798,
+    "rca": 2.86,
+    "reldens": 45,
+    "comp": 100,
+    "comp_TCI": 86.75,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 45,
+    "y": 100,
+    "value": 2.86
+  },
+  {
+    "domain": "Handling",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 2.35,
+    "share": 0.297,
+    "rca": 1.25,
+    "reldens": 37.51,
+    "comp": 28.95,
+    "comp_TCI": 50.02,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 37.51,
+    "y": 28.95,
+    "value": 1.25
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 180.75,
+    "share": 0.2144,
+    "rca": 0.9,
+    "reldens": 19.05,
+    "comp": 68.42,
+    "comp_TCI": 0,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 19.05,
+    "y": 68.42,
+    "value": 0.9
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 69.23,
+    "share": 4.6684,
+    "rca": 19.62,
+    "reldens": 39.72,
+    "comp": 23.68,
+    "comp_TCI": 70,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 39.72,
+    "y": 23.68,
+    "value": 19.62
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 101.26,
+    "share": 0.3295,
+    "rca": 1.38,
+    "reldens": 34.11,
+    "comp": 10.53,
+    "comp_TCI": 72.37,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 34.11,
+    "y": 10.53,
+    "value": 1.38
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 45.43,
+    "share": 0.1031,
+    "rca": 0.43,
+    "reldens": 24.5,
+    "comp": 36.84,
+    "comp_TCI": 76.58,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 24.5,
+    "y": 36.84,
+    "value": 0.43
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 67.07,
+    "share": 0.1192,
+    "rca": 0.5,
+    "reldens": 29.07,
+    "comp": 57.89,
+    "comp_TCI": 15.76,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 29.07,
+    "y": 57.89,
+    "value": 0.5
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 17.13,
+    "share": 0.07,
+    "rca": 0.29,
+    "reldens": 15.71,
+    "comp": 52.63,
+    "comp_TCI": 100,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 15.71,
+    "y": 52.63,
+    "value": 0.29
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 0.13,
+    "share": 0.0017,
+    "rca": 0.01,
+    "reldens": 22.21,
+    "comp": 63.16,
+    "comp_TCI": 26.99,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 22.21,
+    "y": 63.16,
+    "value": 0.01
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 8.49,
+    "share": 1.3986,
+    "rca": 5.88,
+    "reldens": 45.97,
+    "comp": 36.84,
+    "comp_TCI": 54.24,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 45.97,
+    "y": 36.84,
+    "value": 5.88
+  },
+  {
+    "domain": "Transport",
+    "geo": "West Yorkshire (UKE4)",
+    "count": 65.02,
+    "share": 0.1378,
+    "rca": 0.58,
+    "reldens": 34.27,
+    "comp": 68.42,
+    "comp_TCI": 46.99,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 34.27,
+    "y": 68.42,
+    "value": 0.58
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

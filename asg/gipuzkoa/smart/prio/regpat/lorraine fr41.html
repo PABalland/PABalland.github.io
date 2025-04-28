@@ -1,0 +1,617 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Advanced Therapies",
+    "geo": "Lorraine (FR41)",
+    "count": 17,
+    "share": 0.0966,
+    "rca": 0.39,
+    "reldens": 10.55,
+    "comp": 37.21,
+    "comp_TCI": 8.51,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Advanced Therapies",
+    "x": 10.55,
+    "y": 37.21,
+    "value": 0.39
+  },
+  {
+    "domain": "Agrotech",
+    "geo": "Lorraine (FR41)",
+    "count": 22,
+    "share": 0.1444,
+    "rca": 0.58,
+    "reldens": 13.56,
+    "comp": 35.72,
+    "comp_TCI": 12.98,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Agrotech",
+    "x": 13.56,
+    "y": 35.72,
+    "value": 0.58
+  },
+  {
+    "domain": "Aquaculture",
+    "geo": "Lorraine (FR41)",
+    "count": 16,
+    "share": 0.2554,
+    "rca": 1.03,
+    "reldens": 46.71,
+    "comp": 30.18,
+    "comp_TCI": 18.02,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Aquaculture",
+    "x": 46.71,
+    "y": 30.18,
+    "value": 1.03
+  },
+  {
+    "domain": "Artificial intelligence",
+    "geo": "Lorraine (FR41)",
+    "count": 9,
+    "share": 0.0526,
+    "rca": 0.21,
+    "reldens": 11.51,
+    "comp": 58.31,
+    "comp_TCI": 12.72,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Artificial intelligence",
+    "x": 11.51,
+    "y": 58.31,
+    "value": 0.21
+  },
+  {
+    "domain": "Astrophysics",
+    "geo": "Lorraine (FR41)",
+    "count": 25,
+    "share": 0.1152,
+    "rca": 0.47,
+    "reldens": 16.93,
+    "comp": 43.68,
+    "comp_TCI": 29.06,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Astrophysics",
+    "x": 16.93,
+    "y": 43.68,
+    "value": 0.47
+  },
+  {
+    "domain": "Autonomous Mobility",
+    "geo": "Lorraine (FR41)",
+    "count": 20,
+    "share": 0.318,
+    "rca": 1.28,
+    "reldens": 27.48,
+    "comp": 63.04,
+    "comp_TCI": 46.69,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Autonomous Mobility",
+    "x": 27.48,
+    "y": 63.04,
+    "value": 1.28
+  },
+  {
+    "domain": "Battery Technology",
+    "geo": "Lorraine (FR41)",
+    "count": 60,
+    "share": 0.2979,
+    "rca": 1.2,
+    "reldens": 39.47,
+    "comp": 46.55,
+    "comp_TCI": 45.8,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Battery Technology",
+    "x": 39.47,
+    "y": 46.55,
+    "value": 1.2
+  },
+  {
+    "domain": "Bio Foundry",
+    "geo": "Lorraine (FR41)",
+    "count": 2,
+    "share": 0.2342,
+    "rca": 0.95,
+    "reldens": 12.67,
+    "comp": 20.54,
+    "comp_TCI": 20.85,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Bio Foundry",
+    "x": 12.67,
+    "y": 20.54,
+    "value": 0.95
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Lorraine (FR41)",
+    "count": 10,
+    "share": 0.2362,
+    "rca": 0.95,
+    "reldens": 36.25,
+    "comp": 31.61,
+    "comp_TCI": 24.36,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 36.25,
+    "y": 31.61,
+    "value": 0.95
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "Lorraine (FR41)",
+    "count": 3,
+    "share": 0.0455,
+    "rca": 0.18,
+    "reldens": 11.77,
+    "comp": 38.89,
+    "comp_TCI": 8.37,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Blockchain",
+    "x": 11.77,
+    "y": 38.89,
+    "value": 0.18
+  },
+  {
+    "domain": "Blue Biotechnology",
+    "geo": "Lorraine (FR41)",
+    "count": 30,
+    "share": 0.1622,
+    "rca": 0.66,
+    "reldens": 19.82,
+    "comp": 37.03,
+    "comp_TCI": 5.65,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Blue Biotechnology",
+    "x": 19.82,
+    "y": 37.03,
+    "value": 0.66
+  },
+  {
+    "domain": "Cloud and edge computing",
+    "geo": "Lorraine (FR41)",
+    "count": 2,
+    "share": 0.0347,
+    "rca": 0.14,
+    "reldens": 6.15,
+    "comp": 49.1,
+    "comp_TCI": 18.45,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cloud and edge computing",
+    "x": 6.15,
+    "y": 49.1,
+    "value": 0.14
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Lorraine (FR41)",
+    "count": 5,
+    "share": 0.037,
+    "rca": 0.15,
+    "reldens": 9.32,
+    "comp": 47.67,
+    "comp_TCI": 10.17,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 9.32,
+    "y": 47.67,
+    "value": 0.15
+  },
+  {
+    "domain": "Defense technologies",
+    "geo": "Lorraine (FR41)",
+    "count": 6,
+    "share": 0.067,
+    "rca": 0.27,
+    "reldens": 5.95,
+    "comp": 42.13,
+    "comp_TCI": 25.15,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Defense technologies",
+    "x": 5.95,
+    "y": 42.13,
+    "value": 0.27
+  },
+  {
+    "domain": "Drugs & Pharma",
+    "geo": "Lorraine (FR41)",
+    "count": 55,
+    "share": 0.109,
+    "rca": 0.44,
+    "reldens": 13.78,
+    "comp": 37.71,
+    "comp_TCI": 3.01,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Drugs & Pharma",
+    "x": 13.78,
+    "y": 37.71,
+    "value": 0.44
+  },
+  {
+    "domain": "Food technology",
+    "geo": "Lorraine (FR41)",
+    "count": 27,
+    "share": 0.2202,
+    "rca": 0.89,
+    "reldens": 24.84,
+    "comp": 36.53,
+    "comp_TCI": 14.55,
+    "parent": "Agriculture & Food",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Food technology",
+    "x": 24.84,
+    "y": 36.53,
+    "value": 0.89
+  },
+  {
+    "domain": "Hydrogen",
+    "geo": "Lorraine (FR41)",
+    "count": 5,
+    "share": 0.0721,
+    "rca": 0.29,
+    "reldens": 64.69,
+    "comp": 65.15,
+    "comp_TCI": 39.11,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen",
+    "x": 64.69,
+    "y": 65.15,
+    "value": 0.29
+  },
+  {
+    "domain": "Internet of Things",
+    "geo": "Lorraine (FR41)",
+    "count": 4,
+    "share": 0.02,
+    "rca": 0.08,
+    "reldens": 4.41,
+    "comp": 69.63,
+    "comp_TCI": 17.39,
+    "parent": "Digital Technologies",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Internet of Things",
+    "x": 4.41,
+    "y": 69.63,
+    "value": 0.08
+  },
+  {
+    "domain": "Medical devices",
+    "geo": "Lorraine (FR41)",
+    "count": 64,
+    "share": 0.1222,
+    "rca": 0.49,
+    "reldens": 16.11,
+    "comp": 39.83,
+    "comp_TCI": 11.12,
+    "parent": "Healthcare & Biotechnology",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical devices",
+    "x": 16.11,
+    "y": 39.83,
+    "value": 0.49
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Lorraine (FR41)",
+    "count": 9,
+    "share": 0.0836,
+    "rca": 0.34,
+    "reldens": 11.61,
+    "comp": 63.41,
+    "comp_TCI": 21.01,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Photonics",
+    "x": 11.61,
+    "y": 63.41,
+    "value": 0.34
+  },
+  {
+    "domain": "Power Train",
+    "geo": "Lorraine (FR41)",
+    "count": 5,
+    "share": 0.0381,
+    "rca": 0.15,
+    "reldens": 22.53,
+    "comp": 71.13,
+    "comp_TCI": 63.39,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Power Train",
+    "x": 22.53,
+    "y": 71.13,
+    "value": 0.15
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Lorraine (FR41)",
+    "count": 6,
+    "share": 0.1786,
+    "rca": 0.72,
+    "reldens": 10.28,
+    "comp": 50.78,
+    "comp_TCI": 18.98,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Quantum technologies",
+    "x": 10.28,
+    "y": 50.78,
+    "value": 0.72
+  },
+  {
+    "domain": "Robotics (autonomous)",
+    "geo": "Lorraine (FR41)",
+    "count": 5,
+    "share": 0.1693,
+    "rca": 0.68,
+    "reldens": 12.93,
+    "comp": 31.92,
+    "comp_TCI": 33.47,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Robotics (autonomous)",
+    "x": 12.93,
+    "y": 31.92,
+    "value": 0.68
+  },
+  {
+    "domain": "Shipbuilding",
+    "geo": "Lorraine (FR41)",
+    "count": 12,
+    "share": 0.2271,
+    "rca": 0.92,
+    "reldens": 23.52,
+    "comp": 37.03,
+    "comp_TCI": 18.13,
+    "parent": "Energy & Mobility",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Shipbuilding",
+    "x": 23.52,
+    "y": 37.03,
+    "value": 0.92
+  },
+  {
+    "domain": "Space & Aerospace",
+    "geo": "Lorraine (FR41)",
+    "count": 4,
+    "share": 0.0368,
+    "rca": 0.15,
+    "reldens": 11.29,
+    "comp": 68.39,
+    "comp_TCI": 29.44,
+    "parent": "Advanced Engineering",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Space & Aerospace",
+    "x": 11.29,
+    "y": 68.39,
+    "value": 0.15
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
