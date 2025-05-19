@@ -1,0 +1,324 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "id": "AgriTech Robotics & AI",
+    "x": 55.45,
+    "y": 38.6,
+    "color2": "#365a94",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "AI in Healthcare",
+    "x": 35.66,
+    "y": 36.91,
+    "color2": "#800020",
+    "rca": 0.77,
+    "color": "#CAB9B9",
+    "value": 0.5,
+    "rca_pub": 0.77
+  },
+  {
+    "id": "Autonomous Production",
+    "x": 6.01,
+    "y": 30.76,
+    "color2": "#365a94",
+    "rca": 0.13,
+    "color": "#A54C4C",
+    "value": 0.5,
+    "rca_pub": 0.13
+  },
+  {
+    "id": "Battery Tech & Raw Materials",
+    "x": 1.18,
+    "y": 65.14,
+    "color2": "#8cab79",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Cybersecurity",
+    "x": 2.87,
+    "y": 29.19,
+    "color2": "#365a94",
+    "rca": 0.22,
+    "color": "#AD6363",
+    "value": 0.5,
+    "rca_pub": 0.22
+  },
+  {
+    "id": "Drones for Defense",
+    "x": 45.71,
+    "y": 30.76,
+    "color2": "#365a94",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Green Chemistry",
+    "x": 25.16,
+    "y": 54.04,
+    "color2": "#8cab79",
+    "rca": 0.79,
+    "color": "#CBBCBC",
+    "value": 0.5,
+    "rca_pub": 0.79
+  },
+  {
+    "id": "Medtech",
+    "x": 56.56,
+    "y": 79.01,
+    "color2": "#800020",
+    "rca": 0.57,
+    "color": "#C19F9F",
+    "value": 0.5,
+    "rca_pub": 0.57
+  },
+  {
+    "id": "Precision Fermentation & Cellular Agriculture",
+    "x": 75.44,
+    "y": 20.02,
+    "color2": "#8cab79",
+    "rca": 4.13,
+    "color": "#2D7C2D",
+    "value": 0.5,
+    "rca_pub": 4.13
+  },
+  {
+    "id": "Protein Transition",
+    "x": 84.34,
+    "y": 38.72,
+    "color2": "#e28f26",
+    "rca": 1.87,
+    "color": "#659965",
+    "value": 0.5,
+    "rca_pub": 1.87
+  },
+  {
+    "id": "Quantum",
+    "x": 1.57,
+    "y": 84.68,
+    "color2": "#365a94",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Regenerative Medicine",
+    "x": 49.01,
+    "y": 75.87,
+    "color2": "#800020",
+    "rca": 0.84,
+    "color": "#CDC1C1",
+    "value": 0.5,
+    "rca_pub": 0.84
+  },
+  {
+    "id": "Semiconductors",
+    "x": 2.42,
+    "y": 74.55,
+    "color2": "#365a94",
+    "rca": 0.6,
+    "color": "#C3A3A3",
+    "value": 0.5,
+    "rca_pub": 0.6
+  },
+  {
+    "id": "Smart Grids",
+    "x": 1.31,
+    "y": 36.67,
+    "color2": "#8cab79",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [20, 60]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.rca + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(10)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+      .legend(false) // This disables the legend
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
