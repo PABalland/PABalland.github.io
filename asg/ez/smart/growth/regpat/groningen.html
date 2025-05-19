@@ -1,0 +1,719 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "6G",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 1.01,
+    "comp": 100,
+    "comp_TCI": 66.44,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "6G",
+    "x": 1.01,
+    "y": 100,
+    "value": 0
+  },
+  {
+    "domain": "Advanced chemistry",
+    "geo": "Groningen (NL11)",
+    "count": 14,
+    "share": 0.2949,
+    "rca": 3.87,
+    "reldens": 71.27,
+    "comp": 31.54,
+    "comp_TCI": 46.24,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Advanced chemistry",
+    "x": 71.27,
+    "y": 31.54,
+    "value": 3.87
+  },
+  {
+    "domain": "Agricultural breeding",
+    "geo": "Groningen (NL11)",
+    "count": 4,
+    "share": 0.1436,
+    "rca": 1.88,
+    "reldens": 75.63,
+    "comp": 27.05,
+    "comp_TCI": 44.01,
+    "parent": "Toename wereldbevolking",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Agricultural breeding",
+    "x": 75.63,
+    "y": 27.05,
+    "value": 1.88
+  },
+  {
+    "domain": "Agrifood machines",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 6.63,
+    "comp": 32.43,
+    "comp_TCI": 59.2,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Agrifood machines",
+    "x": 6.63,
+    "y": 32.43,
+    "value": 0
+  },
+  {
+    "domain": "AI & big data",
+    "geo": "Groningen (NL11)",
+    "count": 6,
+    "share": 0.0279,
+    "rca": 0.37,
+    "reldens": 12.7,
+    "comp": 48.78,
+    "comp_TCI": 42.78,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "AI & big data",
+    "x": 12.7,
+    "y": 48.78,
+    "value": 0.37
+  },
+  {
+    "domain": "Alternative proteins",
+    "geo": "Groningen (NL11)",
+    "count": 24,
+    "share": 0.458,
+    "rca": 6.01,
+    "reldens": 85.79,
+    "comp": 34.59,
+    "comp_TCI": 42.69,
+    "parent": "Toename wereldbevolking",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Alternative proteins",
+    "x": 85.79,
+    "y": 34.59,
+    "value": 6.01
+  },
+  {
+    "domain": "Analog microchips",
+    "geo": "Groningen (NL11)",
+    "count": 4,
+    "share": 0.036,
+    "rca": 0.47,
+    "reldens": 24.66,
+    "comp": 66.52,
+    "comp_TCI": 62.22,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Analog microchips",
+    "x": 24.66,
+    "y": 66.52,
+    "value": 0.47
+  },
+  {
+    "domain": "ATMPs",
+    "geo": "Groningen (NL11)",
+    "count": 2,
+    "share": 0.0852,
+    "rca": 1.12,
+    "reldens": 94.3,
+    "comp": 31.6,
+    "comp_TCI": 42.24,
+    "parent": "Vergrijzing",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "ATMPs",
+    "x": 94.3,
+    "y": 31.6,
+    "value": 1.12
+  },
+  {
+    "domain": "Batteries",
+    "geo": "Groningen (NL11)",
+    "count": 2,
+    "share": 0.0105,
+    "rca": 0.14,
+    "reldens": 12.15,
+    "comp": 65.58,
+    "comp_TCI": 63.03,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Batteries",
+    "x": 12.15,
+    "y": 65.58,
+    "value": 0.14
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Groningen (NL11)",
+    "count": 3,
+    "share": 0.2324,
+    "rca": 3.05,
+    "reldens": 41.43,
+    "comp": 25.28,
+    "comp_TCI": 51.37,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 41.43,
+    "y": 25.28,
+    "value": 3.05
+  },
+  {
+    "domain": "Chip machines",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 19.28,
+    "comp": 70.51,
+    "comp_TCI": 64.89,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Chip machines",
+    "x": 19.28,
+    "y": 70.51,
+    "value": 0
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Groningen (NL11)",
+    "count": 2,
+    "share": 0.0218,
+    "rca": 0.29,
+    "reldens": 6.97,
+    "comp": 54.6,
+    "comp_TCI": 44.44,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 6.97,
+    "y": 54.6,
+    "value": 0.29
+  },
+  {
+    "domain": "Digital platforms",
+    "geo": "Groningen (NL11)",
+    "count": 3,
+    "share": 0.0119,
+    "rca": 0.16,
+    "reldens": 7.18,
+    "comp": 67.74,
+    "comp_TCI": 44.2,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital platforms",
+    "x": 7.18,
+    "y": 67.74,
+    "value": 0.16
+  },
+  {
+    "domain": "E-buses",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 4.92,
+    "comp": 65.35,
+    "comp_TCI": 69.5,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "E-buses",
+    "x": 4.92,
+    "y": 65.35,
+    "value": 0
+  },
+  {
+    "domain": "EV charging",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 8.71,
+    "comp": 39.97,
+    "comp_TCI": 59.16,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "EV charging",
+    "x": 8.71,
+    "y": 39.97,
+    "value": 0
+  },
+  {
+    "domain": "Hydrogen hubs",
+    "geo": "Groningen (NL11)",
+    "count": 1,
+    "share": 0.011,
+    "rca": 0.14,
+    "reldens": 11.21,
+    "comp": 62.92,
+    "comp_TCI": 63.31,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen hubs",
+    "x": 11.21,
+    "y": 62.92,
+    "value": 0.14
+  },
+  {
+    "domain": "Hydrogen trucks",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 4.49,
+    "comp": 70.23,
+    "comp_TCI": 63.99,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen trucks",
+    "x": 4.49,
+    "y": 70.23,
+    "value": 0
+  },
+  {
+    "domain": "Laser satellite communication",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 11.37,
+    "comp": 39.58,
+    "comp_TCI": 58.85,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Laser satellite communication",
+    "x": 11.37,
+    "y": 39.58,
+    "value": 0
+  },
+  {
+    "domain": "Medical imaging",
+    "geo": "Groningen (NL11)",
+    "count": 2,
+    "share": 0.0747,
+    "rca": 0.98,
+    "reldens": 45.52,
+    "comp": 57.76,
+    "comp_TCI": 44.9,
+    "parent": "Vergrijzing",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical imaging",
+    "x": 45.52,
+    "y": 57.76,
+    "value": 0.98
+  },
+  {
+    "domain": "Offshore Engineering",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 28.22,
+    "comp": 50.06,
+    "comp_TCI": 49.02,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Offshore Engineering",
+    "x": 28.22,
+    "y": 50.06,
+    "value": 0
+  },
+  {
+    "domain": "Photonic microchips",
+    "geo": "Groningen (NL11)",
+    "count": 1,
+    "share": 0.0233,
+    "rca": 0.31,
+    "reldens": 15.55,
+    "comp": 89.52,
+    "comp_TCI": 64.45,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Photonic microchips",
+    "x": 15.55,
+    "y": 89.52,
+    "value": 0.31
+  },
+  {
+    "domain": "Quantum communication",
+    "geo": "Groningen (NL11)",
+    "count": 1,
+    "share": 0.0786,
+    "rca": 1.03,
+    "reldens": 17.35,
+    "comp": 46.51,
+    "comp_TCI": 50.68,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Quantum communication",
+    "x": 17.35,
+    "y": 46.51,
+    "value": 1.03
+  },
+  {
+    "domain": "Quantum computing",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 35.24,
+    "comp": 42.63,
+    "comp_TCI": 50.61,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Quantum computing",
+    "x": 35.24,
+    "y": 42.63,
+    "value": 0
+  },
+  {
+    "domain": "Quantum sensors",
+    "geo": "Groningen (NL11)",
+    "count": 2,
+    "share": 1.6,
+    "rca": 20.98,
+    "reldens": 62.19,
+    "comp": 23.17,
+    "comp_TCI": 54.5,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Quantum sensors",
+    "x": 62.19,
+    "y": 23.17,
+    "value": 20.98
+  },
+  {
+    "domain": "Radar systems",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 6.84,
+    "comp": 53.05,
+    "comp_TCI": 60.58,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Radar systems",
+    "x": 6.84,
+    "y": 53.05,
+    "value": 0
+  },
+  {
+    "domain": "SAAS",
+    "geo": "Groningen (NL11)",
+    "count": 1,
+    "share": 0.1166,
+    "rca": 1.53,
+    "reldens": 3.64,
+    "comp": 31.6,
+    "comp_TCI": 53.67,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "SAAS",
+    "x": 3.64,
+    "y": 31.6,
+    "value": 1.53
+  },
+  {
+    "domain": "Smart grids",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 9.22,
+    "comp": 25.5,
+    "comp_TCI": 60.21,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Smart grids",
+    "x": 9.22,
+    "y": 25.5,
+    "value": 0
+  },
+  {
+    "domain": "Solar panels",
+    "geo": "Groningen (NL11)",
+    "count": 1,
+    "share": 0.0342,
+    "rca": 0.45,
+    "reldens": 37.6,
+    "comp": 29.88,
+    "comp_TCI": 46.68,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Solar panels",
+    "x": 37.6,
+    "y": 29.88,
+    "value": 0.45
+  },
+  {
+    "domain": "Sustainable materials",
+    "geo": "Groningen (NL11)",
+    "count": 12,
+    "share": 0.1403,
+    "rca": 1.84,
+    "reldens": 32.09,
+    "comp": 35.53,
+    "comp_TCI": 47.96,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Sustainable materials",
+    "x": 32.09,
+    "y": 35.53,
+    "value": 1.84
+  },
+  {
+    "domain": "Targeted nutrition",
+    "geo": "Groningen (NL11)",
+    "count": 1,
+    "share": 0.1515,
+    "rca": 1.99,
+    "reldens": 81.36,
+    "comp": 45.23,
+    "comp_TCI": 47.44,
+    "parent": "Toename wereldbevolking",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Targeted nutrition",
+    "x": 81.36,
+    "y": 45.23,
+    "value": 1.99
+  },
+  {
+    "domain": "Water treatment",
+    "geo": "Groningen (NL11)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 26.66,
+    "comp": 25.78,
+    "comp_TCI": 45.79,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Water treatment",
+    "x": 26.66,
+    "y": 25.78,
+    "value": 0
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
