@@ -1,0 +1,732 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "6G",
+    "geo": "Utrecht (NL31)",
+    "count": 25,
+    "share": 0.0104,
+    "share_d": 0.0731,
+    "rca": 0.14,
+    "reldens": 1.05,
+    "comp": 56.09,
+    "comp_TCI": 59.32,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "6G",
+    "x": 1.05,
+    "y": 56.09,
+    "value": 0.14
+  },
+  {
+    "domain": "Advanced chemistry",
+    "geo": "Utrecht (NL31)",
+    "count": 1644,
+    "share": 0.6871,
+    "share_d": 1.2894,
+    "rca": 0.53,
+    "reldens": 15.33,
+    "comp": 72.01,
+    "comp_TCI": 74,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Advanced chemistry",
+    "x": 15.33,
+    "y": 72.01,
+    "value": 0.53
+  },
+  {
+    "domain": "Agricultural breeding",
+    "geo": "Utrecht (NL31)",
+    "count": 143,
+    "share": 0.0598,
+    "share_d": 0.0891,
+    "rca": 0.67,
+    "reldens": 44.47,
+    "comp": 48.92,
+    "comp_TCI": 63.88,
+    "parent": "Toename wereldbevolking",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Agricultural breeding",
+    "x": 44.47,
+    "y": 48.92,
+    "value": 0.67
+  },
+  {
+    "domain": "Agrifood machines",
+    "geo": "Utrecht (NL31)",
+    "count": 2,
+    "share": 0.0008,
+    "share_d": 0.0054,
+    "rca": 0.16,
+    "reldens": 22.89,
+    "comp": 38.91,
+    "comp_TCI": 85.01,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Agrifood machines",
+    "x": 22.89,
+    "y": 38.91,
+    "value": 0.16
+  },
+  {
+    "domain": "AI & big data",
+    "geo": "Utrecht (NL31)",
+    "count": 3223,
+    "share": 1.347,
+    "share_d": 1.6026,
+    "rca": 0.84,
+    "reldens": 22.96,
+    "comp": 64.51,
+    "comp_TCI": 76.51,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "AI & big data",
+    "x": 22.96,
+    "y": 64.51,
+    "value": 0.84
+  },
+  {
+    "domain": "Alternative proteins",
+    "geo": "Utrecht (NL31)",
+    "count": 203,
+    "share": 0.0848,
+    "share_d": 0.0751,
+    "rca": 1.13,
+    "reldens": 44.45,
+    "comp": 40.05,
+    "comp_TCI": 62.22,
+    "parent": "Toename wereldbevolking",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Alternative proteins",
+    "x": 44.45,
+    "y": 40.05,
+    "value": 1.13
+  },
+  {
+    "domain": "Analog microchips",
+    "geo": "Utrecht (NL31)",
+    "count": 119,
+    "share": 0.0497,
+    "share_d": 0.2159,
+    "rca": 0.23,
+    "reldens": 2.37,
+    "comp": 72.35,
+    "comp_TCI": 79.36,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Analog microchips",
+    "x": 2.37,
+    "y": 72.35,
+    "value": 0.23
+  },
+  {
+    "domain": "ATMPs",
+    "geo": "Utrecht (NL31)",
+    "count": 1262,
+    "share": 0.5274,
+    "share_d": 0.335,
+    "rca": 1.57,
+    "reldens": 58.29,
+    "comp": 76.56,
+    "comp_TCI": 26.71,
+    "parent": "Vergrijzing",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "ATMPs",
+    "x": 58.29,
+    "y": 34.1,
+    "value": 1.57
+  },
+  {
+    "domain": "Batteries",
+    "geo": "Utrecht (NL31)",
+    "count": 136,
+    "share": 0.0568,
+    "share_d": 0.1165,
+    "rca": 0.49,
+    "reldens": 2.01,
+    "comp": 39.7,
+    "comp_TCI": 65.61,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Batteries",
+    "x": 2.01,
+    "y": 39.7,
+    "value": 0.49
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Utrecht (NL31)",
+    "count": 203,
+    "share": 0.0848,
+    "share_d": 0.1509,
+    "rca": 0.56,
+    "reldens": 33.31,
+    "comp": 14.79,
+    "comp_TCI": 70.78,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Biofuels",
+    "x": 33.31,
+    "y": 14.79,
+    "value": 0.56
+  },
+  {
+    "domain": "Chip machines",
+    "geo": "Utrecht (NL31)",
+    "count": 15,
+    "share": 0.0063,
+    "share_d": 0.0326,
+    "rca": 0.19,
+    "reldens": 12.87,
+    "comp": 49.94,
+    "comp_TCI": 64.09,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Chip machines",
+    "x": 12.87,
+    "y": 49.94,
+    "value": 0.19
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Utrecht (NL31)",
+    "count": 138,
+    "share": 0.0577,
+    "share_d": 0.1578,
+    "rca": 0.37,
+    "reldens": 4.8,
+    "comp": 33.22,
+    "comp_TCI": 71.17,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Cybersecurity",
+    "x": 4.8,
+    "y": 33.22,
+    "value": 0.37
+  },
+  {
+    "domain": "Digital platforms",
+    "geo": "Utrecht (NL31)",
+    "count": 225,
+    "share": 0.094,
+    "share_d": 0.1693,
+    "rca": 0.56,
+    "reldens": 43.51,
+    "comp": 18.66,
+    "comp_TCI": 63.81,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital platforms",
+    "x": 43.51,
+    "y": 18.66,
+    "value": 0.56
+  },
+  {
+    "domain": "E-buses",
+    "geo": "Utrecht (NL31)",
+    "count": 7,
+    "share": 0.0029,
+    "share_d": 0.0262,
+    "rca": 0.11,
+    "reldens": 0.69,
+    "comp": 34.93,
+    "comp_TCI": 77.85,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "E-buses",
+    "x": 0.69,
+    "y": 34.93,
+    "value": 0.11
+  },
+  {
+    "domain": "EV charging",
+    "geo": "Utrecht (NL31)",
+    "count": 102,
+    "share": 0.0426,
+    "share_d": 0.1124,
+    "rca": 0.38,
+    "reldens": 3.82,
+    "comp": 27.65,
+    "comp_TCI": 70.53,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "EV charging",
+    "x": 3.82,
+    "y": 27.65,
+    "value": 0.38
+  },
+  {
+    "domain": "Hydrogen hubs",
+    "geo": "Utrecht (NL31)",
+    "count": 124,
+    "share": 0.0518,
+    "share_d": 0.2228,
+    "rca": 0.23,
+    "reldens": 1.7,
+    "comp": 67.01,
+    "comp_TCI": 76.32,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Hydrogen hubs",
+    "x": 1.7,
+    "y": 67.01,
+    "value": 0.23
+  },
+  {
+    "domain": "Laser satellite communication",
+    "geo": "Utrecht (NL31)",
+    "count": 4,
+    "share": 0.0017,
+    "share_d": 0.0163,
+    "rca": 0.1,
+    "reldens": 2.41,
+    "comp": 51.08,
+    "comp_TCI": 66.27,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Laser satellite communication",
+    "x": 2.41,
+    "y": 51.08,
+    "value": 0.1
+  },
+  {
+    "domain": "Medical imaging",
+    "geo": "Utrecht (NL31)",
+    "count": 1273,
+    "share": 0.532,
+    "share_d": 0.3504,
+    "rca": 1.52,
+    "reldens": 71.89,
+    "comp": 78.61,
+    "comp_TCI": 18.71,
+    "parent": "Vergrijzing",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Medical imaging",
+    "x": 71.89,
+    "y": 78.61,
+    "value": 1.52
+  },
+  {
+    "domain": "Offshore Engineering",
+    "geo": "Utrecht (NL31)",
+    "count": 24,
+    "share": 0.01,
+    "share_d": 0.0156,
+    "rca": 0.64,
+    "reldens": 21.15,
+    "comp": 46.76,
+    "comp_TCI": 37.49,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Offshore Engineering",
+    "x": 21.15,
+    "y": 46.76,
+    "value": 0.64
+  },
+  {
+    "domain": "Photonic microchips",
+    "geo": "Utrecht (NL31)",
+    "count": 29,
+    "share": 0.0121,
+    "share_d": 0.0656,
+    "rca": 0.18,
+    "reldens": 0.47,
+    "comp": 55.63,
+    "comp_TCI": 72.78,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Photonic microchips",
+    "x": 0.47,
+    "y": 55.63,
+    "value": 0.18
+  },
+  {
+    "domain": "Quantum communication",
+    "geo": "Utrecht (NL31)",
+    "count": 52,
+    "share": 0.0217,
+    "share_d": 0.1072,
+    "rca": 0.2,
+    "reldens": 0.78,
+    "comp": 63.25,
+    "comp_TCI": 65.82,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Quantum communication",
+    "x": 0.78,
+    "y": 63.25,
+    "value": 0.2
+  },
+  {
+    "domain": "Quantum computing",
+    "geo": "Utrecht (NL31)",
+    "count": 127,
+    "share": 0.0531,
+    "share_d": 0.1543,
+    "rca": 0.34,
+    "reldens": 2.47,
+    "comp": 72.58,
+    "comp_TCI": 73.05,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Quantum computing",
+    "x": 2.47,
+    "y": 72.58,
+    "value": 0.34
+  },
+  {
+    "domain": "Quantum sensors",
+    "geo": "Utrecht (NL31)",
+    "count": 268,
+    "share": 0.112,
+    "share_d": 0.2102,
+    "rca": 0.53,
+    "reldens": 2.58,
+    "comp": 64.96,
+    "comp_TCI": 70.93,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Quantum sensors",
+    "x": 2.58,
+    "y": 64.96,
+    "value": 0.53
+  },
+  {
+    "domain": "Radar systems",
+    "geo": "Utrecht (NL31)",
+    "count": 22,
+    "share": 0.0092,
+    "share_d": 0.061,
+    "rca": 0.15,
+    "reldens": 3.73,
+    "comp": 48.69,
+    "comp_TCI": 62.88,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Radar systems",
+    "x": 3.73,
+    "y": 48.69,
+    "value": 0.15
+  },
+  {
+    "domain": "SAAS",
+    "geo": "Utrecht (NL31)",
+    "count": 192,
+    "share": 0.0802,
+    "share_d": 0.0949,
+    "rca": 0.85,
+    "reldens": 9.17,
+    "comp": 40.84,
+    "comp_TCI": 65.91,
+    "parent": "Digitalisering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "SAAS",
+    "x": 9.17,
+    "y": 40.84,
+    "value": 0.85
+  },
+  {
+    "domain": "Smart grids",
+    "geo": "Utrecht (NL31)",
+    "count": 136,
+    "share": 0.0568,
+    "share_d": 0.1165,
+    "rca": 0.49,
+    "reldens": 2.01,
+    "comp": 39.7,
+    "comp_TCI": 65.61,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Smart grids",
+    "x": 2.01,
+    "y": 31.1,
+    "value": 0.49
+  },
+  {
+    "domain": "Solar panels",
+    "geo": "Utrecht (NL31)",
+    "count": 122,
+    "share": 0.051,
+    "share_d": 0.1174,
+    "rca": 0.43,
+    "reldens": 11.84,
+    "comp": 18.89,
+    "comp_TCI": 74.06,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Solar panels",
+    "x": 11.84,
+    "y": 18.89,
+    "value": 0.43
+  },
+  {
+    "domain": "Sustainable materials",
+    "geo": "Utrecht (NL31)",
+    "count": 634,
+    "share": 0.265,
+    "share_d": 0.465,
+    "rca": 0.57,
+    "reldens": 21.15,
+    "comp": 44.94,
+    "comp_TCI": 81.05,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Sustainable materials",
+    "x": 21.15,
+    "y": 44.94,
+    "value": 0.57
+  },
+  {
+    "domain": "Targeted nutrition",
+    "geo": "Utrecht (NL31)",
+    "count": 1086,
+    "share": 0.4539,
+    "share_d": 0.3347,
+    "rca": 1.36,
+    "reldens": 89.5,
+    "comp": 52.33,
+    "comp_TCI": 10.37,
+    "parent": "Toename wereldbevolking",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Targeted nutrition",
+    "x": 89.5,
+    "y": 52.33,
+    "value": 1.36
+  },
+  {
+    "domain": "Water treatment",
+    "geo": "Utrecht (NL31)",
+    "count": 273,
+    "share": 0.1141,
+    "share_d": 0.0861,
+    "rca": 1.33,
+    "reldens": 55.46,
+    "comp": 16.15,
+    "comp_TCI": 62.27,
+    "parent": "Verduurzaming",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Water treatment",
+    "x": 55.46,
+    "y": 16.15,
+    "value": 1.33
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

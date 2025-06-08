@@ -1,67 +1,39 @@
-
 <!doctype html>
 <html>
-
 <head>
-
-  <meta charset="utf-8">
-  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
-
-
-
-  <style>
-
- 
-
-    body {
-      margin: 0;
-      overflow: hidden;
-    }
-
-    .tooltip-table {
-      width: 100%;
-    }
-    
-    .tooltip-table .data {
-      text-align: right;
-    }
-    
-    .tooltip-footer {
-      opacity: 0.5;
-    }
-
-     tspan {
-    font-family: "Helvetica", "Arial", sans-serif;
-    font-size: 100px;
-    font-style: oblique;
-  }
-  </style>
-
-
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+</style>
 </head>
-
-<body></body>
-
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
 <script>
-function median(values) {
-
-if (values.length === 0) {
-  throw new Error('Input array is empty');
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
 }
-
-// Sorting values, preventing original array
-// from being mutated.
-values = [...values].sort((a, b) => a - b);
-
-const half = Math.floor(values.length / 2);
-
-return (values.length % 2
-  ? values[half]
-  : (values[half - 1] + values[half]) / 2
-);
-
-}
-  var data = [
+var data= [
   {
     "domain": "6G",
     "geo": "Groningen (NL11)",
@@ -74,7 +46,7 @@ return (values.length % 2
     "comp_TCI": 59.32,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#A44949",
     "id": "6G",
     "x": 1.1,
     "y": 56.09,
@@ -92,7 +64,7 @@ return (values.length % 2
     "comp_TCI": 74,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "#CFC8C8",
     "id": "Advanced chemistry",
     "x": 28.58,
     "y": 72.01,
@@ -110,7 +82,7 @@ return (values.length % 2
     "comp_TCI": 63.88,
     "parent": "Toename wereldbevolking",
     "color2": "#e28f26",
-    "color": "#e28f26",
+    "color": "#BC9191",
     "id": "Agricultural breeding",
     "x": 17.26,
     "y": 48.92,
@@ -128,7 +100,7 @@ return (values.length % 2
     "comp_TCI": 85.01,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#A64F4F",
     "id": "Agrifood machines",
     "x": 20.42,
     "y": 38.91,
@@ -146,7 +118,7 @@ return (values.length % 2
     "comp_TCI": 76.51,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#C5ABAB",
     "id": "AI & big data",
     "x": 19.2,
     "y": 64.51,
@@ -164,7 +136,7 @@ return (values.length % 2
     "comp_TCI": 62.22,
     "parent": "Toename wereldbevolking",
     "color2": "#e28f26",
-    "color": "#e28f26",
+    "color": "#B7C5B7",
     "id": "Alternative proteins",
     "x": 39.46,
     "y": 40.05,
@@ -182,7 +154,7 @@ return (values.length % 2
     "comp_TCI": 79.36,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#BC9191",
     "id": "Analog microchips",
     "x": 3.15,
     "y": 72.35,
@@ -200,10 +172,10 @@ return (values.length % 2
     "comp_TCI": 26.71,
     "parent": "Vergrijzing",
     "color2": "#800020",
-    "color": "#800020",
+    "color": "#B1C1B1",
     "id": "ATMPs",
     "x": 69.65,
-    "y": 34.1,
+    "y": 76.56,
     "value": 1.06
   },
   {
@@ -218,7 +190,7 @@ return (values.length % 2
     "comp_TCI": 65.61,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "#C9B7B7",
     "id": "Batteries",
     "x": 6.05,
     "y": 39.7,
@@ -236,7 +208,7 @@ return (values.length % 2
     "comp_TCI": 70.78,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "#CDC3C3",
     "id": "Biofuels",
     "x": 15.38,
     "y": 14.79,
@@ -254,7 +226,7 @@ return (values.length % 2
     "comp_TCI": 64.09,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#B67F7F",
     "id": "Chip machines",
     "x": 9.25,
     "y": 49.94,
@@ -272,7 +244,7 @@ return (values.length % 2
     "comp_TCI": 71.17,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#B78080",
     "id": "Cybersecurity",
     "x": 5.19,
     "y": 33.22,
@@ -290,7 +262,7 @@ return (values.length % 2
     "comp_TCI": 63.81,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#C3A3A3",
     "id": "Digital platforms",
     "x": 46.14,
     "y": 18.66,
@@ -307,7 +279,7 @@ return (values.length % 2
     "comp_TCI": 77.85,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "darkred",
     "id": "E-buses",
     "x": 1.32,
     "y": 34.93,
@@ -325,7 +297,7 @@ return (values.length % 2
     "comp_TCI": 70.53,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "#BB8C8C",
     "id": "EV charging",
     "x": 5.07,
     "y": 27.65,
@@ -343,7 +315,7 @@ return (values.length % 2
     "comp_TCI": 76.32,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "#B06C6C",
     "id": "Hydrogen hubs",
     "x": 3.44,
     "y": 67.01,
@@ -361,7 +333,7 @@ return (values.length % 2
     "comp_TCI": 66.27,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#AE6565",
     "id": "Laser satellite communication",
     "x": 29.59,
     "y": 51.08,
@@ -379,7 +351,7 @@ return (values.length % 2
     "comp_TCI": 18.71,
     "parent": "Vergrijzing",
     "color2": "#800020",
-    "color": "#800020",
+    "color": "#5C945C",
     "id": "Medical imaging",
     "x": 75.33,
     "y": 78.61,
@@ -397,7 +369,7 @@ return (values.length % 2
     "comp_TCI": 37.49,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "#89AC89",
     "id": "Offshore Engineering",
     "x": 5.52,
     "y": 46.76,
@@ -415,7 +387,7 @@ return (values.length % 2
     "comp_TCI": 72.78,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#A85454",
     "id": "Photonic microchips",
     "x": 3.07,
     "y": 55.63,
@@ -433,7 +405,7 @@ return (values.length % 2
     "comp_TCI": 65.82,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#B67D7D",
     "id": "Quantum communication",
     "x": 1.46,
     "y": 63.25,
@@ -451,7 +423,7 @@ return (values.length % 2
     "comp_TCI": 73.05,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#B47777",
     "id": "Quantum computing",
     "x": 2.98,
     "y": 72.58,
@@ -469,7 +441,7 @@ return (values.length % 2
     "comp_TCI": 70.93,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#CFC7C7",
     "id": "Quantum sensors",
     "x": 3.23,
     "y": 64.96,
@@ -487,7 +459,7 @@ return (values.length % 2
     "comp_TCI": 62.88,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#A13F3F",
     "id": "Radar systems",
     "x": 1.99,
     "y": 48.69,
@@ -505,7 +477,7 @@ return (values.length % 2
     "comp_TCI": 65.91,
     "parent": "Digitalisering",
     "color2": "#365a94",
-    "color": "#365a94",
+    "color": "#84A984",
     "id": "SAAS",
     "x": 5.24,
     "y": 40.84,
@@ -523,10 +495,10 @@ return (values.length % 2
     "comp_TCI": 65.61,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "#C9B7B7",
     "id": "Smart grids",
     "x": 6.05,
-    "y": 31.1,
+    "y": 39.7,
     "value": 0.75
   },
   {
@@ -541,7 +513,7 @@ return (values.length % 2
     "comp_TCI": 74.06,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "#C6AEAE",
     "id": "Solar panels",
     "x": 6.98,
     "y": 18.89,
@@ -559,7 +531,7 @@ return (values.length % 2
     "comp_TCI": 81.05,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "#CEC5C5",
     "id": "Sustainable materials",
     "x": 42.25,
     "y": 44.94,
@@ -577,7 +549,7 @@ return (values.length % 2
     "comp_TCI": 10.37,
     "parent": "Toename wereldbevolking",
     "color2": "#e28f26",
-    "color": "#e28f26",
+    "color": "#689B68",
     "id": "Targeted nutrition",
     "x": 89.49,
     "y": 52.33,
@@ -595,137 +567,67 @@ return (values.length % 2
     "comp_TCI": 62.27,
     "parent": "Verduurzaming",
     "color2": "#8cab79",
-    "color": "#8cab79",
+    "color": "#B27474",
     "id": "Water treatment",
     "x": 4.61,
     "y": 16.15,
     "value": 0.3
   }
-] 
-;
-  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
-  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
-  const medianX = median(xValues);
-  const medianY = median(yValues);
+] ;
 
-  const customXDomain = [11, 83]
-  const minX = customXDomain[0] || Math.min(...xValues)
-  const minY = Math.min(...yValues) - 1
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,104];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
 
-  const maxX = customXDomain[1] || Math.max(...xValues)
-  const maxY = Math.max(...yValues) + 2
-  
-
-  new d3plus.Plot()
-    .data(data)
-    .annotations([
-      {
-        "data": [
-          {
-            "id": "Trend",
-            "x": medianX,
-            "y": minY
-          },
-          {
-            "id": "Trend",
-            "x": medianX,
-            "y": maxY
-          },
-          {
-            "id": "Baseline",
-            "x": minX,
-            "y": medianY
-          },
-          {
-            "id": "Baseline",
-            "x": maxX,
-            "y": medianY
-          }
-        ],
-        "shape": "Line",
-        "stroke": d => '#c3c3c3',
-        "strokeDasharray": "10",
-        "strokeWidth": 2
-      }
-    ])
-    .groupBy(["parent", "id"])
-    .tooltipConfig({
-      body: function(d) {
-        var table = "<table class='tooltip-table'>";
-        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
-        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
-        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
-        table += "</table>";
-        return table;
-      },
-      title: function(d) {
-        var txt = d.id;
-        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
-      }
-    })
-    .size("value")
-    .color("color")
-    .sizeMin(15)
-    .label(function(d){ 
-      return d.id instanceof Array ? d.parent : d.id
-    })
-    .sizeMax(35)
-    .shapeConfig({
-      label(d){
-        return d.id
-      }, 
-      Circle: {
-        labelConfig: {
-          fontColor: "#000",
-          fontSize: 15,
-          textAnchor: "start",
-          verticalAlign: "middle"
-        },
-        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
-      },
-    })
-    .yConfig({
-      title: "Complexity",
-      titleConfig: {
-        fontSize: function(d){ return 16}
-      },
-      gridConfig: {
-        stroke: "transparent"
-      },
-      shapeConfig: {
-        labelConfig: {
-          fontSize: function(d){ return 16}
-        },
-      }
-    })
-    .xDomain(customXDomain)
-    .xConfig({
-      title: "Relatedness Density",
-      titleConfig: {
-        fontSize: function(d){ return 16}
-      },
-      gridConfig: {
-        stroke: "transparent"
-      },
-      shapeConfig: {
-        labelConfig: {
-          fontSize: function(d){ return 16}
-        }
-      }
-    })
-    .legendConfig({
-      shapeConfig: {
-        width: 24,
-        height: 24,
-        labelConfig: {
-          fontSize: function(d){ return 22}
-        }
-      }
-    })
-    .downloadButton(true)
-    .downloadConfig({type: "png"})
-    .render();
-
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+    body:d=>`<table class='tooltip-table'>
+      <tr><td class='title'>RCA:</td><td class='data'>${d.rca}</td></tr>
+      <tr><td class='title'>Relatedness Density:</td><td class='data'>${d.x}</td></tr>
+      <tr><td class='title'>Complexity:</td><td class='data'>${d.y}</td></tr>
+    </table>`,
+    title:d=>d.id.charAt(0).toUpperCase()+d.id.substr(1).toLowerCase()
+  })
+  .size("value")
+  .sizeMin(10)
+  .sizeMax(35)
+  .color("color")
+  .label(d=>d.id)
+  .shapeConfig({
+    label:d=>d.id,
+    Circle:{
+      labelConfig:{fontColor:"#000",fontSize:15,textAnchor:"start",verticalAlign:"middle"},
+      labelBounds:(d,i,s)=>({width:200,height:30,x:s.r-2,y:-15})
+    }
+  })
+  .yConfig({
+    title:"Complexity",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Relatedness Density",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(true)
+  .downloadConfig({type:"png"})
+  .render();
 </script>
-
+</body>
 </html>

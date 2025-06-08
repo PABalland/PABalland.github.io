@@ -1,0 +1,829 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+function median(values) {
+
+if (values.length === 0) {
+  throw new Error('Input array is empty');
+}
+
+// Sorting values, preventing original array
+// from being mutated.
+values = [...values].sort((a, b) => a - b);
+
+const half = Math.floor(values.length / 2);
+
+return (values.length % 2
+  ? values[half]
+  : (values[half - 1] + values[half]) / 2
+);
+
+}
+  var data = [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "share": 0.8547,
+    "share_d": 1.1531,
+    "rca": 0.74,
+    "reldens": 61.35,
+    "comp": 0,
+    "comp_TCI": 24.98,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Analysis of biological materials",
+    "x": 61.35,
+    "y": 0,
+    "value": 0.74
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Flevoland (NL23)",
+    "count": 3,
+    "share": 2.5641,
+    "share_d": 1.7355,
+    "rca": 1.48,
+    "reldens": 27.5,
+    "comp": 52.54,
+    "comp_TCI": 62.93,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Audio-visual technology",
+    "x": 27.5,
+    "y": 52.54,
+    "value": 1.48
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 28.86,
+    "comp": 40.68,
+    "comp_TCI": 62.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Basic communication processes",
+    "x": 28.86,
+    "y": 40.68,
+    "value": 0
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Flevoland (NL23)",
+    "count": 3,
+    "share": 2.5641,
+    "share_d": 2.9536,
+    "rca": 0.87,
+    "reldens": 50.11,
+    "comp": 50,
+    "comp_TCI": 3.16,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Basic materials chemistry",
+    "x": 50.11,
+    "y": 50,
+    "value": 0.87
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Flevoland (NL23)",
+    "count": 4,
+    "share": 3.4188,
+    "share_d": 3.4301,
+    "rca": 1,
+    "reldens": 63.62,
+    "comp": 47.46,
+    "comp_TCI": 24.75,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Biotechnology",
+    "x": 63.62,
+    "y": 47.46,
+    "value": 1
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Flevoland (NL23)",
+    "count": 4,
+    "share": 3.4188,
+    "share_d": 3.1167,
+    "rca": 1.1,
+    "reldens": 53.81,
+    "comp": 33.9,
+    "comp_TCI": 14.06,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Chemical engineering",
+    "x": 53.81,
+    "y": 33.9,
+    "value": 1.1
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Flevoland (NL23)",
+    "count": 7,
+    "share": 5.9829,
+    "share_d": 2.5049,
+    "rca": 2.39,
+    "reldens": 48.98,
+    "comp": 22.03,
+    "comp_TCI": 20.41,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Civil engineering",
+    "x": 48.98,
+    "y": 22.03,
+    "value": 2.39
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 28.18,
+    "comp": 81.36,
+    "comp_TCI": 71.83,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Computer technology",
+    "x": 28.18,
+    "y": 81.36,
+    "value": 0
+  },
+  {
+    "domain": "Control",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 31.53,
+    "comp": 44.07,
+    "comp_TCI": 40.52,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Control",
+    "x": 31.53,
+    "y": 44.07,
+    "value": 0
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 16.42,
+    "comp": 100,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Digital communication",
+    "x": 16.42,
+    "y": 100,
+    "value": 0
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 56.35,
+    "comp": 93.22,
+    "comp_TCI": 26.35,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 56.35,
+    "y": 93.22,
+    "value": 0
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Flevoland (NL23)",
+    "count": 5,
+    "share": 4.2735,
+    "share_d": 2.3736,
+    "rca": 1.8,
+    "reldens": 66.43,
+    "comp": 48.31,
+    "comp_TCI": 28.93,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Engines, pumps, turbines",
+    "x": 66.43,
+    "y": 48.31,
+    "value": 1.8
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Flevoland (NL23)",
+    "count": 3,
+    "share": 2.5641,
+    "share_d": 1.3762,
+    "rca": 1.86,
+    "reldens": 65.95,
+    "comp": 0,
+    "comp_TCI": 21.28,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Environmental technology",
+    "x": 65.95,
+    "y": 0,
+    "value": 1.86
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Flevoland (NL23)",
+    "count": 9,
+    "share": 7.6923,
+    "share_d": 1.2362,
+    "rca": 6.22,
+    "reldens": 70.52,
+    "comp": 7.63,
+    "comp_TCI": 17.42,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Food chemistry",
+    "x": 70.52,
+    "y": 7.63,
+    "value": 6.22
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 53,
+    "comp": 11.86,
+    "comp_TCI": 30.31,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Furniture, games",
+    "x": 53,
+    "y": 11.86,
+    "value": 0
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Flevoland (NL23)",
+    "count": 9,
+    "share": 7.6923,
+    "share_d": 5.8685,
+    "rca": 1.31,
+    "reldens": 43.37,
+    "comp": 67.8,
+    "comp_TCI": 20.74,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Green technologies",
+    "x": 43.37,
+    "y": 67.8,
+    "value": 1.31
+  },
+  {
+    "domain": "Handling",
+    "geo": "Flevoland (NL23)",
+    "count": 9,
+    "share": 7.6923,
+    "share_d": 2.8787,
+    "rca": 2.67,
+    "reldens": 42.02,
+    "comp": 42.37,
+    "comp_TCI": 15.58,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Handling",
+    "x": 42.02,
+    "y": 42.37,
+    "value": 2.67
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 18.85,
+    "comp": 13.56,
+    "comp_TCI": 48.1,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "IT methods for management",
+    "x": 18.85,
+    "y": 13.56,
+    "value": 0
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Flevoland (NL23)",
+    "count": 2,
+    "share": 1.7094,
+    "share_d": 2.0081,
+    "rca": 0.85,
+    "reldens": 58.57,
+    "comp": 50,
+    "comp_TCI": 15.64,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Machine tools",
+    "x": 58.57,
+    "y": 50,
+    "value": 0.85
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 49.7,
+    "comp": 64.41,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Macromolecular chemistry, polymers",
+    "x": 49.7,
+    "y": 64.41,
+    "value": 0
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "share": 0.8547,
+    "share_d": 2.364,
+    "rca": 0.36,
+    "reldens": 63.46,
+    "comp": 46.61,
+    "comp_TCI": 10.8,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Materials, metallurgy",
+    "x": 63.46,
+    "y": 46.61,
+    "value": 0.36
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "share": 0.8547,
+    "share_d": 5.0358,
+    "rca": 0.17,
+    "reldens": 34.73,
+    "comp": 70.34,
+    "comp_TCI": 47.5,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Measurement",
+    "x": 34.73,
+    "y": 70.34,
+    "value": 0.17
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Flevoland (NL23)",
+    "count": 8,
+    "share": 6.8376,
+    "share_d": 3.0346,
+    "rca": 2.25,
+    "reldens": 50.7,
+    "comp": 66.95,
+    "comp_TCI": 24.01,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Mechanical elements",
+    "x": 50.7,
+    "y": 66.95,
+    "value": 2.25
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Flevoland (NL23)",
+    "count": 3,
+    "share": 2.5641,
+    "share_d": 5.3576,
+    "rca": 0.48,
+    "reldens": 45.67,
+    "comp": 54.24,
+    "comp_TCI": 31.8,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Medical technology",
+    "x": 45.67,
+    "y": 54.24,
+    "value": 0.48
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "share": 0.8547,
+    "share_d": 0.279,
+    "rca": 3.06,
+    "reldens": 40.99,
+    "comp": 21.19,
+    "comp_TCI": 28.13,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Micro-structural and nano-technology",
+    "x": 40.99,
+    "y": 21.19,
+    "value": 3.06
+  },
+  {
+    "domain": "Optics",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 45.43,
+    "comp": 59.32,
+    "comp_TCI": 43.26,
+    "parent": "Instruments",
+    "color2": "#8cab79",
+    "color": "#8cab79",
+    "id": "Optics",
+    "x": 45.43,
+    "y": 59.32,
+    "value": 0
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "share": 0.8547,
+    "share_d": 3.0906,
+    "rca": 0.28,
+    "reldens": 72.22,
+    "comp": 45.76,
+    "comp_TCI": 17.54,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Organic fine chemistry",
+    "x": 72.22,
+    "y": 45.76,
+    "value": 0.28
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Flevoland (NL23)",
+    "count": 3,
+    "share": 2.5641,
+    "share_d": 2.2885,
+    "rca": 1.12,
+    "reldens": 41.45,
+    "comp": 53.39,
+    "comp_TCI": 22.33,
+    "parent": "Other fields",
+    "color2": "#e28f26",
+    "color": "#e28f26",
+    "id": "Other consumer goods",
+    "x": 41.45,
+    "y": 53.39,
+    "value": 1.12
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Flevoland (NL23)",
+    "count": 13,
+    "share": 11.1111,
+    "share_d": 4.2299,
+    "rca": 2.63,
+    "reldens": 44.46,
+    "comp": 40.68,
+    "comp_TCI": 6.57,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Other special machines",
+    "x": 44.46,
+    "y": 40.68,
+    "value": 2.63
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Flevoland (NL23)",
+    "count": 6,
+    "share": 5.1282,
+    "share_d": 4.4747,
+    "rca": 1.15,
+    "reldens": 56.34,
+    "comp": 37.29,
+    "comp_TCI": 27.42,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Pharmaceuticals",
+    "x": 56.34,
+    "y": 37.29,
+    "value": 1.15
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Flevoland (NL23)",
+    "count": 5,
+    "share": 4.2735,
+    "share_d": 0.9885,
+    "rca": 4.32,
+    "reldens": 41.06,
+    "comp": 45.76,
+    "comp_TCI": 40.68,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Semiconductors",
+    "x": 41.06,
+    "y": 45.76,
+    "value": 4.32
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Flevoland (NL23)",
+    "count": 9,
+    "share": 7.6923,
+    "share_d": 2.0523,
+    "rca": 3.75,
+    "reldens": 46.81,
+    "comp": 48.31,
+    "comp_TCI": 2.49,
+    "parent": "Chemistry",
+    "color2": "#800020",
+    "color": "#800020",
+    "id": "Surface technology, coating",
+    "x": 46.81,
+    "y": 48.31,
+    "value": 3.75
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 21.77,
+    "comp": 64.41,
+    "comp_TCI": 84.65,
+    "parent": "Electrical engineering",
+    "color2": "#365a94",
+    "color": "#365a94",
+    "id": "Telecommunications",
+    "x": 21.77,
+    "y": 64.41,
+    "value": 0
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "share": 0,
+    "rca": 0,
+    "reldens": 56.65,
+    "comp": 24.58,
+    "comp_TCI": 12.36,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Textile and paper machines",
+    "x": 56.65,
+    "y": 24.58,
+    "value": 0
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Flevoland (NL23)",
+    "count": 3,
+    "share": 2.5641,
+    "share_d": 1.3639,
+    "rca": 1.88,
+    "reldens": 61.63,
+    "comp": 9.32,
+    "comp_TCI": 23.25,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Thermal processes and apparatus",
+    "x": 61.63,
+    "y": 9.32,
+    "value": 1.88
+  },
+  {
+    "domain": "Transport",
+    "geo": "Flevoland (NL23)",
+    "count": 4,
+    "share": 3.4188,
+    "share_d": 5.7721,
+    "rca": 0.59,
+    "reldens": 50.96,
+    "comp": 88.14,
+    "comp_TCI": 36.01,
+    "parent": "Mechanical engineering",
+    "color2": "#EEDC82",
+    "color": "#EEDC82",
+    "id": "Transport",
+    "x": 50.96,
+    "y": 88.14,
+    "value": 0.59
+  }
+] 
+;
+  const xValues = data.map(d => d.x).filter(d => Number.isFinite(d))
+  const yValues = data.map(d => d.y).filter(d => Number.isFinite(d))
+  const medianX = median(xValues);
+  const medianY = median(yValues);
+
+  const customXDomain = [11, 83]
+  const minX = customXDomain[0] || Math.min(...xValues)
+  const minY = Math.min(...yValues) - 1
+
+  const maxX = customXDomain[1] || Math.max(...xValues)
+  const maxY = Math.max(...yValues) + 2
+  
+
+  new d3plus.Plot()
+    .data(data)
+    .annotations([
+      {
+        "data": [
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": minY
+          },
+          {
+            "id": "Trend",
+            "x": medianX,
+            "y": maxY
+          },
+          {
+            "id": "Baseline",
+            "x": minX,
+            "y": medianY
+          },
+          {
+            "id": "Baseline",
+            "x": maxX,
+            "y": medianY
+          }
+        ],
+        "shape": "Line",
+        "stroke": d => '#c3c3c3',
+        "strokeDasharray": "10",
+        "strokeWidth": 2
+      }
+    ])
+    .groupBy(["parent", "id"])
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.value + "</td></tr>";
+        table += "<tr><td class='title'>Relatedness Density:</td><td class='data'>" + d.x + "</td></tr>";
+        table += "<tr><td class='title'>Complexity:</td><td class='data'>" + d.y + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .size("value")
+    .color("color")
+    .sizeMin(15)
+    .label(function(d){ 
+      return d.id instanceof Array ? d.parent : d.id
+    })
+    .sizeMax(35)
+    .shapeConfig({
+      label(d){
+        return d.id
+      }, 
+      Circle: {
+        labelConfig: {
+          fontColor: "#000",
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds: (d, i, s) => ({width: 200, height: 30, x: s.r - 2, y: -15})
+      },
+    })
+    .yConfig({
+      title: "Complexity",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        },
+      }
+    })
+    .xDomain(customXDomain)
+    .xConfig({
+      title: "Relatedness Density",
+      titleConfig: {
+        fontSize: function(d){ return 16}
+      },
+      gridConfig: {
+        stroke: "transparent"
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16}
+        }
+      }
+    })
+    .legendConfig({
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

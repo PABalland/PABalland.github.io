@@ -1,0 +1,454 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+var data= [
+  {
+    "id": "Analysis of biological materials",
+    "x": 63.14,
+    "y": 24.98,
+    "color2": "#8cab79",
+    "rca": 1.09,
+    "color": "#AABEAA",
+    "value": 0.5,
+    "rca_pub": 1.09
+  },
+  {
+    "id": "Audio-visual technology",
+    "x": 30.37,
+    "y": 62.93,
+    "color2": "#365a94",
+    "rca": 1.09,
+    "color": "#AABEAA",
+    "value": 0.5,
+    "rca_pub": 1.09
+  },
+  {
+    "id": "Basic communication processes",
+    "x": 20.96,
+    "y": 62.83,
+    "color2": "#365a94",
+    "rca": 1.15,
+    "color": "#9FB89F",
+    "value": 0.5,
+    "rca_pub": 1.15
+  },
+  {
+    "id": "Basic materials chemistry",
+    "x": 63.07,
+    "y": 3.16,
+    "color2": "#800020",
+    "rca": 0.45,
+    "color": "#BB8E8E",
+    "value": 0.5,
+    "rca_pub": 0.45
+  },
+  {
+    "id": "Biotechnology",
+    "x": 87.39,
+    "y": 24.75,
+    "color2": "#800020",
+    "rca": 1.13,
+    "color": "#A2B9A2",
+    "value": 0.5,
+    "rca_pub": 1.13
+  },
+  {
+    "id": "Chemical engineering",
+    "x": 61.85,
+    "y": 14.06,
+    "color2": "#800020",
+    "rca": 0.4,
+    "color": "#B98585",
+    "value": 0.5,
+    "rca_pub": 0.4
+  },
+  {
+    "id": "Civil engineering",
+    "x": 38.07,
+    "y": 20.41,
+    "color2": "#e28f26",
+    "rca": 0.52,
+    "color": "#BF9898",
+    "value": 0.5,
+    "rca_pub": 0.52
+  },
+  {
+    "id": "Computer technology",
+    "x": 14.36,
+    "y": 71.83,
+    "color2": "#365a94",
+    "rca": 1.14,
+    "color": "#A1B9A1",
+    "value": 0.5,
+    "rca_pub": 1.14
+  },
+  {
+    "id": "Control",
+    "x": 36.44,
+    "y": 40.52,
+    "color2": "#8cab79",
+    "rca": 0.16,
+    "color": "#A85454",
+    "value": 0.5,
+    "rca_pub": 0.16
+  },
+  {
+    "id": "Digital communication",
+    "x": 30.73,
+    "y": 100,
+    "color2": "#365a94",
+    "rca": 0.49,
+    "color": "#BD9494",
+    "value": 0.5,
+    "rca_pub": 0.49
+  },
+  {
+    "id": "Electrical machinery, apparatus, energy",
+    "x": 44.04,
+    "y": 26.35,
+    "color2": "#365a94",
+    "rca": 0.24,
+    "color": "#AE6767",
+    "value": 0.5,
+    "rca_pub": 0.24
+  },
+  {
+    "id": "Engines, pumps, turbines",
+    "x": 44.19,
+    "y": 28.93,
+    "color2": "#EEDC82",
+    "rca": 0.44,
+    "color": "#BB8C8C",
+    "value": 0.5,
+    "rca_pub": 0.44
+  },
+  {
+    "id": "Environmental technology",
+    "x": 62.52,
+    "y": 21.28,
+    "color2": "#800020",
+    "rca": 0.7,
+    "color": "#C7B1B1",
+    "value": 0.5,
+    "rca_pub": 0.7
+  },
+  {
+    "id": "Food chemistry",
+    "x": 81.93,
+    "y": 17.42,
+    "color2": "#800020",
+    "rca": 0.69,
+    "color": "#C7AFAF",
+    "value": 0.5,
+    "rca_pub": 0.69
+  },
+  {
+    "id": "Furniture, games",
+    "x": 36.42,
+    "y": 30.31,
+    "color2": "#e28f26",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Green technologies",
+    "x": 39.22,
+    "y": 20.74,
+    "color2": "#e28f26",
+    "rca": 0.83,
+    "color": "#CDC0C0",
+    "value": 0.5,
+    "rca_pub": 0.83
+  },
+  {
+    "id": "Handling",
+    "x": 34.62,
+    "y": 15.58,
+    "color2": "#EEDC82",
+    "rca": 0.41,
+    "color": "#B98787",
+    "value": 0.5,
+    "rca_pub": 0.41
+  },
+  {
+    "id": "IT methods for management",
+    "x": 43.27,
+    "y": 48.1,
+    "color2": "#365a94",
+    "rca": 0.99,
+    "color": "#D3D2D2",
+    "value": 0.5,
+    "rca_pub": 0.99
+  },
+  {
+    "id": "Machine tools",
+    "x": 47.56,
+    "y": 15.64,
+    "color2": "#EEDC82",
+    "rca": 0.07,
+    "color": "#9E3838",
+    "value": 0.5,
+    "rca_pub": 0.07
+  },
+  {
+    "id": "Macromolecular chemistry, polymers",
+    "x": 53.27,
+    "y": 0,
+    "color2": "#800020",
+    "rca": 0.46,
+    "color": "#BC8F8F",
+    "value": 0.5,
+    "rca_pub": 0.46
+  },
+  {
+    "id": "Materials, metallurgy",
+    "x": 50.83,
+    "y": 10.8,
+    "color2": "#800020",
+    "rca": 0.36,
+    "color": "#B67F7F",
+    "value": 0.5,
+    "rca_pub": 0.36
+  },
+  {
+    "id": "Measurement",
+    "x": 40.42,
+    "y": 47.5,
+    "color2": "#8cab79",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Mechanical elements",
+    "x": 37.05,
+    "y": 24.01,
+    "color2": "#EEDC82",
+    "rca": 0.24,
+    "color": "#AE6767",
+    "value": 0.5,
+    "rca_pub": 0.24
+  },
+  {
+    "id": "Medical technology",
+    "x": 52.78,
+    "y": 31.8,
+    "color2": "#8cab79",
+    "rca": 1.44,
+    "color": "#7FA77F",
+    "value": 0.5,
+    "rca_pub": 1.44
+  },
+  {
+    "id": "Micro-structural and nano-technology",
+    "x": 56.54,
+    "y": 28.13,
+    "color2": "#800020",
+    "rca": 0.5,
+    "color": "#BE9595",
+    "value": 0.5,
+    "rca_pub": 0.5
+  },
+  {
+    "id": "Optics",
+    "x": 32.98,
+    "y": 43.26,
+    "color2": "#8cab79",
+    "rca": 1.01,
+    "color": "#C5CCC5",
+    "value": 0.5,
+    "rca_pub": 1.01
+  },
+  {
+    "id": "Organic fine chemistry",
+    "x": 85.02,
+    "y": 17.54,
+    "color2": "#800020",
+    "rca": 0.74,
+    "color": "#C9B6B6",
+    "value": 0.5,
+    "rca_pub": 0.74
+  },
+  {
+    "id": "Other consumer goods",
+    "x": 41.3,
+    "y": 22.33,
+    "color2": "#e28f26",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Other special machines",
+    "x": 63.03,
+    "y": 6.57,
+    "color2": "#EEDC82",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Pharmaceuticals",
+    "x": 89.37,
+    "y": 27.42,
+    "color2": "#800020",
+    "rca": 1.63,
+    "color": "#72A072",
+    "value": 0.5,
+    "rca_pub": 1.63
+  },
+  {
+    "id": "Semiconductors",
+    "x": 43.44,
+    "y": 40.68,
+    "color2": "#365a94",
+    "rca": 0.48,
+    "color": "#BD9292",
+    "value": 0.5,
+    "rca_pub": 0.48
+  },
+  {
+    "id": "Surface technology, coating",
+    "x": 44.8,
+    "y": 2.49,
+    "color2": "#800020",
+    "rca": 0.32,
+    "color": "#B47777",
+    "value": 0.5,
+    "rca_pub": 0.32
+  },
+  {
+    "id": "Telecommunications",
+    "x": 18.26,
+    "y": 84.65,
+    "color2": "#365a94",
+    "rca": 0.11,
+    "color": "#A34646",
+    "value": 0.5,
+    "rca_pub": 0.11
+  },
+  {
+    "id": "Textile and paper machines",
+    "x": 55.85,
+    "y": 12.36,
+    "color2": "#EEDC82",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Thermal processes and apparatus",
+    "x": 47.81,
+    "y": 23.25,
+    "color2": "#EEDC82",
+    "rca": 0.3,
+    "color": "#B27474",
+    "value": 0.5,
+    "rca_pub": 0.3
+  },
+  {
+    "id": "Transport",
+    "x": 33,
+    "y": 36.01,
+    "color2": "#EEDC82",
+    "rca": 0.53,
+    "color": "#BF9A9A",
+    "value": 0.5,
+    "rca_pub": 0.53
+  }
+] ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,104];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+    body:d=>`<table class='tooltip-table'>
+      <tr><td class='title'>RCA:</td><td class='data'>${d.rca}</td></tr>
+      <tr><td class='title'>Relatedness Density:</td><td class='data'>${d.x}</td></tr>
+      <tr><td class='title'>Complexity:</td><td class='data'>${d.y}</td></tr>
+    </table>`,
+    title:d=>d.id.charAt(0).toUpperCase()+d.id.substr(1).toLowerCase()
+  })
+  .size("value")
+  .sizeMin(10)
+  .sizeMax(35)
+  .color("color")
+  .label(d=>d.id)
+  .shapeConfig({
+    label:d=>d.id,
+    Circle:{
+      labelConfig:{fontColor:"#000",fontSize:15,textAnchor:"start",verticalAlign:"middle"},
+      labelBounds:(d,i,s)=>({width:200,height:30,x:s.r-2,y:-15})
+    }
+  })
+  .yConfig({
+    title:"Complexity",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Relatedness Density",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(true)
+  .downloadConfig({type:"png"})
+  .render();
+</script>
+</body>
+</html>
