@@ -1,0 +1,329 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+</div>
+
+<script>
+var data=
+ [
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "China (CN)",
+    "count": 155.2,
+    "rca": 0.52,
+    "share": 5.22,
+    "share_d": 0.1057,
+    "reldens": 9.52,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 1410.71,
+    "parent2": "Asia",
+    "parent3": "no",
+    "pc": 0.11,
+    "parent": "Asia",
+    "color": "#BF9898",
+    "id": "China (CN)",
+    "value": 155.2,
+    "rank_count": 4,
+    "rank_rca": 8,
+    "rank_pc": 10,
+    "rank_share": 4,
+    "rank_reldens": 49,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "United States (US)",
+    "count": 1695.68,
+    "rca": 1.6,
+    "share": 57.01,
+    "share_d": 0.1057,
+    "reldens": 55.17,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 334.9149,
+    "parent2": "North America",
+    "parent3": "no",
+    "pc": 5.06,
+    "parent": "North America",
+    "color": "#74A174",
+    "id": "United States (US)",
+    "value": 1695.68,
+    "rank_count": 1,
+    "rank_rca": 3,
+    "rank_pc": 3,
+    "rank_share": 1,
+    "rank_reldens": 4,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "Denmark (DK)",
+    "count": 101.58,
+    "rca": 3.09,
+    "share": 3.42,
+    "share_d": 0.1057,
+    "reldens": 62.68,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 5.947,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 17.08,
+    "parent": "Europe",
+    "color": "#3F853F",
+    "id": "Denmark (DK)",
+    "value": 101.58,
+    "rank_count": 5,
+    "rank_rca": 2,
+    "rank_pc": 1,
+    "rank_share": 5,
+    "rank_reldens": 3,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "United Kingdom (GB)",
+    "count": 177.81,
+    "rca": 1.02,
+    "share": 5.98,
+    "share_d": 0.1057,
+    "reldens": 6.94,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 68.35,
+    "parent2": "Europe",
+    "parent3": "GB",
+    "pc": 2.6,
+    "parent": "Europe",
+    "color": "#BFC9BF",
+    "id": "United Kingdom (GB)",
+    "value": 177.81,
+    "rank_count": 3,
+    "rank_rca": 5,
+    "rank_pc": 5,
+    "rank_share": 3,
+    "rank_reldens": 65,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "Israel (IL)",
+    "count": 22,
+    "rca": 0.35,
+    "share": 0.74,
+    "share_d": 0.1057,
+    "reldens": 14.15,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 9.7566,
+    "parent2": "Asia",
+    "parent3": "no",
+    "pc": 2.25,
+    "parent": "Asia",
+    "color": "#B67D7D",
+    "id": "Israel (IL)",
+    "value": 22,
+    "rank_count": 9,
+    "rank_rca": 9,
+    "rank_pc": 6,
+    "rank_share": 9,
+    "rank_reldens": 28,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "Singapore (SG)",
+    "count": 0.5,
+    "rca": 0.01,
+    "share": 0.02,
+    "share_d": 0.1057,
+    "reldens": 8.9,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 5.9176,
+    "parent2": "Asia",
+    "parent3": "no",
+    "pc": 0.08,
+    "parent": "Asia",
+    "color": "#921515",
+    "id": "Singapore (SG)",
+    "value": 0.5,
+    "rank_count": 11,
+    "rank_rca": 11,
+    "rank_pc": 11,
+    "rank_share": 11,
+    "rank_reldens": 55,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "Sweden (SE)",
+    "count": 10.15,
+    "rca": 0.2,
+    "share": 0.34,
+    "share_d": 0.1057,
+    "reldens": 17.99,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 10.5366,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 0.96,
+    "parent": "Europe",
+    "color": "#AB5E5E",
+    "id": "Sweden (SE)",
+    "value": 10.15,
+    "rank_count": 10,
+    "rank_rca": 10,
+    "rank_pc": 8,
+    "rank_share": 10,
+    "rank_reldens": 11,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "The Netherlands (NL)",
+    "count": 30.07,
+    "rca": 0.84,
+    "share": 1.01,
+    "share_d": 0.1057,
+    "reldens": 24.57,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 17.8771,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 1.68,
+    "parent": "Europe",
+    "color": "#CDC1C1",
+    "id": "The Netherlands (NL)",
+    "value": 30.07,
+    "rank_count": 8,
+    "rank_rca": 7,
+    "rank_pc": 7,
+    "rank_share": 8,
+    "rank_reldens": 6,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "Japan (JP)",
+    "count": 48.96,
+    "rca": 1.46,
+    "share": 1.65,
+    "share_d": 0.1057,
+    "reldens": 71.48,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 124.5166,
+    "parent2": "Asia",
+    "parent3": "no",
+    "pc": 0.39,
+    "parent": "Asia",
+    "color": "#7DA67D",
+    "id": "Japan (JP)",
+    "value": 48.96,
+    "rank_count": 6,
+    "rank_rca": 4,
+    "rank_pc": 9,
+    "rank_share": 6,
+    "rank_reldens": 1,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "France (FR)",
+    "count": 696.72,
+    "rca": 7.84,
+    "share": 23.42,
+    "share_d": 0.1057,
+    "reldens": 70.56,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 68.2875,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 10.2,
+    "parent": "Europe",
+    "color": "#0B6A0B",
+    "id": "France (FR)",
+    "value": 696.72,
+    "rank_count": 2,
+    "rank_rca": 1,
+    "rank_pc": 2,
+    "rank_share": 2,
+    "rank_reldens": 2,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "Switzerland (CH)",
+    "count": 35.71,
+    "rca": 1.01,
+    "share": 1.2,
+    "share_d": 0.1057,
+    "reldens": 9.5,
+    "comp_PA": 84.51,
+    "comp_TCI": 36.98,
+    "comp_DIF": 80.27,
+    "population": 8.8881,
+    "parent2": "Europe",
+    "parent3": "EFTA",
+    "pc": 4.02,
+    "parent": "Europe",
+    "color": "#C5CCC5",
+    "id": "Switzerland (CH)",
+    "value": 35.71,
+    "rank_count": 7,
+    "rank_rca": 6,
+    "rank_pc": 4,
+    "rank_share": 7,
+    "rank_reldens": 50,
+    "data": "crunchbase"
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>Count (rank):</td><td>"+d.rank_count+"</td></tr><tr><td>Count per capita:</td><td>"+d.pc+"</td></tr><tr><td>Count pc (rank):</td><td>"+d.rank_pc+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr><tr><td>RCA (rank):</td><td>"+d.rank_rca+"</td></tr><tr><td>Relatedness Density:</td><td>"+d.reldens+"</td></tr><tr><td>Relatedness Density (rank):</td><td>"+d.rank_reldens+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

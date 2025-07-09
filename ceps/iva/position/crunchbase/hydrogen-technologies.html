@@ -1,0 +1,329 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+</div>
+
+<script>
+var data=
+ [
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "France (FR)",
+    "count": 22.82,
+    "rca": 1.07,
+    "share": 3.2,
+    "share_d": 0.0254,
+    "reldens": 33.05,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 68.2875,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 0.33,
+    "parent": "Europe",
+    "color": "#AFC0AF",
+    "id": "France (FR)",
+    "value": 22.82,
+    "rank_count": 7,
+    "rank_rca": 7,
+    "rank_pc": 8,
+    "rank_share": 7,
+    "rank_reldens": 7,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "United States (US)",
+    "count": 95.69,
+    "rca": 0.38,
+    "share": 13.4,
+    "share_d": 0.0254,
+    "reldens": 7.48,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 334.9149,
+    "parent2": "North America",
+    "parent3": "no",
+    "pc": 0.29,
+    "parent": "North America",
+    "color": "#B78282",
+    "id": "United States (US)",
+    "value": 95.69,
+    "rank_count": 3,
+    "rank_rca": 9,
+    "rank_pc": 9,
+    "rank_share": 3,
+    "rank_reldens": 65,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "China (CN)",
+    "count": 298.87,
+    "rca": 4.17,
+    "share": 41.86,
+    "share_d": 0.0254,
+    "reldens": 11.58,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 1410.71,
+    "parent2": "Asia",
+    "parent3": "no",
+    "pc": 0.21,
+    "parent": "Asia",
+    "color": "#2D7C2D",
+    "id": "China (CN)",
+    "value": 298.87,
+    "rank_count": 1,
+    "rank_rca": 3,
+    "rank_pc": 10,
+    "rank_share": 1,
+    "rank_reldens": 50,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "Denmark (DK)",
+    "count": 73.75,
+    "rca": 9.34,
+    "share": 10.33,
+    "share_d": 0.0254,
+    "reldens": 61.25,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 5.947,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 12.4,
+    "parent": "Europe",
+    "color": "#036603",
+    "id": "Denmark (DK)",
+    "value": 73.75,
+    "rank_count": 4,
+    "rank_rca": 2,
+    "rank_pc": 2,
+    "rank_share": 4,
+    "rank_reldens": 4,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "United Kingdom (GB)",
+    "count": 57.78,
+    "rca": 1.38,
+    "share": 8.09,
+    "share_d": 0.0254,
+    "reldens": 48.96,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 68.35,
+    "parent2": "Europe",
+    "parent3": "GB",
+    "pc": 0.85,
+    "parent": "Europe",
+    "color": "#84A984",
+    "id": "United Kingdom (GB)",
+    "value": 57.78,
+    "rank_count": 5,
+    "rank_rca": 6,
+    "rank_pc": 5,
+    "rank_share": 5,
+    "rank_reldens": 6,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "Sweden (SE)",
+    "count": 5.55,
+    "rca": 0.46,
+    "share": 0.78,
+    "share_d": 0.0254,
+    "reldens": 76.04,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 10.5366,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 0.53,
+    "parent": "Europe",
+    "color": "#BC8F8F",
+    "id": "Sweden (SE)",
+    "value": 5.55,
+    "rank_count": 9,
+    "rank_rca": 8,
+    "rank_pc": 7,
+    "rank_share": 9,
+    "rank_reldens": 1,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "Norway (NO)",
+    "count": 5.71,
+    "rca": 1.58,
+    "share": 0.8,
+    "share_d": 0.0254,
+    "reldens": 71.31,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 5.5196,
+    "parent2": "Europe",
+    "parent3": "EFTA",
+    "pc": 1.03,
+    "parent": "Europe",
+    "color": "#75A275",
+    "id": "Norway (NO)",
+    "value": 5.71,
+    "rank_count": 8,
+    "rank_rca": 5,
+    "rank_pc": 3,
+    "rank_share": 8,
+    "rank_reldens": 3,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "Canada (CA)",
+    "count": 34.95,
+    "rca": 1.96,
+    "share": 4.89,
+    "share_d": 0.0254,
+    "reldens": 51.94,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 40.0978,
+    "parent2": "North America",
+    "parent3": "no",
+    "pc": 0.87,
+    "parent": "North America",
+    "color": "#619761",
+    "id": "Canada (CA)",
+    "value": 34.95,
+    "rank_count": 6,
+    "rank_rca": 4,
+    "rank_pc": 4,
+    "rank_share": 6,
+    "rank_reldens": 5,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "Estonia (EE)",
+    "count": 113.02,
+    "rca": 41.62,
+    "share": 15.83,
+    "share_d": 0.0254,
+    "reldens": 73.81,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 1.3703,
+    "parent2": "Europe",
+    "parent3": "EU13",
+    "pc": 82.48,
+    "parent": "Europe",
+    "color": "#006400",
+    "id": "Estonia (EE)",
+    "value": 113.02,
+    "rank_count": 2,
+    "rank_rca": 1,
+    "rank_pc": 1,
+    "rank_share": 2,
+    "rank_reldens": 2,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "Singapore (SG)",
+    "count": 4.5,
+    "rca": 0.33,
+    "share": 0.63,
+    "share_d": 0.0254,
+    "reldens": 12.3,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 5.9176,
+    "parent2": "Asia",
+    "parent3": "no",
+    "pc": 0.76,
+    "parent": "Asia",
+    "color": "#B47979",
+    "id": "Singapore (SG)",
+    "value": 4.5,
+    "rank_count": 10,
+    "rank_rca": 10,
+    "rank_pc": 6,
+    "rank_share": 10,
+    "rank_reldens": 44,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "Switzerland (CH)",
+    "count": 1.36,
+    "rca": 0.16,
+    "share": 0.19,
+    "share_d": 0.0254,
+    "reldens": 12.07,
+    "comp_PA": 87.95,
+    "comp_TCI": 24.01,
+    "comp_DIF": 57.6,
+    "population": 8.8881,
+    "parent2": "Europe",
+    "parent3": "EFTA",
+    "pc": 0.15,
+    "parent": "Europe",
+    "color": "#A85454",
+    "id": "Switzerland (CH)",
+    "value": 1.36,
+    "rank_count": 11,
+    "rank_rca": 11,
+    "rank_pc": 11,
+    "rank_share": 11,
+    "rank_reldens": 45,
+    "data": "crunchbase"
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>Count (rank):</td><td>"+d.rank_count+"</td></tr><tr><td>Count per capita:</td><td>"+d.pc+"</td></tr><tr><td>Count pc (rank):</td><td>"+d.rank_pc+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr><tr><td>RCA (rank):</td><td>"+d.rank_rca+"</td></tr><tr><td>Relatedness Density:</td><td>"+d.reldens+"</td></tr><tr><td>Relatedness Density (rank):</td><td>"+d.rank_reldens+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

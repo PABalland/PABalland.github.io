@@ -1,0 +1,303 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+</div>
+
+<script>
+var data=
+ [
+  {
+    "domain": "Heat Pumps",
+    "geo": "Japan (JP)",
+    "count": 2.51,
+    "rca": 0.48,
+    "share": 0.54,
+    "share_d": 0.0164,
+    "reldens": 13.77,
+    "comp_PA": 61.46,
+    "comp_TCI": 40.55,
+    "comp_DIF": 58.29,
+    "population": 124.5166,
+    "parent2": "Asia",
+    "parent3": "no",
+    "pc": 0.02,
+    "parent": "Asia",
+    "color": "#BD9292",
+    "id": "Japan (JP)",
+    "value": 2.51,
+    "rank_count": 8,
+    "rank_rca": 7,
+    "rank_pc": 10,
+    "rank_share": 8.5,
+    "rank_reldens": 14,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Heat Pumps",
+    "geo": "China (CN)",
+    "count": 200,
+    "rca": 4.32,
+    "share": 43.43,
+    "share_d": 0.0164,
+    "reldens": 58.79,
+    "comp_PA": 61.46,
+    "comp_TCI": 40.55,
+    "comp_DIF": 58.29,
+    "population": 1410.71,
+    "parent2": "Asia",
+    "parent3": "no",
+    "pc": 0.14,
+    "parent": "Asia",
+    "color": "#2B7B2B",
+    "id": "China (CN)",
+    "value": 200,
+    "rank_count": 1,
+    "rank_rca": 3,
+    "rank_pc": 7,
+    "rank_share": 1,
+    "rank_reldens": 5,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Heat Pumps",
+    "geo": "Finland (FI)",
+    "count": 2.5,
+    "rca": 0.73,
+    "share": 0.54,
+    "share_d": 0.0164,
+    "reldens": 61.3,
+    "comp_PA": 61.46,
+    "comp_TCI": 40.55,
+    "comp_DIF": 58.29,
+    "population": 5.5839,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 0.45,
+    "parent": "Europe",
+    "color": "#C9B4B4",
+    "id": "Finland (FI)",
+    "value": 2.5,
+    "rank_count": 9,
+    "rank_rca": 6,
+    "rank_pc": 3,
+    "rank_share": 8.5,
+    "rank_reldens": 4,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Heat Pumps",
+    "geo": "Kenya (KE)",
+    "count": 4.6,
+    "rca": 7.22,
+    "share": 1,
+    "share_d": 0.0164,
+    "reldens": 68.73,
+    "comp_PA": 61.46,
+    "comp_TCI": 40.55,
+    "comp_DIF": 58.29,
+    "population": 55.339,
+    "parent2": "Africa",
+    "parent3": "no",
+    "pc": 0.08,
+    "parent": "Africa",
+    "color": "#0F6C0F",
+    "id": "Kenya (KE)",
+    "value": 4.6,
+    "rank_count": 6,
+    "rank_rca": 2,
+    "rank_pc": 8.5,
+    "rank_share": 6,
+    "rank_reldens": 2,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Heat Pumps",
+    "geo": "Slovakia (SK)",
+    "count": 39,
+    "rca": 133.75,
+    "share": 8.47,
+    "share_d": 0.0164,
+    "reldens": 68.23,
+    "comp_PA": 61.46,
+    "comp_TCI": 40.55,
+    "comp_DIF": 58.29,
+    "population": 5.4267,
+    "parent2": "Europe",
+    "parent3": "EU13",
+    "pc": 7.19,
+    "parent": "Europe",
+    "color": "darkgreen",
+    "id": "Slovakia (SK)",
+    "value": 39,
+    "rank_count": 3,
+    "rank_rca": 1,
+    "rank_pc": 1,
+    "rank_share": 3,
+    "rank_reldens": 3,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Heat Pumps",
+    "geo": "Canada (CA)",
+    "count": 3.09,
+    "rca": 0.27,
+    "share": 0.67,
+    "share_d": 0.0164,
+    "reldens": 15.35,
+    "comp_PA": 61.46,
+    "comp_TCI": 40.55,
+    "comp_DIF": 58.29,
+    "population": 40.0978,
+    "parent2": "North America",
+    "parent3": "no",
+    "pc": 0.08,
+    "parent": "North America",
+    "color": "#B06E6E",
+    "id": "Canada (CA)",
+    "value": 3.09,
+    "rank_count": 7,
+    "rank_rca": 10,
+    "rank_pc": 8.5,
+    "rank_share": 7,
+    "rank_reldens": 10,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Heat Pumps",
+    "geo": "France (FR)",
+    "count": 13.47,
+    "rca": 0.98,
+    "share": 2.92,
+    "share_d": 0.0164,
+    "reldens": 74.27,
+    "comp_PA": 61.46,
+    "comp_TCI": 40.55,
+    "comp_DIF": 58.29,
+    "population": 68.2875,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 0.2,
+    "parent": "Europe",
+    "color": "#D2D1D1",
+    "id": "France (FR)",
+    "value": 13.47,
+    "rank_count": 4,
+    "rank_rca": 5,
+    "rank_pc": 4.5,
+    "rank_share": 4,
+    "rank_reldens": 1,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Heat Pumps",
+    "geo": "United Kingdom (GB)",
+    "count": 11.46,
+    "rca": 0.43,
+    "share": 2.49,
+    "share_d": 0.0164,
+    "reldens": 8.94,
+    "comp_PA": 61.46,
+    "comp_TCI": 40.55,
+    "comp_DIF": 58.29,
+    "population": 68.35,
+    "parent2": "Europe",
+    "parent3": "GB",
+    "pc": 0.17,
+    "parent": "Europe",
+    "color": "#BA8A8A",
+    "id": "United Kingdom (GB)",
+    "value": 11.46,
+    "rank_count": 5,
+    "rank_rca": 8,
+    "rank_pc": 6,
+    "rank_share": 5,
+    "rank_reldens": 41,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Heat Pumps",
+    "geo": "Switzerland (CH)",
+    "count": 1.81,
+    "rca": 0.33,
+    "share": 0.39,
+    "share_d": 0.0164,
+    "reldens": 13.63,
+    "comp_PA": 61.46,
+    "comp_TCI": 40.55,
+    "comp_DIF": 58.29,
+    "population": 8.8881,
+    "parent2": "Europe",
+    "parent3": "EFTA",
+    "pc": 0.2,
+    "parent": "Europe",
+    "color": "#B47979",
+    "id": "Switzerland (CH)",
+    "value": 1.81,
+    "rank_count": 10,
+    "rank_rca": 9,
+    "rank_pc": 4.5,
+    "rank_share": 10,
+    "rank_reldens": 15,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Heat Pumps",
+    "geo": "United States (US)",
+    "count": 182.12,
+    "rca": 1.11,
+    "share": 39.54,
+    "share_d": 0.0164,
+    "reldens": 11.78,
+    "comp_PA": 61.46,
+    "comp_TCI": 40.55,
+    "comp_DIF": 58.29,
+    "population": 334.9149,
+    "parent2": "North America",
+    "parent3": "no",
+    "pc": 0.54,
+    "parent": "North America",
+    "color": "#A6BBA6",
+    "id": "United States (US)",
+    "value": 182.12,
+    "rank_count": 2,
+    "rank_rca": 4,
+    "rank_pc": 2,
+    "rank_share": 2,
+    "rank_reldens": 23,
+    "data": "crunchbase"
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>Count (rank):</td><td>"+d.rank_count+"</td></tr><tr><td>Count per capita:</td><td>"+d.pc+"</td></tr><tr><td>Count pc (rank):</td><td>"+d.rank_pc+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr><tr><td>RCA (rank):</td><td>"+d.rank_rca+"</td></tr><tr><td>Relatedness Density:</td><td>"+d.reldens+"</td></tr><tr><td>Relatedness Density (rank):</td><td>"+d.rank_reldens+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

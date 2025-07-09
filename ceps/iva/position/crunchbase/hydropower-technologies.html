@@ -1,0 +1,329 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+</div>
+
+<script>
+var data=
+ [
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "Italy (IT)",
+    "count": 0.2,
+    "rca": 0.01,
+    "share": 0.01,
+    "share_d": 0.0577,
+    "reldens": 13.32,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 58.9935,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 0,
+    "parent": "Europe",
+    "color": "#921515",
+    "id": "Italy (IT)",
+    "value": 0.2,
+    "rank_count": 10,
+    "rank_rca": 10.5,
+    "rank_pc": 78.5,
+    "rank_share": 10.5,
+    "rank_reldens": 38,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "Sweden (SE)",
+    "count": 58.22,
+    "rca": 2.14,
+    "share": 3.59,
+    "share_d": 0.0577,
+    "reldens": 64.1,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 10.5366,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 5.53,
+    "parent": "Europe",
+    "color": "#5A935A",
+    "id": "Sweden (SE)",
+    "value": 58.22,
+    "rank_count": 6,
+    "rank_rca": 5,
+    "rank_pc": 2,
+    "rank_share": 6,
+    "rank_reldens": 3,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "Canada (CA)",
+    "count": 1.1,
+    "rca": 0.03,
+    "share": 0.07,
+    "share_d": 0.0577,
+    "reldens": 10.81,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 40.0978,
+    "parent2": "North America",
+    "parent3": "no",
+    "pc": 0.03,
+    "parent": "North America",
+    "color": "#972525",
+    "id": "Canada (CA)",
+    "value": 1.1,
+    "rank_count": 8,
+    "rank_rca": 9,
+    "rank_pc": 9,
+    "rank_share": 8,
+    "rank_reldens": 50,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "United States (US)",
+    "count": 109.15,
+    "rca": 0.19,
+    "share": 6.72,
+    "share_d": 0.0577,
+    "reldens": 14.42,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 334.9149,
+    "parent2": "North America",
+    "parent3": "no",
+    "pc": 0.33,
+    "parent": "North America",
+    "color": "#AA5C5C",
+    "id": "United States (US)",
+    "value": 109.15,
+    "rank_count": 5,
+    "rank_rca": 7,
+    "rank_pc": 7,
+    "rank_share": 5,
+    "rank_reldens": 27.5,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "Germany (DE)",
+    "count": 459.71,
+    "rca": 9.01,
+    "share": 28.31,
+    "share_d": 0.0577,
+    "reldens": 60.91,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 83.28,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 5.52,
+    "parent": "Europe",
+    "color": "#056705",
+    "id": "Germany (DE)",
+    "value": 459.71,
+    "rank_count": 2,
+    "rank_rca": 1,
+    "rank_pc": 3,
+    "rank_share": 2,
+    "rank_reldens": 5,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "France (FR)",
+    "count": 152.61,
+    "rca": 3.15,
+    "share": 9.4,
+    "share_d": 0.0577,
+    "reldens": 71.9,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 68.2875,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 2.23,
+    "parent": "Europe",
+    "color": "#3E853E",
+    "id": "France (FR)",
+    "value": 152.61,
+    "rank_count": 3,
+    "rank_rca": 4,
+    "rank_pc": 4,
+    "rank_share": 3,
+    "rank_reldens": 1,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "Norway (NO)",
+    "count": 0.12,
+    "rca": 0.01,
+    "share": 0.01,
+    "share_d": 0.0577,
+    "reldens": 30.02,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 5.5196,
+    "parent2": "Europe",
+    "parent3": "EFTA",
+    "pc": 0.02,
+    "parent": "Europe",
+    "color": "#921515",
+    "id": "Norway (NO)",
+    "value": 0.12,
+    "rank_count": 11,
+    "rank_rca": 10.5,
+    "rank_pc": 10,
+    "rank_share": 10.5,
+    "rank_reldens": 7,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "Austria (AT)",
+    "count": 12.4,
+    "rca": 1.42,
+    "share": 0.76,
+    "share_d": 0.0577,
+    "reldens": 68.78,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 9.1318,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 1.36,
+    "parent": "Europe",
+    "color": "#81A881",
+    "id": "Austria (AT)",
+    "value": 12.4,
+    "rank_count": 7,
+    "rank_rca": 6,
+    "rank_pc": 5,
+    "rank_share": 7,
+    "rank_reldens": 2,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "Belgium (BE)",
+    "count": 0.8,
+    "rca": 0.07,
+    "share": 0.05,
+    "share_d": 0.0577,
+    "reldens": 25.77,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 11.7874,
+    "parent2": "Europe",
+    "parent3": "EU14",
+    "pc": 0.07,
+    "parent": "Europe",
+    "color": "#9E3838",
+    "id": "Belgium (BE)",
+    "value": 0.8,
+    "rank_count": 9,
+    "rank_rca": 8,
+    "rank_pc": 8,
+    "rank_share": 9,
+    "rank_reldens": 8,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "Switzerland (CH)",
+    "count": 118.8,
+    "rca": 6.15,
+    "share": 7.32,
+    "share_d": 0.0577,
+    "reldens": 62.64,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 8.8881,
+    "parent2": "Europe",
+    "parent3": "EFTA",
+    "pc": 13.37,
+    "parent": "Europe",
+    "color": "#187018",
+    "id": "Switzerland (CH)",
+    "value": 118.8,
+    "rank_count": 4,
+    "rank_rca": 2,
+    "rank_pc": 1,
+    "rank_share": 4,
+    "rank_reldens": 4,
+    "data": "crunchbase"
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "China (CN)",
+    "count": 710.46,
+    "rca": 4.36,
+    "share": 43.76,
+    "share_d": 0.0577,
+    "reldens": 49.98,
+    "comp_PA": 67.28,
+    "comp_TCI": 23.39,
+    "comp_DIF": 74.33,
+    "population": 1410.71,
+    "parent2": "Asia",
+    "parent3": "no",
+    "pc": 0.5,
+    "parent": "Asia",
+    "color": "#2A7A2A",
+    "id": "China (CN)",
+    "value": 710.46,
+    "rank_count": 1,
+    "rank_rca": 3,
+    "rank_pc": 6,
+    "rank_share": 1,
+    "rank_reldens": 6,
+    "data": "crunchbase"
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>Count (rank):</td><td>"+d.rank_count+"</td></tr><tr><td>Count per capita:</td><td>"+d.pc+"</td></tr><tr><td>Count pc (rank):</td><td>"+d.rank_pc+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr><tr><td>RCA (rank):</td><td>"+d.rank_rca+"</td></tr><tr><td>Relatedness Density:</td><td>"+d.reldens+"</td></tr><tr><td>Relatedness Density (rank):</td><td>"+d.rank_reldens+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>
