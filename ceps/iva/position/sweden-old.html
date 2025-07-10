@@ -1,0 +1,550 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
+.box{width:14px;height:14px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Investment Index &gt; median</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Investment Index &lt; median</span></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+var data= [
+  {
+    "domain": "Additive Manufacturing (3D Printing)",
+    "regpat": 72.89,
+    "openalex": 81.43,
+    "crunchbase": 61.73,
+    "color": "#9CB69C",
+    "id": "Additive Manufacturing (3D Printing)",
+    "x": 72.89,
+    "y": 81.43,
+    "value": 1
+  },
+  {
+    "domain": "Advanced Materials",
+    "regpat": 54.22,
+    "openalex": 52.98,
+    "crunchbase": 77.78,
+    "color": "#7CA57C",
+    "id": "Advanced Materials",
+    "x": 54.22,
+    "y": 52.98,
+    "value": 1
+  },
+  {
+    "domain": "Advanced Therapy Medicinal Products (ATMP)",
+    "regpat": 30,
+    "openalex": 89.78,
+    "crunchbase": 72.02,
+    "color": "#85AA85",
+    "id": "Advanced Therapy Medicinal Products (ATMP)",
+    "x": 30,
+    "y": 89.78,
+    "value": 1
+  },
+  {
+    "domain": "Aeronautics Technologies",
+    "regpat": 78,
+    "openalex": 51.62,
+    "crunchbase": 96.71,
+    "color": "#679A67",
+    "id": "Aeronautics Technologies",
+    "x": 78,
+    "y": 51.62,
+    "value": 1
+  },
+  {
+    "domain": "Artificial Intelligence",
+    "regpat": 58.67,
+    "openalex": 47.36,
+    "crunchbase": 20.16,
+    "color": "#B88383",
+    "id": "Artificial Intelligence",
+    "x": 58.67,
+    "y": 47.36,
+    "value": 1
+  },
+  {
+    "domain": "Augmented Reality (AR) and Virtual Reality (VR)",
+    "regpat": 68,
+    "openalex": 73.42,
+    "crunchbase": 39.09,
+    "color": "#C9B6B6",
+    "id": "Augmented Reality (AR) and Virtual Reality (VR)",
+    "x": 68,
+    "y": 73.42,
+    "value": 1
+  },
+  {
+    "domain": "Autonomous Vehicles",
+    "regpat": 100,
+    "openalex": 87.56,
+    "crunchbase": 68.72,
+    "color": "#8BAD8B",
+    "id": "Autonomous Vehicles",
+    "x": 100,
+    "y": 87.56,
+    "value": 1
+  },
+  {
+    "domain": "Batteries",
+    "regpat": 86.22,
+    "openalex": 74.11,
+    "crunchbase": 100,
+    "color": "#649864",
+    "id": "Batteries",
+    "x": 86.22,
+    "y": 74.11,
+    "value": 1
+  },
+  {
+    "domain": "Blockchain Technologies",
+    "regpat": 71.56,
+    "openalex": 3.75,
+    "crunchbase": 0,
+    "color": "darkred",
+    "id": "Blockchain Technologies",
+    "x": 71.56,
+    "y": 3.75,
+    "value": 1
+  },
+  {
+    "domain": "Cloud Computing and Edge Computing",
+    "regpat": 64,
+    "openalex": 49.57,
+    "crunchbase": 45.68,
+    "color": "#CEC4C4",
+    "id": "Cloud Computing and Edge Computing",
+    "x": 64,
+    "y": 49.57,
+    "value": 1
+  },
+  {
+    "domain": "Computer Vision, Language Processing, Object Recognition",
+    "regpat": 59.56,
+    "openalex": 49.91,
+    "crunchbase": 9.88,
+    "color": "#AA5B5B",
+    "id": "Computer Vision, Language Processing, Object Recognition",
+    "x": 59.56,
+    "y": 49.91,
+    "value": 1
+  },
+  {
+    "domain": "Cybersecurity Technologies",
+    "regpat": 81.78,
+    "openalex": 33.05,
+    "crunchbase": 39.92,
+    "color": "#CAB8B8",
+    "id": "Cybersecurity Technologies",
+    "x": 81.78,
+    "y": 33.05,
+    "value": 1
+  },
+  {
+    "domain": "Data Analytics Technologies",
+    "regpat": 44.89,
+    "openalex": 31.52,
+    "crunchbase": 23.05,
+    "color": "#BB8C8C",
+    "id": "Data Analytics Technologies",
+    "x": 44.89,
+    "y": 31.52,
+    "value": 1
+  },
+  {
+    "domain": "Drones",
+    "regpat": 80.89,
+    "openalex": 47.36,
+    "crunchbase": 67.9,
+    "color": "#8DAE8D",
+    "id": "Drones",
+    "x": 80.89,
+    "y": 47.36,
+    "value": 1
+  },
+  {
+    "domain": "Financial Technologies",
+    "regpat": 47.78,
+    "openalex": 0,
+    "crunchbase": 52.26,
+    "color": "#D3D2D2",
+    "id": "Financial Technologies",
+    "x": 47.78,
+    "y": 0,
+    "value": 1
+  },
+  {
+    "domain": "High Performance Computing",
+    "regpat": 79.78,
+    "openalex": 69.68,
+    "crunchbase": 53.09,
+    "color": "#C7CDC7",
+    "id": "High Performance Computing",
+    "x": 79.78,
+    "y": 69.68,
+    "value": 1
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "regpat": 87.11,
+    "openalex": 55.71,
+    "crunchbase": 88.48,
+    "color": "#6F9E6F",
+    "id": "Hydrogen Technologies",
+    "x": 87.11,
+    "y": 55.71,
+    "value": 1
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "regpat": 72.44,
+    "openalex": 50.43,
+    "crunchbase": 95.88,
+    "color": "#679A67",
+    "id": "Hydropower Technologies",
+    "x": 72.44,
+    "y": 50.43,
+    "value": 1
+  },
+  {
+    "domain": "Industrial Automation and Process Control",
+    "regpat": 88,
+    "openalex": 49.74,
+    "crunchbase": 48.56,
+    "color": "#D0CBCB",
+    "id": "Industrial Automation and Process Control",
+    "x": 88,
+    "y": 49.74,
+    "value": 1
+  },
+  {
+    "domain": "Internet of Things (IoT)",
+    "regpat": 78.89,
+    "openalex": 33.22,
+    "crunchbase": 53.91,
+    "color": "#BEC8BE",
+    "id": "Internet of Things (IoT)",
+    "x": 78.89,
+    "y": 33.22,
+    "value": 1
+  },
+  {
+    "domain": "Life Sciences & Pharmaceuticals",
+    "regpat": 0,
+    "openalex": 82.28,
+    "crunchbase": 51.44,
+    "color": "#D2D1D1",
+    "id": "Life Sciences & Pharmaceuticals",
+    "x": 0,
+    "y": 82.28,
+    "value": 1
+  },
+  {
+    "domain": "Maritime Technologies",
+    "regpat": 85.33,
+    "openalex": 62.52,
+    "crunchbase": 53.09,
+    "color": "#C7CDC7",
+    "id": "Maritime Technologies",
+    "x": 85.33,
+    "y": 62.52,
+    "value": 1
+  },
+  {
+    "domain": "Medtech",
+    "regpat": 33.78,
+    "openalex": 64.91,
+    "crunchbase": 61.73,
+    "color": "#9CB69C",
+    "id": "Medtech",
+    "x": 33.78,
+    "y": 64.91,
+    "value": 1
+  },
+  {
+    "domain": "Metals and Minerals Technologies",
+    "regpat": 40.89,
+    "openalex": 29.81,
+    "crunchbase": 43.21,
+    "color": "#CCBFBF",
+    "id": "Metals and Minerals Technologies",
+    "x": 40.89,
+    "y": 29.81,
+    "value": 1
+  },
+  {
+    "domain": "Mobile networks (e.g. 5G and 6G)",
+    "regpat": 98.22,
+    "openalex": 64.4,
+    "crunchbase": 38.27,
+    "color": "#C8B4B4",
+    "id": "Mobile networks (e.g. 5G and 6G)",
+    "x": 98.22,
+    "y": 64.4,
+    "value": 1
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "regpat": 84.44,
+    "openalex": 82.11,
+    "crunchbase": 76.95,
+    "color": "#7DA67D",
+    "id": "Nuclear Energy Technologies",
+    "x": 84.44,
+    "y": 82.11,
+    "value": 1
+  },
+  {
+    "domain": "Personalised Medicine",
+    "regpat": 30.22,
+    "openalex": 51.11,
+    "crunchbase": 99.18,
+    "color": "#649964",
+    "id": "Personalised Medicine",
+    "x": 30.22,
+    "y": 51.11,
+    "value": 1
+  },
+  {
+    "domain": "Production Technologies",
+    "regpat": 91.56,
+    "openalex": 79.39,
+    "crunchbase": 34.57,
+    "color": "#C5ABAB",
+    "id": "Production Technologies",
+    "x": 91.56,
+    "y": 79.39,
+    "value": 1
+  },
+  {
+    "domain": "Propulsion Technologies",
+    "regpat": 91.56,
+    "openalex": 62.18,
+    "crunchbase": 93.42,
+    "color": "#6A9C6A",
+    "id": "Propulsion Technologies",
+    "x": 91.56,
+    "y": 62.18,
+    "value": 1
+  },
+  {
+    "domain": "Recycling Technologies",
+    "regpat": 55.56,
+    "openalex": 27.77,
+    "crunchbase": 37.45,
+    "color": "#C8B2B2",
+    "id": "Recycling Technologies",
+    "x": 55.56,
+    "y": 27.77,
+    "value": 1
+  },
+  {
+    "domain": "Robotics",
+    "regpat": 74.67,
+    "openalex": 73.08,
+    "crunchbase": 38.27,
+    "color": "#C8B4B4",
+    "id": "Robotics",
+    "x": 74.67,
+    "y": 73.08,
+    "value": 1
+  },
+  {
+    "domain": "Safety and Security Technologies",
+    "regpat": 88.44,
+    "openalex": 76.32,
+    "crunchbase": 12.76,
+    "color": "#AE6868",
+    "id": "Safety and Security Technologies",
+    "x": 88.44,
+    "y": 76.32,
+    "value": 1
+  },
+  {
+    "domain": "Semiconductors and Chips",
+    "regpat": 53.78,
+    "openalex": 71.21,
+    "crunchbase": 28.81,
+    "color": "#C09C9C",
+    "id": "Semiconductors and Chips",
+    "x": 53.78,
+    "y": 71.21,
+    "value": 1
+  },
+  {
+    "domain": "Sensor Technologies",
+    "regpat": 62.22,
+    "openalex": 54.34,
+    "crunchbase": 30.04,
+    "color": "#C19F9F",
+    "id": "Sensor Technologies",
+    "x": 62.22,
+    "y": 54.34,
+    "value": 1
+  },
+  {
+    "domain": "Smart Grids",
+    "regpat": 70.67,
+    "openalex": 45.32,
+    "crunchbase": 91.77,
+    "color": "#6B9C6B",
+    "id": "Smart Grids",
+    "x": 70.67,
+    "y": 45.32,
+    "value": 1
+  },
+  {
+    "domain": "Software Engineering and Systems Development",
+    "regpat": 69.56,
+    "openalex": 84.84,
+    "crunchbase": 56.38,
+    "color": "#AFC0AF",
+    "id": "Software Engineering and Systems Development",
+    "x": 69.56,
+    "y": 84.84,
+    "value": 1
+  },
+  {
+    "domain": "Solar Technologies",
+    "regpat": 41.33,
+    "openalex": 31.18,
+    "crunchbase": 35.8,
+    "color": "#C6AEAE",
+    "id": "Solar Technologies",
+    "x": 41.33,
+    "y": 31.18,
+    "value": 1
+  },
+  {
+    "domain": "Space Technologies",
+    "regpat": 95.11,
+    "openalex": 95.4,
+    "crunchbase": 30.04,
+    "color": "#C19F9F",
+    "id": "Space Technologies",
+    "x": 95.11,
+    "y": 95.4,
+    "value": 1
+  },
+  {
+    "domain": "Synthetic Biology",
+    "regpat": 16.89,
+    "openalex": 100,
+    "crunchbase": 74.49,
+    "color": "#81A881",
+    "id": "Synthetic Biology",
+    "x": 16.89,
+    "y": 100,
+    "value": 1
+  },
+  {
+    "domain": "Transport Technologies",
+    "regpat": 87.11,
+    "openalex": 74.79,
+    "crunchbase": 41.15,
+    "color": "#CBBABA",
+    "id": "Transport Technologies",
+    "x": 87.11,
+    "y": 74.79,
+    "value": 1
+  },
+  {
+    "domain": "Wind Technologies",
+    "regpat": 46.44,
+    "openalex": 31.18,
+    "crunchbase": 65.02,
+    "color": "#93B193",
+    "id": "Wind Technologies",
+    "x": 46.44,
+    "y": 31.18,
+    "value": 1
+  }
+] ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,110];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+    body:d=>`<table class='tooltip-table'>
+      <tr><td class='title'>Investment Index:</td><td class='data'>${d.crunchbase}</td></tr>
+      <tr><td class='title'>Technology Index:</td><td class='data'>${d.regpat}</td></tr>
+      <tr><td class='title'>Scientific Index:</td><td class='data'>${d.openalex}</td></tr>
+    </table>`,
+    title:d=>d.id.charAt(0).toUpperCase()+d.id.substr(1).toLowerCase()
+  })
+  .size("value")
+  .sizeMin(10)
+  .sizeMax(10)
+  .color("color")
+  .label(d=>d.id)
+  .shapeConfig({
+    label:d=>d.id,
+    Circle:{
+      labelConfig:{fontColor:"#000",fontSize:15,textAnchor:"start",verticalAlign:"middle"},
+      labelBounds:(d,i,s)=>({width:200,height:30,x:s.r-2,y:-15})
+    }
+  })
+  .yConfig({
+    title:"Scientific Index",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Technological Index",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(true)
+  .downloadConfig({type:"png"})
+  .render();
+</script>
+<!-- ADD THIS BELOW -->
+<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
+  Color indicates Investment index. 
+</div>
+<!-- END ADD -->
+</body>
+</html>
