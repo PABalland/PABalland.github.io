@@ -141,20 +141,90 @@ function findBestPosition(textElement, centerX, centerY, radius, allCircles, ful
   return { ...positions[0], text: truncatedText, hasCollision: true };
 }
 
+// Function to get data bound to DOM element
+function getBoundData(element) {
+  // Try to get data from d3plus binding
+  if (element.__data__) {
+    return element.__data__;
+  }
+  
+  // Try to get data from parent elements
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  
+  return null;
+}
+
+// Function to find matching data point using bound data
+function findMatchingDataPoint(circle, svg) {
+  const boundData = getBoundData(circle);
+  
+  if (boundData) {
+    // If we have bound data, use it directly
+    return boundData;
+  }
+  
+  // Fallback: try to find by position (less reliable)
+  const bbox = circle.getBoundingClientRect();
+  const svgRect = svg.getBoundingClientRect();
+  
+  const svgPoint = svg.createSVGPoint();
+  svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+  svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+  
+  const screenCTM = svg.getScreenCTM();
+  if (screenCTM) {
+    const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+    
+    // Convert SVG coordinates to approximate data coordinates
+    const svgWidth = svgRect.width;
+    const svgHeight = svgRect.height;
+    const margin = 60; // Approximate margin
+    
+    const dataX = ((svgCoords.x - margin) / (svgWidth - 2 * margin)) * 110;
+    const dataY = (1 - (svgCoords.y - margin) / (svgHeight - 2 * margin)) * 100;
+    
+    // Find closest data point
+    let closestData = null;
+    let minDistance = Infinity;
+    
+    data.forEach(d => {
+      const distance = Math.sqrt(
+        Math.pow(d.x - dataX, 2) + 
+        Math.pow(d.y - dataY, 2)
+      );
+      
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestData = d;
+      }
+    });
+    
+    return closestData;
+  }
+  
+  return null;
+}
+
 var data=  [
   {
     "id": "Additive Manufacturing (3D Printing)",
-    "x": 26.12,
+    "x": 16.41,
     "y": 57.33,
     "color2": "#C8B797",
-    "rca": 7.84,
-    "color": "#0B6A0B",
+    "rca": 0.37,
+    "color": "#B78080",
     "value": 0.5,
-    "rca_pub": 7.84
+    "rca_pub": 0.37
   },
   {
     "id": "Advanced Materials",
-    "x": 25.9,
+    "x": 29.43,
     "y": 64.07,
     "color2": "#C8B797",
     "rca": 0,
@@ -164,17 +234,17 @@ var data=  [
   },
   {
     "id": "Advanced Therapy Medicinal Products (ATMP)",
-    "x": 0.7,
+    "x": 8.28,
     "y": 71.8,
     "color2": "#800020",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 3.04,
+    "color": "#408640",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 3.04
   },
   {
     "id": "Aeronautics Technologies",
-    "x": 36.51,
+    "x": 15.47,
     "y": 63.58,
     "color2": "#E1A100",
     "rca": 0,
@@ -184,17 +254,17 @@ var data=  [
   },
   {
     "id": "Artificial Intelligence",
-    "x": 19.45,
+    "x": 61.99,
     "y": 72.96,
     "color2": "#232F4B",
-    "rca": 0.25,
-    "color": "#AF6A6A",
+    "rca": 0.49,
+    "color": "#BD9494",
     "value": 0.5,
-    "rca_pub": 0.25
+    "rca_pub": 0.49
   },
   {
     "id": "Augmented Reality (AR) and Virtual Reality (VR)",
-    "x": 25.15,
+    "x": 67.49,
     "y": 72.71,
     "color2": "#B0E3DD",
     "rca": 0,
@@ -204,27 +274,27 @@ var data=  [
   },
   {
     "id": "Autonomous Vehicles",
-    "x": 51.9,
+    "x": 22.25,
     "y": 75.82,
     "color2": "#232F4B",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 10.88,
+    "color": "#006400",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 10.88
   },
   {
     "id": "Batteries",
-    "x": 31.5,
+    "x": 11.85,
     "y": 69.04,
     "color2": "#8cab79",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.01,
+    "color": "#921515",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.01
   },
   {
     "id": "Biobased Materials & Biomanufacturing",
-    "x": 28.5,
+    "x": 23.23,
     "y": 56.26,
     "color2": "#800020",
     "rca": 0,
@@ -234,7 +304,7 @@ var data=  [
   },
   {
     "id": "Biofuels",
-    "x": 24.11,
+    "x": 36.48,
     "y": 47.67,
     "color2": "#800020",
     "rca": 0,
@@ -244,67 +314,67 @@ var data=  [
   },
   {
     "id": "Biotechnology",
-    "x": 3.38,
+    "x": 18.5,
     "y": 64.2,
     "color2": "#800020",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 3.81,
+    "color": "#327E32",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 3.81
   },
   {
     "id": "Blockchain Technologies",
-    "x": 5.97,
+    "x": 77.03,
     "y": 67.05,
     "color2": "#B0E3DD",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.17,
+    "color": "#A95757",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.17
   },
   {
     "id": "Cloud Computing and Edge Computing",
-    "x": 23.4,
+    "x": 63.95,
     "y": 76.87,
     "color2": "#B0E3DD",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.58,
+    "color": "#C2A1A1",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.58
   },
   {
     "id": "Computer Vision, Language Processing, Object Recognition",
-    "x": 29.1,
+    "x": 65.51,
     "y": 76.6,
     "color2": "#232F4B",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.09,
+    "color": "#A13F3F",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.09
   },
   {
     "id": "Cybersecurity Technologies",
-    "x": 13.12,
+    "x": 75.49,
     "y": 70.95,
     "color2": "#B0E3DD",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 1.28,
+    "color": "#8EAF8E",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 1.28
   },
   {
     "id": "Data Analytics Technologies",
-    "x": 12.96,
+    "x": 77.6,
     "y": 77.33,
     "color2": "#232F4B",
-    "rca": 0.18,
-    "color": "#AA5A5A",
+    "rca": 0.4,
+    "color": "#B98585",
     "value": 0.5,
-    "rca_pub": 0.18
+    "rca_pub": 0.4
   },
   {
     "id": "Defence Technologies",
-    "x": 47.88,
+    "x": 39.32,
     "y": 47.49,
     "color2": "#E1A100",
     "rca": 0,
@@ -314,7 +384,7 @@ var data=  [
   },
   {
     "id": "Drones",
-    "x": 33.67,
+    "x": 13.07,
     "y": 68.96,
     "color2": "#232F4B",
     "rca": 0,
@@ -324,17 +394,17 @@ var data=  [
   },
   {
     "id": "Financial Technologies",
-    "x": 9.56,
+    "x": 85.37,
     "y": 69.92,
     "color2": "#B0E3DD",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.03,
+    "color": "#972525",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.03
   },
   {
     "id": "Heat Pumps",
-    "x": 37.69,
+    "x": 48.33,
     "y": 59.18,
     "color2": "#8cab79",
     "rca": 0,
@@ -344,17 +414,17 @@ var data=  [
   },
   {
     "id": "High Performance Computing",
-    "x": 8.6,
+    "x": 85.48,
     "y": 76.49,
     "color2": "#B0E3DD",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 2.36,
+    "color": "#528F52",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 2.36
   },
   {
     "id": "Hydrogen Technologies",
-    "x": 37.95,
+    "x": 11.27,
     "y": 68.21,
     "color2": "#8cab79",
     "rca": 0,
@@ -364,7 +434,7 @@ var data=  [
   },
   {
     "id": "Hydropower Technologies",
-    "x": 49.6,
+    "x": 16.13,
     "y": 53.86,
     "color2": "#8cab79",
     "rca": 0,
@@ -374,37 +444,37 @@ var data=  [
   },
   {
     "id": "Industrial Automation and Process Control",
-    "x": 55.78,
+    "x": 22.29,
     "y": 72.65,
     "color2": "#C8B797",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 2.55,
+    "color": "#4C8C4C",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 2.55
   },
   {
     "id": "Internet of Things (IoT)",
-    "x": 57.48,
+    "x": 70.57,
     "y": 75.73,
     "color2": "#B0E3DD",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 2.92,
+    "color": "#438743",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 2.92
   },
   {
     "id": "Life Sciences & Pharmaceuticals",
-    "x": 3.21,
+    "x": 14.21,
     "y": 60.42,
     "color2": "#800020",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.47,
+    "color": "#BC9191",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.47
   },
   {
     "id": "Maritime Technologies",
-    "x": 33.95,
+    "x": 21,
     "y": 50.04,
     "color2": "#E1A100",
     "rca": 0,
@@ -414,17 +484,17 @@ var data=  [
   },
   {
     "id": "Medtech",
-    "x": 22.21,
+    "x": 48.06,
     "y": 58.67,
     "color2": "#800020",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 4.43,
+    "color": "#297A29",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 4.43
   },
   {
     "id": "Metals and Minerals Technologies",
-    "x": 29.09,
+    "x": 19.94,
     "y": 58.29,
     "color2": "#C8B797",
     "rca": 0,
@@ -434,17 +504,17 @@ var data=  [
   },
   {
     "id": "Mobile networks (e.g. 5G and 6G)",
-    "x": 27.46,
+    "x": 39.4,
     "y": 75.1,
     "color2": "#B0E3DD",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.63,
+    "color": "#C4A7A7",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.63
   },
   {
     "id": "Nuclear Energy Technologies",
-    "x": 19.12,
+    "x": 18.3,
     "y": 55.19,
     "color2": "#8cab79",
     "rca": 0,
@@ -454,17 +524,17 @@ var data=  [
   },
   {
     "id": "Personalised Medicine",
-    "x": 11.54,
+    "x": 68.62,
     "y": 64.87,
     "color2": "#800020",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.1,
+    "color": "#A24343",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.1
   },
   {
     "id": "Photonics and Spintronics",
-    "x": 10.52,
+    "x": 37.82,
     "y": 65.17,
     "color2": "#B0E3DD",
     "rca": 0,
@@ -474,17 +544,17 @@ var data=  [
   },
   {
     "id": "Production Technologies",
-    "x": 46.51,
+    "x": 12.43,
     "y": 64.66,
     "color2": "#C8B797",
-    "rca": 2.41,
-    "color": "#518E51",
+    "rca": 0.37,
+    "color": "#B78080",
     "value": 0.5,
-    "rca_pub": 2.41
+    "rca_pub": 0.37
   },
   {
     "id": "Propulsion Technologies",
-    "x": 39.34,
+    "x": 10.21,
     "y": 62.22,
     "color2": "#E1A100",
     "rca": 0,
@@ -494,7 +564,7 @@ var data=  [
   },
   {
     "id": "Quantum Technologies and Computing",
-    "x": 10.57,
+    "x": 39.14,
     "y": 73.11,
     "color2": "#B0E3DD",
     "rca": 0,
@@ -504,7 +574,7 @@ var data=  [
   },
   {
     "id": "Recycling Technologies",
-    "x": 28.41,
+    "x": 24.75,
     "y": 53.26,
     "color2": "#C8B797",
     "rca": 0,
@@ -514,77 +584,77 @@ var data=  [
   },
   {
     "id": "Robotics",
-    "x": 53.94,
+    "x": 27.4,
     "y": 68.92,
     "color2": "#232F4B",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.57,
+    "color": "#C19F9F",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.57
   },
   {
     "id": "Safety and Security Technologies",
-    "x": 48.41,
+    "x": 31.68,
     "y": 63.11,
     "color2": "#E1A100",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 1.04,
+    "color": "#B7C5B7",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 1.04
   },
   {
     "id": "Semiconductors and Chips",
-    "x": 16.13,
+    "x": 22.37,
     "y": 75.06,
     "color2": "#B0E3DD",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.04,
+    "color": "#992A2A",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.04
   },
   {
     "id": "Sensor Technologies",
-    "x": 33.18,
+    "x": 40.7,
     "y": 69.08,
     "color2": "#232F4B",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 2.77,
+    "color": "#478947",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 2.77
   },
   {
     "id": "Smart Grids",
-    "x": 28.3,
+    "x": 22.42,
     "y": 61.97,
     "color2": "#8cab79",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.93,
+    "color": "#D0CBCB",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.93
   },
   {
     "id": "Software Engineering and Systems Development",
-    "x": 16.95,
+    "x": 80.36,
     "y": 76.2,
     "color2": "#B0E3DD",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 1.15,
+    "color": "#9FB89F",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 1.15
   },
   {
     "id": "Solar Technologies",
-    "x": 30.29,
+    "x": 18.15,
     "y": 55.12,
     "color2": "#8cab79",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 0.02,
+    "color": "#951E1E",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 0.02
   },
   {
     "id": "Space Technologies",
-    "x": 45.1,
+    "x": 45.11,
     "y": 72.75,
     "color2": "#E1A100",
     "rca": 0,
@@ -594,27 +664,27 @@ var data=  [
   },
   {
     "id": "Synthetic Biology",
-    "x": 5.01,
+    "x": 17.91,
     "y": 65.95,
     "color2": "#800020",
-    "rca": 0,
-    "color": "darkred",
+    "rca": 2.74,
+    "color": "#478A47",
     "value": 0.5,
-    "rca_pub": 0
+    "rca_pub": 2.74
   },
   {
     "id": "Transport Technologies",
-    "x": 40.61,
+    "x": 13.58,
     "y": 62.04,
     "color2": "#E1A100",
-    "rca": 3.7,
-    "color": "#347F34",
+    "rca": 0.67,
+    "color": "#C6ADAD",
     "value": 0.5,
-    "rca_pub": 3.7
+    "rca_pub": 0.67
   },
   {
     "id": "Wind Technologies",
-    "x": 23.72,
+    "x": 11.07,
     "y": 39.65,
     "color2": "#8cab79",
     "rca": 0,
@@ -622,7 +692,7 @@ var data=  [
     "value": 0.5,
     "rca_pub": 0
   }
-]  ;
+] ;
 
 const xVals=data.map(d=>d.x);
 const yVals=data.map(d=>d.y);
@@ -634,7 +704,7 @@ const maxY=Math.max(...yVals)+2;
 
 let customLabels = [];
 let isUpdating = false;
-let hoveringElements = new Set(); // Track which elements are being hovered
+let hoveringElements = new Set();
 
 new d3plus.Plot()
   .select("#chart")
@@ -646,11 +716,12 @@ new d3plus.Plot()
   .groupBy(["parent","id"])
   .tooltipConfig({
     body:d=>`<table class='tooltip-table'>
-      <tr><td class='title'>Investment Index:</td><td class='data'>${d.crunchbase}</td></tr>
-      <tr><td class='title'>Technology Index:</td><td class='data'>${d.regpat}</td></tr>
-      <tr><td class='title'>Scientific Index:</td><td class='data'>${d.openalex}</td></tr>
+      <tr><td class='title'>Relatedness Density:</td><td class='data'>${d.x}</td></tr>
+      <tr><td class='title'>Complexity:</td><td class='data'>${d.y}</td></tr>
+      <tr><td class='title'>RCA:</td><td class='data'>${d.rca}</td></tr>
+      <tr><td class='title'>ID:</td><td class='data'>${d.id}</td></tr>
     </table>`,
-    title:d=>d.id.charAt(0).toUpperCase()+d.id.substr(1).toLowerCase()
+    title:d=>d.id
   })
   .size("value")
   .sizeMin(15)
@@ -663,68 +734,26 @@ new d3plus.Plot()
     }
   })
   .yConfig({
-    title:"Scientific Index",
+    title:"Technological Complexity",
     titleConfig:{fontSize:()=>16},
     gridConfig:{stroke:"transparent"},
     shapeConfig:{labelConfig:{fontSize:()=>16}}
   })
   .xDomain(xDomain)
   .xConfig({
-    title:"Technological Index",
+    title:"Technological Relatedness Density",
     titleConfig:{fontSize:()=>16},
     gridConfig:{stroke:"transparent"},
     shapeConfig:{labelConfig:{fontSize:()=>16}}
   })
   .legend(false)
   .downloadButton(false)
-  .downloadConfig({
-    type:"png",
-    callback: () => {
-      setTimeout(() => {
-        const labels = document.querySelectorAll('.custom-label');
-        labels.forEach(label => {
-          label.style.fontFamily = 'Arial, Helvetica, sans-serif';
-          label.style.fontSize = '10px';
-          label.style.fill = '#000';
-          label.style.fontWeight = 'normal';
-          label.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
-          label.setAttribute('font-size', '10');
-          label.setAttribute('fill', '#000');
-          label.setAttribute('font-weight', 'normal');
-        });
-      }, 100);
-    }
-  })
   .render();
 
 setTimeout(() => {
   initializeCustomLabels();
   startPositionUpdater();
-  setupDownloadHandler();
 }, 500);
-
-function setupDownloadHandler() {
-  document.addEventListener('click', (e) => {
-    if (e.target.textContent && e.target.textContent.includes('Download')) {
-      prepareForDownload();
-    }
-  });
-}
-
-function prepareForDownload() {
-  const labels = document.querySelectorAll('.custom-label');
-  labels.forEach(label => {
-    label.setAttribute('style', 'font-family: Arial, Helvetica, sans-serif; font-size: 10px; fill: #000; font-weight: normal;');
-    label.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
-    label.setAttribute('font-size', '10');
-    label.setAttribute('fill', '#000');
-    label.setAttribute('font-weight', 'normal');
-    label.setAttribute('stroke', 'none');
-    
-    const hasCollision = label.classList.contains('collision');
-    label.setAttribute('opacity', hasCollision ? '0.3' : '1');
-  });
-}
 
 function initializeCustomLabels() {
   const svg = document.querySelector('#chart svg');
@@ -734,16 +763,15 @@ function initializeCustomLabels() {
   }
   
   const circles = svg.querySelectorAll('circle');
-  
-  function findMatchingDataPoint(circle) {
-    const circleColor = circle.getAttribute('fill');
-    return data.find(d => d.color === circleColor);
-  }
+  console.log('Found circles:', circles.length);
   
   circles.forEach((circle, index) => {
-    const matchingData = findMatchingDataPoint(circle);
+    // Get the data bound to this circle element
+    const matchingData = findMatchingDataPoint(circle, svg);
     
     if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
       const fullText = matchingData.id;
       
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -782,6 +810,9 @@ function initializeCustomLabels() {
         
         text.classList.add('hover');
         text.textContent = fullText;
+        
+        // Show in console for debugging
+        console.log('Hovering over:', matchingData.id);
       });
       
       circle.addEventListener('mouseleave', () => {
@@ -797,6 +828,8 @@ function initializeCustomLabels() {
           text.textContent = labelData.savedPosition.content;
         }
       });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
     }
   });
   
@@ -893,6 +926,7 @@ function startPositionUpdater() {
 }
 </script>
 <div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
+  Color indicates Investment index. 
 </div>
 </body>
 </html>
