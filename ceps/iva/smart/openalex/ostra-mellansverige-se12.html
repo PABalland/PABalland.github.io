@@ -160,58 +160,17 @@ function getBoundData(element) {
   return null;
 }
 
-// Function to find matching data point using bound data
-function findMatchingDataPoint(circle, svg) {
-  const boundData = getBoundData(circle);
-  
-  if (boundData) {
-    // If we have bound data, use it directly
-    return boundData;
-  }
-  
-  // Fallback: try to find by position (less reliable)
-  const bbox = circle.getBoundingClientRect();
-  const svgRect = svg.getBoundingClientRect();
-  
-  const svgPoint = svg.createSVGPoint();
-  svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
-  svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
-  
-  const screenCTM = svg.getScreenCTM();
-  if (screenCTM) {
-    const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
-    
-    // Convert SVG coordinates to approximate data coordinates
-    const svgWidth = svgRect.width;
-    const svgHeight = svgRect.height;
-    const margin = 60; // Approximate margin
-    
-    const dataX = ((svgCoords.x - margin) / (svgWidth - 2 * margin)) * 110;
-    const dataY = (1 - (svgCoords.y - margin) / (svgHeight - 2 * margin)) * 100;
-    
-    // Find closest data point
-    let closestData = null;
-    let minDistance = Infinity;
-    
-    data.forEach(d => {
-      const distance = Math.sqrt(
-        Math.pow(d.x - dataX, 2) + 
-        Math.pow(d.y - dataY, 2)
-      );
-      
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestData = d;
-      }
-    });
-    
-    return closestData;
-  }
-  
+function findMatchingDataPoint(circle) {
+  // Prefer the bound data directly from D3
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  // No fallback by position to avoid mismatches
+  console.warn('No data bound to circle:', circle);
   return null;
 }
 
-var data=  [
+var data=
+ [
   {
     "id": "Additive Manufacturing (3D Printing)",
     "x": 43.37,
@@ -721,7 +680,7 @@ new d3plus.Plot()
       <tr><td class='title'>RCA:</td><td class='data'>${d.rca}</td></tr>
       <tr><td class='title'>ID:</td><td class='data'>${d.id}</td></tr>
     </table>`,
-    title:d=>d.id
+     title:d=>d.id
   })
   .size("value")
   .sizeMin(15)
@@ -766,8 +725,7 @@ function initializeCustomLabels() {
   console.log('Found circles:', circles.length);
   
   circles.forEach((circle, index) => {
-    // Get the data bound to this circle element
-    const matchingData = findMatchingDataPoint(circle, svg);
+    const matchingData = findMatchingDataPoint(circle);
     
     if (matchingData) {
       console.log('Circle', index, 'matched to data:', matchingData.id);
