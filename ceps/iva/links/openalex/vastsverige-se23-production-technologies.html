@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AI World Lollipop Chart</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+body{font-family:sans-serif; margin:0; padding:20px;}
+.axis path,.axis line{stroke:#bbb;}
+.tick text{font-size: 12px;}
+#tooltip{position:absolute;background:#fff; border:1px solid #ccc; padding:4px 8px;font-size:12px; pointer-events:none; opacity:0; transition:opacity 0.2s;}
+#chart{display:block;margin:0; width: 100%; height: auto;}
+#tooltip:after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-6px;border-width:6px 6px 0 6px;border-style:solid;border-color:#ccc transparent transparent transparent;}
+#tooltip:before{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:-7px;border-width:7px 7px 0 7px;border-style:solid;border-color:#fff transparent transparent transparent;}
+.axis text{white-space: nowrap;}
+.wormhole-text{font-size:14px; fill:black; font-weight:bold; text-anchor:middle; dominant-baseline:middle; pointer-events:none;}
+</style>
+</head>
+<body>
+<svg id="chart"></svg>
+<div id="tooltip"></div>
+<script>
+const tooltip = d3.select("#tooltip");
+const data =  [
+  {
+    "id": "Île de France (FR10)",
+    "x": 1,
+    "y": 0.66
+  },
+  {
+    "id": "Köln (DEA2)",
+    "x": 1,
+    "y": 1.45
+  },
+  {
+    "id": "Oberbayern (DE21)",
+    "x": 1,
+    "y": 1.87
+  },
+  {
+    "id": "Stuttgart (DE11)",
+    "x": 1,
+    "y": 0.69
+  },
+  {
+    "id": "Inner London (UKI1)",
+    "x": 1,
+    "y": 0.47
+  },
+  {
+    "id": "Lombardia (ITC4)",
+    "x": 1,
+    "y": 1.37
+  },
+  {
+    "id": "Karlsruhe (DE12)",
+    "x": 1,
+    "y": 1.22
+  },
+  {
+    "id": "Rhône-Alpes (FR71)",
+    "x": 1,
+    "y": 0.7
+  },
+  {
+    "id": "Berlin (DE30)",
+    "x": 1,
+    "y": 1.38
+  },
+  {
+    "id": "Dresden (DED2)",
+    "x": 1,
+    "y": 0.44
+  },
+  {
+    "id": "Norte (PT11)",
+    "x": 1,
+    "y": 0.25
+  },
+  {
+    "id": "Arnsberg (DEA5)",
+    "x": 1,
+    "y": 0.91
+  },
+  {
+    "id": "Lazio (ITI4)",
+    "x": 1,
+    "y": 0.08
+  },
+  {
+    "id": "Comunidad de Madrid (ES30)",
+    "x": 1,
+    "y": 1.09
+  },
+  {
+    "id": "Mazowieckie (PL12)",
+    "x": 1,
+    "y": 0.08
+  },
+  {
+    "id": "West Midlands (UKG3)",
+    "x": 1,
+    "y": 0.28
+  },
+  {
+    "id": "Wien (AT13)",
+    "x": 1,
+    "y": 0.77
+  },
+  {
+    "id": "Emilia-Romagna (ITH5)",
+    "x": 1,
+    "y": 0.18
+  },
+  {
+    "id": "Małopolskie (PL21)",
+    "x": 1,
+    "y": 0
+  },
+  {
+    "id": "Darmstadt (DE71)",
+    "x": 1,
+    "y": 0.27
+  }
+] ;
+
+data.forEach(d => {
+  d.delta = d.y - d.x;
+  d.inc = d.delta > 0;
+  d.dec = d.delta < 0;
+  d.same = Math.abs(d.delta) < 0.01;
+});
+
+const lower = -1.5;
+const upper1 = 1.5;
+
+data.forEach(d => {
+  d.clamped = Math.max(lower, Math.min(upper1, d.delta));
+  d.outlierCat = 0; // 0:normal, 1:small, 2:mid, 3:max
+  const smallOutlierThreshold = 10;
+  const midOutlierThreshold = 20;
+  if (d.delta > upper1) {
+    if (d.delta > midOutlierThreshold) d.outlierCat = 3;
+    else if (d.delta > smallOutlierThreshold) d.outlierCat = 2;
+    else d.outlierCat = 1;
+  } else if (d.delta < lower) {
+      // Future logic for negative outliers can go here
+  }
+});
+
+const hasNegOutlier = data.some(d => d.delta < lower);
+const hasSmallOutlier = data.some(d => d.outlierCat === 1);
+const hasMidOutlier = data.some(d => d.outlierCat === 2);
+const hasMaxOutlier = data.some(d => d.outlierCat === 3);
+
+const startColor = "#cccccc";
+const upColor = "#2ecc71";
+const downColor = "#e74c3c";
+
+data.sort((a, b) => b.delta - a.delta);
+
+function wavyPath(x, y, height, amplitude, wavelength) {
+    const path = d3.path();
+    path.moveTo(x, y);
+    let currentY = y;
+    const numWaves = Math.ceil(height / wavelength);
+    for (let i = 0; i < numWaves; i++) {
+        const p1x = x + amplitude;
+        const p1y = currentY + wavelength / 4;
+        const p2x = x - amplitude;
+        const p2y = currentY + wavelength * 3 / 4;
+        const nextY = Math.min(y + height, currentY + wavelength);
+        path.bezierCurveTo(p1x, p1y, p2x, p2y, x, nextY);
+        currentY = nextY;
+    }
+    return path.toString();
+}
+
+function createChart(){
+  d3.select("#chart").selectAll("*").remove();
+  const containerWidth = Math.max(window.innerWidth - 40, 400);
+  const containerHeight = Math.max(window.innerHeight - 100, 300);
+  const tempSvg = d3.select("body").append("svg").style("visibility", "hidden");
+  const tempText = tempSvg.append("text").style("font-size", "12px").style("font-family", "sans-serif");
+  let maxLabelWidth = 0;
+  data.forEach(d => {
+    tempText.text(d.id);
+    const textWidth = tempText.node().getBoundingClientRect().width;
+    maxLabelWidth = Math.max(maxLabelWidth, textWidth);
+  });
+  tempSvg.remove();
+
+  const padding = 16;
+  const wallWidth = 60;
+  const outlierSpaceWidth = 80;
+
+  const wall1_width = hasSmallOutlier || hasMidOutlier || hasMaxOutlier ? wallWidth : 0;
+  const space1_width = hasSmallOutlier || hasMidOutlier || hasMaxOutlier ? outlierSpaceWidth : 0;
+  const wall2_width = hasMidOutlier || hasMaxOutlier ? wallWidth : 0;
+  const space2_width = hasMidOutlier || hasMaxOutlier ? outlierSpaceWidth : 0;
+  const wall3_width = hasMaxOutlier ? wallWidth : 0;
+  const space3_width = hasMaxOutlier ? outlierSpaceWidth : 0;
+  const negWallWidth = hasNegOutlier ? wallWidth : 0;
+
+  const margin = {top: 20, right: Math.max(30, containerWidth * 0.05), bottom: 80, left: maxLabelWidth + padding};
+  const mainWidth = containerWidth - margin.left - margin.right - wall1_width - space1_width - wall2_width - space2_width - wall3_width - space3_width - negWallWidth;
+  const height = Math.max(data.length * 30, containerHeight - margin.top - margin.bottom);
+
+  const svg = d3.select("#chart")
+    .attr("width", containerWidth)
+    .attr("height", height + margin.top + margin.bottom)
+    .attr("viewBox", `0 0 ${containerWidth} ${height + margin.top + margin.bottom}`);
+
+  const defs = svg.append("defs");
+  defs.append("marker").attr("id","arrowGreen").attr("viewBox","0 0 10 10").attr("refX",10).attr("refY",5).attr("markerWidth",12).attr("markerHeight",12).attr("orient","auto").attr("markerUnits","userSpaceOnUse").append("path").attr("d","M 0 0 L 10 5 L 0 10 z").attr("fill", upColor);
+  defs.append("marker").attr("id","arrowRed").attr("viewBox","0 0 10 10").attr("refX",0).attr("refY",5).attr("markerWidth",12).attr("markerHeight",12).attr("orient","auto").attr("markerUnits","userSpaceOnUse").append("path").attr("d","M 10 0 L 0 5 L 10 10 z").attr("fill", downColor);
+
+  const g = svg.append("g").attr("transform",`translate(${margin.left + negWallWidth},${margin.top})`);
+
+  const x = d3.scaleLinear().domain([lower, upper1]).range([0, mainWidth]);
+  const y = d3.scaleBand().domain(data.map(d => d.id)).range([0, height]).padding(0.8);
+
+  const getDomain = (cat, padFactor = 0.5) => {
+    const outliers = data.filter(d => d.outlierCat === cat);
+    if (outliers.length === 0) return [0, 1];
+    const domain = d3.extent(outliers, d => d.delta);
+    const padding = (domain[1] - domain[0]) * padFactor || 1;
+    return [domain[0] - padding, domain[1] + padding];
+  };
+
+  const xSmall = d3.scaleLinear().domain(getDomain(1)).range([0, space1_width]);
+  const xMid = d3.scaleLinear().domain(getDomain(2)).range([0, space2_width]);
+  const xMax = d3.scaleLinear().domain(getDomain(3)).range([0, space3_width]);
+
+  const step = y.step();
+  const padGap = (step - y.bandwidth()) / 2;
+  g.selectAll("rect.row-bg").data(data).enter().append("rect").attr("class","row-bg").attr("x", -margin.left - negWallWidth).attr("y", d => y(d.id) - padGap).attr("width", containerWidth).attr("height", step).attr("fill", (d,i) => i % 2 ? "#f9f9f9" : "#ffffff").attr("pointer-events","none").lower();
+
+  const wall1_x = mainWidth;
+  const space1_x = wall1_x + wall1_width;
+  const wall2_x = space1_x + space1_width;
+  const space2_x = wall2_x + wall2_width;
+  const wall3_x = space2_x + space2_width;
+  const space3_x = wall3_x + wall3_width;
+
+  if (wall1_width > 0) {
+    g.append("rect").attr("x", wall1_x).attr("y", 0).attr("width", wall1_width).attr("height", height).attr("fill", "#f0f0f0");
+    g.append("path").attr("d", wavyPath(wall1_x, 0, height, 3, 20)).attr("stroke", "#ccc").attr("stroke-width", 1).attr("fill", "none");
+    const jump = Math.round(xSmall.domain()[0] - upper1);
+    g.append("text").attr("class", "wormhole-text").attr("x", wall1_x + wall1_width / 2).attr("y", height / 2).text(`+${jump}`);
+  }
+  if (wall2_width > 0) {
+    g.append("rect").attr("x", wall2_x).attr("y", 0).attr("width", wall2_width).attr("height", height).attr("fill", "#f0f0f0");
+    g.append("path").attr("d", wavyPath(wall2_x, 0, height, 3, 20)).attr("stroke", "#ccc").attr("stroke-width", 1).attr("fill", "none");
+    const jump = Math.round(xMid.domain()[0] - xSmall.domain()[1]);
+    g.append("text").attr("class", "wormhole-text").attr("x", wall2_x + wall2_width / 2).attr("y", height / 2).text(`+${jump}`);
+  }
+  if (wall3_width > 0) {
+    g.append("rect").attr("x", wall3_x).attr("y", 0).attr("width", wall3_width).attr("height", height).attr("fill", "#f0f0f0");
+    g.append("path").attr("d", wavyPath(wall3_x, 0, height, 3, 20)).attr("stroke", "#ccc").attr("stroke-width", 1).attr("fill", "none");
+    const jump = Math.round(xMax.domain()[0] - xMid.domain()[1]);
+    g.append("text").attr("class", "wormhole-text").attr("x", wall3_x + wall3_width / 2).attr("y", height / 2).text(`+${jump}`);
+  }
+
+  g.append("g").attr("class", "axis").call(d3.axisLeft(y));
+
+  const xAxisGroup = g.append("g").attr("class", "axis").attr("transform", `translate(0,${height})`);
+  xAxisGroup.append("line").attr("x1", x.range()[0]).attr("x2", space3_x + space3_width).attr("stroke", "#bbb");
+  const createTick = (xPos, label) => {
+    const tickG = xAxisGroup.append("g").attr("class", "tick").attr("transform", `translate(${xPos}, 0)`);
+    tickG.append("line").attr("y2", 6).attr("stroke", "currentColor");
+    tickG.append("text").attr("y", 9).attr("dy", "0.71em").attr("text-anchor", "middle").text(label);
+  };
+  x.ticks(5).forEach(tickValue => createTick(x(tickValue), tickValue.toFixed(1)));
+  if (space1_width > 0) xSmall.ticks(2).forEach(tickValue => createTick(space1_x + xSmall(tickValue), Math.round(tickValue)));
+  if (space2_width > 0) xMid.ticks(2).forEach(tickValue => createTick(space2_x + xMid(tickValue), Math.round(tickValue)));
+  if (space3_width > 0) xMax.ticks(2).forEach(tickValue => createTick(space3_x + xMax(tickValue), Math.round(tickValue)));
+
+  g.append("line").attr("x1", x(0)).attr("x2", x(0)).attr("y1", 0).attr("y2", height).attr("stroke", "#ddd").attr("stroke-width", 2).lower();
+  g.append("text").attr("transform", `translate(${(mainWidth + wall1_width + space1_width + wall2_width + space2_width + wall3_width + space3_width) / 2}, ${height + 45})`).style("text-anchor", "middle").style("font-size", "12px").style("fill", "#666").text("Change in RCA");
+
+  const rNode = 8;
+  const rNodeLarge = 14;
+  const formatNumber = num => num % 1 === 0 ? num.toString() : num.toFixed(2);
+  const showNode = (e, node, val) => {
+    const tt = tooltip.style("opacity",1).html(formatNumber(val));
+    const nb = node.getBoundingClientRect();
+    const tb = tt.node().getBoundingClientRect();
+    const left = nb.left + nb.width/2 - tb.width/2 + window.scrollX;
+    const top  = nb.top  - tb.height - 12 + window.scrollY;
+    tt.style("left", left + "px").style("top", top + "px");
+  };
+  const hide = () => tooltip.style("opacity", 0);
+
+  const drawDots = (selection, x1, x2) => {
+    const dotGroup = selection.append("g");
+    const dotCount = Math.floor((x2 - x1) / 6);
+    for (let i = 0; i <= dotCount; i++) {
+      dotGroup.append("circle").attr("cx", x1 + i * 6).attr("r", 1.5).attr("fill", upColor);
+    }
+  };
+
+  g.selectAll("line.lolli-normal").data(data.filter(d => !d.same && d.outlierCat === 0)).enter().append("line")
+    .attr("class", "lolli-normal").attr("y1", d => y(d.id) + y.bandwidth()/2).attr("y2", d => y(d.id) + y.bandwidth()/2)
+    .attr("x1", d => d.inc ? x(0) + rNode : x(d.clamped) + rNode).attr("x2", d => d.inc ? x(d.clamped) - rNode : x(0) - rNode)
+    .attr("stroke", d => d.inc ? upColor : downColor).attr("stroke-width", 3).attr("stroke-linecap", "round")
+    .attr("marker-end", d => d.inc ? "url(#arrowGreen)" : null).attr("marker-start", d => d.dec ? "url(#arrowRed)" : null);
+
+  const smallOutlierGroup = g.selectAll(".small-outlier").data(data.filter(d => d.outlierCat === 1)).enter()
+    .append("g").attr("class", "small-outlier").attr("transform", d => `translate(0, ${y(d.id) + y.bandwidth()/2})`);
+  smallOutlierGroup.append("line").attr("x1", x(0) + rNode).attr("x2", wall1_x).attr("stroke", upColor).attr("stroke-width", 3).attr("stroke-linecap", "round");
+  smallOutlierGroup.each(function() { drawDots(d3.select(this), wall1_x, space1_x); });
+  smallOutlierGroup.append("line").attr("x1", space1_x).attr("x2", d => space1_x + xSmall(d.delta) - rNode).attr("stroke", upColor).attr("stroke-width", 3).attr("stroke-linecap", "round").attr("marker-end", "url(#arrowGreen)");
+
+  const midOutlierGroup = g.selectAll(".mid-outlier").data(data.filter(d => d.outlierCat === 2)).enter()
+    .append("g").attr("class", "mid-outlier").attr("transform", d => `translate(0, ${y(d.id) + y.bandwidth()/2})`);
+  midOutlierGroup.append("line").attr("x1", x(0) + rNode).attr("x2", wall1_x).attr("stroke", upColor).attr("stroke-width", 3).attr("stroke-linecap", "round");
+  midOutlierGroup.each(function() { drawDots(d3.select(this), wall1_x, space1_x); });
+  midOutlierGroup.append("line").attr("x1", space1_x).attr("x2", wall2_x).attr("stroke", upColor).attr("stroke-width", 3).attr("stroke-linecap", "round");
+  midOutlierGroup.each(function() { drawDots(d3.select(this), wall2_x, space2_x); });
+  midOutlierGroup.append("line").attr("x1", space2_x).attr("x2", d => space2_x + xMid(d.delta) - rNode).attr("stroke", upColor).attr("stroke-width", 3).attr("stroke-linecap", "round").attr("marker-end", "url(#arrowGreen)");
+
+  const maxOutlierGroup = g.selectAll(".max-outlier").data(data.filter(d => d.outlierCat === 3)).enter()
+    .append("g").attr("class", "max-outlier").attr("transform", d => `translate(0, ${y(d.id) + y.bandwidth()/2})`);
+  maxOutlierGroup.append("line").attr("x1", x(0) + rNode).attr("x2", wall1_x).attr("stroke", upColor).attr("stroke-width", 3).attr("stroke-linecap", "round");
+  maxOutlierGroup.each(function() { drawDots(d3.select(this), wall1_x, space1_x); });
+  maxOutlierGroup.append("line").attr("x1", space1_x).attr("x2", wall2_x).attr("stroke", upColor).attr("stroke-width", 3).attr("stroke-linecap", "round");
+  maxOutlierGroup.each(function() { drawDots(d3.select(this), wall2_x, space2_x); });
+  maxOutlierGroup.append("line").attr("x1", space2_x).attr("x2", wall3_x).attr("stroke", upColor).attr("stroke-width", 3).attr("stroke-linecap", "round");
+  maxOutlierGroup.each(function() { drawDots(d3.select(this), wall3_x, space3_x); });
+  maxOutlierGroup.append("line").attr("x1", space3_x).attr("x2", d => space3_x + xMax(d.delta) - rNode).attr("stroke", upColor).attr("stroke-width", 3).attr("stroke-linecap", "round").attr("marker-end", "url(#arrowGreen)");
+
+  g.selectAll("circle.a").data(data).enter().append("circle").attr("class", "a").attr("cx", x(0)).attr("cy", d => y(d.id) + y.bandwidth()/2).attr("r", rNode).attr("fill", startColor).on("mouseover", function(e,d){ d3.select(this).transition().attr("r", rNodeLarge); showNode(e, this, 0); }).on("mouseout", function(e,d){ d3.select(this).transition().attr("r", rNode); hide(); });
+  g.selectAll("circle.b").data(data).enter().append("circle").attr("class", "b")
+    .attr("cx", d => {
+      switch(d.outlierCat) {
+        case 1: return space1_x + xSmall(d.delta);
+        case 2: return space2_x + xMid(d.delta);
+        case 3: return space3_x + xMax(d.delta);
+        default: return x(d.clamped);
+      }
+    })
+    .attr("cy", d => y(d.id) + y.bandwidth()/2).attr("r", rNode).attr("fill", d => d.same ? startColor : (d.inc ? upColor : downColor)).on("mouseover", function(e,d){ d3.select(this).transition().attr("r", rNodeLarge); showNode(e, this, d.delta); }).on("mouseout", function(e,d){ d3.select(this).transition().attr("r", rNode); hide(); });
+
+  const diff = d => (Math.abs(d.delta) % 1 === 0 ? Math.abs(d.delta).toString() : Math.abs(d.delta).toFixed(2));
+  g.selectAll("text.diff").data(data.filter(d => !d.same)).enter().append("text")
+    .attr("class","diff").attr("data-id", d => d.id)
+    .attr("x", d => {
+        let xPos;
+        switch(d.outlierCat) {
+          case 1: xPos = space1_x + xSmall(d.delta); break;
+          case 2: xPos = space2_x + xMid(d.delta); break;
+          case 3: xPos = space3_x + xMax(d.delta); break;
+          default: xPos = x(d.clamped);
+        }
+        return d.inc ? xPos + 12 : xPos - 12;
+    })
+    .attr("y", d => y(d.id) + y.bandwidth()/2 + 4).attr("text-anchor", d => d.dec ? "end" : "start").attr("fill", d => d.inc ? upColor : downColor).attr("font-size","11px").text(d => (d.inc ? "+" : "-") + diff(d));
+
+}
+createChart();
+let resizeTimeout;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => { createChart(); }, 250);
+});
+</script>
+</body>
+</html>
