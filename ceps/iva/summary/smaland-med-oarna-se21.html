@@ -1,0 +1,1376 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;position:relative;}
+#chart{position:absolute;top:0;left:0;right:0;bottom:clamp(110px,14vh,160px);} 
+.custom-legend{position:fixed;bottom:5px;left:50%;transform:translateX(-50%);display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;column-gap:clamp(8px, 2vw, 16px);row-gap:clamp(6px, 1.2vh, 10px);background:rgba(255,255,255,0.88);padding:clamp(6px, 1.4vh, 10px) clamp(10px, 1.6vw, 16px);border-radius:clamp(4px, 1vw, 8px);box-shadow:0 6px 24px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.5) inset;border:1px solid rgba(0,0,0,0.06);font-family:Arial, sans-serif;font-size:clamp(9px, 1vw, 13px);z-index:1000;max-width:96vw;white-space:nowrap;}
+.legend-square{width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex:0 0 18px;border-radius:0;display:inline-block;line-height:0;box-sizing:border-box;position:relative;box-shadow:0 0 0 1px rgba(0,0,0,0.15) inset;}
+.custom-legend.overlapped{opacity:0.15;}
+.custom-legend.overlapped:hover{opacity:1;}
+.legend-item{display:flex;align-items:center;gap:8px;cursor:pointer;transition:opacity 0.3s ease;position:relative;line-height:1;}
+.legend-item.inactive{opacity:0.3;}
+.legend-item:hover{opacity:1;}
+.legend-item.active .legend-square::after{content:"✓";position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);font-size:clamp(10px,1.6vw,14px);color:#ffffff;text-shadow:0 0 2px rgba(0,0,0,0.35);}
+.legend-item.inactive .legend-square::before{content:"";position:absolute;left:2px;right:2px;top:50%;height:2px;background:rgba(255,255,255,0.9);transform:rotate(-45deg);}
+.legend-item{flex:0 0 auto;}
+.legend-item span{white-space:nowrap;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label.dimmed {
+  opacity: 0.35 !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="controls-section">
+    <div class="custom-legend" id="legend"></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(a,b,pad=0){
+  return !((a.x + a.width + pad) < (b.x - pad) || (b.x + b.width + pad) < (a.x - pad) || (a.y + a.height + pad) < (b.y - pad) || (b.y + b.height + pad) < (a.y - pad));
+}
+function bboxOfCircle(cx,cy,r){ return {x:cx - r, y:cy - r, width:r*2, height:r*2}; }
+
+function getPositionOptions(cx,cy,r,p=6){
+  const dy=10;
+  const dx=6;
+  return [
+    {name:'right',x:cx+r+p,y:cy+3,anchor:'start'},
+    {name:'right-up',x:cx+r+p+dx,y:cy-dy,anchor:'start'},
+    {name:'right-down',x:cx+r+p+dx,y:cy+dy,anchor:'start'},
+    {name:'left',x:cx-r-p,y:cy+3,anchor:'end'},
+    {name:'left-up',x:cx-r-p-dx,y:cy-dy,anchor:'end'},
+    {name:'left-down',x:cx-r-p-dx,y:cy+dy,anchor:'end'},
+    {name:'above',x:cx,y:cy-r-p,anchor:'middle'},
+    {name:'below',x:cx,y:cy+r+p+10,anchor:'middle'}
+  ];
+}
+
+
+function getSVGBounds(svg){
+  const vb = svg.viewBox && svg.viewBox.baseVal;
+  if(vb && vb.width && vb.height){ return {x:vb.x, y:vb.y, width:vb.width, height:vb.height}; }
+  const w = parseFloat(svg.getAttribute('width')) || svg.clientWidth || 0;
+  const h = parseFloat(svg.getAttribute('height')) || svg.clientHeight || 0;
+  return {x:0, y:0, width:w, height:h};
+}
+
+
+function outsideBounds(tb, bounds, pad=2){
+  return tb.x < bounds.x + pad || tb.y < bounds.y + pad || (tb.x + tb.width) > (bounds.x + bounds.width - pad) || (tb.y + tb.height) > (bounds.y + bounds.height - pad);
+}
+
+
+function detectAxesBounds(svg, base){
+  const lines = svg.querySelectorAll('line');
+  let leftX = null;
+  let bottomY = null;
+  const minTall = Math.max(40, base.height * 0.3);
+  const minWide = Math.max(40, base.width * 0.3);
+  lines.forEach(l=>{
+    const x1 = parseFloat(l.getAttribute('x1'));
+    const x2 = parseFloat(l.getAttribute('x2'));
+    const y1 = parseFloat(l.getAttribute('y1'));
+    const y2 = parseFloat(l.getAttribute('y2'));
+    if([x1,x2,y1,y2].some(v=>isNaN(v))) return;
+    if(Math.abs(x1 - x2) < 0.5 && Math.abs(y2 - y1) >= minTall){
+      leftX = leftX === null ? x1 : Math.min(leftX, x1);
+    }
+    if(Math.abs(y1 - y2) < 0.5 && Math.abs(x2 - x1) >= minWide){
+      bottomY = bottomY === null ? Math.max(y1, y2) : Math.max(bottomY, y1, y2);
+    }
+  });
+  const pad = 6;
+  const bounds = {x:base.x, y:base.y, width:base.width, height:base.height};
+  if(leftX !== null){
+    bounds.x = Math.max(bounds.x, leftX + pad);
+    bounds.width = base.width - (bounds.x - base.x);
+  }
+  if(bottomY !== null){
+    const newH = Math.max(0, (bottomY - base.y) - pad);
+    bounds.height = Math.min(bounds.height, newH);
+  }
+  return bounds;
+}
+
+function getPlotBounds(svg){
+  const base = getSVGBounds(svg);
+  return detectAxesBounds(svg, base);
+}
+
+function hasCollision(textElement, allCircles, placedBoxes, bounds){
+  try{
+    const tb=textElement.getBBox();
+    if(bounds && outsideBounds(tb,bounds,2)) return true;
+    for(const c of allCircles){
+      const r=parseFloat(c.circle.getAttribute('r'))||7.5;
+      const cb=bboxOfCircle(c.coords.x,c.coords.y,r);
+      if(rectanglesOverlap(tb,cb,2)) return true;
+    }
+    if(placedBoxes && placedBoxes.length){
+      for(const b of placedBoxes){ if(rectanglesOverlap(tb,b,2)) return true; }
+    }
+    return false;
+  }catch(e){ return false; }
+}
+
+function findBestPosition(textElement,cx,cy,r,allCircles,fullText,placedBoxes,bounds){
+  const positions=getPositionOptions(cx,cy,r);
+  textElement.textContent=fullText;
+  for(const pos of positions){
+    textElement.setAttribute('x',pos.x);
+    textElement.setAttribute('y',pos.y);
+    textElement.setAttribute('text-anchor',pos.anchor);
+    if(!hasCollision(textElement,allCircles,placedBoxes,bounds)){
+      return {...pos,text:fullText,hasCollision:false};
+    }
+  }
+  const truncated=truncateText(fullText,20);
+  textElement.textContent=truncated;
+  for(const pos of positions){
+    textElement.setAttribute('x',pos.x);
+    textElement.setAttribute('y',pos.y);
+    textElement.setAttribute('text-anchor',pos.anchor);
+    if(!hasCollision(textElement,allCircles,placedBoxes,bounds)){
+      return {...pos,text:truncated,hasCollision:true};
+    }
+  }
+  const fallback=positions[0];
+  return {...fallback,text:truncated,hasCollision:true};
+}
+
+function getBoundData(element) {
+  if (element.__data__) {
+    return element.__data__;
+  }
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data= 
+
+ [
+  {
+    "domain": "Additive Manufacturing (3D Printing)",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 38.11,
+    "reldens.op": 41.39,
+    "y": 57.33,
+    "reldens.reg": 26.12,
+    "parent": "Materials and Production Technologies",
+    "color": "#C8B797",
+    "rank.reg": 23,
+    "rank.op": 33,
+    "rank.cb": 48,
+    "rank": 104,
+    "rank.rs": 79,
+    "id": "Additive Manufacturing (3D Printing)",
+    "x": 79,
+    "value": 1
+  },
+  {
+    "domain": "Advanced Materials",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 9.18,
+    "reldens.op": 22.24,
+    "y": 64.07,
+    "reldens.reg": 25.9,
+    "parent": "Materials and Production Technologies",
+    "color": "#C8B797",
+    "rank.reg": 22,
+    "rank.op": 18,
+    "rank.cb": 39,
+    "rank": 79,
+    "rank.rs": 54,
+    "id": "Advanced Materials",
+    "x": 54,
+    "value": 1
+  },
+  {
+    "domain": "Advanced Therapy Medicinal Products (ATMP)",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 6.63,
+    "reldens.op": 14.17,
+    "y": 71.8,
+    "reldens.reg": 0.7,
+    "parent": "Biotechnologies and Life Sciences",
+    "color": "#800020",
+    "rank.reg": 1,
+    "rank.op": 8,
+    "rank.cb": 27.5,
+    "rank": 36.5,
+    "rank.rs": 11.5,
+    "id": "Advanced Therapy Medicinal Products (ATMP)",
+    "x": 11.5,
+    "value": 1
+  },
+  {
+    "domain": "Aeronautics Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 9.05,
+    "reldens.op": 33.23,
+    "y": 63.58,
+    "reldens.reg": 36.51,
+    "parent": "Transportation, Aerospace, and Security Technologies",
+    "color": "#E1A100",
+    "rank.reg": 35,
+    "rank.op": 27,
+    "rank.cb": 38,
+    "rank": 100,
+    "rank.rs": 75,
+    "id": "Aeronautics Technologies",
+    "x": 75,
+    "value": 1
+  },
+  {
+    "domain": "Artificial Intelligence",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 10.99,
+    "reldens.op": 52.41,
+    "y": 72.96,
+    "reldens.reg": 19.45,
+    "parent": "Artificial Intelligence and Autonomous Systems Technologies",
+    "color": "#232F4B",
+    "rank.reg": 16,
+    "rank.op": 38,
+    "rank.cb": 41,
+    "rank": 95,
+    "rank.rs": 70,
+    "id": "Artificial Intelligence",
+    "x": 70,
+    "value": 1
+  },
+  {
+    "domain": "Augmented Reality (AR) and Virtual Reality (VR)",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 4.63,
+    "reldens.op": 74.94,
+    "y": 72.71,
+    "reldens.reg": 25.15,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 21,
+    "rank.op": 43,
+    "rank.cb": 18,
+    "rank": 82,
+    "rank.rs": 57,
+    "id": "Augmented Reality (AR) and Virtual Reality (VR)",
+    "x": 57,
+    "value": 1
+  },
+  {
+    "domain": "Autonomous Vehicles",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 19.18,
+    "reldens.op": 41.63,
+    "y": 75.82,
+    "reldens.reg": 51.9,
+    "parent": "Artificial Intelligence and Autonomous Systems Technologies",
+    "color": "#232F4B",
+    "rank.reg": 45,
+    "rank.op": 34,
+    "rank.cb": 46,
+    "rank": 125,
+    "rank.rs": 100,
+    "id": "Autonomous Vehicles",
+    "x": 100,
+    "value": 1
+  },
+  {
+    "domain": "Batteries",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 5.84,
+    "reldens.op": 9.43,
+    "y": 69.04,
+    "reldens.reg": 31.5,
+    "parent": "Energy and Electrification Technologies",
+    "color": "#8cab79",
+    "rank.reg": 31,
+    "rank.op": 4,
+    "rank.cb": 24,
+    "rank": 59,
+    "rank.rs": 34,
+    "id": "Batteries",
+    "x": 34,
+    "value": 1
+  },
+  {
+    "domain": "Biobased Materials & Biomanufacturing",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 0.86,
+    "reldens.op": 20.34,
+    "y": 56.26,
+    "reldens.reg": 28.5,
+    "parent": "Biotechnologies and Life Sciences",
+    "color": "#800020",
+    "rank.reg": 27,
+    "rank.op": 14,
+    "rank.cb": 1,
+    "rank": 42,
+    "rank.rs": 17,
+    "id": "Biobased Materials & Biomanufacturing",
+    "x": 17,
+    "value": 1
+  },
+  {
+    "domain": "Biofuels",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 0.99,
+    "reldens.op": 17.1,
+    "y": 47.67,
+    "reldens.reg": 24.11,
+    "parent": "Biotechnologies and Life Sciences",
+    "color": "#800020",
+    "rank.reg": 20,
+    "rank.op": 10,
+    "rank.cb": 3,
+    "rank": 33,
+    "rank.rs": 8,
+    "id": "Biofuels",
+    "x": 8,
+    "value": 1
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 7.19,
+    "reldens.op": 11.56,
+    "y": 64.2,
+    "reldens.reg": 3.38,
+    "parent": "Biotechnologies and Life Sciences",
+    "color": "#800020",
+    "rank.reg": 3,
+    "rank.op": 5,
+    "rank.cb": 32,
+    "rank": 40,
+    "rank.rs": 15,
+    "id": "Biotechnology",
+    "x": 15,
+    "value": 1
+  },
+  {
+    "domain": "Blockchain Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 2.76,
+    "reldens.op": 79.04,
+    "y": 67.05,
+    "reldens.reg": 5.97,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 5,
+    "rank.op": 46,
+    "rank.cb": 8,
+    "rank": 59,
+    "rank.rs": 34,
+    "id": "Blockchain Technologies",
+    "x": 34,
+    "value": 1
+  },
+  {
+    "domain": "Cloud Computing and Edge Computing",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 5.31,
+    "reldens.op": 35.47,
+    "y": 76.87,
+    "reldens.reg": 23.4,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 18,
+    "rank.op": 28,
+    "rank.cb": 21,
+    "rank": 67,
+    "rank.rs": 42,
+    "id": "Cloud Computing and Edge Computing",
+    "x": 42,
+    "value": 1
+  },
+  {
+    "domain": "Computer Vision, Language Processing, Object Recognition",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 6.97,
+    "reldens.op": 81.35,
+    "y": 76.6,
+    "reldens.reg": 29.1,
+    "parent": "Artificial Intelligence and Autonomous Systems Technologies",
+    "color": "#232F4B",
+    "rank.reg": 29,
+    "rank.op": 47,
+    "rank.cb": 30.5,
+    "rank": 106.5,
+    "rank.rs": 81.5,
+    "id": "Computer Vision, Language Processing, Object Recognition",
+    "x": 81.5,
+    "value": 1
+  },
+  {
+    "domain": "Cybersecurity Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 4.66,
+    "reldens.op": 53,
+    "y": 70.95,
+    "reldens.reg": 13.12,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 12,
+    "rank.op": 39,
+    "rank.cb": 19,
+    "rank": 70,
+    "rank.rs": 45,
+    "id": "Cybersecurity Technologies",
+    "x": 45,
+    "value": 1
+  },
+  {
+    "domain": "Data Analytics Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 9.52,
+    "reldens.op": 76,
+    "y": 77.33,
+    "reldens.reg": 12.96,
+    "parent": "Artificial Intelligence and Autonomous Systems Technologies",
+    "color": "#232F4B",
+    "rank.reg": 11,
+    "rank.op": 44,
+    "rank.cb": 40,
+    "rank": 95,
+    "rank.rs": 70,
+    "id": "Data Analytics Technologies",
+    "x": 70,
+    "value": 1
+  },
+  {
+    "domain": "Defence Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 4.85,
+    "reldens.op": 40.15,
+    "y": 47.49,
+    "reldens.reg": 47.88,
+    "parent": "Transportation, Aerospace, and Security Technologies",
+    "color": "#E1A100",
+    "rank.reg": 42,
+    "rank.op": 32,
+    "rank.cb": 20,
+    "rank": 94,
+    "rank.rs": 69,
+    "id": "Defence Technologies",
+    "x": 69,
+    "value": 1
+  },
+  {
+    "domain": "Drones",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 7.58,
+    "reldens.op": 21.84,
+    "y": 68.96,
+    "reldens.reg": 33.67,
+    "parent": "Artificial Intelligence and Autonomous Systems Technologies",
+    "color": "#232F4B",
+    "rank.reg": 33,
+    "rank.op": 17,
+    "rank.cb": 34,
+    "rank": 84,
+    "rank.rs": 59,
+    "id": "Drones",
+    "x": 59,
+    "value": 1
+  },
+  {
+    "domain": "Financial Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 3.59,
+    "reldens.op": 78.11,
+    "y": 69.92,
+    "reldens.reg": 9.56,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 7,
+    "rank.op": 45,
+    "rank.cb": 13,
+    "rank": 65,
+    "rank.rs": 40,
+    "id": "Financial Technologies",
+    "x": 40,
+    "value": 1
+  },
+  {
+    "domain": "Heat Pumps",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 2.02,
+    "reldens.op": 21.39,
+    "y": 59.18,
+    "reldens.reg": 37.69,
+    "parent": "Energy and Electrification Technologies",
+    "color": "#8cab79",
+    "rank.reg": 36,
+    "rank.op": 16,
+    "rank.cb": 6.5,
+    "rank": 58.5,
+    "rank.rs": 33.5,
+    "id": "Heat Pumps",
+    "x": 33.5,
+    "value": 1
+  },
+  {
+    "domain": "High Performance Computing",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 7.37,
+    "reldens.op": 29.41,
+    "y": 76.49,
+    "reldens.reg": 8.6,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 6,
+    "rank.op": 23,
+    "rank.cb": 33,
+    "rank": 62,
+    "rank.rs": 37,
+    "id": "High Performance Computing",
+    "x": 37,
+    "value": 1
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 3.11,
+    "reldens.op": 8.06,
+    "y": 68.21,
+    "reldens.reg": 37.95,
+    "parent": "Energy and Electrification Technologies",
+    "color": "#8cab79",
+    "rank.reg": 37,
+    "rank.op": 1,
+    "rank.cb": 10,
+    "rank": 48,
+    "rank.rs": 23,
+    "id": "Hydrogen Technologies",
+    "x": 23,
+    "value": 1
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 1.74,
+    "reldens.op": 25.22,
+    "y": 53.86,
+    "reldens.reg": 49.6,
+    "parent": "Energy and Electrification Technologies",
+    "color": "#8cab79",
+    "rank.reg": 44,
+    "rank.op": 21,
+    "rank.cb": 5,
+    "rank": 70,
+    "rank.rs": 45,
+    "id": "Hydropower Technologies",
+    "x": 45,
+    "value": 1
+  },
+  {
+    "domain": "Industrial Automation and Process Control",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 14.9,
+    "reldens.op": 29.56,
+    "y": 72.65,
+    "reldens.reg": 55.78,
+    "parent": "Materials and Production Technologies",
+    "color": "#C8B797",
+    "rank.reg": 47,
+    "rank.op": 24,
+    "rank.cb": 45,
+    "rank": 116,
+    "rank.rs": 91,
+    "id": "Industrial Automation and Process Control",
+    "x": 91,
+    "value": 1
+  },
+  {
+    "domain": "Internet of Things (IoT)",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 6.83,
+    "reldens.op": 37.66,
+    "y": 75.73,
+    "reldens.reg": 57.48,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 48,
+    "rank.op": 30,
+    "rank.cb": 29,
+    "rank": 107,
+    "rank.rs": 82,
+    "id": "Internet of Things (IoT)",
+    "x": 82,
+    "value": 1
+  },
+  {
+    "domain": "Life Sciences & Pharmaceuticals",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 6.52,
+    "reldens.op": 22.47,
+    "y": 60.42,
+    "reldens.reg": 3.21,
+    "parent": "Biotechnologies and Life Sciences",
+    "color": "#800020",
+    "rank.reg": 2,
+    "rank.op": 19,
+    "rank.cb": 26,
+    "rank": 47,
+    "rank.rs": 22,
+    "id": "Life Sciences & Pharmaceuticals",
+    "x": 22,
+    "value": 1
+  },
+  {
+    "domain": "Maritime Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 8.58,
+    "reldens.op": 25.14,
+    "y": 50.04,
+    "reldens.reg": 33.95,
+    "parent": "Transportation, Aerospace, and Security Technologies",
+    "color": "#E1A100",
+    "rank.reg": 34,
+    "rank.op": 20,
+    "rank.cb": 36,
+    "rank": 90,
+    "rank.rs": 65,
+    "id": "Maritime Technologies",
+    "x": 65,
+    "value": 1
+  },
+  {
+    "domain": "Medtech",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 11.31,
+    "reldens.op": 20.64,
+    "y": 58.67,
+    "reldens.reg": 22.21,
+    "parent": "Biotechnologies and Life Sciences",
+    "color": "#800020",
+    "rank.reg": 17,
+    "rank.op": 15,
+    "rank.cb": 42,
+    "rank": 74,
+    "rank.rs": 49,
+    "id": "Medtech",
+    "x": 49,
+    "value": 1
+  },
+  {
+    "domain": "Metals and Minerals Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 3.98,
+    "reldens.op": 44.37,
+    "y": 58.29,
+    "reldens.reg": 29.09,
+    "parent": "Materials and Production Technologies",
+    "color": "#C8B797",
+    "rank.reg": 28,
+    "rank.op": 35,
+    "rank.cb": 16,
+    "rank": 79,
+    "rank.rs": 54,
+    "id": "Metals and Minerals Technologies",
+    "x": 54,
+    "value": 1
+  },
+  {
+    "domain": "Mobile networks (e.g. 5G and 6G)",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 3.24,
+    "reldens.op": 47.37,
+    "y": 75.1,
+    "reldens.reg": 27.46,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 24,
+    "rank.op": 36,
+    "rank.cb": 11,
+    "rank": 71,
+    "rank.rs": 46,
+    "id": "Mobile networks (e.g. 5G and 6G)",
+    "x": 46,
+    "value": 1
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 0.93,
+    "reldens.op": 31.13,
+    "y": 55.19,
+    "reldens.reg": 19.12,
+    "parent": "Energy and Electrification Technologies",
+    "color": "#8cab79",
+    "rank.reg": 15,
+    "rank.op": 25,
+    "rank.cb": 2,
+    "rank": 42,
+    "rank.rs": 17,
+    "id": "Nuclear Energy Technologies",
+    "x": 17,
+    "value": 1
+  },
+  {
+    "domain": "Personalised Medicine",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 6.97,
+    "reldens.op": 84.85,
+    "y": 64.87,
+    "reldens.reg": 11.54,
+    "parent": "Biotechnologies and Life Sciences",
+    "color": "#800020",
+    "rank.reg": 10,
+    "rank.op": 48,
+    "rank.cb": 30.5,
+    "rank": 88.5,
+    "rank.rs": 63.5,
+    "id": "Personalised Medicine",
+    "x": 63.5,
+    "value": 1
+  },
+  {
+    "domain": "Photonics and Spintronics",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 8.66,
+    "reldens.op": 16.07,
+    "y": 65.17,
+    "reldens.reg": 10.52,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 8,
+    "rank.op": 9,
+    "rank.cb": 37,
+    "rank": 54,
+    "rank.rs": 29,
+    "id": "Photonics and Spintronics",
+    "x": 29,
+    "value": 1
+  },
+  {
+    "domain": "Production Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 36.21,
+    "reldens.op": 52.01,
+    "y": 64.66,
+    "reldens.reg": 46.51,
+    "parent": "Materials and Production Technologies",
+    "color": "#C8B797",
+    "rank.reg": 41,
+    "rank.op": 37,
+    "rank.cb": 47,
+    "rank": 125,
+    "rank.rs": 100,
+    "id": "Production Technologies",
+    "x": 100,
+    "value": 1
+  },
+  {
+    "domain": "Propulsion Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 7.65,
+    "reldens.op": 20.12,
+    "y": 62.22,
+    "reldens.reg": 39.34,
+    "parent": "Transportation, Aerospace, and Security Technologies",
+    "color": "#E1A100",
+    "rank.reg": 38,
+    "rank.op": 12,
+    "rank.cb": 35,
+    "rank": 85,
+    "rank.rs": 60,
+    "id": "Propulsion Technologies",
+    "x": 60,
+    "value": 1
+  },
+  {
+    "domain": "Quantum Technologies and Computing",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 3.39,
+    "reldens.op": 36.67,
+    "y": 73.11,
+    "reldens.reg": 10.57,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 9,
+    "rank.op": 29,
+    "rank.cb": 12,
+    "rank": 50,
+    "rank.rs": 25,
+    "id": "Quantum Technologies and Computing",
+    "x": 25,
+    "value": 1
+  },
+  {
+    "domain": "Recycling Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 3.6,
+    "reldens.op": 73.07,
+    "y": 53.26,
+    "reldens.reg": 28.41,
+    "parent": "Materials and Production Technologies",
+    "color": "#C8B797",
+    "rank.reg": 26,
+    "rank.op": 42,
+    "rank.cb": 14,
+    "rank": 82,
+    "rank.rs": 57,
+    "id": "Recycling Technologies",
+    "x": 57,
+    "value": 1
+  },
+  {
+    "domain": "Robotics",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 13.03,
+    "reldens.op": 37.74,
+    "y": 68.92,
+    "reldens.reg": 53.94,
+    "parent": "Artificial Intelligence and Autonomous Systems Technologies",
+    "color": "#232F4B",
+    "rank.reg": 46,
+    "rank.op": 31,
+    "rank.cb": 44,
+    "rank": 121,
+    "rank.rs": 96,
+    "id": "Robotics",
+    "x": 96,
+    "value": 1
+  },
+  {
+    "domain": "Safety and Security Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 4.55,
+    "reldens.op": 58.42,
+    "y": 63.11,
+    "reldens.reg": 48.41,
+    "parent": "Transportation, Aerospace, and Security Technologies",
+    "color": "#E1A100",
+    "rank.reg": 43,
+    "rank.op": 41,
+    "rank.cb": 17,
+    "rank": 101,
+    "rank.rs": 76,
+    "id": "Safety and Security Technologies",
+    "x": 76,
+    "value": 1
+  },
+  {
+    "domain": "Semiconductors and Chips",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 5.54,
+    "reldens.op": 12.46,
+    "y": 75.06,
+    "reldens.reg": 16.13,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 13,
+    "rank.op": 7,
+    "rank.cb": 22,
+    "rank": 42,
+    "rank.rs": 17,
+    "id": "Semiconductors and Chips",
+    "x": 17,
+    "value": 1
+  },
+  {
+    "domain": "Sensor Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 5.99,
+    "reldens.op": 17.28,
+    "y": 69.08,
+    "reldens.reg": 33.18,
+    "parent": "Artificial Intelligence and Autonomous Systems Technologies",
+    "color": "#232F4B",
+    "rank.reg": 32,
+    "rank.op": 11,
+    "rank.cb": 25,
+    "rank": 68,
+    "rank.rs": 43,
+    "id": "Sensor Technologies",
+    "x": 43,
+    "value": 1
+  },
+  {
+    "domain": "Smart Grids",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 2.87,
+    "reldens.op": 26.14,
+    "y": 61.97,
+    "reldens.reg": 28.3,
+    "parent": "Energy and Electrification Technologies",
+    "color": "#8cab79",
+    "rank.reg": 25,
+    "rank.op": 22,
+    "rank.cb": 9,
+    "rank": 56,
+    "rank.rs": 31,
+    "id": "Smart Grids",
+    "x": 31,
+    "value": 1
+  },
+  {
+    "domain": "Software Engineering and Systems Development",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 6.63,
+    "reldens.op": 57.97,
+    "y": 76.2,
+    "reldens.reg": 16.95,
+    "parent": "Digital Technologies",
+    "color": "#B0E3DD",
+    "rank.reg": 14,
+    "rank.op": 40,
+    "rank.cb": 27.5,
+    "rank": 81.5,
+    "rank.rs": 56.5,
+    "id": "Software Engineering and Systems Development",
+    "x": 56.5,
+    "value": 1
+  },
+  {
+    "domain": "Solar Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 2.02,
+    "reldens.op": 20.24,
+    "y": 55.12,
+    "reldens.reg": 30.29,
+    "parent": "Energy and Electrification Technologies",
+    "color": "#8cab79",
+    "rank.reg": 30,
+    "rank.op": 13,
+    "rank.cb": 6.5,
+    "rank": 49.5,
+    "rank.rs": 24.5,
+    "id": "Solar Technologies",
+    "x": 24.5,
+    "value": 1
+  },
+  {
+    "domain": "Space Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 5.75,
+    "reldens.op": 8.1,
+    "y": 72.75,
+    "reldens.reg": 45.1,
+    "parent": "Transportation, Aerospace, and Security Technologies",
+    "color": "#E1A100",
+    "rank.reg": 40,
+    "rank.op": 2,
+    "rank.cb": 23,
+    "rank": 65,
+    "rank.rs": 40,
+    "id": "Space Technologies",
+    "x": 40,
+    "value": 1
+  },
+  {
+    "domain": "Synthetic Biology",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 3.78,
+    "reldens.op": 11.61,
+    "y": 65.95,
+    "reldens.reg": 5.01,
+    "parent": "Biotechnologies and Life Sciences",
+    "color": "#800020",
+    "rank.reg": 4,
+    "rank.op": 6,
+    "rank.cb": 15,
+    "rank": 25,
+    "rank.rs": 0,
+    "id": "Synthetic Biology",
+    "x": 0,
+    "value": 1
+  },
+  {
+    "domain": "Transport Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 12.99,
+    "reldens.op": 32.63,
+    "y": 62.04,
+    "reldens.reg": 40.61,
+    "parent": "Transportation, Aerospace, and Security Technologies",
+    "color": "#E1A100",
+    "rank.reg": 39,
+    "rank.op": 26,
+    "rank.cb": 43,
+    "rank": 108,
+    "rank.rs": 83,
+    "id": "Transport Technologies",
+    "x": 83,
+    "value": 1
+  },
+  {
+    "domain": "Wind Technologies",
+    "geo": "Småland med öarna (SE21)",
+    "reldens.cb": 1.66,
+    "reldens.op": 9.11,
+    "y": 39.65,
+    "reldens.reg": 23.72,
+    "parent": "Energy and Electrification Technologies",
+    "color": "#8cab79",
+    "rank.reg": 19,
+    "rank.op": 3,
+    "rank.cb": 4,
+    "rank": 26,
+    "rank.rs": 1,
+    "id": "Wind Technologies",
+    "x": 1,
+    "value": 1
+  }
+]  ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,110];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+const parents = Array.from(new Set(data.map(d=>d.parent)));
+const parentColors = {};
+parents.forEach(p=>{ const c = (data.find(d=>d.parent===p)||{}).color || "#666666"; parentColors[p]=c; });
+let activeParents = new Set(parents);
+function renderLegend(){
+  const legend = document.getElementById('legend');
+  if(!legend) return;
+  legend.innerHTML = '';
+  parents.forEach(p=>{
+    const item = document.createElement('div');
+    item.className = 'legend-item active';
+    item.setAttribute('data-group', p);
+    item.setAttribute('role','button');
+    item.setAttribute('tabindex','0');
+    item.setAttribute('aria-pressed','true');
+    const square = document.createElement('div');
+    square.className = 'legend-square';
+    square.style.backgroundColor = parentColors[p];
+    const label = document.createElement('span');
+    label.textContent = p;
+    item.appendChild(square);
+    item.appendChild(label);
+    item.addEventListener('click', ()=>toggleGroup(p,item));
+    item.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleGroup(p,item); } });
+    legend.appendChild(item);
+  });
+}
+function adjustLayoutForLegend(){
+  const chart=document.getElementById('chart');
+  const legend=document.getElementById('legend');
+  if(!chart||!legend)return;
+  const h=Math.ceil(legend.getBoundingClientRect().height);
+  chart.style.bottom=(h+5)+'px';
+}
+function toggleGroup(group,item){
+  if(activeParents.has(group)){
+    activeParents.delete(group);
+    item.classList.remove('active');
+    item.classList.add('inactive');
+    item.setAttribute('aria-pressed','false');
+  } else {
+    activeParents.add(group);
+    item.classList.add('active');
+    item.classList.remove('inactive');
+    item.setAttribute('aria-pressed','true');
+  }
+  updateVisualization();
+}
+function updateVisualization(){
+  const filtered = data.filter(d=>activeParents.has(d.parent));
+  plot.data(filtered).render();
+  setTimeout(adjustLayoutForLegend,0);
+  setTimeout(()=>{
+    document.querySelectorAll('text.custom-label').forEach(el=>el.remove());
+    customLabels = [];
+    hoveringElements = new Set();
+    initializeCustomLabels();
+    adjustLayoutForLegend();
+  },400);
+}
+renderLegend();
+adjustLayoutForLegend();
+window.addEventListener('resize',adjustLayoutForLegend);
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+var plot = new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy("id")
+  .tooltip(false)
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"Technological Complexity",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Composite Relatedness Density",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  if(!window.__labelsUpdaterStarted){ startPositionUpdater(); window.__labelsUpdaterStarted = true; }
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      const svgEl = document.querySelector('#chart svg');
+      svgEl.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+
+        customLabels.forEach(l=>{
+          if(l.circle!==circle){
+            l.text.classList.add('dimmed');
+            l.circle.style.opacity='0.35';
+          } else {
+            l.text.classList.remove('dimmed');
+            l.circle.style.opacity='1';
+          }
+        });
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+
+        customLabels.forEach(l=>{
+          l.text.classList.remove('dimmed');
+          l.circle.style.opacity='';
+        });
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+
+  const bounds = getPlotBounds(svg);
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  const labelsOrdered=[...customLabels].map(ld=>{
+    const cp=circlePositions.find(cp=>cp.circle===ld.circle);
+    return {ld,cp};
+  }).filter(d=>d.cp).sort((a,b)=>a.cp.coords.y-b.cp.coords.y || a.cp.coords.x-b.cp.coords.x);
+  const placedBoxes=[];
+  labelsOrdered.forEach(({ld,cp})=>{
+    const {circle,text,fullText}=ld;
+    const r = parseFloat(circle.getAttribute('r')) || 7.5;
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    const pos = findBestPosition(text, cp.coords.x, cp.coords.y, r, circlePositions, fullText, placedBoxes, bounds);
+    text.setAttribute('x', pos.x);
+    text.setAttribute('y', pos.y);
+    text.setAttribute('text-anchor', pos.anchor);
+    text.textContent = pos.text;
+    ld.defaultText = pos.text;
+    const bb = text.getBBox();
+    if(!pos.hasCollision){
+      text.classList.remove('collision');
+      text.setAttribute('opacity','1');
+      placedBoxes.push({x:bb.x,y:bb.y,width:bb.width,height:bb.height});
+    } else {
+      text.classList.add('collision');
+      text.setAttribute('opacity','0.35');
+    }
+  });
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+</body>
+</html>
