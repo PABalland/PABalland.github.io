@@ -1,0 +1,2250 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
+.box{width:14px;height:14px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(rect1, rect2) {
+  return !(rect1.x + rect1.width < rect2.x || 
+           rect2.x + rect2.width < rect1.x || 
+           rect1.y + rect1.height < rect2.y || 
+           rect2.y + rect2.height < rect1.y);
+}
+
+function getPositionOptions(centerX, centerY, radius, padding = 5) {
+  return [
+    { name: 'right', x: centerX + radius + padding, y: centerY + 3, anchor: 'start' },
+    { name: 'left', x: centerX - radius - padding, y: centerY + 3, anchor: 'end' },
+    { name: 'below', x: centerX, y: centerY + radius + padding + 10, anchor: 'middle' },
+    { name: 'above', x: centerX, y: centerY - radius - padding, anchor: 'middle' }
+  ];
+}
+
+function hasCollision(textElement, allCircles) {
+  try {
+    const textBBox = textElement.getBBox();
+    
+    for (const circleData of allCircles) {
+      const r = parseFloat(circleData.circle.getAttribute('r')) || 7.5;
+      const circleBBox = {
+        x: circleData.coords.x - r,
+        y: circleData.coords.y - r,
+        width: r * 2,
+        height: r * 2
+      };
+      
+      if (rectanglesOverlap(textBBox, circleBBox)) {
+        return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+function findBestPosition(textElement, centerX, centerY, radius, allCircles, fullText) {
+  const positions = getPositionOptions(centerX, centerY, radius);
+  let hasCollisionWithFull = false;
+  
+  textElement.textContent = fullText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: fullText, hasCollision: false };
+    }
+  }
+  
+  hasCollisionWithFull = true;
+  
+  const truncatedText = truncateText(fullText, 20);
+  textElement.textContent = truncatedText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: truncatedText, hasCollision: hasCollisionWithFull };
+    }
+  }
+  
+  return { ...positions[0], text: truncatedText, hasCollision: true };
+}
+
+// Function to get data bound to DOM element
+function getBoundData(element) {
+  // Try to get data from d3plus binding
+  if (element.__data__) {
+    return element.__data__;
+  }
+  
+  // Try to get data from parent elements
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  // Prefer the bound data directly from D3
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  // No fallback by position to avoid mismatches
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data=
+ [
+  {
+    "id": "Accounting",
+    "rca": 0.61,
+    "color": "#C3A5A5",
+    "value": 0.5,
+    "rca_pub": 0.61
+  },
+  {
+    "id": "Acoustics and Ultrasonics",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Aerospace Engineering",
+    "rca": 1.42,
+    "color": "#81A881",
+    "value": 0.5,
+    "rca_pub": 1.42
+  },
+  {
+    "id": "Aging",
+    "rca": 0.38,
+    "color": "#B78282",
+    "value": 0.5,
+    "rca_pub": 0.38
+  },
+  {
+    "id": "Agrofood Waste Cut",
+    "x": 43.72,
+    "y": 46.03,
+    "rca": 2.52,
+    "color": "#4D8D4D",
+    "value": 0.5,
+    "rca_pub": 2.52
+  },
+  {
+    "id": "Agronomy and Crop Science",
+    "rca": 0.88,
+    "color": "#CFC6C6",
+    "value": 0.5,
+    "rca_pub": 0.88
+  },
+  {
+    "id": "Algebra and Number Theory",
+    "rca": 0.87,
+    "color": "#CEC5C5",
+    "value": 0.5,
+    "rca_pub": 0.87
+  },
+  {
+    "id": "Analytical Chemistry",
+    "rca": 1.16,
+    "color": "#9DB79D",
+    "value": 0.5,
+    "rca_pub": 1.16
+  },
+  {
+    "id": "Anatomy",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Anesthesiology and Pain Medicine",
+    "rca": 0.58,
+    "color": "#C2A1A1",
+    "value": 0.5,
+    "rca_pub": 0.58
+  },
+  {
+    "id": "Animal Science and Zoology",
+    "rca": 0.51,
+    "color": "#BE9797",
+    "value": 0.5,
+    "rca_pub": 0.51
+  },
+  {
+    "id": "Anthropology",
+    "rca": 0.37,
+    "color": "#B78080",
+    "value": 0.5,
+    "rca_pub": 0.37
+  },
+  {
+    "id": "Applied Mathematics",
+    "rca": 0.49,
+    "color": "#BD9494",
+    "value": 0.5,
+    "rca_pub": 0.49
+  },
+  {
+    "id": "Applied Microbiology and Biotechnology",
+    "rca": 0.69,
+    "color": "#C7AFAF",
+    "value": 0.5,
+    "rca_pub": 0.69
+  },
+  {
+    "id": "Applied Psychology",
+    "rca": 1.77,
+    "color": "#6A9C6A",
+    "value": 0.5,
+    "rca_pub": 1.77
+  },
+  {
+    "id": "Aquatic Science",
+    "rca": 0.15,
+    "color": "#A75252",
+    "value": 0.5,
+    "rca_pub": 0.15
+  },
+  {
+    "id": "Archeology",
+    "rca": 0.46,
+    "color": "#BC8F8F",
+    "value": 0.5,
+    "rca_pub": 0.46
+  },
+  {
+    "id": "Architecture",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Artificial Intelligence",
+    "rca": 0.68,
+    "color": "#C6AEAE",
+    "value": 0.5,
+    "rca_pub": 0.68
+  },
+  {
+    "id": "Astronomy and Astrophysics",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Atmospheric Science",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Atomic and Molecular Physics, and Optics",
+    "rca": 0.55,
+    "color": "#C09C9C",
+    "value": 0.5,
+    "rca_pub": 0.55
+  },
+  {
+    "id": "Automotive Engineering",
+    "rca": 1.01,
+    "color": "#C5CCC5",
+    "value": 0.5,
+    "rca_pub": 1.01
+  },
+  {
+    "id": "Behavioral Neuroscience",
+    "rca": 2.36,
+    "color": "#528F52",
+    "value": 0.5,
+    "rca_pub": 2.36
+  },
+  {
+    "id": "Biobased Materials in Construction",
+    "x": 37.02,
+    "y": 55.8,
+    "rca": 1.25,
+    "color": "#91B091",
+    "value": 0.5,
+    "rca_pub": 1.25
+  },
+  {
+    "id": "Biochemistry",
+    "rca": 0.27,
+    "color": "#B06E6E",
+    "value": 0.5,
+    "rca_pub": 0.27
+  },
+  {
+    "id": "Bioengineering",
+    "rca": 1.75,
+    "color": "#6B9C6B",
+    "value": 0.5,
+    "rca_pub": 1.75
+  },
+  {
+    "id": "Biological Psychiatry",
+    "rca": 0.36,
+    "color": "#B67F7F",
+    "value": 0.5,
+    "rca_pub": 0.36
+  },
+  {
+    "id": "Biomaterials",
+    "rca": 3.51,
+    "color": "#378137",
+    "value": 0.5,
+    "rca_pub": 3.51
+  },
+  {
+    "id": "Biomedical Engineering",
+    "rca": 1.89,
+    "color": "#649964",
+    "value": 0.5,
+    "rca_pub": 1.89
+  },
+  {
+    "id": "Biophysics",
+    "rca": 0.42,
+    "color": "#BA8989",
+    "value": 0.5,
+    "rca_pub": 0.42
+  },
+  {
+    "id": "Biotechnology",
+    "rca": 0.67,
+    "color": "#C6ADAD",
+    "value": 0.5,
+    "rca_pub": 0.67
+  },
+  {
+    "id": "Building and Construction",
+    "rca": 0.97,
+    "color": "#D2D0D0",
+    "value": 0.5,
+    "rca_pub": 0.97
+  },
+  {
+    "id": "Business and International Management",
+    "rca": 2.35,
+    "color": "#528F52",
+    "value": 0.5,
+    "rca_pub": 2.35
+  },
+  {
+    "id": "By-Product Valorization",
+    "x": 49.44,
+    "y": 53.13,
+    "rca": 1.52,
+    "color": "#79A479",
+    "value": 0.5,
+    "rca_pub": 1.52
+  },
+  {
+    "id": "Cancer Research",
+    "rca": 0.46,
+    "color": "#BC8F8F",
+    "value": 0.5,
+    "rca_pub": 0.46
+  },
+  {
+    "id": "Cardiology and Cardiovascular Medicine",
+    "rca": 0.71,
+    "color": "#C8B2B2",
+    "value": 0.5,
+    "rca_pub": 0.71
+  },
+  {
+    "id": "Catalysis",
+    "rca": 1.47,
+    "color": "#7DA67D",
+    "value": 0.5,
+    "rca_pub": 1.47
+  },
+  {
+    "id": "Cell Biology",
+    "rca": 0.67,
+    "color": "#C6ADAD",
+    "value": 0.5,
+    "rca_pub": 0.67
+  },
+  {
+    "id": "Cellular and Molecular Neuroscience",
+    "rca": 0.35,
+    "color": "#B67D7D",
+    "value": 0.5,
+    "rca_pub": 0.35
+  },
+  {
+    "id": "Ceramics and Composites",
+    "rca": 0.52,
+    "color": "#BF9898",
+    "value": 0.5,
+    "rca_pub": 0.52
+  },
+  {
+    "id": "Chemical Health and Safety",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Circular Business",
+    "x": 46.59,
+    "y": 56.08,
+    "rca": 0.41,
+    "color": "#B98787",
+    "value": 0.5,
+    "rca_pub": 0.41
+  },
+  {
+    "id": "Circular Design",
+    "x": 33.08,
+    "y": 46.19,
+    "rca": 2.03,
+    "color": "#5E955E",
+    "value": 0.5,
+    "rca_pub": 2.03
+  },
+  {
+    "id": "Circular food packaging",
+    "x": 53.69,
+    "y": 53.36,
+    "rca": 2.13,
+    "color": "#5A935A",
+    "value": 0.5,
+    "rca_pub": 2.13
+  },
+  {
+    "id": "Civil and Structural Engineering",
+    "rca": 0.87,
+    "color": "#CEC5C5",
+    "value": 0.5,
+    "rca_pub": 0.87
+  },
+  {
+    "id": "Classics",
+    "rca": 0.58,
+    "color": "#C2A1A1",
+    "value": 0.5,
+    "rca_pub": 0.58
+  },
+  {
+    "id": "Clinical Biochemistry",
+    "rca": 0.32,
+    "color": "#B47777",
+    "value": 0.5,
+    "rca_pub": 0.32
+  },
+  {
+    "id": "Clinical Psychology",
+    "rca": 2.19,
+    "color": "#589258",
+    "value": 0.5,
+    "rca_pub": 2.19
+  },
+  {
+    "id": "Cognitive Neuroscience",
+    "rca": 0.95,
+    "color": "#D1CECE",
+    "value": 0.5,
+    "rca_pub": 0.95
+  },
+  {
+    "id": "Communication",
+    "rca": 4.77,
+    "color": "#257825",
+    "value": 0.5,
+    "rca_pub": 4.77
+  },
+  {
+    "id": "Complementary and alternative medicine",
+    "rca": 2.86,
+    "color": "#448844",
+    "value": 0.5,
+    "rca_pub": 2.86
+  },
+  {
+    "id": "Complementary and Manual Therapy",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Computational Mathematics",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Computational Mechanics",
+    "rca": 1.34,
+    "color": "#88AB88",
+    "value": 0.5,
+    "rca_pub": 1.34
+  },
+  {
+    "id": "Computational Theory and Mathematics",
+    "rca": 0.18,
+    "color": "#AA5A5A",
+    "value": 0.5,
+    "rca_pub": 0.18
+  },
+  {
+    "id": "Computer Graphics and Computer-Aided Design",
+    "rca": 3.44,
+    "color": "#388238",
+    "value": 0.5,
+    "rca_pub": 3.44
+  },
+  {
+    "id": "Computer Networks and Communications",
+    "rca": 1.76,
+    "color": "#6A9C6A",
+    "value": 0.5,
+    "rca_pub": 1.76
+  },
+  {
+    "id": "Computer Science Applications",
+    "rca": 4.03,
+    "color": "#2F7D2F",
+    "value": 0.5,
+    "rca_pub": 4.03
+  },
+  {
+    "id": "Computer Vision and Pattern Recognition",
+    "rca": 1.33,
+    "color": "#89AC89",
+    "value": 0.5,
+    "rca_pub": 1.33
+  },
+  {
+    "id": "Condensed Matter Physics",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Conservation",
+    "rca": 1.69,
+    "color": "#6E9E6E",
+    "value": 0.5,
+    "rca_pub": 1.69
+  },
+  {
+    "id": "Control and Systems Engineering",
+    "rca": 1.06,
+    "color": "#B1C1B1",
+    "value": 0.5,
+    "rca_pub": 1.06
+  },
+  {
+    "id": "Critical Care and Intensive Care Medicine",
+    "rca": 0.76,
+    "color": "#CAB8B8",
+    "value": 0.5,
+    "rca_pub": 0.76
+  },
+  {
+    "id": "Critical Metals Reuse",
+    "x": 46.59,
+    "y": 55.99,
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Cultural Studies",
+    "rca": 0.58,
+    "color": "#C2A1A1",
+    "value": 0.5,
+    "rca_pub": 0.58
+  },
+  {
+    "id": "Demography",
+    "rca": 2.51,
+    "color": "#4E8D4E",
+    "value": 0.5,
+    "rca_pub": 2.51
+  },
+  {
+    "id": "Dermatology",
+    "rca": 0.13,
+    "color": "#A54C4C",
+    "value": 0.5,
+    "rca_pub": 0.13
+  },
+  {
+    "id": "Development",
+    "rca": 0.91,
+    "color": "#D0C9C9",
+    "value": 0.5,
+    "rca_pub": 0.91
+  },
+  {
+    "id": "Developmental and Educational Psychology",
+    "rca": 3.13,
+    "color": "#3E853E",
+    "value": 0.5,
+    "rca_pub": 3.13
+  },
+  {
+    "id": "Developmental Biology",
+    "rca": 0.32,
+    "color": "#B47777",
+    "value": 0.5,
+    "rca_pub": 0.32
+  },
+  {
+    "id": "Developmental Neuroscience",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Discrete Mathematics and Combinatorics",
+    "rca": 0.27,
+    "color": "#B06E6E",
+    "value": 0.5,
+    "rca_pub": 0.27
+  },
+  {
+    "id": "Drug Discovery",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "E-Waste Circularity",
+    "x": 41.73,
+    "y": 60,
+    "rca": 0.54,
+    "color": "#C09B9B",
+    "value": 0.5,
+    "rca_pub": 0.54
+  },
+  {
+    "id": "Earth-Surface Processes",
+    "rca": 0.13,
+    "color": "#A54C4C",
+    "value": 0.5,
+    "rca_pub": 0.13
+  },
+  {
+    "id": "Ecological Modeling",
+    "rca": 0.47,
+    "color": "#BC9191",
+    "value": 0.5,
+    "rca_pub": 0.47
+  },
+  {
+    "id": "Ecology",
+    "rca": 0.53,
+    "color": "#BF9A9A",
+    "value": 0.5,
+    "rca_pub": 0.53
+  },
+  {
+    "id": "Ecology, Evolution, Behavior and Systematics",
+    "rca": 0.37,
+    "color": "#B78080",
+    "value": 0.5,
+    "rca_pub": 0.37
+  },
+  {
+    "id": "Economics and Econometrics",
+    "rca": 0.95,
+    "color": "#D1CECE",
+    "value": 0.5,
+    "rca_pub": 0.95
+  },
+  {
+    "id": "Education",
+    "rca": 2.81,
+    "color": "#468946",
+    "value": 0.5,
+    "rca_pub": 2.81
+  },
+  {
+    "id": "Electrical and Electronic Engineering",
+    "rca": 1.48,
+    "color": "#7CA57C",
+    "value": 0.5,
+    "rca_pub": 1.48
+  },
+  {
+    "id": "Electrochemistry",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Electronic, Optical and Magnetic Materials",
+    "rca": 0.73,
+    "color": "#C9B4B4",
+    "value": 0.5,
+    "rca_pub": 0.73
+  },
+  {
+    "id": "Emergency Medical Services",
+    "rca": 1.96,
+    "color": "#619761",
+    "value": 0.5,
+    "rca_pub": 1.96
+  },
+  {
+    "id": "Emergency Medicine",
+    "rca": 1.14,
+    "color": "#A1B9A1",
+    "value": 0.5,
+    "rca_pub": 1.14
+  },
+  {
+    "id": "Endocrine and Autonomic Systems",
+    "rca": 1.7,
+    "color": "#6E9E6E",
+    "value": 0.5,
+    "rca_pub": 1.7
+  },
+  {
+    "id": "Endocrinology",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Endocrinology, Diabetes and Metabolism",
+    "rca": 0.45,
+    "color": "#BB8E8E",
+    "value": 0.5,
+    "rca_pub": 0.45
+  },
+  {
+    "id": "Energy Engineering and Power Technology",
+    "rca": 0.21,
+    "color": "#AC6161",
+    "value": 0.5,
+    "rca_pub": 0.21
+  },
+  {
+    "id": "Environmental Chemistry",
+    "rca": 0.27,
+    "color": "#B06E6E",
+    "value": 0.5,
+    "rca_pub": 0.27
+  },
+  {
+    "id": "Environmental Engineering",
+    "rca": 0.66,
+    "color": "#C5ABAB",
+    "value": 0.5,
+    "rca_pub": 0.66
+  },
+  {
+    "id": "Epidemiology",
+    "rca": 0.5,
+    "color": "#BE9595",
+    "value": 0.5,
+    "rca_pub": 0.5
+  },
+  {
+    "id": "Equine",
+    "rca": 0.57,
+    "color": "#C19F9F",
+    "value": 0.5,
+    "rca_pub": 0.57
+  },
+  {
+    "id": "Experimental and Cognitive Psychology",
+    "rca": 1.21,
+    "color": "#96B396",
+    "value": 0.5,
+    "rca_pub": 1.21
+  },
+  {
+    "id": "Family Practice",
+    "rca": 1.33,
+    "color": "#89AC89",
+    "value": 0.5,
+    "rca_pub": 1.33
+  },
+  {
+    "id": "Filtration and Separation",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Finance",
+    "rca": 0.8,
+    "color": "#CBBDBD",
+    "value": 0.5,
+    "rca_pub": 0.8
+  },
+  {
+    "id": "Fluid Flow and Transfer Processes",
+    "rca": 0.98,
+    "color": "#D2D1D1",
+    "value": 0.5,
+    "rca_pub": 0.98
+  },
+  {
+    "id": "Food Science",
+    "rca": 0.99,
+    "color": "#D3D2D2",
+    "value": 0.5,
+    "rca_pub": 0.99
+  },
+  {
+    "id": "Forestry",
+    "rca": 0.64,
+    "color": "#C5A9A9",
+    "value": 0.5,
+    "rca_pub": 0.64
+  },
+  {
+    "id": "Fuel Technology",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Gastroenterology",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Gender Studies",
+    "rca": 3.25,
+    "color": "#3C843C",
+    "value": 0.5,
+    "rca_pub": 3.25
+  },
+  {
+    "id": "General Agricultural and Biological Sciences",
+    "rca": 1.47,
+    "color": "#7DA67D",
+    "value": 0.5,
+    "rca_pub": 1.47
+  },
+  {
+    "id": "General Arts and Humanities",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "General Decision Sciences",
+    "rca": 0.37,
+    "color": "#B78080",
+    "value": 0.5,
+    "rca_pub": 0.37
+  },
+  {
+    "id": "General Dentistry",
+    "rca": 0.42,
+    "color": "#BA8989",
+    "value": 0.5,
+    "rca_pub": 0.42
+  },
+  {
+    "id": "General Economics, Econometrics and Finance",
+    "rca": 0.35,
+    "color": "#B67D7D",
+    "value": 0.5,
+    "rca_pub": 0.35
+  },
+  {
+    "id": "General Energy",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "General Engineering",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "General Health Professions",
+    "rca": 2.17,
+    "color": "#599359",
+    "value": 0.5,
+    "rca_pub": 2.17
+  },
+  {
+    "id": "General Materials Science",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "General Psychology",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "General Social Sciences",
+    "rca": 0.41,
+    "color": "#B98787",
+    "value": 0.5,
+    "rca_pub": 0.41
+  },
+  {
+    "id": "Genetics",
+    "rca": 0.5,
+    "color": "#BE9595",
+    "value": 0.5,
+    "rca_pub": 0.5
+  },
+  {
+    "id": "Geochemistry and Petrology",
+    "rca": 0.71,
+    "color": "#C8B2B2",
+    "value": 0.5,
+    "rca_pub": 0.71
+  },
+  {
+    "id": "Geography, Planning and Development",
+    "rca": 1.57,
+    "color": "#76A276",
+    "value": 0.5,
+    "rca_pub": 1.57
+  },
+  {
+    "id": "Geology",
+    "rca": 0.79,
+    "color": "#CBBCBC",
+    "value": 0.5,
+    "rca_pub": 0.79
+  },
+  {
+    "id": "Geometry and Topology",
+    "rca": 0.52,
+    "color": "#BF9898",
+    "value": 0.5,
+    "rca_pub": 0.52
+  },
+  {
+    "id": "Geophysics",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "Geriatrics and Gerontology",
+    "rca": 0.61,
+    "color": "#C3A5A5",
+    "value": 0.5,
+    "rca_pub": 0.61
+  },
+  {
+    "id": "Global and Planetary Change",
+    "rca": 0.47,
+    "color": "#BC9191",
+    "value": 0.5,
+    "rca_pub": 0.47
+  },
+  {
+    "id": "Hardware and Architecture",
+    "rca": 0.44,
+    "color": "#BB8C8C",
+    "value": 0.5,
+    "rca_pub": 0.44
+  },
+  {
+    "id": "Health",
+    "rca": 2.29,
+    "color": "#549054",
+    "value": 0.5,
+    "rca_pub": 2.29
+  },
+  {
+    "id": "Health Informatics",
+    "rca": 0.91,
+    "color": "#D0C9C9",
+    "value": 0.5,
+    "rca_pub": 0.91
+  },
+  {
+    "id": "Health Information Management",
+    "rca": 0.67,
+    "color": "#C6ADAD",
+    "value": 0.5,
+    "rca_pub": 0.67
+  },
+  {
+    "id": "Health, Toxicology and Mutagenesis",
+    "rca": 0.81,
+    "color": "#CCBEBE",
+    "value": 0.5,
+    "rca_pub": 0.81
+  },
+  {
+    "id": "Hematology",
+    "rca": 0.26,
+    "color": "#B06C6C",
+    "value": 0.5,
+    "rca_pub": 0.26
+  },
+  {
+    "id": "Hepatology",
+    "rca": 0.43,
+    "color": "#BA8A8A",
+    "value": 0.5,
+    "rca_pub": 0.43
+  },
+  {
+    "id": "History",
+    "rca": 0.46,
+    "color": "#BC8F8F",
+    "value": 0.5,
+    "rca_pub": 0.46
+  },
+  {
+    "id": "History and Philosophy of Science",
+    "rca": 0.1,
+    "color": "#A24343",
+    "value": 0.5,
+    "rca_pub": 0.1
+  },
+  {
+    "id": "Horticulture",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Human Factors and Ergonomics",
+    "rca": 6.99,
+    "color": "#116D11",
+    "value": 0.5,
+    "rca_pub": 6.99
+  },
+  {
+    "id": "Human-Computer Interaction",
+    "rca": 1.71,
+    "color": "#6D9D6D",
+    "value": 0.5,
+    "rca_pub": 1.71
+  },
+  {
+    "id": "Immunology",
+    "rca": 0.11,
+    "color": "#A34646",
+    "value": 0.5,
+    "rca_pub": 0.11
+  },
+  {
+    "id": "Immunology and Allergy",
+    "rca": 0.32,
+    "color": "#B47777",
+    "value": 0.5,
+    "rca_pub": 0.32
+  },
+  {
+    "id": "Industrial and Manufacturing Engineering",
+    "rca": 1.56,
+    "color": "#76A276",
+    "value": 0.5,
+    "rca_pub": 1.56
+  },
+  {
+    "id": "Industrial relations",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Industrial Symbiosis",
+    "x": 34.66,
+    "y": 52.32,
+    "rca": 1.3,
+    "color": "#8CAE8C",
+    "value": 0.5,
+    "rca_pub": 1.3
+  },
+  {
+    "id": "Infectious Diseases",
+    "rca": 0.33,
+    "color": "#B47979",
+    "value": 0.5,
+    "rca_pub": 0.33
+  },
+  {
+    "id": "Information Systems",
+    "rca": 1.73,
+    "color": "#6C9D6C",
+    "value": 0.5,
+    "rca_pub": 1.73
+  },
+  {
+    "id": "Information Systems and Management",
+    "rca": 1.99,
+    "color": "#609660",
+    "value": 0.5,
+    "rca_pub": 1.99
+  },
+  {
+    "id": "Inorganic Chemistry",
+    "rca": 0.84,
+    "color": "#CDC1C1",
+    "value": 0.5,
+    "rca_pub": 0.84
+  },
+  {
+    "id": "Insect Science",
+    "rca": 1.64,
+    "color": "#71A071",
+    "value": 0.5,
+    "rca_pub": 1.64
+  },
+  {
+    "id": "Instrumentation",
+    "rca": 0.29,
+    "color": "#B27272",
+    "value": 0.5,
+    "rca_pub": 0.29
+  },
+  {
+    "id": "Internal Medicine",
+    "rca": 0.62,
+    "color": "#C4A6A6",
+    "value": 0.5,
+    "rca_pub": 0.62
+  },
+  {
+    "id": "Issues, ethics and legal aspects",
+    "rca": 1.07,
+    "color": "#AFC0AF",
+    "value": 0.5,
+    "rca_pub": 1.07
+  },
+  {
+    "id": "Language and Linguistics",
+    "rca": 0.74,
+    "color": "#C9B6B6",
+    "value": 0.5,
+    "rca_pub": 0.74
+  },
+  {
+    "id": "Law",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Leadership and Management",
+    "rca": 4.16,
+    "color": "#2D7C2D",
+    "value": 0.5,
+    "rca_pub": 4.16
+  },
+  {
+    "id": "Library and Information Sciences",
+    "rca": 3.62,
+    "color": "#358035",
+    "value": 0.5,
+    "rca_pub": 3.62
+  },
+  {
+    "id": "Life-span and Life-course Studies",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Linguistics and Language",
+    "rca": 0.53,
+    "color": "#BF9A9A",
+    "value": 0.5,
+    "rca_pub": 0.53
+  },
+  {
+    "id": "Literature and Literary Theory",
+    "rca": 0.96,
+    "color": "#D2CFCF",
+    "value": 0.5,
+    "rca_pub": 0.96
+  },
+  {
+    "id": "Management Information Systems",
+    "rca": 1.69,
+    "color": "#6E9E6E",
+    "value": 0.5,
+    "rca_pub": 1.69
+  },
+  {
+    "id": "Management of Technology and Innovation",
+    "rca": 2.04,
+    "color": "#5E955E",
+    "value": 0.5,
+    "rca_pub": 2.04
+  },
+  {
+    "id": "Management Science and Operations Research",
+    "rca": 1.86,
+    "color": "#659965",
+    "value": 0.5,
+    "rca_pub": 1.86
+  },
+  {
+    "id": "Management, Monitoring, Policy and Law",
+    "rca": 0.92,
+    "color": "#D0CACA",
+    "value": 0.5,
+    "rca_pub": 0.92
+  },
+  {
+    "id": "Marketing",
+    "rca": 2.08,
+    "color": "#5C945C",
+    "value": 0.5,
+    "rca_pub": 2.08
+  },
+  {
+    "id": "Materials Chemistry",
+    "rca": 0.58,
+    "color": "#C2A1A1",
+    "value": 0.5,
+    "rca_pub": 0.58
+  },
+  {
+    "id": "Mathematical Physics",
+    "rca": 0.42,
+    "color": "#BA8989",
+    "value": 0.5,
+    "rca_pub": 0.42
+  },
+  {
+    "id": "Mechanical Engineering",
+    "rca": 1.62,
+    "color": "#72A072",
+    "value": 0.5,
+    "rca_pub": 1.62
+  },
+  {
+    "id": "Mechanics of Materials",
+    "rca": 1.25,
+    "color": "#91B091",
+    "value": 0.5,
+    "rca_pub": 1.25
+  },
+  {
+    "id": "Media Technology",
+    "rca": 1.91,
+    "color": "#639863",
+    "value": 0.5,
+    "rca_pub": 1.91
+  },
+  {
+    "id": "Medical Laboratory Technology",
+    "rca": 0.61,
+    "color": "#C3A5A5",
+    "value": 0.5,
+    "rca_pub": 0.61
+  },
+  {
+    "id": "Medical Terminology",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Metals and Alloys",
+    "rca": 2.23,
+    "color": "#569156",
+    "value": 0.5,
+    "rca_pub": 2.23
+  },
+  {
+    "id": "Microbiology",
+    "rca": 0.2,
+    "color": "#AB5E5E",
+    "value": 0.5,
+    "rca_pub": 0.2
+  },
+  {
+    "id": "Modeling and Simulation",
+    "rca": 0.91,
+    "color": "#D0C9C9",
+    "value": 0.5,
+    "rca_pub": 0.91
+  },
+  {
+    "id": "Molecular Biology",
+    "rca": 0.2,
+    "color": "#AB5E5E",
+    "value": 0.5,
+    "rca_pub": 0.2
+  },
+  {
+    "id": "Molecular Medicine",
+    "rca": 0.45,
+    "color": "#BB8E8E",
+    "value": 0.5,
+    "rca_pub": 0.45
+  },
+  {
+    "id": "Museology",
+    "rca": 1.09,
+    "color": "#AABEAA",
+    "value": 0.5,
+    "rca_pub": 1.09
+  },
+  {
+    "id": "Music",
+    "rca": 0.57,
+    "color": "#C19F9F",
+    "value": 0.5,
+    "rca_pub": 0.57
+  },
+  {
+    "id": "Nature and Landscape Conservation",
+    "rca": 0.36,
+    "color": "#B67F7F",
+    "value": 0.5,
+    "rca_pub": 0.36
+  },
+  {
+    "id": "Nephrology",
+    "rca": 0.37,
+    "color": "#B78080",
+    "value": 0.5,
+    "rca_pub": 0.37
+  },
+  {
+    "id": "Neurology",
+    "rca": 0.28,
+    "color": "#B17070",
+    "value": 0.5,
+    "rca_pub": 0.28
+  },
+  {
+    "id": "Neuropsychology and Physiological Psychology",
+    "rca": 2.8,
+    "color": "#468946",
+    "value": 0.5,
+    "rca_pub": 2.8
+  },
+  {
+    "id": "Nuclear and High Energy Physics",
+    "rca": 0.13,
+    "color": "#A54C4C",
+    "value": 0.5,
+    "rca_pub": 0.13
+  },
+  {
+    "id": "Nuclear Energy and Engineering",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Numerical Analysis",
+    "rca": 0.21,
+    "color": "#AC6161",
+    "value": 0.5,
+    "rca_pub": 0.21
+  },
+  {
+    "id": "Nutrition and Dietetics",
+    "rca": 0.55,
+    "color": "#C09C9C",
+    "value": 0.5,
+    "rca_pub": 0.55
+  },
+  {
+    "id": "Obstetrics and Gynecology",
+    "rca": 1.42,
+    "color": "#81A881",
+    "value": 0.5,
+    "rca_pub": 1.42
+  },
+  {
+    "id": "Occupational Therapy",
+    "rca": 3.38,
+    "color": "#3A823A",
+    "value": 0.5,
+    "rca_pub": 3.38
+  },
+  {
+    "id": "Ocean Engineering",
+    "rca": 0.8,
+    "color": "#CBBDBD",
+    "value": 0.5,
+    "rca_pub": 0.8
+  },
+  {
+    "id": "Oceanography",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Oncology",
+    "rca": 0.45,
+    "color": "#BB8E8E",
+    "value": 0.5,
+    "rca_pub": 0.45
+  },
+  {
+    "id": "Ophthalmology",
+    "rca": 0.28,
+    "color": "#B17070",
+    "value": 0.5,
+    "rca_pub": 0.28
+  },
+  {
+    "id": "Oral Surgery",
+    "rca": 0.68,
+    "color": "#C6AEAE",
+    "value": 0.5,
+    "rca_pub": 0.68
+  },
+  {
+    "id": "Organic Chemistry",
+    "rca": 0.86,
+    "color": "#CEC4C4",
+    "value": 0.5,
+    "rca_pub": 0.86
+  },
+  {
+    "id": "Organizational Behavior and Human Resource Management",
+    "rca": 1.96,
+    "color": "#619761",
+    "value": 0.5,
+    "rca_pub": 1.96
+  },
+  {
+    "id": "Orthodontics",
+    "rca": 0.51,
+    "color": "#BE9797",
+    "value": 0.5,
+    "rca_pub": 0.51
+  },
+  {
+    "id": "Orthopedics and Sports Medicine",
+    "rca": 4.81,
+    "color": "#257725",
+    "value": 0.5,
+    "rca_pub": 4.81
+  },
+  {
+    "id": "Otorhinolaryngology",
+    "rca": 0.39,
+    "color": "#B88484",
+    "value": 0.5,
+    "rca_pub": 0.39
+  },
+  {
+    "id": "Paleontology",
+    "rca": 0.24,
+    "color": "#AE6767",
+    "value": 0.5,
+    "rca_pub": 0.24
+  },
+  {
+    "id": "Parasitology",
+    "rca": 0.33,
+    "color": "#B47979",
+    "value": 0.5,
+    "rca_pub": 0.33
+  },
+  {
+    "id": "Pathology and Forensic Medicine",
+    "rca": 0.33,
+    "color": "#B47979",
+    "value": 0.5,
+    "rca_pub": 0.33
+  },
+  {
+    "id": "Pediatrics, Perinatology and Child Health",
+    "rca": 1.21,
+    "color": "#96B396",
+    "value": 0.5,
+    "rca_pub": 1.21
+  },
+  {
+    "id": "Periodontics",
+    "rca": 0.63,
+    "color": "#C4A7A7",
+    "value": 0.5,
+    "rca_pub": 0.63
+  },
+  {
+    "id": "Pharmaceutical Science",
+    "rca": 0.17,
+    "color": "#A95757",
+    "value": 0.5,
+    "rca_pub": 0.17
+  },
+  {
+    "id": "Pharmacology",
+    "rca": 0.58,
+    "color": "#C2A1A1",
+    "value": 0.5,
+    "rca_pub": 0.58
+  },
+  {
+    "id": "Pharmacy",
+    "rca": 0.99,
+    "color": "#D3D2D2",
+    "value": 0.5,
+    "rca_pub": 0.99
+  },
+  {
+    "id": "Philosophy",
+    "rca": 0.58,
+    "color": "#C2A1A1",
+    "value": 0.5,
+    "rca_pub": 0.58
+  },
+  {
+    "id": "Physical and Theoretical Chemistry",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Physical Therapy, Sports Therapy and Rehabilitation",
+    "rca": 1.85,
+    "color": "#669A66",
+    "value": 0.5,
+    "rca_pub": 1.85
+  },
+  {
+    "id": "Physiology",
+    "rca": 0.53,
+    "color": "#BF9A9A",
+    "value": 0.5,
+    "rca_pub": 0.53
+  },
+  {
+    "id": "Plant Science",
+    "rca": 0.76,
+    "color": "#CAB8B8",
+    "value": 0.5,
+    "rca_pub": 0.76
+  },
+  {
+    "id": "Political Science and International Relations",
+    "rca": 1.91,
+    "color": "#639863",
+    "value": 0.5,
+    "rca_pub": 1.91
+  },
+  {
+    "id": "Pollution",
+    "rca": 0.71,
+    "color": "#C8B2B2",
+    "value": 0.5,
+    "rca_pub": 0.71
+  },
+  {
+    "id": "Polymers and Plastics",
+    "rca": 2.32,
+    "color": "#539053",
+    "value": 0.5,
+    "rca_pub": 2.32
+  },
+  {
+    "id": "Process Chemistry and Technology",
+    "rca": 0.91,
+    "color": "#D0C9C9",
+    "value": 0.5,
+    "rca_pub": 0.91
+  },
+  {
+    "id": "Product Services",
+    "x": 21.66,
+    "y": 47.18,
+    "rca": 3.11,
+    "color": "#3F853F",
+    "value": 0.5,
+    "rca_pub": 3.11
+  },
+  {
+    "id": "Psychiatry and Mental health",
+    "rca": 0.82,
+    "color": "#CCBFBF",
+    "value": 0.5,
+    "rca_pub": 0.82
+  },
+  {
+    "id": "Public Administration",
+    "rca": 9.89,
+    "color": "#016401",
+    "value": 0.5,
+    "rca_pub": 9.89
+  },
+  {
+    "id": "Public Health, Environmental and Occupational Health",
+    "rca": 1.22,
+    "color": "#95B295",
+    "value": 0.5,
+    "rca_pub": 1.22
+  },
+  {
+    "id": "Pulmonary and Respiratory Medicine",
+    "rca": 0.95,
+    "color": "#D1CECE",
+    "value": 0.5,
+    "rca_pub": 0.95
+  },
+  {
+    "id": "Radiation",
+    "rca": 1.03,
+    "color": "#BBC6BB",
+    "value": 0.5,
+    "rca_pub": 1.03
+  },
+  {
+    "id": "Radiological and Ultrasound Technology",
+    "rca": 3.85,
+    "color": "#327E32",
+    "value": 0.5,
+    "rca_pub": 3.85
+  },
+  {
+    "id": "Radiology, Nuclear Medicine and Imaging",
+    "rca": 0.33,
+    "color": "#B47979",
+    "value": 0.5,
+    "rca_pub": 0.33
+  },
+  {
+    "id": "Raw Material Shift",
+    "x": 35.33,
+    "y": 53.83,
+    "rca": 2.92,
+    "color": "#438743",
+    "value": 0.5,
+    "rca_pub": 2.92
+  },
+  {
+    "id": "Rehabilitation",
+    "rca": 1.95,
+    "color": "#619761",
+    "value": 0.5,
+    "rca_pub": 1.95
+  },
+  {
+    "id": "Religious studies",
+    "rca": 0.99,
+    "color": "#D3D2D2",
+    "value": 0.5,
+    "rca_pub": 0.99
+  },
+  {
+    "id": "Renewable Energy, Sustainability and the Environment",
+    "rca": 0.44,
+    "color": "#BB8C8C",
+    "value": 0.5,
+    "rca_pub": 0.44
+  },
+  {
+    "id": "Reproductive Medicine",
+    "rca": 0.33,
+    "color": "#B47979",
+    "value": 0.5,
+    "rca_pub": 0.33
+  },
+  {
+    "id": "Research and Theory",
+    "rca": 5.69,
+    "color": "#1C731C",
+    "value": 0.5,
+    "rca_pub": 5.69
+  },
+  {
+    "id": "Rheumatology",
+    "rca": 0.64,
+    "color": "#C5A9A9",
+    "value": 0.5,
+    "rca_pub": 0.64
+  },
+  {
+    "id": "Safety Research",
+    "rca": 1.05,
+    "color": "#B4C3B4",
+    "value": 0.5,
+    "rca_pub": 1.05
+  },
+  {
+    "id": "Safety, Risk, Reliability and Quality",
+    "rca": 0.82,
+    "color": "#CCBFBF",
+    "value": 0.5,
+    "rca_pub": 0.82
+  },
+  {
+    "id": "Sensory Systems",
+    "rca": 0.46,
+    "color": "#BC8F8F",
+    "value": 0.5,
+    "rca_pub": 0.46
+  },
+  {
+    "id": "Signal Processing",
+    "rca": 1.4,
+    "color": "#82A982",
+    "value": 0.5,
+    "rca_pub": 1.4
+  },
+  {
+    "id": "Small Animals",
+    "rca": 0.65,
+    "color": "#C5AAAA",
+    "value": 0.5,
+    "rca_pub": 0.65
+  },
+  {
+    "id": "Social Psychology",
+    "rca": 2.3,
+    "color": "#549054",
+    "value": 0.5,
+    "rca_pub": 2.3
+  },
+  {
+    "id": "Sociology and Political Science",
+    "rca": 1.93,
+    "color": "#629862",
+    "value": 0.5,
+    "rca_pub": 1.93
+  },
+  {
+    "id": "Software",
+    "rca": 1.24,
+    "color": "#93B193",
+    "value": 0.5,
+    "rca_pub": 1.24
+  },
+  {
+    "id": "Soil Science",
+    "rca": 0.56,
+    "color": "#C19E9E",
+    "value": 0.5,
+    "rca_pub": 0.56
+  },
+  {
+    "id": "Space and Planetary Science",
+    "rca": 1.18,
+    "color": "#9AB59A",
+    "value": 0.5,
+    "rca_pub": 1.18
+  },
+  {
+    "id": "Spectroscopy",
+    "rca": 0.64,
+    "color": "#C5A9A9",
+    "value": 0.5,
+    "rca_pub": 0.64
+  },
+  {
+    "id": "Speech and Hearing",
+    "rca": 1.33,
+    "color": "#89AC89",
+    "value": 0.5,
+    "rca_pub": 1.33
+  },
+  {
+    "id": "Statistical and Nonlinear Physics",
+    "rca": 0.35,
+    "color": "#B67D7D",
+    "value": 0.5,
+    "rca_pub": 0.35
+  },
+  {
+    "id": "Statistics and Probability",
+    "rca": 0.42,
+    "color": "#BA8989",
+    "value": 0.5,
+    "rca_pub": 0.42
+  },
+  {
+    "id": "Statistics, Probability and Uncertainty",
+    "rca": 0.74,
+    "color": "#C9B6B6",
+    "value": 0.5,
+    "rca_pub": 0.74
+  },
+  {
+    "id": "Steel Loop",
+    "x": 45.54,
+    "y": 52.57,
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Strategy and Management",
+    "rca": 1.59,
+    "color": "#74A174",
+    "value": 0.5,
+    "rca_pub": 1.59
+  },
+  {
+    "id": "Structural Biology",
+    "rca": 0.39,
+    "color": "#B88484",
+    "value": 0.5,
+    "rca_pub": 0.39
+  },
+  {
+    "id": "Surfaces, Coatings and Films",
+    "rca": 2.53,
+    "color": "#4D8D4D",
+    "value": 0.5,
+    "rca_pub": 2.53
+  },
+  {
+    "id": "Surgery",
+    "rca": 0.55,
+    "color": "#C09C9C",
+    "value": 0.5,
+    "rca_pub": 0.55
+  },
+  {
+    "id": "Textile Waste Cut",
+    "x": 48.99,
+    "y": 51.88,
+    "rca": 3.75,
+    "color": "#337F33",
+    "value": 0.5,
+    "rca_pub": 3.75
+  },
+  {
+    "id": "Theoretical Computer Science",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Tourism, Leisure and Hospitality Management",
+    "rca": 4.21,
+    "color": "#2C7B2C",
+    "value": 0.5,
+    "rca_pub": 4.21
+  },
+  {
+    "id": "Toxicology",
+    "rca": 0.53,
+    "color": "#BF9A9A",
+    "value": 0.5,
+    "rca_pub": 0.53
+  },
+  {
+    "id": "Transplantation",
+    "rca": 0.23,
+    "color": "#AE6565",
+    "value": 0.5,
+    "rca_pub": 0.23
+  },
+  {
+    "id": "Transportation",
+    "rca": 1.99,
+    "color": "#609660",
+    "value": 0.5,
+    "rca_pub": 1.99
+  },
+  {
+    "id": "Urban Studies",
+    "rca": 0.88,
+    "color": "#CFC6C6",
+    "value": 0.5,
+    "rca_pub": 0.88
+  },
+  {
+    "id": "Urology",
+    "rca": 0.85,
+    "color": "#CDC3C3",
+    "value": 0.5,
+    "rca_pub": 0.85
+  },
+  {
+    "id": "Virology",
+    "rca": 0.31,
+    "color": "#B37575",
+    "value": 0.5,
+    "rca_pub": 0.31
+  },
+  {
+    "id": "Visual Arts and Performing Arts",
+    "rca": 0.45,
+    "color": "#BB8E8E",
+    "value": 0.5,
+    "rca_pub": 0.45
+  },
+  {
+    "id": "Waste Management and Disposal",
+    "rca": 0.83,
+    "color": "#CDC0C0",
+    "value": 0.5,
+    "rca_pub": 0.83
+  },
+  {
+    "id": "Water Circularity",
+    "x": 49.78,
+    "y": 46.87,
+    "rca": 0.46,
+    "color": "#BC8F8F",
+    "value": 0.5,
+    "rca_pub": 0.46
+  },
+  {
+    "id": "Water Science and Technology",
+    "rca": 0.92,
+    "color": "#D0CACA",
+    "value": 0.5,
+    "rca_pub": 0.92
+  }
+] ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,100];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+    body:d=>`<table class='tooltip-table'>
+      <tr><td class='title'>Relatedness Density:</td><td class='data'>${d.x}</td></tr>
+      <tr><td class='title'>Complexity:</td><td class='data'>${d.y}</td></tr>
+      <tr><td class='title'>RCA:</td><td class='data'>${d.rca}</td></tr>
+      <tr><td class='title'>ID:</td><td class='data'>${d.id}</td></tr>
+    </table>`,
+     title:d=>d.id
+  })
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"Technological Complexity",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Technological Relatedness Density",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  startPositionUpdater();
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      svg.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+        
+        // Show in console for debugging
+        console.log('Hovering over:', matchingData.id);
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  customLabels.forEach((labelData) => {
+    const {circle, text, fullText} = labelData;
+    
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    
+    if (circle && text) {
+      const circleData = circlePositions.find(cp => cp.circle === circle);
+      if (circleData) {
+        const r = parseFloat(circle.getAttribute('r')) || 7.5;
+        const bestPosition = findBestPosition(
+          text, 
+          circleData.coords.x, 
+          circleData.coords.y, 
+          r,
+          circlePositions,
+          fullText
+        );
+        
+        text.setAttribute('x', bestPosition.x);
+        text.setAttribute('y', bestPosition.y);
+        text.setAttribute('text-anchor', bestPosition.anchor);
+        text.textContent = bestPosition.text;
+        labelData.defaultText = bestPosition.text;
+        
+        if (bestPosition.hasCollision) {
+          text.classList.add('collision');
+          text.setAttribute('opacity', '0.3');
+        } else {
+          text.classList.remove('collision');
+          text.setAttribute('opacity', '1');
+        }
+      }
+    }
+  });
+  
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
+</div>
+</body>
+</html>

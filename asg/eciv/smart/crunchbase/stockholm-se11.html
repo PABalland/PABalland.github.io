@@ -1,0 +1,5903 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
+.box{width:14px;height:14px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Investment RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Investment RCA &lt; 1</span></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(rect1, rect2) {
+  return !(rect1.x + rect1.width < rect2.x || 
+           rect2.x + rect2.width < rect1.x || 
+           rect1.y + rect1.height < rect2.y || 
+           rect2.y + rect2.height < rect1.y);
+}
+
+function getPositionOptions(centerX, centerY, radius, padding = 5) {
+  return [
+    { name: 'right', x: centerX + radius + padding, y: centerY + 3, anchor: 'start' },
+    { name: 'left', x: centerX - radius - padding, y: centerY + 3, anchor: 'end' },
+    { name: 'below', x: centerX, y: centerY + radius + padding + 10, anchor: 'middle' },
+    { name: 'above', x: centerX, y: centerY - radius - padding, anchor: 'middle' }
+  ];
+}
+
+function hasCollision(textElement, allCircles) {
+  try {
+    const textBBox = textElement.getBBox();
+    
+    for (const circleData of allCircles) {
+      const r = parseFloat(circleData.circle.getAttribute('r')) || 7.5;
+      const circleBBox = {
+        x: circleData.coords.x - r,
+        y: circleData.coords.y - r,
+        width: r * 2,
+        height: r * 2
+      };
+      
+      if (rectanglesOverlap(textBBox, circleBBox)) {
+        return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+function findBestPosition(textElement, centerX, centerY, radius, allCircles, fullText) {
+  const positions = getPositionOptions(centerX, centerY, radius);
+  let hasCollisionWithFull = false;
+  
+  textElement.textContent = fullText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: fullText, hasCollision: false };
+    }
+  }
+  
+  hasCollisionWithFull = true;
+  
+  const truncatedText = truncateText(fullText, 20);
+  textElement.textContent = truncatedText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: truncatedText, hasCollision: hasCollisionWithFull };
+    }
+  }
+  
+  return { ...positions[0], text: truncatedText, hasCollision: true };
+}
+
+// Function to get data bound to DOM element
+function getBoundData(element) {
+  // Try to get data from d3plus binding
+  if (element.__data__) {
+    return element.__data__;
+  }
+  
+  // Try to get data from parent elements
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  // Prefer the bound data directly from D3
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  // No fallback by position to avoid mismatches
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data= [
+  {
+    "id": "",
+    "rca": 0.26,
+    "color": "#B06C6C",
+    "value": 0.5,
+    "rca_pub": 0.26
+  },
+  {
+    "id": " and Air Conditioning (HVAC)\"\"\"\"\"\"\"\"",
+    "rca": 15.15,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 15.15
+  },
+  {
+    "id": " Ventilation",
+    "rca": 15.15,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 15.15
+  },
+  {
+    "id": "\"\"\"\"\"\"\"\"Heating",
+    "rca": 15.15,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 15.15
+  },
+  {
+    "id": "3D Printing",
+    "rca": 0.86,
+    "color": "#CEC4C4",
+    "value": 0.5,
+    "rca_pub": 0.86
+  },
+  {
+    "id": "3D Technology",
+    "rca": 1.13,
+    "color": "#A2B9A2",
+    "value": 0.5,
+    "rca_pub": 1.13
+  },
+  {
+    "id": "A/B Testing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Accounting",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "Ad Exchange",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Ad Network",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Ad Server",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Ad Targeting",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Addiction Treatment",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Adult",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Advanced Materials",
+    "rca": 0.75,
+    "color": "#C9B7B7",
+    "value": 0.5,
+    "rca_pub": 0.75
+  },
+  {
+    "id": "Adventure Travel",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Advertising",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Advertising Platforms",
+    "rca": 2.3,
+    "color": "#549054",
+    "value": 0.5,
+    "rca_pub": 2.3
+  },
+  {
+    "id": "Advice",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Aerospace",
+    "rca": 0.13,
+    "color": "#A54C4C",
+    "value": 0.5,
+    "rca_pub": 0.13
+  },
+  {
+    "id": "Affiliate Marketing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Agriculture",
+    "rca": 0.17,
+    "color": "#A95757",
+    "value": 0.5,
+    "rca_pub": 0.17
+  },
+  {
+    "id": "Agrofood Waste Cut",
+    "x": 10.54,
+    "y": 46.03,
+    "rca": 0.11,
+    "color": "#A34646",
+    "value": 0.5,
+    "rca_pub": 0.11
+  },
+  {
+    "id": "AgTech",
+    "rca": 0.32,
+    "color": "#B47777",
+    "value": 0.5,
+    "rca_pub": 0.32
+  },
+  {
+    "id": "Air Transportation",
+    "rca": 0.15,
+    "color": "#A75252",
+    "value": 0.5,
+    "rca_pub": 0.15
+  },
+  {
+    "id": "Alternative Medicine",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Alternative Protein",
+    "rca": 0.31,
+    "color": "#B37575",
+    "value": 0.5,
+    "rca_pub": 0.31
+  },
+  {
+    "id": "Alumni",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "American Football",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Amusement Park and Arcade",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Analytics",
+    "rca": 0.21,
+    "color": "#AC6161",
+    "value": 0.5,
+    "rca_pub": 0.21
+  },
+  {
+    "id": "Android",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Angel Investment",
+    "rca": 0.32,
+    "color": "#B47777",
+    "value": 0.5,
+    "rca_pub": 0.32
+  },
+  {
+    "id": "Animal Feed",
+    "rca": 0.52,
+    "color": "#BF9898",
+    "value": 0.5,
+    "rca_pub": 0.52
+  },
+  {
+    "id": "Animation",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "App Discovery",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "App Marketing",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Apparel",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Application Performance Management",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Application Specific Integrated Circuit (ASIC)",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Apps",
+    "rca": 2.01,
+    "color": "#5F965F",
+    "value": 0.5,
+    "rca_pub": 2.01
+  },
+  {
+    "id": "Aquaculture",
+    "rca": 0.04,
+    "color": "#992A2A",
+    "value": 0.5,
+    "rca_pub": 0.04
+  },
+  {
+    "id": "Architecture",
+    "rca": 0.51,
+    "color": "#BE9797",
+    "value": 0.5,
+    "rca_pub": 0.51
+  },
+  {
+    "id": "Archiving Service",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Art",
+    "rca": 0.47,
+    "color": "#BC9191",
+    "value": 0.5,
+    "rca_pub": 0.47
+  },
+  {
+    "id": "Artificial Intelligence (AI)",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Asset Management",
+    "rca": 0.69,
+    "color": "#C7AFAF",
+    "value": 0.5,
+    "rca_pub": 0.69
+  },
+  {
+    "id": "Assisted Living",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Assistive Technology",
+    "rca": 1.17,
+    "color": "#9CB69C",
+    "value": 0.5,
+    "rca_pub": 1.17
+  },
+  {
+    "id": "Association",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Auctions",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Audio",
+    "rca": 0.21,
+    "color": "#AC6161",
+    "value": 0.5,
+    "rca_pub": 0.21
+  },
+  {
+    "id": "Audio Recording and Production",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Audio/Visual Equipment",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Audiobooks",
+    "rca": 6.41,
+    "color": "#156F15",
+    "value": 0.5,
+    "rca_pub": 6.41
+  },
+  {
+    "id": "Augmented Reality",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Auto Insurance",
+    "rca": 2.87,
+    "color": "#448844",
+    "value": 0.5,
+    "rca_pub": 2.87
+  },
+  {
+    "id": "Automotive",
+    "rca": 0.47,
+    "color": "#BC9191",
+    "value": 0.5,
+    "rca_pub": 0.47
+  },
+  {
+    "id": "Autonomous Vehicles",
+    "rca": 4.21,
+    "color": "#2C7B2C",
+    "value": 0.5,
+    "rca_pub": 4.21
+  },
+  {
+    "id": "B2B",
+    "rca": 0.1,
+    "color": "#A24343",
+    "value": 0.5,
+    "rca_pub": 0.1
+  },
+  {
+    "id": "B2C",
+    "rca": 1.85,
+    "color": "#669A66",
+    "value": 0.5,
+    "rca_pub": 1.85
+  },
+  {
+    "id": "Baby",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Bakery",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Banking",
+    "rca": 0.59,
+    "color": "#C2A2A2",
+    "value": 0.5,
+    "rca_pub": 0.59
+  },
+  {
+    "id": "Baseball",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Basketball",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Battery",
+    "rca": 2.85,
+    "color": "#458845",
+    "value": 0.5,
+    "rca_pub": 2.85
+  },
+  {
+    "id": "Beauty",
+    "rca": 0.86,
+    "color": "#CEC4C4",
+    "value": 0.5,
+    "rca_pub": 0.86
+  },
+  {
+    "id": "Big Data",
+    "rca": 0.81,
+    "color": "#CCBEBE",
+    "value": 0.5,
+    "rca_pub": 0.81
+  },
+  {
+    "id": "Billing",
+    "rca": 5.62,
+    "color": "#1C731C",
+    "value": 0.5,
+    "rca_pub": 5.62
+  },
+  {
+    "id": "Biobased Materials in Construction",
+    "x": 11.54,
+    "y": 55.8,
+    "rca": 0.07,
+    "color": "#9E3838",
+    "value": 0.5,
+    "rca_pub": 0.07
+  },
+  {
+    "id": "Biofuel",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Bioinformatics",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Biomass Energy",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Biometrics",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Biopharma",
+    "rca": 0.37,
+    "color": "#B78080",
+    "value": 0.5,
+    "rca_pub": 0.37
+  },
+  {
+    "id": "Biotechnology",
+    "rca": 0.16,
+    "color": "#A85454",
+    "value": 0.5,
+    "rca_pub": 0.16
+  },
+  {
+    "id": "Bitcoin",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Blockchain",
+    "rca": 0.47,
+    "color": "#BC9191",
+    "value": 0.5,
+    "rca_pub": 0.47
+  },
+  {
+    "id": "Blogging Platforms",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Boating",
+    "rca": 20.95,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 20.95
+  },
+  {
+    "id": "Bookkeeping and Payroll",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Books",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Brand Marketing",
+    "rca": 0.29,
+    "color": "#B27272",
+    "value": 0.5,
+    "rca_pub": 0.29
+  },
+  {
+    "id": "Brewing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Broadcasting",
+    "rca": 2.26,
+    "color": "#559155",
+    "value": 0.5,
+    "rca_pub": 2.26
+  },
+  {
+    "id": "Browser Extensions",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Building Maintenance",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Building Material",
+    "rca": 0.42,
+    "color": "#BA8989",
+    "value": 0.5,
+    "rca_pub": 0.42
+  },
+  {
+    "id": "Business Development",
+    "rca": 0.5,
+    "color": "#BE9595",
+    "value": 0.5,
+    "rca_pub": 0.5
+  },
+  {
+    "id": "Business Information Systems",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Business Intelligence",
+    "rca": 0.1,
+    "color": "#A24343",
+    "value": 0.5,
+    "rca_pub": 0.1
+  },
+  {
+    "id": "Business Process Automation (BPA)",
+    "rca": 0.18,
+    "color": "#AA5A5A",
+    "value": 0.5,
+    "rca_pub": 0.18
+  },
+  {
+    "id": "Business Travel",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "By-Product Valorization",
+    "x": 8.01,
+    "y": 53.13,
+    "rca": 0.41,
+    "color": "#B98787",
+    "value": 0.5,
+    "rca_pub": 0.41
+  },
+  {
+    "id": "CAD",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Call Center",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Cannabis",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Car Sharing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Carbon Capture",
+    "rca": 1.18,
+    "color": "#9AB59A",
+    "value": 0.5,
+    "rca_pub": 1.18
+  },
+  {
+    "id": "Card and Board Games",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Career Planning",
+    "rca": 0.26,
+    "color": "#B06C6C",
+    "value": 0.5,
+    "rca_pub": 0.26
+  },
+  {
+    "id": "Casino",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Casual Games",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Catering",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Cause Marketing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Charging Infrastructure",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Charity",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Charter Schools",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Chatbot",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Chemical",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Chemical Engineering",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Child Care",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Children",
+    "rca": 0.6,
+    "color": "#C3A3A3",
+    "value": 0.5,
+    "rca_pub": 0.6
+  },
+  {
+    "id": "Circular Business",
+    "x": 13.18,
+    "y": 56.08,
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Circular Design",
+    "x": 9.14,
+    "y": 46.19,
+    "rca": 0.4,
+    "color": "#B98585",
+    "value": 0.5,
+    "rca_pub": 0.4
+  },
+  {
+    "id": "Circular food packaging",
+    "x": 10.89,
+    "y": 53.36,
+    "rca": 0.15,
+    "color": "#A75252",
+    "value": 0.5,
+    "rca_pub": 0.15
+  },
+  {
+    "id": "CivicTech",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Civil Engineering",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Classifieds",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Clean Energy",
+    "rca": 11.08,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 11.08
+  },
+  {
+    "id": "Cleaning Products",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "CleanTech",
+    "rca": 6.21,
+    "color": "#177017",
+    "value": 0.5,
+    "rca_pub": 6.21
+  },
+  {
+    "id": "Clinical Trials",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Cloud Computing",
+    "rca": 0.17,
+    "color": "#A95757",
+    "value": 0.5,
+    "rca_pub": 0.17
+  },
+  {
+    "id": "Cloud Data Services",
+    "rca": 0.76,
+    "color": "#CAB8B8",
+    "value": 0.5,
+    "rca_pub": 0.76
+  },
+  {
+    "id": "Cloud Infrastructure",
+    "rca": 0.98,
+    "color": "#D2D1D1",
+    "value": 0.5,
+    "rca_pub": 0.98
+  },
+  {
+    "id": "Cloud Management",
+    "rca": 0.32,
+    "color": "#B47777",
+    "value": 0.5,
+    "rca_pub": 0.32
+  },
+  {
+    "id": "Cloud Security",
+    "rca": 1.8,
+    "color": "#689B68",
+    "value": 0.5,
+    "rca_pub": 1.8
+  },
+  {
+    "id": "Cloud Storage",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "CMS",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Coffee",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Collaboration",
+    "rca": 1.76,
+    "color": "#6A9C6A",
+    "value": 0.5,
+    "rca_pub": 1.76
+  },
+  {
+    "id": "Collaborative Consumption",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Collectibles",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "College Recruiting",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Comics",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Commercial",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Commercial Insurance",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Commercial Lending",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Commercial Real Estate",
+    "rca": 0.22,
+    "color": "#AD6363",
+    "value": 0.5,
+    "rca_pub": 0.22
+  },
+  {
+    "id": "Communication Hardware",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Communications Infrastructure",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Communities",
+    "rca": 0.29,
+    "color": "#B27272",
+    "value": 0.5,
+    "rca_pub": 0.29
+  },
+  {
+    "id": "Compliance",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Computer",
+    "rca": 1.51,
+    "color": "#7AA47A",
+    "value": 0.5,
+    "rca_pub": 1.51
+  },
+  {
+    "id": "Computer Vision",
+    "rca": 1.03,
+    "color": "#BBC6BB",
+    "value": 0.5,
+    "rca_pub": 1.03
+  },
+  {
+    "id": "Concerts",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Confectionery",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Console Games",
+    "rca": 11.04,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 11.04
+  },
+  {
+    "id": "Construction",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Consulting",
+    "rca": 0.21,
+    "color": "#AC6161",
+    "value": 0.5,
+    "rca_pub": 0.21
+  },
+  {
+    "id": "Consumer",
+    "rca": 9.76,
+    "color": "#016501",
+    "value": 0.5,
+    "rca_pub": 9.76
+  },
+  {
+    "id": "Consumer Applications",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Consumer Electronics",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Consumer Goods",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "Consumer Lending",
+    "rca": 1.91,
+    "color": "#639863",
+    "value": 0.5,
+    "rca_pub": 1.91
+  },
+  {
+    "id": "Consumer Research",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Consumer Reviews",
+    "rca": 2.46,
+    "color": "#4F8E4F",
+    "value": 0.5,
+    "rca_pub": 2.46
+  },
+  {
+    "id": "Consumer Software",
+    "rca": 0.1,
+    "color": "#A24343",
+    "value": 0.5,
+    "rca_pub": 0.1
+  },
+  {
+    "id": "Contact Management",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Content",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Content Creators",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Content Delivery Network",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Content Discovery",
+    "rca": 8.94,
+    "color": "#056705",
+    "value": 0.5,
+    "rca_pub": 8.94
+  },
+  {
+    "id": "Content Marketing",
+    "rca": 1.49,
+    "color": "#7BA57B",
+    "value": 0.5,
+    "rca_pub": 1.49
+  },
+  {
+    "id": "Content Syndication",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Contests",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Continuing Education",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Cooking",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Copywriting",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Corporate Training",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Cosmetic Surgery",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Cosmetics",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Coupons",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Courier Service",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Coworking",
+    "rca": 0.15,
+    "color": "#A75252",
+    "value": 0.5,
+    "rca_pub": 0.15
+  },
+  {
+    "id": "Craft Beer",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Creative Agency",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Credit",
+    "rca": 3.52,
+    "color": "#378137",
+    "value": 0.5,
+    "rca_pub": 3.52
+  },
+  {
+    "id": "Credit Bureau",
+    "rca": 22.33,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 22.33
+  },
+  {
+    "id": "Credit Cards",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Cricket",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Critical Metals Reuse",
+    "x": 12.2,
+    "y": 55.99,
+    "rca": 0.28,
+    "color": "#B17070",
+    "value": 0.5,
+    "rca_pub": 0.28
+  },
+  {
+    "id": "CRM",
+    "rca": 1.16,
+    "color": "#9DB79D",
+    "value": 0.5,
+    "rca_pub": 1.16
+  },
+  {
+    "id": "Crowdfunding",
+    "rca": 6.24,
+    "color": "#177017",
+    "value": 0.5,
+    "rca_pub": 6.24
+  },
+  {
+    "id": "Crowdsourcing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Cryptocurrency",
+    "rca": 0.14,
+    "color": "#A64F4F",
+    "value": 0.5,
+    "rca_pub": 0.14
+  },
+  {
+    "id": "Customer Service",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Cyber Security",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Cycling",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Dairy",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Data Center",
+    "rca": 0.04,
+    "color": "#992A2A",
+    "value": 0.5,
+    "rca_pub": 0.04
+  },
+  {
+    "id": "Data Center Automation",
+    "rca": 1.16,
+    "color": "#9DB79D",
+    "value": 0.5,
+    "rca_pub": 1.16
+  },
+  {
+    "id": "Data Collection and Labeling",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Data Governance",
+    "rca": 0.25,
+    "color": "#AF6A6A",
+    "value": 0.5,
+    "rca_pub": 0.25
+  },
+  {
+    "id": "Data Integration",
+    "rca": 0.3,
+    "color": "#B27474",
+    "value": 0.5,
+    "rca_pub": 0.3
+  },
+  {
+    "id": "Data Management",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Data Mining",
+    "rca": 0.11,
+    "color": "#A34646",
+    "value": 0.5,
+    "rca_pub": 0.11
+  },
+  {
+    "id": "Data Storage",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Data Visualization",
+    "rca": 0.23,
+    "color": "#AE6565",
+    "value": 0.5,
+    "rca_pub": 0.23
+  },
+  {
+    "id": "Database",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Dating",
+    "rca": 0.53,
+    "color": "#BF9A9A",
+    "value": 0.5,
+    "rca_pub": 0.53
+  },
+  {
+    "id": "Debit Cards",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Debt Collections",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Decentralized Finance (DeFi)",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Delivery",
+    "rca": 0.68,
+    "color": "#C6AEAE",
+    "value": 0.5,
+    "rca_pub": 0.68
+  },
+  {
+    "id": "Delivery Service",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Dental",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Desktop Apps",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Developer APIs",
+    "rca": 1.67,
+    "color": "#6F9F6F",
+    "value": 0.5,
+    "rca_pub": 1.67
+  },
+  {
+    "id": "Developer Platform",
+    "rca": 2.89,
+    "color": "#448844",
+    "value": 0.5,
+    "rca_pub": 2.89
+  },
+  {
+    "id": "Developer Tools",
+    "rca": 4.48,
+    "color": "#297929",
+    "value": 0.5,
+    "rca_pub": 4.48
+  },
+  {
+    "id": "DevOps",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Diabetes",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Dietary Supplements",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Digital Entertainment",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Digital Marketing",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Digital Media",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Digital Signage",
+    "rca": 1.11,
+    "color": "#A6BBA6",
+    "value": 0.5,
+    "rca_pub": 1.11
+  },
+  {
+    "id": "Direct Marketing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Direct Sales",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Distillery",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Diving",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "DIY",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Document Management",
+    "rca": 0.43,
+    "color": "#BA8A8A",
+    "value": 0.5,
+    "rca_pub": 0.43
+  },
+  {
+    "id": "Document Preparation",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Domain Registrar",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "DRM",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Drone Management",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Drones",
+    "rca": 0.36,
+    "color": "#B67F7F",
+    "value": 0.5,
+    "rca_pub": 0.36
+  },
+  {
+    "id": "E-Commerce",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "E-Commerce Platforms",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "E-Learning",
+    "rca": 1.25,
+    "color": "#91B091",
+    "value": 0.5,
+    "rca_pub": 1.25
+  },
+  {
+    "id": "E-Signature",
+    "rca": 2.13,
+    "color": "#5A935A",
+    "value": 0.5,
+    "rca_pub": 2.13
+  },
+  {
+    "id": "E-Waste Circularity",
+    "x": 16.16,
+    "y": 60,
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "EBooks",
+    "rca": 2.72,
+    "color": "#488A48",
+    "value": 0.5,
+    "rca_pub": 2.72
+  },
+  {
+    "id": "Ediscovery",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "EdTech",
+    "rca": 0.12,
+    "color": "#A44949",
+    "value": 0.5,
+    "rca_pub": 0.12
+  },
+  {
+    "id": "Education",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Edutainment",
+    "rca": 0.22,
+    "color": "#AD6363",
+    "value": 0.5,
+    "rca_pub": 0.22
+  },
+  {
+    "id": "Elder Care",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Elderly",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Electric Vehicle",
+    "rca": 0.92,
+    "color": "#D0CACA",
+    "value": 0.5,
+    "rca_pub": 0.92
+  },
+  {
+    "id": "Electrical Distribution",
+    "rca": 2.34,
+    "color": "#539053",
+    "value": 0.5,
+    "rca_pub": 2.34
+  },
+  {
+    "id": "Electronic Design Automation (EDA)",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Electronic Health Record (EHR)",
+    "rca": 0.11,
+    "color": "#A34646",
+    "value": 0.5,
+    "rca_pub": 0.11
+  },
+  {
+    "id": "Electronics",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Email",
+    "rca": 0.55,
+    "color": "#C09C9C",
+    "value": 0.5,
+    "rca_pub": 0.55
+  },
+  {
+    "id": "Email Marketing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Embedded Software",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Embedded Systems",
+    "rca": 3.2,
+    "color": "#3D843D",
+    "value": 0.5,
+    "rca_pub": 3.2
+  },
+  {
+    "id": "Emergency Medicine",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Emerging Markets",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Employee Benefits",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Employment",
+    "rca": 0.18,
+    "color": "#AA5A5A",
+    "value": 0.5,
+    "rca_pub": 0.18
+  },
+  {
+    "id": "Energy",
+    "rca": 0.08,
+    "color": "#9F3C3C",
+    "value": 0.5,
+    "rca_pub": 0.08
+  },
+  {
+    "id": "Energy Efficiency",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Energy Management",
+    "rca": 0.99,
+    "color": "#D3D2D2",
+    "value": 0.5,
+    "rca_pub": 0.99
+  },
+  {
+    "id": "Energy Storage",
+    "rca": 2.92,
+    "color": "#438743",
+    "value": 0.5,
+    "rca_pub": 2.92
+  },
+  {
+    "id": "Enterprise",
+    "rca": 2.68,
+    "color": "#498A49",
+    "value": 0.5,
+    "rca_pub": 2.68
+  },
+  {
+    "id": "Enterprise Applications",
+    "rca": 0.22,
+    "color": "#AD6363",
+    "value": 0.5,
+    "rca_pub": 0.22
+  },
+  {
+    "id": "Enterprise Resource Planning (ERP)",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Enterprise Software",
+    "rca": 1.38,
+    "color": "#84A984",
+    "value": 0.5,
+    "rca_pub": 1.38
+  },
+  {
+    "id": "Environmental Consulting",
+    "rca": 0.33,
+    "color": "#B47979",
+    "value": 0.5,
+    "rca_pub": 0.33
+  },
+  {
+    "id": "Environmental Engineering",
+    "rca": 0.55,
+    "color": "#C09C9C",
+    "value": 0.5,
+    "rca_pub": 0.55
+  },
+  {
+    "id": "Equestrian",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "eSports",
+    "rca": 0.29,
+    "color": "#B27272",
+    "value": 0.5,
+    "rca_pub": 0.29
+  },
+  {
+    "id": "Ethereum",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Event Management",
+    "rca": 0.09,
+    "color": "#A13F3F",
+    "value": 0.5,
+    "rca_pub": 0.09
+  },
+  {
+    "id": "Event Promotion",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Events",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Extermination Service",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Eyewear",
+    "rca": 0.59,
+    "color": "#C2A2A2",
+    "value": 0.5,
+    "rca_pub": 0.59
+  },
+  {
+    "id": "Facebook",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Facial Recognition",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Facilities Support Services",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Facility Management",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Family",
+    "rca": 0.47,
+    "color": "#BC9191",
+    "value": 0.5,
+    "rca_pub": 0.47
+  },
+  {
+    "id": "Fantasy Sports",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Farmers Market",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Farming",
+    "rca": 0.13,
+    "color": "#A54C4C",
+    "value": 0.5,
+    "rca_pub": 0.13
+  },
+  {
+    "id": "Fashion",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Fast-Moving Consumer Goods",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Fertility",
+    "rca": 0.38,
+    "color": "#B78282",
+    "value": 0.5,
+    "rca_pub": 0.38
+  },
+  {
+    "id": "Field Support",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Field-Programmable Gate Array (FPGA)",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "File Sharing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Film",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Film Distribution",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Film Production",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Finance",
+    "rca": 0.51,
+    "color": "#BE9797",
+    "value": 0.5,
+    "rca_pub": 0.51
+  },
+  {
+    "id": "Financial Exchanges",
+    "rca": 0.24,
+    "color": "#AE6767",
+    "value": 0.5,
+    "rca_pub": 0.24
+  },
+  {
+    "id": "Financial Services",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "FinTech",
+    "rca": 0.62,
+    "color": "#C4A6A6",
+    "value": 0.5,
+    "rca_pub": 0.62
+  },
+  {
+    "id": "Fitness",
+    "rca": 0.37,
+    "color": "#B78080",
+    "value": 0.5,
+    "rca_pub": 0.37
+  },
+  {
+    "id": "Fleet Management",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Flowers",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Food and Beverage",
+    "rca": 0.09,
+    "color": "#A13F3F",
+    "value": 0.5,
+    "rca_pub": 0.09
+  },
+  {
+    "id": "Food Delivery",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Food Processing",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Foreign Exchange Trading",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Forestry",
+    "rca": 0.38,
+    "color": "#B78282",
+    "value": 0.5,
+    "rca_pub": 0.38
+  },
+  {
+    "id": "Fossil Fuels",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Foundries",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Franchise",
+    "rca": 3.16,
+    "color": "#3E853E",
+    "value": 0.5,
+    "rca_pub": 3.16
+  },
+  {
+    "id": "Fraud Detection",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Freelance",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Freemium",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Freight Service",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Fruit",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Fuel",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Fuel Cell",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Funding Platform",
+    "rca": 1.64,
+    "color": "#71A071",
+    "value": 0.5,
+    "rca_pub": 1.64
+  },
+  {
+    "id": "Funerals",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Furniture",
+    "rca": 0.33,
+    "color": "#B47979",
+    "value": 0.5,
+    "rca_pub": 0.33
+  },
+  {
+    "id": "Gambling",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Gamification",
+    "rca": 2.21,
+    "color": "#579257",
+    "value": 0.5,
+    "rca_pub": 2.21
+  },
+  {
+    "id": "Gaming",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Generation Z",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Generative AI",
+    "rca": 0.44,
+    "color": "#BB8C8C",
+    "value": 0.5,
+    "rca_pub": 0.44
+  },
+  {
+    "id": "Genetics",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Geospatial",
+    "rca": 0.42,
+    "color": "#BA8989",
+    "value": 0.5,
+    "rca_pub": 0.42
+  },
+  {
+    "id": "Geothermal Energy",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Gift",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Gift Card",
+    "rca": 6.7,
+    "color": "#136E13",
+    "value": 0.5,
+    "rca_pub": 6.7
+  },
+  {
+    "id": "Gift Exchange",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Golf",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Google",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Google Glass",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Government",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "GovTech",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "GPS",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "GPU",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Graphic Design",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Green Building",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Green Consumer Goods",
+    "rca": 2.27,
+    "color": "#559155",
+    "value": 0.5,
+    "rca_pub": 2.27
+  },
+  {
+    "id": "GreenTech",
+    "rca": 0.53,
+    "color": "#BF9A9A",
+    "value": 0.5,
+    "rca_pub": 0.53
+  },
+  {
+    "id": "Grocery",
+    "rca": 0.82,
+    "color": "#CCBFBF",
+    "value": 0.5,
+    "rca_pub": 0.82
+  },
+  {
+    "id": "Guides",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Handmade",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Hardware",
+    "rca": 0.44,
+    "color": "#BB8C8C",
+    "value": 0.5,
+    "rca_pub": 0.44
+  },
+  {
+    "id": "Health Care",
+    "rca": 1.79,
+    "color": "#699B69",
+    "value": 0.5,
+    "rca_pub": 1.79
+  },
+  {
+    "id": "Health Diagnostics",
+    "rca": 0.13,
+    "color": "#A54C4C",
+    "value": 0.5,
+    "rca_pub": 0.13
+  },
+  {
+    "id": "Health Insurance",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Hedge Funds",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Herbs and Spices",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Higher Education",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Hockey",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Home and Garden",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Home Appliances",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Home Decor",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Home Health Care",
+    "rca": 0.74,
+    "color": "#C9B6B6",
+    "value": 0.5,
+    "rca_pub": 0.74
+  },
+  {
+    "id": "Home Improvement",
+    "rca": 0.36,
+    "color": "#B67F7F",
+    "value": 0.5,
+    "rca_pub": 0.36
+  },
+  {
+    "id": "Home Renovation",
+    "rca": 0.97,
+    "color": "#D2D0D0",
+    "value": 0.5,
+    "rca_pub": 0.97
+  },
+  {
+    "id": "Home Services",
+    "rca": 0.07,
+    "color": "#9E3838",
+    "value": 0.5,
+    "rca_pub": 0.07
+  },
+  {
+    "id": "Homeland Security",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Horticulture",
+    "rca": 0.51,
+    "color": "#BE9797",
+    "value": 0.5,
+    "rca_pub": 0.51
+  },
+  {
+    "id": "Hospital",
+    "rca": 2.13,
+    "color": "#5A935A",
+    "value": 0.5,
+    "rca_pub": 2.13
+  },
+  {
+    "id": "Hospitality",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Hotel",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Housekeeping Service",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Human Computer Interaction",
+    "rca": 0.12,
+    "color": "#A44949",
+    "value": 0.5,
+    "rca_pub": 0.12
+  },
+  {
+    "id": "Human Resources",
+    "rca": 0.54,
+    "color": "#C09B9B",
+    "value": 0.5,
+    "rca_pub": 0.54
+  },
+  {
+    "id": "Humanitarian",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Hunting",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Hydroelectric",
+    "rca": 2.58,
+    "color": "#4C8C4C",
+    "value": 0.5,
+    "rca_pub": 2.58
+  },
+  {
+    "id": "Hydroponics",
+    "rca": 0.08,
+    "color": "#9F3C3C",
+    "value": 0.5,
+    "rca_pub": 0.08
+  },
+  {
+    "id": "IaaS",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Identity Management",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Image Recognition",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Impact Investing",
+    "rca": 0.34,
+    "color": "#B57B7B",
+    "value": 0.5,
+    "rca_pub": 0.34
+  },
+  {
+    "id": "Incubators",
+    "rca": 1.04,
+    "color": "#B7C5B7",
+    "value": 0.5,
+    "rca_pub": 1.04
+  },
+  {
+    "id": "Independent Music",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Indoor Positioning",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Industrial",
+    "rca": 0.98,
+    "color": "#D2D1D1",
+    "value": 0.5,
+    "rca_pub": 0.98
+  },
+  {
+    "id": "Industrial Automation",
+    "rca": 1.39,
+    "color": "#83A983",
+    "value": 0.5,
+    "rca_pub": 1.39
+  },
+  {
+    "id": "Industrial Design",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Industrial Engineering",
+    "rca": 0.43,
+    "color": "#BA8A8A",
+    "value": 0.5,
+    "rca_pub": 0.43
+  },
+  {
+    "id": "Industrial Manufacturing",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Industrial Symbiosis",
+    "x": 10.46,
+    "y": 52.32,
+    "rca": 6.93,
+    "color": "#126D12",
+    "value": 0.5,
+    "rca_pub": 6.93
+  },
+  {
+    "id": "Information and Communications Technology (ICT)",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Information Services",
+    "rca": 0.28,
+    "color": "#B17070",
+    "value": 0.5,
+    "rca_pub": 0.28
+  },
+  {
+    "id": "Information Technology",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Infrastructure",
+    "rca": 0.47,
+    "color": "#BC9191",
+    "value": 0.5,
+    "rca_pub": 0.47
+  },
+  {
+    "id": "Innovation Management",
+    "rca": 4.57,
+    "color": "#287928",
+    "value": 0.5,
+    "rca_pub": 4.57
+  },
+  {
+    "id": "Insurance",
+    "rca": 3.57,
+    "color": "#368036",
+    "value": 0.5,
+    "rca_pub": 3.57
+  },
+  {
+    "id": "InsurTech",
+    "rca": 1.33,
+    "color": "#89AC89",
+    "value": 0.5,
+    "rca_pub": 1.33
+  },
+  {
+    "id": "Intellectual Property",
+    "rca": 1.69,
+    "color": "#6E9E6E",
+    "value": 0.5,
+    "rca_pub": 1.69
+  },
+  {
+    "id": "Intelligent Systems",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "Interior Design",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Internet",
+    "rca": 0.37,
+    "color": "#B78080",
+    "value": 0.5,
+    "rca_pub": 0.37
+  },
+  {
+    "id": "Internet of Things",
+    "rca": 0.26,
+    "color": "#B06C6C",
+    "value": 0.5,
+    "rca_pub": 0.26
+  },
+  {
+    "id": "Internet Radio",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Intrusion Detection",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "iOS",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "ISP",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "IT Infrastructure",
+    "rca": 0.09,
+    "color": "#A13F3F",
+    "value": 0.5,
+    "rca_pub": 0.09
+  },
+  {
+    "id": "IT Management",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Janitorial Service",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Jewelry",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Journalism",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Knowledge Management",
+    "rca": 2.51,
+    "color": "#4E8D4E",
+    "value": 0.5,
+    "rca_pub": 2.51
+  },
+  {
+    "id": "Landscaping",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Language Learning",
+    "rca": 0.3,
+    "color": "#B27474",
+    "value": 0.5,
+    "rca_pub": 0.3
+  },
+  {
+    "id": "Laser",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Last Mile Transportation",
+    "rca": 15.02,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 15.02
+  },
+  {
+    "id": "Laundry and Dry-cleaning",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Law Enforcement",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Lead Generation",
+    "rca": 0.84,
+    "color": "#CDC1C1",
+    "value": 0.5,
+    "rca_pub": 0.84
+  },
+  {
+    "id": "Lead Management",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Leasing",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Legal",
+    "rca": 2.16,
+    "color": "#599359",
+    "value": 0.5,
+    "rca_pub": 2.16
+  },
+  {
+    "id": "Legal Tech",
+    "rca": 2.09,
+    "color": "#5C945C",
+    "value": 0.5,
+    "rca_pub": 2.09
+  },
+  {
+    "id": "Leisure",
+    "rca": 0.27,
+    "color": "#B06E6E",
+    "value": 0.5,
+    "rca_pub": 0.27
+  },
+  {
+    "id": "Lending",
+    "rca": 3.57,
+    "color": "#368036",
+    "value": 0.5,
+    "rca_pub": 3.57
+  },
+  {
+    "id": "Life Insurance",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Life Science",
+    "rca": 0.91,
+    "color": "#D0C9C9",
+    "value": 0.5,
+    "rca_pub": 0.91
+  },
+  {
+    "id": "Lifestyle",
+    "rca": 8.68,
+    "color": "#076707",
+    "value": 0.5,
+    "rca_pub": 8.68
+  },
+  {
+    "id": "Lighting",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Lingerie",
+    "rca": 2.65,
+    "color": "#4A8B4A",
+    "value": 0.5,
+    "rca_pub": 2.65
+  },
+  {
+    "id": "Livestock",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Local",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Local Advertising",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Local Business",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Local Shopping",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Location Based Services",
+    "rca": 5.46,
+    "color": "#1E741E",
+    "value": 0.5,
+    "rca_pub": 5.46
+  },
+  {
+    "id": "Logistics",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Loyalty Programs",
+    "rca": 0.05,
+    "color": "#9B2F2F",
+    "value": 0.5,
+    "rca_pub": 0.05
+  },
+  {
+    "id": "Machine Learning",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Machinery Manufacturing",
+    "rca": 0.73,
+    "color": "#C9B4B4",
+    "value": 0.5,
+    "rca_pub": 0.73
+  },
+  {
+    "id": "macOS",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Made to Order",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Management Consulting",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Management Information Systems",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Manufacturing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Mapping Services",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Marine Technology",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Marine Transportation",
+    "rca": 9.01,
+    "color": "#056705",
+    "value": 0.5,
+    "rca_pub": 9.01
+  },
+  {
+    "id": "Market Research",
+    "rca": 0.16,
+    "color": "#A85454",
+    "value": 0.5,
+    "rca_pub": 0.16
+  },
+  {
+    "id": "Marketing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Marketing Automation",
+    "rca": 1.09,
+    "color": "#AABEAA",
+    "value": 0.5,
+    "rca_pub": 1.09
+  },
+  {
+    "id": "Marketplace",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "Meat and Poultry",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Mechanical Design",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Mechanical Engineering",
+    "rca": 0.13,
+    "color": "#A54C4C",
+    "value": 0.5,
+    "rca_pub": 0.13
+  },
+  {
+    "id": "Media and Entertainment",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Medical",
+    "rca": 0.13,
+    "color": "#A54C4C",
+    "value": 0.5,
+    "rca_pub": 0.13
+  },
+  {
+    "id": "Medical Device",
+    "rca": 0.39,
+    "color": "#B88484",
+    "value": 0.5,
+    "rca_pub": 0.39
+  },
+  {
+    "id": "Meeting Software",
+    "rca": 0.35,
+    "color": "#B67D7D",
+    "value": 0.5,
+    "rca_pub": 0.35
+  },
+  {
+    "id": "Men's",
+    "rca": 6.37,
+    "color": "#166F16",
+    "value": 0.5,
+    "rca_pub": 6.37
+  },
+  {
+    "id": "Mental Health",
+    "rca": 0.04,
+    "color": "#992A2A",
+    "value": 0.5,
+    "rca_pub": 0.04
+  },
+  {
+    "id": "Messaging",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Metaverse",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "mHealth",
+    "rca": 11.01,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 11.01
+  },
+  {
+    "id": "Micro Lending",
+    "rca": 18.77,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 18.77
+  },
+  {
+    "id": "Military",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Mineral",
+    "rca": 1.12,
+    "color": "#A4BAA4",
+    "value": 0.5,
+    "rca_pub": 1.12
+  },
+  {
+    "id": "Mining",
+    "rca": 0.26,
+    "color": "#B06C6C",
+    "value": 0.5,
+    "rca_pub": 0.26
+  },
+  {
+    "id": "Mining Technology",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "MMO Games",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Mobile",
+    "rca": 1.06,
+    "color": "#B1C1B1",
+    "value": 0.5,
+    "rca_pub": 1.06
+  },
+  {
+    "id": "Mobile Advertising",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Mobile Apps",
+    "rca": 0.22,
+    "color": "#AD6363",
+    "value": 0.5,
+    "rca_pub": 0.22
+  },
+  {
+    "id": "Mobile Devices",
+    "rca": 14.5,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 14.5
+  },
+  {
+    "id": "Mobile Payments",
+    "rca": 0.24,
+    "color": "#AE6767",
+    "value": 0.5,
+    "rca_pub": 0.24
+  },
+  {
+    "id": "MOOC",
+    "rca": 0.15,
+    "color": "#A75252",
+    "value": 0.5,
+    "rca_pub": 0.15
+  },
+  {
+    "id": "Mortgage",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Motion Capture",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Motorsports",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Multi-level Marketing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Museums and Historical Sites",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Music",
+    "rca": 1.53,
+    "color": "#78A378",
+    "value": 0.5,
+    "rca_pub": 1.53
+  },
+  {
+    "id": "Music Education",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Music Label",
+    "rca": 5.75,
+    "color": "#1B721B",
+    "value": 0.5,
+    "rca_pub": 5.75
+  },
+  {
+    "id": "Music Streaming",
+    "rca": 24.49,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 24.49
+  },
+  {
+    "id": "Music Venues",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Musical Instruments",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Nanotechnology",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "National Security",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Native Advertising",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Natural Language Processing",
+    "rca": 0.14,
+    "color": "#A64F4F",
+    "value": 0.5,
+    "rca_pub": 0.14
+  },
+  {
+    "id": "Natural Resources",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Navigation",
+    "rca": 10.68,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 10.68
+  },
+  {
+    "id": "Network Hardware",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Network Security",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Neuroscience",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "News",
+    "rca": 1,
+    "color": "lightgrey",
+    "value": 0.5,
+    "rca_pub": 1
+  },
+  {
+    "id": "NFC",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Nightclubs",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Nightlife",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Non Profit",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Non-Fungible Token (NFT)",
+    "rca": 1.82,
+    "color": "#679A67",
+    "value": 0.5,
+    "rca_pub": 1.82
+  },
+  {
+    "id": "Nuclear",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Nursing and Residential Care",
+    "rca": 1.08,
+    "color": "#ACBFAC",
+    "value": 0.5,
+    "rca_pub": 1.08
+  },
+  {
+    "id": "Nutraceutical",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Nutrition",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Office Administration",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Office Supplies",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Oil and Gas",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Oncology",
+    "rca": 0.11,
+    "color": "#A34646",
+    "value": 0.5,
+    "rca_pub": 0.11
+  },
+  {
+    "id": "Online Auctions",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Online Forums",
+    "rca": 7.29,
+    "color": "#0F6C0F",
+    "value": 0.5,
+    "rca_pub": 7.29
+  },
+  {
+    "id": "Online Games",
+    "rca": 0.07,
+    "color": "#9E3838",
+    "value": 0.5,
+    "rca_pub": 0.07
+  },
+  {
+    "id": "Online Portals",
+    "rca": 1.33,
+    "color": "#89AC89",
+    "value": 0.5,
+    "rca_pub": 1.33
+  },
+  {
+    "id": "Open Source",
+    "rca": 0.38,
+    "color": "#B78282",
+    "value": 0.5,
+    "rca_pub": 0.38
+  },
+  {
+    "id": "Operating Systems",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Optical Communication",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Organic",
+    "rca": 0.12,
+    "color": "#A44949",
+    "value": 0.5,
+    "rca_pub": 0.12
+  },
+  {
+    "id": "Organic Food",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Outdoor Advertising",
+    "rca": 0.26,
+    "color": "#B06C6C",
+    "value": 0.5,
+    "rca_pub": 0.26
+  },
+  {
+    "id": "Outdoors",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Outpatient Care",
+    "rca": 0.46,
+    "color": "#BC8F8F",
+    "value": 0.5,
+    "rca_pub": 0.46
+  },
+  {
+    "id": "Outsourcing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "PaaS",
+    "rca": 0.13,
+    "color": "#A54C4C",
+    "value": 0.5,
+    "rca_pub": 0.13
+  },
+  {
+    "id": "Packaging Services",
+    "rca": 0.27,
+    "color": "#B06E6E",
+    "value": 0.5,
+    "rca_pub": 0.27
+  },
+  {
+    "id": "Paper Manufacturing",
+    "rca": 0.08,
+    "color": "#9F3C3C",
+    "value": 0.5,
+    "rca_pub": 0.08
+  },
+  {
+    "id": "Parenting",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "Parking",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Payments",
+    "rca": 0.82,
+    "color": "#CCBFBF",
+    "value": 0.5,
+    "rca_pub": 0.82
+  },
+  {
+    "id": "PC Games",
+    "rca": 0.11,
+    "color": "#A34646",
+    "value": 0.5,
+    "rca_pub": 0.11
+  },
+  {
+    "id": "Peer to Peer",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "Penetration Testing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Performing Arts",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Personal Branding",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Personal Care and Hygiene",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Personal Development",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Personal Finance",
+    "rca": 0.5,
+    "color": "#BE9595",
+    "value": 0.5,
+    "rca_pub": 0.5
+  },
+  {
+    "id": "Personal Health",
+    "rca": 1.2,
+    "color": "#98B498",
+    "value": 0.5,
+    "rca_pub": 1.2
+  },
+  {
+    "id": "Personalization",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Pet",
+    "rca": 1.84,
+    "color": "#669A66",
+    "value": 0.5,
+    "rca_pub": 1.84
+  },
+  {
+    "id": "Pharmaceutical",
+    "rca": 0.21,
+    "color": "#AC6161",
+    "value": 0.5,
+    "rca_pub": 0.21
+  },
+  {
+    "id": "Photo Editing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Photo Sharing",
+    "rca": 2.54,
+    "color": "#4D8C4D",
+    "value": 0.5,
+    "rca_pub": 2.54
+  },
+  {
+    "id": "Photography",
+    "rca": 1.18,
+    "color": "#9AB59A",
+    "value": 0.5,
+    "rca_pub": 1.18
+  },
+  {
+    "id": "Physical Security",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Plant-Based Foods",
+    "rca": 0.27,
+    "color": "#B06E6E",
+    "value": 0.5,
+    "rca_pub": 0.27
+  },
+  {
+    "id": "Plastics and Rubber Manufacturing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Podcast",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Point of Sale",
+    "rca": 2.06,
+    "color": "#5D955D",
+    "value": 0.5,
+    "rca_pub": 2.06
+  },
+  {
+    "id": "Politics",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Pollution Control",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Ports and Harbors",
+    "rca": 2.44,
+    "color": "#508E50",
+    "value": 0.5,
+    "rca_pub": 2.44
+  },
+  {
+    "id": "Power Grid",
+    "rca": 3.58,
+    "color": "#368036",
+    "value": 0.5,
+    "rca_pub": 3.58
+  },
+  {
+    "id": "Precious Metals",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Precision Medicine",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Prediction Markets",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Predictive Analytics",
+    "rca": 0.62,
+    "color": "#C4A6A6",
+    "value": 0.5,
+    "rca_pub": 0.62
+  },
+  {
+    "id": "Prepaid Cards",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Presentation Software",
+    "rca": 6.21,
+    "color": "#177017",
+    "value": 0.5,
+    "rca_pub": 6.21
+  },
+  {
+    "id": "Presentations",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Price Comparison",
+    "rca": 11.06,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 11.06
+  },
+  {
+    "id": "Primary and Urgent Care",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Primary Education",
+    "rca": 0.11,
+    "color": "#A34646",
+    "value": 0.5,
+    "rca_pub": 0.11
+  },
+  {
+    "id": "Printing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Privacy",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "Private Cloud",
+    "rca": 10.6,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 10.6
+  },
+  {
+    "id": "Private Social Networking",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Procurement",
+    "rca": 0.1,
+    "color": "#A24343",
+    "value": 0.5,
+    "rca_pub": 0.1
+  },
+  {
+    "id": "Product Design",
+    "rca": 2.35,
+    "color": "#528F52",
+    "value": 0.5,
+    "rca_pub": 2.35
+  },
+  {
+    "id": "Product Management",
+    "rca": 0.73,
+    "color": "#C9B4B4",
+    "value": 0.5,
+    "rca_pub": 0.73
+  },
+  {
+    "id": "Product Research",
+    "rca": 0.44,
+    "color": "#BB8C8C",
+    "value": 0.5,
+    "rca_pub": 0.44
+  },
+  {
+    "id": "Product Search",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Product Services",
+    "x": 35.94,
+    "y": 47.18,
+    "rca": 0.69,
+    "color": "#C7AFAF",
+    "value": 0.5,
+    "rca_pub": 0.69
+  },
+  {
+    "id": "Productivity Tools",
+    "rca": 0.23,
+    "color": "#AE6565",
+    "value": 0.5,
+    "rca_pub": 0.23
+  },
+  {
+    "id": "Professional Networking",
+    "rca": 0.24,
+    "color": "#AE6767",
+    "value": 0.5,
+    "rca_pub": 0.24
+  },
+  {
+    "id": "Professional Services",
+    "rca": 0.38,
+    "color": "#B78282",
+    "value": 0.5,
+    "rca_pub": 0.38
+  },
+  {
+    "id": "Project Management",
+    "rca": 0.12,
+    "color": "#A44949",
+    "value": 0.5,
+    "rca_pub": 0.12
+  },
+  {
+    "id": "Property Development",
+    "rca": 0.12,
+    "color": "#A44949",
+    "value": 0.5,
+    "rca_pub": 0.12
+  },
+  {
+    "id": "Property Insurance",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Property Management",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "PropTech",
+    "rca": 0.25,
+    "color": "#AF6A6A",
+    "value": 0.5,
+    "rca_pub": 0.25
+  },
+  {
+    "id": "Psychology",
+    "rca": 2.32,
+    "color": "#539053",
+    "value": 0.5,
+    "rca_pub": 2.32
+  },
+  {
+    "id": "Public Relations",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Public Safety",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Public Transportation",
+    "rca": 5.07,
+    "color": "#227622",
+    "value": 0.5,
+    "rca_pub": 5.07
+  },
+  {
+    "id": "Publishing",
+    "rca": 0.19,
+    "color": "#AA5C5C",
+    "value": 0.5,
+    "rca_pub": 0.19
+  },
+  {
+    "id": "Q&A",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "QR Codes",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Quality Assurance",
+    "rca": 1.15,
+    "color": "#9FB89F",
+    "value": 0.5,
+    "rca_pub": 1.15
+  },
+  {
+    "id": "Quantified Self",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Quantum Computing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Racing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Railroad",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Raw Material Shift",
+    "x": 10.52,
+    "y": 53.83,
+    "rca": 0.63,
+    "color": "#C4A7A7",
+    "value": 0.5,
+    "rca_pub": 0.63
+  },
+  {
+    "id": "Reading Apps",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Real Estate",
+    "rca": 0.07,
+    "color": "#9E3838",
+    "value": 0.5,
+    "rca_pub": 0.07
+  },
+  {
+    "id": "Real Estate Brokerage",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Real Estate Investment",
+    "rca": 0.11,
+    "color": "#A34646",
+    "value": 0.5,
+    "rca_pub": 0.11
+  },
+  {
+    "id": "Real Time",
+    "rca": 0.22,
+    "color": "#AD6363",
+    "value": 0.5,
+    "rca_pub": 0.22
+  },
+  {
+    "id": "Recipes",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Recreation",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Recreational Vehicles",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Recruiting",
+    "rca": 1.02,
+    "color": "#BFC9BF",
+    "value": 0.5,
+    "rca_pub": 1.02
+  },
+  {
+    "id": "Recycling",
+    "rca": 0.72,
+    "color": "#C8B3B3",
+    "value": 0.5,
+    "rca_pub": 0.72
+  },
+  {
+    "id": "Rehabilitation",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Religion",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Remote Sensing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Renewable Energy",
+    "rca": 4.53,
+    "color": "#287928",
+    "value": 0.5,
+    "rca_pub": 4.53
+  },
+  {
+    "id": "Rental",
+    "rca": 0.47,
+    "color": "#BC9191",
+    "value": 0.5,
+    "rca_pub": 0.47
+  },
+  {
+    "id": "Rental Property",
+    "rca": 0.05,
+    "color": "#9B2F2F",
+    "value": 0.5,
+    "rca_pub": 0.05
+  },
+  {
+    "id": "Reputation",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Reservations",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Residential",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Resorts",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Restaurants",
+    "rca": 0.25,
+    "color": "#AF6A6A",
+    "value": 0.5,
+    "rca_pub": 0.25
+  },
+  {
+    "id": "Retail",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Retail Technology",
+    "rca": 2.98,
+    "color": "#428742",
+    "value": 0.5,
+    "rca_pub": 2.98
+  },
+  {
+    "id": "Retirement",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "RFID",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Ride Sharing",
+    "rca": 3.77,
+    "color": "#337F33",
+    "value": 0.5,
+    "rca_pub": 3.77
+  },
+  {
+    "id": "RISC",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Risk Management",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Robotic Process Automation (RPA)",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Robotics",
+    "rca": 0.25,
+    "color": "#AF6A6A",
+    "value": 0.5,
+    "rca_pub": 0.25
+  },
+  {
+    "id": "Rugby",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "SaaS",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Sailing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Sales",
+    "rca": 0.33,
+    "color": "#B47979",
+    "value": 0.5,
+    "rca_pub": 0.33
+  },
+  {
+    "id": "Sales Automation",
+    "rca": 0.14,
+    "color": "#A64F4F",
+    "value": 0.5,
+    "rca_pub": 0.14
+  },
+  {
+    "id": "Sales Enablement",
+    "rca": 5.96,
+    "color": "#197119",
+    "value": 0.5,
+    "rca_pub": 5.96
+  },
+  {
+    "id": "Same Day Delivery",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Satellite Communication",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Scheduling",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Seafood",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Search Engine",
+    "rca": 0.07,
+    "color": "#9E3838",
+    "value": 0.5,
+    "rca_pub": 0.07
+  },
+  {
+    "id": "Secondary Education",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Secondhand Goods",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Security",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Self-Storage",
+    "rca": 0.31,
+    "color": "#B37575",
+    "value": 0.5,
+    "rca_pub": 0.31
+  },
+  {
+    "id": "SEM",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Semantic Search",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Semantic Web",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Semiconductor",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Sensor",
+    "rca": 0.04,
+    "color": "#992A2A",
+    "value": 0.5,
+    "rca_pub": 0.04
+  },
+  {
+    "id": "SEO",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Serious Games",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Service Industry",
+    "rca": 1.54,
+    "color": "#78A378",
+    "value": 0.5,
+    "rca_pub": 1.54
+  },
+  {
+    "id": "Sex Tech",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Sharing Economy",
+    "rca": 0.29,
+    "color": "#B27272",
+    "value": 0.5,
+    "rca_pub": 0.29
+  },
+  {
+    "id": "Shipping",
+    "rca": 0.57,
+    "color": "#C19F9F",
+    "value": 0.5,
+    "rca_pub": 0.57
+  },
+  {
+    "id": "Shipping Broker",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Shoes",
+    "rca": 0.15,
+    "color": "#A75252",
+    "value": 0.5,
+    "rca_pub": 0.15
+  },
+  {
+    "id": "Shopping",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Shopping Mall",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Simulation",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Skiing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Skill Assessment",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Small and Medium Businesses",
+    "rca": 3.52,
+    "color": "#378137",
+    "value": 0.5,
+    "rca_pub": 3.52
+  },
+  {
+    "id": "Smart Building",
+    "rca": 0.11,
+    "color": "#A34646",
+    "value": 0.5,
+    "rca_pub": 0.11
+  },
+  {
+    "id": "Smart Cities",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Smart Contracts",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Smart Home",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "SMS",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Snack Food",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Soccer",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Social",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "Social Assistance",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Social Bookmarking",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Social CRM",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Social Entrepreneurship",
+    "rca": 0.04,
+    "color": "#992A2A",
+    "value": 0.5,
+    "rca_pub": 0.04
+  },
+  {
+    "id": "Social Impact",
+    "rca": 10.4,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 10.4
+  },
+  {
+    "id": "Social Media",
+    "rca": 0.14,
+    "color": "#A64F4F",
+    "value": 0.5,
+    "rca_pub": 0.14
+  },
+  {
+    "id": "Social Media Advertising",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Social Media Management",
+    "rca": 13.71,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 13.71
+  },
+  {
+    "id": "Social Media Marketing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Social Network",
+    "rca": 0.2,
+    "color": "#AB5E5E",
+    "value": 0.5,
+    "rca_pub": 0.2
+  },
+  {
+    "id": "Social News",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Social Recruiting",
+    "rca": 19.42,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 19.42
+  },
+  {
+    "id": "Social Shopping",
+    "rca": 0.39,
+    "color": "#B88484",
+    "value": 0.5,
+    "rca_pub": 0.39
+  },
+  {
+    "id": "Software",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Software Engineering",
+    "rca": 0.05,
+    "color": "#9B2F2F",
+    "value": 0.5,
+    "rca_pub": 0.05
+  },
+  {
+    "id": "Solar",
+    "rca": 0.12,
+    "color": "#A44949",
+    "value": 0.5,
+    "rca_pub": 0.12
+  },
+  {
+    "id": "Space Travel",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Special Education",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Speech Recognition",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Sponsorship",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Sporting Goods",
+    "rca": 0.16,
+    "color": "#A85454",
+    "value": 0.5,
+    "rca_pub": 0.16
+  },
+  {
+    "id": "Sports",
+    "rca": 0.01,
+    "color": "#921515",
+    "value": 0.5,
+    "rca_pub": 0.01
+  },
+  {
+    "id": "Sports Leagues and Teams",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Staffing Agency",
+    "rca": 0.08,
+    "color": "#9F3C3C",
+    "value": 0.5,
+    "rca_pub": 0.08
+  },
+  {
+    "id": "Steel Loop",
+    "x": 11.38,
+    "y": 52.57,
+    "rca": 4.29,
+    "color": "#2B7B2B",
+    "value": 0.5,
+    "rca_pub": 4.29
+  },
+  {
+    "id": "STEM Education",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Stock Exchanges",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Subscription Service",
+    "rca": 0.06,
+    "color": "#9D3434",
+    "value": 0.5,
+    "rca_pub": 0.06
+  },
+  {
+    "id": "Supply Chain Management",
+    "rca": 0.88,
+    "color": "#CFC6C6",
+    "value": 0.5,
+    "rca_pub": 0.88
+  },
+  {
+    "id": "Surfing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Sustainability",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Swimming",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Task Management",
+    "rca": 6.4,
+    "color": "#166F16",
+    "value": 0.5,
+    "rca_pub": 6.4
+  },
+  {
+    "id": "Tax Consulting",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Tax Preparation",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Taxi Service",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Tea",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Technical Support",
+    "rca": 0.3,
+    "color": "#B27474",
+    "value": 0.5,
+    "rca_pub": 0.3
+  },
+  {
+    "id": "Teenagers",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Telecommunications",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Telehealth",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Tennis",
+    "rca": 23.8,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 23.8
+  },
+  {
+    "id": "Test and Measurement",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Text Analytics",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Textbook",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Textile Waste Cut",
+    "x": 12.78,
+    "y": 51.88,
+    "rca": 0.68,
+    "color": "#C6AEAE",
+    "value": 0.5,
+    "rca_pub": 0.68
+  },
+  {
+    "id": "Textiles",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Theatre",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Therapeutics",
+    "rca": 0.67,
+    "color": "#C6ADAD",
+    "value": 0.5,
+    "rca_pub": 0.67
+  },
+  {
+    "id": "Ticketing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Timber",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Tobacco",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Tour Operator",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Tourism",
+    "rca": 0.8,
+    "color": "#CBBDBD",
+    "value": 0.5,
+    "rca_pub": 0.8
+  },
+  {
+    "id": "Toys",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Trade Shows",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Trading Platform",
+    "rca": 0.54,
+    "color": "#C09B9B",
+    "value": 0.5,
+    "rca_pub": 0.54
+  },
+  {
+    "id": "Training",
+    "rca": 0.15,
+    "color": "#A75252",
+    "value": 0.5,
+    "rca_pub": 0.15
+  },
+  {
+    "id": "Transaction Processing",
+    "rca": 0.08,
+    "color": "#9F3C3C",
+    "value": 0.5,
+    "rca_pub": 0.08
+  },
+  {
+    "id": "Translation Service",
+    "rca": 0.41,
+    "color": "#B98787",
+    "value": 0.5,
+    "rca_pub": 0.41
+  },
+  {
+    "id": "Transportation",
+    "rca": 1.74,
+    "color": "#6C9D6C",
+    "value": 0.5,
+    "rca_pub": 1.74
+  },
+  {
+    "id": "Travel",
+    "rca": 0.18,
+    "color": "#AA5A5A",
+    "value": 0.5,
+    "rca_pub": 0.18
+  },
+  {
+    "id": "Travel Accommodations",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Travel Agency",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Tutoring",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "TV",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "TV Production",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Unified Communications",
+    "rca": 0.03,
+    "color": "#972525",
+    "value": 0.5,
+    "rca_pub": 0.03
+  },
+  {
+    "id": "Universities",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Usability Testing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "UX Design",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Vacation Rental",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Vending and Concessions",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Venture Capital",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Vertical Search",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Veterinary",
+    "rca": 1.26,
+    "color": "#90B090",
+    "value": 0.5,
+    "rca_pub": 1.26
+  },
+  {
+    "id": "Video",
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Video Advertising",
+    "rca": 0.05,
+    "color": "#9B2F2F",
+    "value": 0.5,
+    "rca_pub": 0.05
+  },
+  {
+    "id": "Video Chat",
+    "rca": 12.83,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 12.83
+  },
+  {
+    "id": "Video Conferencing",
+    "rca": 0.32,
+    "color": "#B47777",
+    "value": 0.5,
+    "rca_pub": 0.32
+  },
+  {
+    "id": "Video Editing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Video Games",
+    "rca": 4.25,
+    "color": "#2C7B2C",
+    "value": 0.5,
+    "rca_pub": 4.25
+  },
+  {
+    "id": "Video on Demand",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Video Streaming",
+    "rca": 2.27,
+    "color": "#559155",
+    "value": 0.5,
+    "rca_pub": 2.27
+  },
+  {
+    "id": "Virtual Assistant",
+    "rca": 4.14,
+    "color": "#2D7C2D",
+    "value": 0.5,
+    "rca_pub": 4.14
+  },
+  {
+    "id": "Virtual Currency",
+    "rca": 1.92,
+    "color": "#639863",
+    "value": 0.5,
+    "rca_pub": 1.92
+  },
+  {
+    "id": "Virtual Desktop",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Virtual Goods",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Virtual Reality",
+    "rca": 0.2,
+    "color": "#AB5E5E",
+    "value": 0.5,
+    "rca_pub": 0.2
+  },
+  {
+    "id": "Virtual Workforce",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Virtual World",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Virtualization",
+    "rca": 1.98,
+    "color": "#609760",
+    "value": 0.5,
+    "rca_pub": 1.98
+  },
+  {
+    "id": "Visual Search",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Vocational Education",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "VoIP",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Volley Ball",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Warehouse Automation",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Warehousing",
+    "rca": 0.07,
+    "color": "#9E3838",
+    "value": 0.5,
+    "rca_pub": 0.07
+  },
+  {
+    "id": "Waste Management",
+    "rca": 0.15,
+    "color": "#A75252",
+    "value": 0.5,
+    "rca_pub": 0.15
+  },
+  {
+    "id": "Water",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Water Circularity",
+    "x": 9.9,
+    "y": 46.87,
+    "rca": 0.02,
+    "color": "#951E1E",
+    "value": 0.5,
+    "rca_pub": 0.02
+  },
+  {
+    "id": "Water Purification",
+    "rca": 0.12,
+    "color": "#A44949",
+    "value": 0.5,
+    "rca_pub": 0.12
+  },
+  {
+    "id": "Water Transportation",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Wealth Management",
+    "rca": 4.92,
+    "color": "#237723",
+    "value": 0.5,
+    "rca_pub": 4.92
+  },
+  {
+    "id": "Wearables",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Web Apps",
+    "rca": 1.1,
+    "color": "#A8BCA8",
+    "value": 0.5,
+    "rca_pub": 1.1
+  },
+  {
+    "id": "Web Browsers",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Web Design",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Web Development",
+    "rca": 0.12,
+    "color": "#A44949",
+    "value": 0.5,
+    "rca_pub": 0.12
+  },
+  {
+    "id": "Web Hosting",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Web3",
+    "rca": 0.15,
+    "color": "#A75252",
+    "value": 0.5,
+    "rca_pub": 0.15
+  },
+  {
+    "id": "WebOS",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Wedding",
+    "rca": 10.47,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 10.47
+  },
+  {
+    "id": "Wellness",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Wholesale",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Wildlife Conservation",
+    "rca": 3.69,
+    "color": "#347F34",
+    "value": 0.5,
+    "rca_pub": 3.69
+  },
+  {
+    "id": "Wind Energy",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Wine And Spirits",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Winery",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Wired Telecommunications",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Wireless",
+    "rca": 0.17,
+    "color": "#A95757",
+    "value": 0.5,
+    "rca_pub": 0.17
+  },
+  {
+    "id": "Women's",
+    "rca": 10.66,
+    "color": "#006400",
+    "value": 0.5,
+    "rca_pub": 10.66
+  },
+  {
+    "id": "Wood Processing",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  },
+  {
+    "id": "Young Adults",
+    "rca": 0,
+    "color": "darkred",
+    "value": 0.5,
+    "rca_pub": 0
+  }
+] ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,100];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+    body:d=>`<table class='tooltip-table'>
+      <tr><td class='title'>Relatedness Density:</td><td class='data'>${d.x}</td></tr>
+      <tr><td class='title'>Complexity:</td><td class='data'>${d.y}</td></tr>
+      <tr><td class='title'>RCA:</td><td class='data'>${d.rca}</td></tr>
+      <tr><td class='title'>ID:</td><td class='data'>${d.id}</td></tr>
+    </table>`,
+     title:d=>d.id
+  })
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"Technological Complexity",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Technological Relatedness Density",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  startPositionUpdater();
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      svg.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+        
+        // Show in console for debugging
+        console.log('Hovering over:', matchingData.id);
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  customLabels.forEach((labelData) => {
+    const {circle, text, fullText} = labelData;
+    
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    
+    if (circle && text) {
+      const circleData = circlePositions.find(cp => cp.circle === circle);
+      if (circleData) {
+        const r = parseFloat(circle.getAttribute('r')) || 7.5;
+        const bestPosition = findBestPosition(
+          text, 
+          circleData.coords.x, 
+          circleData.coords.y, 
+          r,
+          circlePositions,
+          fullText
+        );
+        
+        text.setAttribute('x', bestPosition.x);
+        text.setAttribute('y', bestPosition.y);
+        text.setAttribute('text-anchor', bestPosition.anchor);
+        text.textContent = bestPosition.text;
+        labelData.defaultText = bestPosition.text;
+        
+        if (bestPosition.hasCollision) {
+          text.classList.add('collision');
+          text.setAttribute('opacity', '0.3');
+        } else {
+          text.classList.remove('collision');
+          text.setAttribute('opacity', '1');
+        }
+      }
+    }
+  });
+  
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
+</div>
+</body>
+</html>
