@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Agrofood Waste Cut",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 1323,
+    "rca": 1.55,
+    "share": 0.6908,
+    "share_d": 0.4455,
+    "reldens": 78.49,
+    "comp_TCI": 26.72,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#77A377",
+    "id": "Agrofood Waste Cut",
+    "value": 1323
+  },
+  {
+    "domain": "Biobased Materials in Construction",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 617,
+    "rca": 1.52,
+    "share": 0.3222,
+    "share_d": 0.2126,
+    "reldens": 73.74,
+    "comp_TCI": 25.85,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#79A479",
+    "id": "Biobased Materials in Construction",
+    "value": 617
+  },
+  {
+    "domain": "By-Product Valorization",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 762,
+    "rca": 1.32,
+    "share": 0.3979,
+    "share_d": 0.3015,
+    "reldens": 77.4,
+    "comp_TCI": 26.28,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#8AAC8A",
+    "id": "By-Product Valorization",
+    "value": 762
+  },
+  {
+    "domain": "Circular Business",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 295,
+    "rca": 1.06,
+    "share": 0.154,
+    "share_d": 0.1457,
+    "reldens": 46.89,
+    "comp_TCI": 40.04,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#B1C1B1",
+    "id": "Circular Business",
+    "value": 295
+  },
+  {
+    "domain": "Circular Design",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 248,
+    "rca": 1.11,
+    "share": 0.1295,
+    "share_d": 0.1165,
+    "reldens": 87.6,
+    "comp_TCI": 33.09,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#A6BBA6",
+    "id": "Circular Design",
+    "value": 248
+  },
+  {
+    "domain": "Circular food packaging",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 281,
+    "rca": 1.12,
+    "share": 0.1467,
+    "share_d": 0.1315,
+    "reldens": 75.47,
+    "comp_TCI": 24.36,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#A4BAA4",
+    "id": "Circular food packaging",
+    "value": 281
+  },
+  {
+    "domain": "E-Waste Circularity",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 463,
+    "rca": 1.77,
+    "share": 0.2418,
+    "share_d": 0.1364,
+    "reldens": 75.6,
+    "comp_TCI": 31.54,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#6A9C6A",
+    "id": "E-Waste Circularity",
+    "value": 463
+  },
+  {
+    "domain": "Industrial Symbiosis",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 7932,
+    "rca": 1.4,
+    "share": 4.1418,
+    "share_d": 2.9675,
+    "reldens": 64.4,
+    "comp_TCI": 19.72,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#82A982",
+    "id": "Industrial Symbiosis",
+    "value": 7932
+  },
+  {
+    "domain": "Product Services",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 467,
+    "rca": 2.23,
+    "share": 0.2438,
+    "share_d": 0.1093,
+    "reldens": 92.2,
+    "comp_TCI": 45.88,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#569156",
+    "id": "Product Services",
+    "value": 467
+  },
+  {
+    "domain": "Raw Material Shift",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 1858,
+    "rca": 1.47,
+    "share": 0.9702,
+    "share_d": 0.6617,
+    "reldens": 57.05,
+    "comp_TCI": 18.02,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#7DA67D",
+    "id": "Raw Material Shift",
+    "value": 1858
+  },
+  {
+    "domain": "Textile Waste Cut",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 71,
+    "rca": 1.57,
+    "share": 0.0371,
+    "share_d": 0.0236,
+    "reldens": 61.17,
+    "comp_TCI": 13.38,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#76A276",
+    "id": "Textile Waste Cut",
+    "value": 71
+  },
+  {
+    "domain": "Water Circularity",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 187,
+    "rca": 1.01,
+    "share": 0.0976,
+    "share_d": 0.0969,
+    "reldens": 65.26,
+    "comp_TCI": 25.79,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#C5CCC5",
+    "id": "Water Circularity",
+    "value": 187
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Agrofood Waste Cut",
+    "geo": "Drenthe (NL13)",
+    "count": 1,
+    "rca": 0.06,
+    "share": 0.026,
+    "share_d": 0.4455,
+    "reldens": 0.91,
+    "comp_TCI": 26.72,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#9D3434",
+    "id": "Agrofood Waste Cut",
+    "value": 1
+  },
+  {
+    "domain": "Biobased Materials in Construction",
+    "geo": "Drenthe (NL13)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.2126,
+    "reldens": 1.89,
+    "comp_TCI": 25.85,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "darkred",
+    "id": "Biobased Materials in Construction",
+    "value": 0
+  },
+  {
+    "domain": "By-Product Valorization",
+    "geo": "Drenthe (NL13)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.3015,
+    "reldens": 0.58,
+    "comp_TCI": 26.28,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "darkred",
+    "id": "By-Product Valorization",
+    "value": 0
+  },
+  {
+    "domain": "Circular Business",
+    "geo": "Drenthe (NL13)",
+    "count": 1,
+    "rca": 0.18,
+    "share": 0.026,
+    "share_d": 0.1457,
+    "reldens": 1.37,
+    "comp_TCI": 40.04,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#AA5A5A",
+    "id": "Circular Business",
+    "value": 1
+  },
+  {
+    "domain": "Circular Design",
+    "geo": "Drenthe (NL13)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1165,
+    "reldens": 0.36,
+    "comp_TCI": 33.09,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "darkred",
+    "id": "Circular Design",
+    "value": 0
+  },
+  {
+    "domain": "Circular food packaging",
+    "geo": "Drenthe (NL13)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1315,
+    "reldens": 0.21,
+    "comp_TCI": 24.36,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "darkred",
+    "id": "Circular food packaging",
+    "value": 0
+  },
+  {
+    "domain": "E-Waste Circularity",
+    "geo": "Drenthe (NL13)",
+    "count": 1,
+    "rca": 0.19,
+    "share": 0.026,
+    "share_d": 0.1364,
+    "reldens": 21.32,
+    "comp_TCI": 31.54,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#AA5C5C",
+    "id": "E-Waste Circularity",
+    "value": 1
+  },
+  {
+    "domain": "Industrial Symbiosis",
+    "geo": "Drenthe (NL13)",
+    "count": 22,
+    "rca": 0.19,
+    "share": 0.5726,
+    "share_d": 2.9675,
+    "reldens": 9.11,
+    "comp_TCI": 19.72,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#AA5C5C",
+    "id": "Industrial Symbiosis",
+    "value": 22
+  },
+  {
+    "domain": "Product Services",
+    "geo": "Drenthe (NL13)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1093,
+    "reldens": 0.66,
+    "comp_TCI": 45.88,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "darkred",
+    "id": "Product Services",
+    "value": 0
+  },
+  {
+    "domain": "Raw Material Shift",
+    "geo": "Drenthe (NL13)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.6617,
+    "reldens": 4.81,
+    "comp_TCI": 18.02,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "darkred",
+    "id": "Raw Material Shift",
+    "value": 0
+  },
+  {
+    "domain": "Textile Waste Cut",
+    "geo": "Drenthe (NL13)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0236,
+    "reldens": 0.35,
+    "comp_TCI": 13.38,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "darkred",
+    "id": "Textile Waste Cut",
+    "value": 0
+  },
+  {
+    "domain": "Water Circularity",
+    "geo": "Drenthe (NL13)",
+    "count": 2,
+    "rca": 0.54,
+    "share": 0.0521,
+    "share_d": 0.0969,
+    "reldens": 3.55,
+    "comp_TCI": 25.79,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#C09B9B",
+    "id": "Water Circularity",
+    "value": 2
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

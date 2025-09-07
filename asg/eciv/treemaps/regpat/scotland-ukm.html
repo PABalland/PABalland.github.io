@@ -1,0 +1,270 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Agrofood Waste Cut",
+    "geo": "Scotland (UKM)",
+    "count": 22,
+    "rca": 2.19,
+    "share": 0.3746,
+    "share_d": 0.1709,
+    "reldens": 47.01,
+    "comp_PA": 45.19,
+    "comp_TCI": 47.74,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#589258",
+    "id": "Agrofood Waste Cut",
+    "value": 22
+  },
+  {
+    "domain": "Biobased Materials in Construction",
+    "geo": "Scotland (UKM)",
+    "count": 15,
+    "rca": 0.7,
+    "share": 0.2554,
+    "share_d": 0.3633,
+    "reldens": 30.68,
+    "comp_PA": 68.26,
+    "comp_TCI": 58.94,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#C7B1B1",
+    "id": "Biobased Materials in Construction",
+    "value": 15
+  },
+  {
+    "domain": "By-Product Valorization",
+    "geo": "Scotland (UKM)",
+    "count": 8,
+    "rca": 0.58,
+    "share": 0.1362,
+    "share_d": 0.2354,
+    "reldens": 14.18,
+    "comp_PA": 50.96,
+    "comp_TCI": 55.85,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#C2A1A1",
+    "id": "By-Product Valorization",
+    "value": 8
+  },
+  {
+    "domain": "Circular Business",
+    "geo": "Scotland (UKM)",
+    "count": 25,
+    "rca": 0.54,
+    "share": 0.4257,
+    "share_d": 0.7846,
+    "reldens": 20.65,
+    "comp_PA": 60.12,
+    "comp_TCI": 58.95,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#C09B9B",
+    "id": "Circular Business",
+    "value": 25
+  },
+  {
+    "domain": "Circular Design",
+    "geo": "Scotland (UKM)",
+    "count": 22,
+    "rca": 1.45,
+    "share": 0.3746,
+    "share_d": 0.2577,
+    "reldens": 44.97,
+    "comp_PA": 56.18,
+    "comp_TCI": 47.6,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#7EA67E",
+    "id": "Circular Design",
+    "value": 22
+  },
+  {
+    "domain": "Circular food packaging",
+    "geo": "Scotland (UKM)",
+    "count": 3,
+    "rca": 0.62,
+    "share": 0.0511,
+    "share_d": 0.0827,
+    "reldens": 16.41,
+    "comp_PA": 51.67,
+    "comp_TCI": 55.23,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#C4A6A6",
+    "id": "Circular food packaging",
+    "value": 3
+  },
+  {
+    "domain": "Critical Metals Reuse",
+    "geo": "Scotland (UKM)",
+    "count": 101,
+    "rca": 0.9,
+    "share": 1.7197,
+    "share_d": 1.9208,
+    "reldens": 22.55,
+    "comp_PA": 62.75,
+    "comp_TCI": 59.97,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#CFC8C8",
+    "id": "Critical Metals Reuse",
+    "value": 101
+  },
+  {
+    "domain": "E-Waste Circularity",
+    "geo": "Scotland (UKM)",
+    "count": 63,
+    "rca": 0.64,
+    "share": 1.0727,
+    "share_d": 1.6802,
+    "reldens": 22.44,
+    "comp_PA": 68.96,
+    "comp_TCI": 63.28,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#C5A9A9",
+    "id": "E-Waste Circularity",
+    "value": 63
+  },
+  {
+    "domain": "Industrial Symbiosis",
+    "geo": "Scotland (UKM)",
+    "count": 277,
+    "rca": 0.97,
+    "share": 4.7165,
+    "share_d": 4.8761,
+    "reldens": 31.02,
+    "comp_PA": 57.47,
+    "comp_TCI": 55.06,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#D2D0D0",
+    "id": "Industrial Symbiosis",
+    "value": 277
+  },
+  {
+    "domain": "Product Services",
+    "geo": "Scotland (UKM)",
+    "count": 195,
+    "rca": 0.55,
+    "share": 3.3203,
+    "share_d": 6.078,
+    "reldens": 26.75,
+    "comp_PA": 73.41,
+    "comp_TCI": 49.72,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#C09C9C",
+    "id": "Product Services",
+    "value": 195
+  },
+  {
+    "domain": "Raw Material Shift",
+    "geo": "Scotland (UKM)",
+    "count": 188,
+    "rca": 0.98,
+    "share": 3.2011,
+    "share_d": 3.2633,
+    "reldens": 29.15,
+    "comp_PA": 62.02,
+    "comp_TCI": 56.4,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#D2D1D1",
+    "id": "Raw Material Shift",
+    "value": 188
+  },
+  {
+    "domain": "Steel Loop",
+    "geo": "Scotland (UKM)",
+    "count": 28,
+    "rca": 0.88,
+    "share": 0.4768,
+    "share_d": 0.5419,
+    "reldens": 22.88,
+    "comp_PA": 56.41,
+    "comp_TCI": 55.4,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#CFC6C6",
+    "id": "Steel Loop",
+    "value": 28
+  },
+  {
+    "domain": "Textile Waste Cut",
+    "geo": "Scotland (UKM)",
+    "count": 14,
+    "rca": 0.8,
+    "share": 0.2384,
+    "share_d": 0.2979,
+    "reldens": 16.57,
+    "comp_PA": 51.78,
+    "comp_TCI": 54.9,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#CBBDBD",
+    "id": "Textile Waste Cut",
+    "value": 14
+  },
+  {
+    "domain": "Water Circularity",
+    "geo": "Scotland (UKM)",
+    "count": 26,
+    "rca": 1.27,
+    "share": 0.4427,
+    "share_d": 0.3494,
+    "reldens": 56.42,
+    "comp_PA": 49.66,
+    "comp_TCI": 48.46,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#8FAF8F",
+    "id": "Water Circularity",
+    "value": 26
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

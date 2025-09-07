@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Agrofood Waste Cut",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.3258,
+    "reldens": 10.71,
+    "comp_TCI": 39.75,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "darkred",
+    "id": "Agrofood Waste Cut",
+    "value": 0
+  },
+  {
+    "domain": "Biobased Materials in Construction",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1346,
+    "reldens": 11.17,
+    "comp_TCI": 49.58,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "darkred",
+    "id": "Biobased Materials in Construction",
+    "value": 0
+  },
+  {
+    "domain": "By-Product Valorization",
+    "geo": "Region Wallone (BE3)",
+    "count": 13.36,
+    "rca": 2.02,
+    "share": 0.385,
+    "share_d": 0.1908,
+    "reldens": 26.68,
+    "comp_TCI": 40.6,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#5E965E",
+    "id": "By-Product Valorization",
+    "value": 13.36
+  },
+  {
+    "domain": "Circular Business",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0116,
+    "reldens": 11.8,
+    "comp_TCI": 53.94,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "darkred",
+    "id": "Circular Business",
+    "value": 0
+  },
+  {
+    "domain": "Circular Design",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.092,
+    "reldens": 8.66,
+    "comp_TCI": 46.39,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "darkred",
+    "id": "Circular Design",
+    "value": 0
+  },
+  {
+    "domain": "Circular food packaging",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0408,
+    "reldens": 15.44,
+    "comp_TCI": 49.62,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "darkred",
+    "id": "Circular food packaging",
+    "value": 0
+  },
+  {
+    "domain": "Critical Metals Reuse",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.3491,
+    "reldens": 13.45,
+    "comp_TCI": 40.7,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "darkred",
+    "id": "Critical Metals Reuse",
+    "value": 0
+  },
+  {
+    "domain": "E-Waste Circularity",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1066,
+    "reldens": 18.57,
+    "comp_TCI": 46.25,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "darkred",
+    "id": "E-Waste Circularity",
+    "value": 0
+  },
+  {
+    "domain": "Industrial Symbiosis",
+    "geo": "Region Wallone (BE3)",
+    "count": 2.38,
+    "rca": 0.03,
+    "share": 0.0686,
+    "share_d": 2.0326,
+    "reldens": 12.97,
+    "comp_TCI": 36.25,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#972525",
+    "id": "Industrial Symbiosis",
+    "value": 2.38
+  },
+  {
+    "domain": "Product Services",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.6577,
+    "reldens": 9.13,
+    "comp_TCI": 41.53,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "darkred",
+    "id": "Product Services",
+    "value": 0
+  },
+  {
+    "domain": "Raw Material Shift",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 2.1629,
+    "reldens": 10.07,
+    "comp_TCI": 37.63,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "darkred",
+    "id": "Raw Material Shift",
+    "value": 0
+  },
+  {
+    "domain": "Steel Loop",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0105,
+    "reldens": 12.6,
+    "comp_TCI": 71.67,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "darkred",
+    "id": "Steel Loop",
+    "value": 0
+  },
+  {
+    "domain": "Textile Waste Cut",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0337,
+    "reldens": 13.1,
+    "comp_TCI": 50.18,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "darkred",
+    "id": "Textile Waste Cut",
+    "value": 0
+  },
+  {
+    "domain": "Water Circularity",
+    "geo": "Region Wallone (BE3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.2681,
+    "reldens": 10.64,
+    "comp_TCI": 39.32,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "darkred",
+    "id": "Water Circularity",
+    "value": 0
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

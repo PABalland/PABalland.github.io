@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Agrofood Waste Cut",
+    "geo": "Latvija (LV00)",
+    "count": 520,
+    "rca": 2.36,
+    "share": 1.0508,
+    "share_d": 0.4453,
+    "reldens": 84.57,
+    "comp_TCI": 27.62,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#528F52",
+    "id": "Agrofood Waste Cut",
+    "value": 520
+  },
+  {
+    "domain": "Biobased Materials in Construction",
+    "geo": "Latvija (LV00)",
+    "count": 330,
+    "rca": 3.13,
+    "share": 0.6669,
+    "share_d": 0.2129,
+    "reldens": 83.8,
+    "comp_TCI": 28.37,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#3E853E",
+    "id": "Biobased Materials in Construction",
+    "value": 330
+  },
+  {
+    "domain": "By-Product Valorization",
+    "geo": "Latvija (LV00)",
+    "count": 326,
+    "rca": 2.18,
+    "share": 0.6588,
+    "share_d": 0.3018,
+    "reldens": 93.77,
+    "comp_TCI": 28.04,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#589258",
+    "id": "By-Product Valorization",
+    "value": 326
+  },
+  {
+    "domain": "Circular Business",
+    "geo": "Latvija (LV00)",
+    "count": 198,
+    "rca": 2.74,
+    "share": 0.4001,
+    "share_d": 0.146,
+    "reldens": 87,
+    "comp_TCI": 42.76,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#478A47",
+    "id": "Circular Business",
+    "value": 198
+  },
+  {
+    "domain": "Circular Design",
+    "geo": "Latvija (LV00)",
+    "count": 144,
+    "rca": 2.49,
+    "share": 0.291,
+    "share_d": 0.1167,
+    "reldens": 96.35,
+    "comp_TCI": 35,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#4E8D4E",
+    "id": "Circular Design",
+    "value": 144
+  },
+  {
+    "domain": "Circular food packaging",
+    "geo": "Latvija (LV00)",
+    "count": 109,
+    "rca": 1.68,
+    "share": 0.2203,
+    "share_d": 0.1314,
+    "reldens": 91.56,
+    "comp_TCI": 25.25,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#6F9E6F",
+    "id": "Circular food packaging",
+    "value": 109
+  },
+  {
+    "domain": "E-Waste Circularity",
+    "geo": "Latvija (LV00)",
+    "count": 197,
+    "rca": 2.92,
+    "share": 0.3981,
+    "share_d": 0.1365,
+    "reldens": 86.89,
+    "comp_TCI": 34.56,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#438743",
+    "id": "E-Waste Circularity",
+    "value": 197
+  },
+  {
+    "domain": "Industrial Symbiosis",
+    "geo": "Latvija (LV00)",
+    "count": 2336,
+    "rca": 1.59,
+    "share": 4.7205,
+    "share_d": 2.9679,
+    "reldens": 71.07,
+    "comp_TCI": 22.54,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#74A174",
+    "id": "Industrial Symbiosis",
+    "value": 2336
+  },
+  {
+    "domain": "Product Services",
+    "geo": "Latvija (LV00)",
+    "count": 82,
+    "rca": 1.51,
+    "share": 0.1657,
+    "share_d": 0.1094,
+    "reldens": 88.81,
+    "comp_TCI": 48.52,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#7AA47A",
+    "id": "Product Services",
+    "value": 82
+  },
+  {
+    "domain": "Raw Material Shift",
+    "geo": "Latvija (LV00)",
+    "count": 700,
+    "rca": 2.14,
+    "share": 1.4145,
+    "share_d": 0.6616,
+    "reldens": 85.72,
+    "comp_TCI": 19.95,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#5A935A",
+    "id": "Raw Material Shift",
+    "value": 700
+  },
+  {
+    "domain": "Textile Waste Cut",
+    "geo": "Latvija (LV00)",
+    "count": 45,
+    "rca": 3.85,
+    "share": 0.0909,
+    "share_d": 0.0236,
+    "reldens": 97.84,
+    "comp_TCI": 14.93,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#327E32",
+    "id": "Textile Waste Cut",
+    "value": 45
+  },
+  {
+    "domain": "Water Circularity",
+    "geo": "Latvija (LV00)",
+    "count": 72,
+    "rca": 1.5,
+    "share": 0.1455,
+    "share_d": 0.0969,
+    "reldens": 52.82,
+    "comp_TCI": 28.23,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#7AA47A",
+    "id": "Water Circularity",
+    "value": 72
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>
