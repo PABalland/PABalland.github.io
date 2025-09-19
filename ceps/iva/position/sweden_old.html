@@ -141,6 +141,34 @@ function findBestPosition(textElement, centerX, centerY, radius, allCircles, ful
   return { ...positions[0], text: truncatedText, hasCollision: true };
 }
 
+// Function to get data bound to DOM element
+function getBoundData(element) {
+  // Try to get data from d3plus binding
+  if (element.__data__) {
+    return element.__data__;
+  }
+  
+  // Try to get data from parent elements
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  // Prefer the bound data directly from D3
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  // No fallback by position to avoid mismatches
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
 var data= [
   {
     "domain": "Additive Manufacturing (3D Printing)",
@@ -605,7 +633,7 @@ const maxY=Math.max(...yVals)+2;
 
 let customLabels = [];
 let isUpdating = false;
-let hoveringElements = new Set(); // Track which elements are being hovered
+let hoveringElements = new Set();
 
 new d3plus.Plot()
   .select("#chart")
@@ -620,8 +648,9 @@ new d3plus.Plot()
       <tr><td class='title'>Investment Index:</td><td class='data'>${d.crunchbase}</td></tr>
       <tr><td class='title'>Technology Index:</td><td class='data'>${d.regpat}</td></tr>
       <tr><td class='title'>Scientific Index:</td><td class='data'>${d.openalex}</td></tr>
+      <tr><td class='title'>ID:</td><td class='data'>${d.id}</td></tr>
     </table>`,
-    title:d=>d.id.charAt(0).toUpperCase()+d.id.substr(1).toLowerCase()
+    title:d=>d.id
   })
   .size("value")
   .sizeMin(15)
@@ -648,54 +677,12 @@ new d3plus.Plot()
   })
   .legend(false)
   .downloadButton(false)
-  .downloadConfig({
-    type:"png",
-    callback: () => {
-      setTimeout(() => {
-        const labels = document.querySelectorAll('.custom-label');
-        labels.forEach(label => {
-          label.style.fontFamily = 'Arial, Helvetica, sans-serif';
-          label.style.fontSize = '10px';
-          label.style.fill = '#000';
-          label.style.fontWeight = 'normal';
-          label.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
-          label.setAttribute('font-size', '10');
-          label.setAttribute('fill', '#000');
-          label.setAttribute('font-weight', 'normal');
-        });
-      }, 100);
-    }
-  })
   .render();
 
 setTimeout(() => {
   initializeCustomLabels();
   startPositionUpdater();
-  setupDownloadHandler();
 }, 500);
-
-function setupDownloadHandler() {
-  document.addEventListener('click', (e) => {
-    if (e.target.textContent && e.target.textContent.includes('Download')) {
-      prepareForDownload();
-    }
-  });
-}
-
-function prepareForDownload() {
-  const labels = document.querySelectorAll('.custom-label');
-  labels.forEach(label => {
-    label.setAttribute('style', 'font-family: Arial, Helvetica, sans-serif; font-size: 10px; fill: #000; font-weight: normal;');
-    label.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
-    label.setAttribute('font-size', '10');
-    label.setAttribute('fill', '#000');
-    label.setAttribute('font-weight', 'normal');
-    label.setAttribute('stroke', 'none');
-    
-    const hasCollision = label.classList.contains('collision');
-    label.setAttribute('opacity', hasCollision ? '0.3' : '1');
-  });
-}
 
 function initializeCustomLabels() {
   const svg = document.querySelector('#chart svg');
@@ -705,16 +692,14 @@ function initializeCustomLabels() {
   }
   
   const circles = svg.querySelectorAll('circle');
-  
-  function findMatchingDataPoint(circle) {
-    const circleColor = circle.getAttribute('fill');
-    return data.find(d => d.color === circleColor);
-  }
+  console.log('Found circles:', circles.length);
   
   circles.forEach((circle, index) => {
     const matchingData = findMatchingDataPoint(circle);
     
     if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
       const fullText = matchingData.id;
       
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -753,6 +738,9 @@ function initializeCustomLabels() {
         
         text.classList.add('hover');
         text.textContent = fullText;
+        
+        // Show in console for debugging
+        console.log('Hovering over:', matchingData.id);
       });
       
       circle.addEventListener('mouseleave', () => {
@@ -768,6 +756,8 @@ function initializeCustomLabels() {
           text.textContent = labelData.savedPosition.content;
         }
       });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
     }
   });
   
