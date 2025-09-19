@@ -1,0 +1,937 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
+.box{width:14px;height:14px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Investment Index &gt; median</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Investment Index &lt; median</span></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(rect1, rect2) {
+  return !(rect1.x + rect1.width < rect2.x || 
+           rect2.x + rect2.width < rect1.x || 
+           rect1.y + rect1.height < rect2.y || 
+           rect2.y + rect2.height < rect1.y);
+}
+
+function getPositionOptions(centerX, centerY, radius, padding = 5) {
+  return [
+    { name: 'right', x: centerX + radius + padding, y: centerY + 3, anchor: 'start' },
+    { name: 'left', x: centerX - radius - padding, y: centerY + 3, anchor: 'end' },
+    { name: 'below', x: centerX, y: centerY + radius + padding + 10, anchor: 'middle' },
+    { name: 'above', x: centerX, y: centerY - radius - padding, anchor: 'middle' }
+  ];
+}
+
+function hasCollision(textElement, allCircles) {
+  try {
+    const textBBox = textElement.getBBox();
+    
+    for (const circleData of allCircles) {
+      const r = parseFloat(circleData.circle.getAttribute('r')) || 7.5;
+      const circleBBox = {
+        x: circleData.coords.x - r,
+        y: circleData.coords.y - r,
+        width: r * 2,
+        height: r * 2
+      };
+      
+      if (rectanglesOverlap(textBBox, circleBBox)) {
+        return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+function findBestPosition(textElement, centerX, centerY, radius, allCircles, fullText) {
+  const positions = getPositionOptions(centerX, centerY, radius);
+  let hasCollisionWithFull = false;
+  
+  textElement.textContent = fullText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: fullText, hasCollision: false };
+    }
+  }
+  
+  hasCollisionWithFull = true;
+  
+  const truncatedText = truncateText(fullText, 20);
+  textElement.textContent = truncatedText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: truncatedText, hasCollision: hasCollisionWithFull };
+    }
+  }
+  
+  return { ...positions[0], text: truncatedText, hasCollision: true };
+}
+
+// Function to get data bound to DOM element
+function getBoundData(element) {
+  // Try to get data from d3plus binding
+  if (element.__data__) {
+    return element.__data__;
+  }
+  
+  // Try to get data from parent elements
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  // Prefer the bound data directly from D3
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  // No fallback by position to avoid mismatches
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data=  [
+  {
+    "domain": "Additive Manufacturing (3D Printing)",
+    "regpat": 84.28,
+    "openalex": 79.95,
+    "crunchbase": 77.65,
+    "color": "#CCCFCC",
+    "id": "Additive Manufacturing (3D Printing)",
+    "x": 84.28,
+    "y": 79.95,
+    "value": 1
+  },
+  {
+    "domain": "Advanced Materials",
+    "regpat": 45.79,
+    "openalex": 46.85,
+    "crunchbase": 86.67,
+    "color": "#A4BAA4",
+    "id": "Advanced Materials",
+    "x": 45.79,
+    "y": 46.85,
+    "value": 1
+  },
+  {
+    "domain": "Advanced Therapy Medicinal Products (ATMP)",
+    "regpat": 25.97,
+    "openalex": 88.11,
+    "crunchbase": 75.88,
+    "color": "#D2D1D1",
+    "id": "Advanced Therapy Medicinal Products (ATMP)",
+    "x": 25.97,
+    "y": 88.11,
+    "value": 1
+  },
+  {
+    "domain": "Aeronautics Technologies",
+    "regpat": 63.55,
+    "openalex": 35.43,
+    "crunchbase": 49.22,
+    "color": "#C4A8A8",
+    "id": "Aeronautics Technologies",
+    "x": 63.55,
+    "y": 35.43,
+    "value": 1
+  },
+  {
+    "domain": "Artificial Intelligence",
+    "regpat": 61.73,
+    "openalex": 27.74,
+    "crunchbase": 69.22,
+    "color": "#CFC7C7",
+    "id": "Artificial Intelligence",
+    "x": 61.73,
+    "y": 27.74,
+    "value": 1
+  },
+  {
+    "domain": "Augmented Reality (AR) and Virtual Reality (VR)",
+    "regpat": 75.85,
+    "openalex": 73.66,
+    "crunchbase": 82.75,
+    "color": "#AFC0AF",
+    "id": "Augmented Reality (AR) and Virtual Reality (VR)",
+    "x": 75.85,
+    "y": 73.66,
+    "value": 1
+  },
+  {
+    "domain": "Autonomous Vehicles",
+    "regpat": 100,
+    "openalex": 94.41,
+    "crunchbase": 100,
+    "color": "#8DAE8D",
+    "id": "Autonomous Vehicles",
+    "x": 100,
+    "y": 94.41,
+    "value": 1
+  },
+  {
+    "domain": "Batteries",
+    "regpat": 69.48,
+    "openalex": 71.33,
+    "crunchbase": 99.61,
+    "color": "#8DAE8D",
+    "id": "Batteries",
+    "x": 69.48,
+    "y": 71.33,
+    "value": 1
+  },
+  {
+    "domain": "Biobased Materials & Biomanufacturing",
+    "regpat": 87.7,
+    "openalex": 54.55,
+    "crunchbase": 9.22,
+    "color": "#A44949",
+    "id": "Biobased Materials & Biomanufacturing",
+    "x": 87.7,
+    "y": 54.55,
+    "value": 1
+  },
+  {
+    "domain": "Biofuels",
+    "regpat": 78.59,
+    "openalex": 57.58,
+    "crunchbase": 11.96,
+    "color": "#A75353",
+    "id": "Biofuels",
+    "x": 78.59,
+    "y": 57.58,
+    "value": 1
+  },
+  {
+    "domain": "Biotechnology",
+    "regpat": 12.3,
+    "openalex": 39.63,
+    "crunchbase": 1.57,
+    "color": "#951E1E",
+    "id": "Biotechnology",
+    "x": 12.3,
+    "y": 39.63,
+    "value": 1
+  },
+  {
+    "domain": "Blockchain Technologies",
+    "regpat": 78.13,
+    "openalex": 0,
+    "crunchbase": 50.59,
+    "color": "#C5ABAB",
+    "id": "Blockchain Technologies",
+    "x": 78.13,
+    "y": 0,
+    "value": 1
+  },
+  {
+    "domain": "Cloud Computing and Edge Computing",
+    "regpat": 76.77,
+    "openalex": 68.76,
+    "crunchbase": 81.57,
+    "color": "#B3C2B3",
+    "id": "Cloud Computing and Edge Computing",
+    "x": 76.77,
+    "y": 68.76,
+    "value": 1
+  },
+  {
+    "domain": "Computer Vision, Language Processing, Object Recognition",
+    "regpat": 79.04,
+    "openalex": 23.78,
+    "crunchbase": 76.47,
+    "color": "#D3D2D2",
+    "id": "Computer Vision, Language Processing, Object Recognition",
+    "x": 79.04,
+    "y": 23.78,
+    "value": 1
+  },
+  {
+    "domain": "Cybersecurity Technologies",
+    "regpat": 84.97,
+    "openalex": 41.49,
+    "crunchbase": 73.73,
+    "color": "#D1CECE",
+    "id": "Cybersecurity Technologies",
+    "x": 84.97,
+    "y": 41.49,
+    "value": 1
+  },
+  {
+    "domain": "Data Analytics Technologies",
+    "regpat": 55.81,
+    "openalex": 29.37,
+    "crunchbase": 66.47,
+    "color": "#CEC3C3",
+    "id": "Data Analytics Technologies",
+    "x": 55.81,
+    "y": 29.37,
+    "value": 1
+  },
+  {
+    "domain": "Defence Technologies",
+    "regpat": 84.74,
+    "openalex": 6.53,
+    "crunchbase": 5.88,
+    "color": "#9F3A3A",
+    "id": "Defence Technologies",
+    "x": 84.74,
+    "y": 6.53,
+    "value": 1
+  },
+  {
+    "domain": "Drones",
+    "regpat": 60.82,
+    "openalex": 47.55,
+    "crunchbase": 73.33,
+    "color": "#D1CDCD",
+    "id": "Drones",
+    "x": 60.82,
+    "y": 47.55,
+    "value": 1
+  },
+  {
+    "domain": "Financial Technologies",
+    "regpat": 51.03,
+    "openalex": 20.75,
+    "crunchbase": 73.92,
+    "color": "#D1CECE",
+    "id": "Financial Technologies",
+    "x": 51.03,
+    "y": 20.75,
+    "value": 1
+  },
+  {
+    "domain": "Heat Pumps",
+    "regpat": 67.43,
+    "openalex": 52.45,
+    "crunchbase": 15.1,
+    "color": "#AB5D5D",
+    "id": "Heat Pumps",
+    "x": 67.43,
+    "y": 52.45,
+    "value": 1
+  },
+  {
+    "domain": "High Performance Computing",
+    "regpat": 86.79,
+    "openalex": 79.72,
+    "crunchbase": 79.22,
+    "color": "#BEC8BE",
+    "id": "High Performance Computing",
+    "x": 86.79,
+    "y": 79.72,
+    "value": 1
+  },
+  {
+    "domain": "Hydrogen Technologies",
+    "regpat": 73.58,
+    "openalex": 45.92,
+    "crunchbase": 96.47,
+    "color": "#92B192",
+    "id": "Hydrogen Technologies",
+    "x": 73.58,
+    "y": 45.92,
+    "value": 1
+  },
+  {
+    "domain": "Hydropower Technologies",
+    "regpat": 84.51,
+    "openalex": 30.3,
+    "crunchbase": 12.35,
+    "color": "#A85454",
+    "id": "Hydropower Technologies",
+    "x": 84.51,
+    "y": 30.3,
+    "value": 1
+  },
+  {
+    "domain": "Industrial Automation and Process Control",
+    "regpat": 100,
+    "openalex": 53.85,
+    "crunchbase": 75.88,
+    "color": "#D2D1D1",
+    "id": "Industrial Automation and Process Control",
+    "x": 100,
+    "y": 53.85,
+    "value": 1
+  },
+  {
+    "domain": "Internet of Things (IoT)",
+    "regpat": 91.8,
+    "openalex": 63.17,
+    "crunchbase": 76.08,
+    "color": "#D2D1D1",
+    "id": "Internet of Things (IoT)",
+    "x": 91.8,
+    "y": 63.17,
+    "value": 1
+  },
+  {
+    "domain": "Life Sciences & Pharmaceuticals",
+    "regpat": 0,
+    "openalex": 67.83,
+    "crunchbase": 74.9,
+    "color": "#D2CFCF",
+    "id": "Life Sciences & Pharmaceuticals",
+    "x": 0,
+    "y": 67.83,
+    "value": 1
+  },
+  {
+    "domain": "Maritime Technologies",
+    "regpat": 79.04,
+    "openalex": 57.11,
+    "crunchbase": 89.02,
+    "color": "#9FB89F",
+    "id": "Maritime Technologies",
+    "x": 79.04,
+    "y": 57.11,
+    "value": 1
+  },
+  {
+    "domain": "Medtech",
+    "regpat": 44.65,
+    "openalex": 61.07,
+    "crunchbase": 79.61,
+    "color": "#BCC7BC",
+    "id": "Medtech",
+    "x": 44.65,
+    "y": 61.07,
+    "value": 1
+  },
+  {
+    "domain": "Metals and Minerals Technologies",
+    "regpat": 39.18,
+    "openalex": 34.03,
+    "crunchbase": 84.71,
+    "color": "#A9BDA9",
+    "id": "Metals and Minerals Technologies",
+    "x": 39.18,
+    "y": 34.03,
+    "value": 1
+  },
+  {
+    "domain": "Mobile networks (e.g. 5G and 6G)",
+    "regpat": 94.99,
+    "openalex": 81.82,
+    "crunchbase": 88.24,
+    "color": "#A1B9A1",
+    "id": "Mobile networks (e.g. 5G and 6G)",
+    "x": 94.99,
+    "y": 81.82,
+    "value": 1
+  },
+  {
+    "domain": "Nuclear Energy Technologies",
+    "regpat": 94.99,
+    "openalex": 83.45,
+    "crunchbase": 100,
+    "color": "#8DAE8D",
+    "id": "Nuclear Energy Technologies",
+    "x": 94.99,
+    "y": 83.45,
+    "value": 1
+  },
+  {
+    "domain": "Personalised Medicine",
+    "regpat": 29.84,
+    "openalex": 53.85,
+    "crunchbase": 96.47,
+    "color": "#92B192",
+    "id": "Personalised Medicine",
+    "x": 29.84,
+    "y": 53.85,
+    "value": 1
+  },
+  {
+    "domain": "Photonics and Spintronics",
+    "regpat": 51.94,
+    "openalex": 58.97,
+    "crunchbase": 0,
+    "color": "darkred",
+    "id": "Photonics and Spintronics",
+    "x": 51.94,
+    "y": 58.97,
+    "value": 1
+  },
+  {
+    "domain": "Production Technologies",
+    "regpat": 88.61,
+    "openalex": 84.62,
+    "crunchbase": 62.94,
+    "color": "#CCBEBE",
+    "id": "Production Technologies",
+    "x": 88.61,
+    "y": 84.62,
+    "value": 1
+  },
+  {
+    "domain": "Propulsion Technologies",
+    "regpat": 82,
+    "openalex": 49.42,
+    "crunchbase": 60.78,
+    "color": "#CBBBBB",
+    "id": "Propulsion Technologies",
+    "x": 82,
+    "y": 49.42,
+    "value": 1
+  },
+  {
+    "domain": "Quantum Technologies and Computing",
+    "regpat": 73.8,
+    "openalex": 48.72,
+    "crunchbase": 6.47,
+    "color": "#A03D3D",
+    "id": "Quantum Technologies and Computing",
+    "x": 73.8,
+    "y": 48.72,
+    "value": 1
+  },
+  {
+    "domain": "Recycling Technologies",
+    "regpat": 50.8,
+    "openalex": 42.89,
+    "crunchbase": 90.59,
+    "color": "#9CB69C",
+    "id": "Recycling Technologies",
+    "x": 50.8,
+    "y": 42.89,
+    "value": 1
+  },
+  {
+    "domain": "Robotics",
+    "regpat": 91.12,
+    "openalex": 62.47,
+    "crunchbase": 77.45,
+    "color": "lightgrey",
+    "id": "Robotics",
+    "x": 91.12,
+    "y": 62.47,
+    "value": 1
+  },
+  {
+    "domain": "Safety and Security Technologies",
+    "regpat": 92.26,
+    "openalex": 80.42,
+    "crunchbase": 83.73,
+    "color": "#ACBFAC",
+    "id": "Safety and Security Technologies",
+    "x": 92.26,
+    "y": 80.42,
+    "value": 1
+  },
+  {
+    "domain": "Semiconductors and Chips",
+    "regpat": 49.43,
+    "openalex": 63.17,
+    "crunchbase": 82.94,
+    "color": "#AFC0AF",
+    "id": "Semiconductors and Chips",
+    "x": 49.43,
+    "y": 63.17,
+    "value": 1
+  },
+  {
+    "domain": "Sensor Technologies",
+    "regpat": 80.18,
+    "openalex": 41.49,
+    "crunchbase": 88.82,
+    "color": "#A0B8A0",
+    "id": "Sensor Technologies",
+    "x": 80.18,
+    "y": 41.49,
+    "value": 1
+  },
+  {
+    "domain": "Smart Grids",
+    "regpat": 89.52,
+    "openalex": 40.09,
+    "crunchbase": 70.59,
+    "color": "#D0C9C9",
+    "id": "Smart Grids",
+    "x": 89.52,
+    "y": 40.09,
+    "value": 1
+  },
+  {
+    "domain": "Software Engineering and Systems Development",
+    "regpat": 74.49,
+    "openalex": 99.07,
+    "crunchbase": 77.45,
+    "color": "lightgrey",
+    "id": "Software Engineering and Systems Development",
+    "x": 74.49,
+    "y": 99.07,
+    "value": 1
+  },
+  {
+    "domain": "Solar Technologies",
+    "regpat": 39.41,
+    "openalex": 22.38,
+    "crunchbase": 84.71,
+    "color": "#A9BDA9",
+    "id": "Solar Technologies",
+    "x": 39.41,
+    "y": 22.38,
+    "value": 1
+  },
+  {
+    "domain": "Space Technologies",
+    "regpat": 94.99,
+    "openalex": 94.17,
+    "crunchbase": 85.49,
+    "color": "#A7BCA7",
+    "id": "Space Technologies",
+    "x": 94.99,
+    "y": 94.17,
+    "value": 1
+  },
+  {
+    "domain": "Synthetic Biology",
+    "regpat": 23.46,
+    "openalex": 100,
+    "crunchbase": 81.37,
+    "color": "#B4C3B4",
+    "id": "Synthetic Biology",
+    "x": 23.46,
+    "y": 100,
+    "value": 1
+  },
+  {
+    "domain": "Transport Technologies",
+    "regpat": 78.13,
+    "openalex": 81.82,
+    "crunchbase": 84.71,
+    "color": "#A9BDA9",
+    "id": "Transport Technologies",
+    "x": 78.13,
+    "y": 81.82,
+    "value": 1
+  },
+  {
+    "domain": "Wind Technologies",
+    "regpat": 37.36,
+    "openalex": 22.38,
+    "crunchbase": 89.02,
+    "color": "#9FB89F",
+    "id": "Wind Technologies",
+    "x": 37.36,
+    "y": 22.38,
+    "value": 1
+  }
+] ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,110];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+    body:d=>`<table class='tooltip-table'>
+      <tr><td class='title'>Investment Index:</td><td class='data'>${d.crunchbase}</td></tr>
+      <tr><td class='title'>Technology Index:</td><td class='data'>${d.regpat}</td></tr>
+      <tr><td class='title'>Scientific Index:</td><td class='data'>${d.openalex}</td></tr>
+      <tr><td class='title'>ID:</td><td class='data'>${d.id}</td></tr>
+    </table>`,
+    title:d=>d.id
+  })
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"Scientific Index",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Technological Index",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  startPositionUpdater();
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      svg.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+        
+        // Show in console for debugging
+        console.log('Hovering over:', matchingData.id);
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  customLabels.forEach((labelData) => {
+    const {circle, text, fullText} = labelData;
+    
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    
+    if (circle && text) {
+      const circleData = circlePositions.find(cp => cp.circle === circle);
+      if (circleData) {
+        const r = parseFloat(circle.getAttribute('r')) || 7.5;
+        const bestPosition = findBestPosition(
+          text, 
+          circleData.coords.x, 
+          circleData.coords.y, 
+          r,
+          circlePositions,
+          fullText
+        );
+        
+        text.setAttribute('x', bestPosition.x);
+        text.setAttribute('y', bestPosition.y);
+        text.setAttribute('text-anchor', bestPosition.anchor);
+        text.textContent = bestPosition.text;
+        labelData.defaultText = bestPosition.text;
+        
+        if (bestPosition.hasCollision) {
+          text.classList.add('collision');
+          text.setAttribute('opacity', '0.3');
+        } else {
+          text.classList.remove('collision');
+          text.setAttribute('opacity', '1');
+        }
+      }
+    }
+  });
+  
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
+  Color indicates Investment index. 
+</div>
+</body>
+</html>
