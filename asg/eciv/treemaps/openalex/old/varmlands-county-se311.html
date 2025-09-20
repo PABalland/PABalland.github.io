@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Agrofood Waste Cut",
+    "geo": "Värmlands County (SE311)",
+    "count": 59,
+    "rca": 1.74,
+    "share": 0.7751,
+    "share_d": 0.4453,
+    "reldens": 61.59,
+    "comp_TCI": 27.62,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#6C9D6C",
+    "id": "Agrofood Waste Cut",
+    "value": 59
+  },
+  {
+    "domain": "Biobased Materials in Construction",
+    "geo": "Värmlands County (SE311)",
+    "count": 35,
+    "rca": 2.16,
+    "share": 0.4598,
+    "share_d": 0.2129,
+    "reldens": 72.46,
+    "comp_TCI": 28.37,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#599359",
+    "id": "Biobased Materials in Construction",
+    "value": 35
+  },
+  {
+    "domain": "By-Product Valorization",
+    "geo": "Värmlands County (SE311)",
+    "count": 35,
+    "rca": 1.52,
+    "share": 0.4598,
+    "share_d": 0.3018,
+    "reldens": 78.95,
+    "comp_TCI": 28.04,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#79A479",
+    "id": "By-Product Valorization",
+    "value": 35
+  },
+  {
+    "domain": "Circular Business",
+    "geo": "Värmlands County (SE311)",
+    "count": 4,
+    "rca": 0.36,
+    "share": 0.0525,
+    "share_d": 0.146,
+    "reldens": 29.94,
+    "comp_TCI": 42.76,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#B67F7F",
+    "id": "Circular Business",
+    "value": 4
+  },
+  {
+    "domain": "Circular Design",
+    "geo": "Värmlands County (SE311)",
+    "count": 16,
+    "rca": 1.8,
+    "share": 0.2102,
+    "share_d": 0.1167,
+    "reldens": 85.74,
+    "comp_TCI": 35,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#689B68",
+    "id": "Circular Design",
+    "value": 16
+  },
+  {
+    "domain": "Circular food packaging",
+    "geo": "Värmlands County (SE311)",
+    "count": 10,
+    "rca": 1,
+    "share": 0.1314,
+    "share_d": 0.1314,
+    "reldens": 73.04,
+    "comp_TCI": 25.25,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "lightgrey",
+    "id": "Circular food packaging",
+    "value": 10
+  },
+  {
+    "domain": "E-Waste Circularity",
+    "geo": "Värmlands County (SE311)",
+    "count": 12,
+    "rca": 1.15,
+    "share": 0.1576,
+    "share_d": 0.1365,
+    "reldens": 58.22,
+    "comp_TCI": 34.56,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#9FB89F",
+    "id": "E-Waste Circularity",
+    "value": 12
+  },
+  {
+    "domain": "Industrial Symbiosis",
+    "geo": "Värmlands County (SE311)",
+    "count": 307,
+    "rca": 1.36,
+    "share": 4.0331,
+    "share_d": 2.9679,
+    "reldens": 51.65,
+    "comp_TCI": 22.54,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#86AA86",
+    "id": "Industrial Symbiosis",
+    "value": 307
+  },
+  {
+    "domain": "Product Services",
+    "geo": "Värmlands County (SE311)",
+    "count": 88,
+    "rca": 10.56,
+    "share": 1.1561,
+    "share_d": 0.1094,
+    "reldens": 87.19,
+    "comp_TCI": 48.52,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#006400",
+    "id": "Product Services",
+    "value": 88
+  },
+  {
+    "domain": "Raw Material Shift",
+    "geo": "Värmlands County (SE311)",
+    "count": 130,
+    "rca": 2.58,
+    "share": 1.7078,
+    "share_d": 0.6616,
+    "reldens": 56.7,
+    "comp_TCI": 19.95,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#4C8C4C",
+    "id": "Raw Material Shift",
+    "value": 130
+  },
+  {
+    "domain": "Textile Waste Cut",
+    "geo": "Värmlands County (SE311)",
+    "count": 5,
+    "rca": 2.78,
+    "share": 0.0657,
+    "share_d": 0.0236,
+    "reldens": 88.72,
+    "comp_TCI": 14.93,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#468946",
+    "id": "Textile Waste Cut",
+    "value": 5
+  },
+  {
+    "domain": "Water Circularity",
+    "geo": "Värmlands County (SE311)",
+    "count": 4,
+    "rca": 0.54,
+    "share": 0.0525,
+    "share_d": 0.0969,
+    "reldens": 59.76,
+    "comp_TCI": 28.23,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#C09B9B",
+    "id": "Water Circularity",
+    "value": 4
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

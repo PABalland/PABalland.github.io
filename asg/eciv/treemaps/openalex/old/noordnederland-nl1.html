@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Agrofood Waste Cut",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 273,
+    "rca": 0.56,
+    "share": 0.2472,
+    "share_d": 0.4453,
+    "reldens": 11.16,
+    "comp_TCI": 27.62,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#C19E9E",
+    "id": "Agrofood Waste Cut",
+    "value": 273
+  },
+  {
+    "domain": "Biobased Materials in Construction",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 57,
+    "rca": 0.24,
+    "share": 0.0516,
+    "share_d": 0.2129,
+    "reldens": 6.86,
+    "comp_TCI": 28.37,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#AE6767",
+    "id": "Biobased Materials in Construction",
+    "value": 57
+  },
+  {
+    "domain": "By-Product Valorization",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 230,
+    "rca": 0.69,
+    "share": 0.2083,
+    "share_d": 0.3018,
+    "reldens": 11.98,
+    "comp_TCI": 28.04,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#C7AFAF",
+    "id": "By-Product Valorization",
+    "value": 230
+  },
+  {
+    "domain": "Circular Business",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 201,
+    "rca": 1.25,
+    "share": 0.182,
+    "share_d": 0.146,
+    "reldens": 39.93,
+    "comp_TCI": 42.76,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#91B091",
+    "id": "Circular Business",
+    "value": 201
+  },
+  {
+    "domain": "Circular Design",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 123,
+    "rca": 0.95,
+    "share": 0.1114,
+    "share_d": 0.1167,
+    "reldens": 20.25,
+    "comp_TCI": 35,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#D1CECE",
+    "id": "Circular Design",
+    "value": 123
+  },
+  {
+    "domain": "Circular food packaging",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 117,
+    "rca": 0.81,
+    "share": 0.1059,
+    "share_d": 0.1314,
+    "reldens": 23.23,
+    "comp_TCI": 25.25,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#CCBEBE",
+    "id": "Circular food packaging",
+    "value": 117
+  },
+  {
+    "domain": "E-Waste Circularity",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 122,
+    "rca": 0.81,
+    "share": 0.1105,
+    "share_d": 0.1365,
+    "reldens": 15.19,
+    "comp_TCI": 34.56,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#CCBEBE",
+    "id": "E-Waste Circularity",
+    "value": 122
+  },
+  {
+    "domain": "Industrial Symbiosis",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 1813,
+    "rca": 0.55,
+    "share": 1.6416,
+    "share_d": 2.9679,
+    "reldens": 9.59,
+    "comp_TCI": 22.54,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#C09C9C",
+    "id": "Industrial Symbiosis",
+    "value": 1813
+  },
+  {
+    "domain": "Product Services",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 84,
+    "rca": 0.69,
+    "share": 0.0761,
+    "share_d": 0.1094,
+    "reldens": 21.24,
+    "comp_TCI": 48.52,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#C7AFAF",
+    "id": "Product Services",
+    "value": 84
+  },
+  {
+    "domain": "Raw Material Shift",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 441,
+    "rca": 0.6,
+    "share": 0.3993,
+    "share_d": 0.6616,
+    "reldens": 12.53,
+    "comp_TCI": 19.95,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#C3A3A3",
+    "id": "Raw Material Shift",
+    "value": 441
+  },
+  {
+    "domain": "Textile Waste Cut",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 12,
+    "rca": 0.46,
+    "share": 0.0109,
+    "share_d": 0.0236,
+    "reldens": 12.75,
+    "comp_TCI": 14.93,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#BC8F8F",
+    "id": "Textile Waste Cut",
+    "value": 12
+  },
+  {
+    "domain": "Water Circularity",
+    "geo": "Noord-Nederland (NL1)",
+    "count": 21,
+    "rca": 0.2,
+    "share": 0.019,
+    "share_d": 0.0969,
+    "reldens": 4.5,
+    "comp_TCI": 28.23,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#AB5E5E",
+    "id": "Water Circularity",
+    "value": 21
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

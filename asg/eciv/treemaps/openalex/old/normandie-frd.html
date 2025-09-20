@@ -1,0 +1,226 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Agrofood Waste Cut",
+    "geo": "Normandie (FRD)",
+    "count": 204,
+    "rca": 0.72,
+    "share": 0.3199,
+    "share_d": 0.4453,
+    "reldens": 50.98,
+    "comp_TCI": 27.62,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#C8B3B3",
+    "id": "Agrofood Waste Cut",
+    "value": 204
+  },
+  {
+    "domain": "Biobased Materials in Construction",
+    "geo": "Normandie (FRD)",
+    "count": 173,
+    "rca": 1.27,
+    "share": 0.2713,
+    "share_d": 0.2129,
+    "reldens": 63.31,
+    "comp_TCI": 28.37,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#8FAF8F",
+    "id": "Biobased Materials in Construction",
+    "value": 173
+  },
+  {
+    "domain": "By-Product Valorization",
+    "geo": "Normandie (FRD)",
+    "count": 331,
+    "rca": 1.72,
+    "share": 0.5191,
+    "share_d": 0.3018,
+    "reldens": 61.58,
+    "comp_TCI": 28.04,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#6D9D6D",
+    "id": "By-Product Valorization",
+    "value": 331
+  },
+  {
+    "domain": "Circular Business",
+    "geo": "Normandie (FRD)",
+    "count": 78,
+    "rca": 0.84,
+    "share": 0.1223,
+    "share_d": 0.146,
+    "reldens": 35.69,
+    "comp_TCI": 42.76,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#CDC1C1",
+    "id": "Circular Business",
+    "value": 78
+  },
+  {
+    "domain": "Circular Design",
+    "geo": "Normandie (FRD)",
+    "count": 199,
+    "rca": 2.67,
+    "share": 0.3121,
+    "share_d": 0.1167,
+    "reldens": 71.87,
+    "comp_TCI": 35,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#498B49",
+    "id": "Circular Design",
+    "value": 199
+  },
+  {
+    "domain": "Circular food packaging",
+    "geo": "Normandie (FRD)",
+    "count": 70,
+    "rca": 0.84,
+    "share": 0.1098,
+    "share_d": 0.1314,
+    "reldens": 57.71,
+    "comp_TCI": 25.25,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#CDC1C1",
+    "id": "Circular food packaging",
+    "value": 70
+  },
+  {
+    "domain": "E-Waste Circularity",
+    "geo": "Normandie (FRD)",
+    "count": 41,
+    "rca": 0.47,
+    "share": 0.0643,
+    "share_d": 0.1365,
+    "reldens": 63.61,
+    "comp_TCI": 34.56,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#BC9191",
+    "id": "E-Waste Circularity",
+    "value": 41
+  },
+  {
+    "domain": "Industrial Symbiosis",
+    "geo": "Normandie (FRD)",
+    "count": 1983,
+    "rca": 1.05,
+    "share": 3.1096,
+    "share_d": 2.9679,
+    "reldens": 40.5,
+    "comp_TCI": 22.54,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#B4C3B4",
+    "id": "Industrial Symbiosis",
+    "value": 1983
+  },
+  {
+    "domain": "Product Services",
+    "geo": "Normandie (FRD)",
+    "count": 118,
+    "rca": 1.69,
+    "share": 0.185,
+    "share_d": 0.1094,
+    "reldens": 71.29,
+    "comp_TCI": 48.52,
+    "parent": "Circular Models",
+    "color2": "#8cab79",
+    "color": "#6E9E6E",
+    "id": "Product Services",
+    "value": 118
+  },
+  {
+    "domain": "Raw Material Shift",
+    "geo": "Normandie (FRD)",
+    "count": 448,
+    "rca": 1.06,
+    "share": 0.7025,
+    "share_d": 0.6616,
+    "reldens": 43.79,
+    "comp_TCI": 19.95,
+    "parent": "Industrial Loops",
+    "color2": "#232F4B",
+    "color": "#B1C1B1",
+    "id": "Raw Material Shift",
+    "value": 448
+  },
+  {
+    "domain": "Textile Waste Cut",
+    "geo": "Normandie (FRD)",
+    "count": 33,
+    "rca": 2.19,
+    "share": 0.0517,
+    "share_d": 0.0236,
+    "reldens": 67.65,
+    "comp_TCI": 14.93,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#589258",
+    "id": "Textile Waste Cut",
+    "value": 33
+  },
+  {
+    "domain": "Water Circularity",
+    "geo": "Normandie (FRD)",
+    "count": 49,
+    "rca": 0.79,
+    "share": 0.0768,
+    "share_d": 0.0969,
+    "reldens": 44.06,
+    "comp_TCI": 28.23,
+    "parent": "Waste Cut",
+    "color2": "#800020",
+    "color": "#CBBCBC",
+    "id": "Water Circularity",
+    "value": 49
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>
