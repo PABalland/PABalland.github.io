@@ -1,6 +1,6 @@
-setwd("~/Library/CloudStorage/Dropbox/GitHub/PABalland.github.io/asg/eciv/ecosystems2")
+setwd("~/Library/CloudStorage/Dropbox/GitHub/PABalland.github.io/asg/eciv/ecosystems")
 # Base URL
-base_url <- "https://www.paballand.com/asg/eciv/ecosystems2/"
+base_url <- "https://www.paballand.com/asg/eciv/ecosystems/"
 
 # Get all files relative to current folder (no ./ in front)
 files <- list.files(path = ".", recursive = TRUE, full.names = FALSE)
