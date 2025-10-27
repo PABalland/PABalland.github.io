@@ -1,0 +1,605 @@
+<!doctype html>
+<html>
+
+  <head>
+
+    <meta charset="utf-8">
+    <title>Forced Network</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+    <style>
+
+      html, body {
+        margin: 0;
+        height: 100%;
+        font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+        background: #f5f7fa;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      #legend-container {
+        flex: 0 0 5vh;
+        max-height: 5vh;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(8px, 2vh, 16px) clamp(16px, 4vw, 32px);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+        order: 2;
+      }
+
+      .custom-legend {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(8px, 1.5vw, 16px);
+        width: 100%;
+        max-height: 100%;
+        overflow: auto;
+        scrollbar-width: thin;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: #1b1d21;
+        font-size: clamp(12px, 1.3vw, 16px);
+        cursor: default;
+        white-space: nowrap;
+      }
+
+      .legend-item.dim {
+        opacity: 0.35;
+      }
+
+      .legend-square {
+        width: clamp(12px, 1.2vw, 16px);
+        height: clamp(12px, 1.2vw, 16px);
+        border-radius: 4px;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12) inset;
+      }
+
+      .legend-label {
+        pointer-events: none;
+      }
+
+      svg.network {
+        flex: 1 1 auto;
+        width: 100%;
+        height: 100%;
+        display: block;
+        cursor: move;
+        background: #ffffff;
+        order: 1;
+      }
+
+      .link {
+        stroke: rgba(140, 150, 170, 0.45);
+      }
+
+      .link.highlighted {
+        stroke: rgba(80, 90, 110, 0.9);
+        stroke-width: 6px;
+      }
+
+      .link.dimmed {
+        opacity: 0.2;
+      }
+
+      .node.dimmed {
+        opacity: 0.25;
+      }
+
+      .node.highlighted circle {
+        stroke-width: 3px;
+      }
+
+      .node.highlighted text {
+        font-weight: 700;
+      }
+
+      .node circle {
+        stroke: #ffffff;
+        stroke-width: 2px;
+      }
+
+      .node text {
+        font-weight: 400;
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+      }
+
+    </style>
+
+  </head>
+
+  <body>
+
+    <div id="legend-container">
+      <div class="custom-legend" id="legend"></div>
+    </div>
+
+    <svg class="network"></svg>
+
+    <script>
+
+      var nodes =  [{"id":"AI & Big Data","id2":0,"x":1.9944,"y":0.4321,"color":"#365a94","parent":"ICT","size":1.5},{"id":"Automation & robotics","id2":1,"x":-1.3497,"y":1.3346,"color":"#365a94","parent":"ICT","size":1.5},{"id":"Autonomous & connected mobility","id2":2,"x":-0.5719,"y":-1.7134,"color":"#6a0dad","parent":"Future Mobility","size":1.5},{"id":"Biophotonics","id2":3,"x":0.9002,"y":2.5295,"color":"#EEDC82","parent":"Life Sciences","size":1.5},{"id":"Bioprocess technology","id2":4,"x":-0.7515,"y":1.939,"color":"#800020","parent":"AgriFood Tech","size":1.5},{"id":"Biotechnologies","id2":5,"x":0.0495,"y":3.1732,"color":"#EEDC82","parent":"Life Sciences","size":1.5},{"id":"CCS / CCU","id2":6,"x":-2.2359,"y":-0.0383,"color":"#8cab79","parent":"Climate Tech","size":1.5},{"id":"CO2-neutral production","id2":23,"x":-2.3472,"y":1.0252,"color":"#e28f26","parent":"Industrial Tech","size":1.5},{"id":"Cyber defense & infrastructure","id2":7,"x":2.7308,"y":-1.5599,"color":"#8B4513","parent":"Defense Tech","size":1.5},{"id":"Cybersecurity","id2":8,"x":2.6978,"y":-0.6717,"color":"#365a94","parent":"ICT","size":1.5},{"id":"Data ecosystems","id2":9,"x":1.1284,"y":1.1491,"color":"#e28f26","parent":"Industrial Tech","size":1.5},{"id":"Data sciences & digital health","id2":10,"x":0.3864,"y":1.5688,"color":"#EEDC82","parent":"Life Sciences","size":1.5},{"id":"Geothermal energy","id2":11,"x":-2.8953,"y":-2.2304,"color":"#8cab79","parent":"Climate Tech","size":1.5},{"id":"Immersive technologies","id2":12,"x":3.0775,"y":1.6445,"color":"#365a94","parent":"ICT","size":1.5},{"id":"Individual mass production","id2":13,"x":-2.59,"y":2.2986,"color":"#e28f26","parent":"Industrial Tech","size":1.5},{"id":"Industrial robotics","id2":14,"x":-1.4001,"y":2.3077,"color":"#e28f26","parent":"Industrial Tech","size":1.5},{"id":"Maritime technology","id2":15,"x":0.0587,"y":-3.0397,"color":"#8B4513","parent":"Defense Tech","size":1.5},{"id":"Medical technology","id2":16,"x":0.3582,"y":1.8193,"color":"#EEDC82","parent":"Life Sciences","size":1.5},{"id":"Mobility services","id2":24,"x":-1.0831,"y":-3.053,"color":"#6a0dad","parent":"Future Mobility","size":1.5},{"id":"More flexible energy systems","id2":17,"x":-2.0133,"y":-2.9261,"color":"#8cab79","parent":"Climate Tech","size":1.5},{"id":"Nanotechnologies","id2":31,"x":0.9932,"y":2.8404,"color":"#669999","parent":"Deep Tech","size":1.5},{"id":"Neural interfaces","id2":30,"x":1.4631,"y":1.7548,"color":"#669999","parent":"Deep Tech","size":1.5},{"id":"Nuclear fusion","id2":37,"x":-2.5584,"y":-3.9621,"color":"#8cab79","parent":"Climate Tech","size":1.5},{"id":"Optics & photonics","id2":18,"x":2.0818,"y":2.2873,"color":"#669999","parent":"Deep Tech","size":1.5},{"id":"Overall defense strategy","id2":22,"x":1.3937,"y":-1.8903,"color":"#8B4513","parent":"Defense Tech","size":1.5},{"id":"Personalized medicine","id2":19,"x":0.1536,"y":2.4815,"color":"#EEDC82","parent":"Life Sciences","size":1.5},{"id":"Personalized nutrition","id2":35,"x":-0.4143,"y":2.873,"color":"#800020","parent":"AgriFood Tech","size":1.5},{"id":"Platform economy","id2":21,"x":3.8344,"y":0.4037,"color":"#800020","parent":"AgriFood Tech","size":1.5},{"id":"Precision breeding","id2":27,"x":-0.9753,"y":3.4452,"color":"#800020","parent":"AgriFood Tech","size":1.5},{"id":"Private air transport","id2":20,"x":0.2179,"y":-4.3968,"color":"#6a0dad","parent":"Future Mobility","size":1.5},{"id":"Quantum technologies","id2":34,"x":2.9577,"y":1.054,"color":"#669999","parent":"Deep Tech","size":1.5},{"id":"Semiconductors & microchips","id2":28,"x":2.407,"y":2.796,"color":"#669999","parent":"Deep Tech","size":1.5},{"id":"Smart factories","id2":25,"x":-2.6806,"y":2.7117,"color":"#e28f26","parent":"Industrial Tech","size":1.5},{"id":"Smart farming","id2":33,"x":-2.0909,"y":2.9808,"color":"#800020","parent":"AgriFood Tech","size":1.5},{"id":"Space logistics","id2":38,"x":-1.38,"y":-5.1173,"color":"#6a0dad","parent":"Future Mobility","size":1.5},{"id":"UAS & drone defense","id2":26,"x":0.5417,"y":-3.0281,"color":"#8B4513","parent":"Defense Tech","size":1.5},{"id":"Ubiquitous computing","id2":36,"x":1.9002,"y":1.3093,"color":"#365a94","parent":"ICT","size":1.5},{"id":"Water purification","id2":29,"x":-1.3667,"y":0.8915,"color":"#8cab79","parent":"Climate Tech","size":1.5},{"id":"Weapon systems & ammunition","id2":32,"x":1.5237,"y":-3.8341,"color":"#8B4513","parent":"Defense Tech","size":1.5}]  ;
+
+      var links =   [{"source":"AI & Big Data","target":"Cybersecurity","weight":12.72},{"source":"AI & Big Data","target":"Neural interfaces","weight":16.3},{"source":"AI & Big Data","target":"Quantum technologies","weight":12.27},{"source":"Automation & robotics","target":"Industrial robotics","weight":41.11},{"source":"Automation & robotics","target":"Medical technology","weight":8.81},{"source":"Automation & robotics","target":"Smart farming","weight":13.01},{"source":"Autonomous & connected mobility","target":"Mobility services","weight":26.95},{"source":"Autonomous & connected mobility","target":"More flexible energy systems","weight":8.64},{"source":"Autonomous & connected mobility","target":"Overall defense strategy","weight":16.14},{"source":"Biophotonics","target":"Medical technology","weight":17.29},{"source":"Biophotonics","target":"Optics & photonics","weight":38.37},{"source":"Bioprocess technology","target":"Biotechnologies","weight":33.35},{"source":"Bioprocess technology","target":"Water purification","weight":15.66},{"source":"Biotechnologies","target":"Nanotechnologies","weight":15.72},{"source":"Biotechnologies","target":"Precision breeding","weight":20.93},{"source":"CCS / CCU","target":"CO2-neutral production","weight":29.35},{"source":"CCS / CCU","target":"Water purification","weight":16.76},{"source":"Cyber defense & infrastructure","target":"Cybersecurity","weight":27.25},{"source":"Cybersecurity","target":"Overall defense strategy","weight":26.63},{"source":"Data ecosystems","target":"Personalized medicine","weight":10.92},{"source":"Data sciences & digital health","target":"Medical technology","weight":37.26},{"source":"Data sciences & digital health","target":"Ubiquitous computing","weight":11.08},{"source":"Geothermal energy","target":"More flexible energy systems","weight":14.81},{"source":"Immersive technologies","target":"Optics & photonics","weight":11.53},{"source":"Individual mass production","target":"Smart factories","weight":20.43},{"source":"Industrial robotics","target":"Smart factories","weight":25.1},{"source":"Maritime technology","target":"Overall defense strategy","weight":18.61},{"source":"Maritime technology","target":"UAS & drone defense","weight":21.03},{"source":"Medical technology","target":"Neural interfaces","weight":16.02},{"source":"More flexible energy systems","target":"Nuclear fusion","weight":7.11},{"source":"Biophotonics","target":"Nanotechnologies","weight":15.63},{"source":"Optics & photonics","target":"Semiconductors & microchips","weight":20.8},{"source":"Biotechnologies","target":"Personalized medicine","weight":16.76},{"source":"Personalized medicine","target":"Personalized nutrition","weight":11.48},{"source":"Private air transport","target":"Space logistics","weight":1.46},{"source":"Private air transport","target":"UAS & drone defense","weight":21.5},{"source":"Platform economy","target":"Quantum technologies","weight":8.8},{"source":"Overall defense strategy","target":"Weapon systems & ammunition","weight":14.1},{"source":"Industrial robotics","target":"Automation & robotics","weight":41.11},{"source":"Optics & photonics","target":"Biophotonics","weight":38.37},{"source":"Medical technology","target":"Data sciences & digital health","weight":37.26},{"source":"Biotechnologies","target":"Bioprocess technology","weight":33.35},{"source":"CO2-neutral production","target":"CCS / CCU","weight":29.35},{"source":"Cybersecurity","target":"Cyber defense & infrastructure","weight":27.25},{"source":"Mobility services","target":"Autonomous & connected mobility","weight":26.95},{"source":"Overall defense strategy","target":"Cybersecurity","weight":26.63},{"source":"Smart factories","target":"Industrial robotics","weight":25.1},{"source":"Smart factories","target":"Automation & robotics","weight":22.14},{"source":"Automation & robotics","target":"Smart factories","weight":22.14},{"source":"UAS & drone defense","target":"Private air transport","weight":21.5},{"source":"UAS & drone defense","target":"Maritime technology","weight":21.03},{"source":"Precision breeding","target":"Biotechnologies","weight":20.93},{"source":"Semiconductors & microchips","target":"Optics & photonics","weight":20.8},{"source":"Smart factories","target":"Individual mass production","weight":20.43},{"source":"Precision breeding","target":"Bioprocess technology","weight":19.53},{"source":"Bioprocess technology","target":"Precision breeding","weight":19.53},{"source":"Overall defense strategy","target":"Maritime technology","weight":18.61},{"source":"Overall defense strategy","target":"Cyber defense & infrastructure","weight":18.31},{"source":"Cyber defense & infrastructure","target":"Overall defense strategy","weight":18.31},{"source":"Medical technology","target":"Biophotonics","weight":17.29},{"source":"Personalized medicine","target":"Biotechnologies","weight":16.76},{"source":"Water purification","target":"CCS / CCU","weight":16.76},{"source":"Private air transport","target":"Maritime technology","weight":16.6},{"source":"Maritime technology","target":"Private air transport","weight":16.6},{"source":"Neural interfaces","target":"AI & Big Data","weight":16.3},{"source":"Overall defense strategy","target":"Autonomous & connected mobility","weight":16.14},{"source":"Neural interfaces","target":"Medical technology","weight":16.02},{"source":"Nanotechnologies","target":"Biotechnologies","weight":15.72},{"source":"Water purification","target":"Bioprocess technology","weight":15.66},{"source":"Nanotechnologies","target":"Biophotonics","weight":15.63},{"source":"Maritime technology","target":"Autonomous & connected mobility","weight":15.37},{"source":"Autonomous & connected mobility","target":"Maritime technology","weight":15.37},{"source":"UAS & drone defense","target":"Overall defense strategy","weight":15.03},{"source":"Overall defense strategy","target":"UAS & drone defense","weight":15.03},{"source":"Data sciences & digital health","target":"Biophotonics","weight":15},{"source":"Biophotonics","target":"Data sciences & digital health","weight":15},{"source":"More flexible energy systems","target":"Geothermal energy","weight":14.81},{"source":"Precision breeding","target":"Personalized medicine","weight":14.55},{"source":"Personalized medicine","target":"Precision breeding","weight":14.55},{"source":"Weapon systems & ammunition","target":"Overall defense strategy","weight":14.1},{"source":"Industrial robotics","target":"Individual mass production","weight":14.08},{"source":"Individual mass production","target":"Industrial robotics","weight":14.08},{"source":"Personalized medicine","target":"Medical technology","weight":13.99},{"source":"Medical technology","target":"Personalized medicine","weight":13.99},{"source":"Nanotechnologies","target":"Bioprocess technology","weight":13.52},{"source":"Bioprocess technology","target":"Nanotechnologies","weight":13.52},{"source":"Nanotechnologies","target":"Medical technology","weight":13.4},{"source":"Medical technology","target":"Nanotechnologies","weight":13.4},{"source":"Personalized medicine","target":"Data sciences & digital health","weight":13.02},{"source":"Data sciences & digital health","target":"Personalized medicine","weight":13.02},{"source":"Smart farming","target":"Automation & robotics","weight":13.01},{"source":"Cybersecurity","target":"AI & Big Data","weight":12.72},{"source":"Neural interfaces","target":"Data sciences & digital health","weight":12.68},{"source":"Data sciences & digital health","target":"Neural interfaces","weight":12.68},{"source":"Individual mass production","target":"Automation & robotics","weight":12.47},{"source":"Automation & robotics","target":"Individual mass production","weight":12.47},{"source":"Quantum technologies","target":"AI & Big Data","weight":12.27},{"source":"Semiconductors & microchips","target":"Biophotonics","weight":12.15},{"source":"Biophotonics","target":"Semiconductors & microchips","weight":12.15},{"source":"Optics & photonics","target":"Nanotechnologies","weight":11.66},{"source":"Nanotechnologies","target":"Optics & photonics","weight":11.66},{"source":"Personalized medicine","target":"Bioprocess technology","weight":11.63},{"source":"Bioprocess technology","target":"Personalized medicine","weight":11.63},{"source":"Optics & photonics","target":"Immersive technologies","weight":11.53},{"source":"Personalized nutrition","target":"Personalized medicine","weight":11.48},{"source":"Water purification","target":"CO2-neutral production","weight":11.12},{"source":"CO2-neutral production","target":"Water purification","weight":11.12},{"source":"Ubiquitous computing","target":"Data sciences & digital health","weight":11.08},{"source":"Personalized nutrition","target":"Bioprocess technology","weight":11},{"source":"Bioprocess technology","target":"Personalized nutrition","weight":11},{"source":"Personalized medicine","target":"Data ecosystems","weight":10.92},{"source":"Ubiquitous computing","target":"AI & Big Data","weight":10.68},{"source":"AI & Big Data","target":"Ubiquitous computing","weight":10.68},{"source":"Ubiquitous computing","target":"Immersive technologies","weight":10.66},{"source":"Immersive technologies","target":"Ubiquitous computing","weight":10.66},{"source":"Data sciences & digital health","target":"AI & Big Data","weight":10.02},{"source":"AI & Big Data","target":"Data sciences & digital health","weight":10.02},{"source":"Data ecosystems","target":"AI & Big Data","weight":9.97},{"source":"AI & Big Data","target":"Data ecosystems","weight":9.97},{"source":"Quantum technologies","target":"Cybersecurity","weight":9.84},{"source":"Cybersecurity","target":"Quantum technologies","weight":9.84},{"source":"Medical technology","target":"Biotechnologies","weight":9.67},{"source":"Biotechnologies","target":"Medical technology","weight":9.67},{"source":"Biotechnologies","target":"Biophotonics","weight":9.5},{"source":"Biophotonics","target":"Biotechnologies","weight":9.5},{"source":"Neural interfaces","target":"Nanotechnologies","weight":9.43},{"source":"Nanotechnologies","target":"Neural interfaces","weight":9.43},{"source":"Smart farming","target":"Smart factories","weight":9.43},{"source":"Smart factories","target":"Smart farming","weight":9.43},{"source":"Ubiquitous computing","target":"Medical technology","weight":9.27},{"source":"Water purification","target":"Medical technology","weight":9.27},{"source":"Medical technology","target":"Ubiquitous computing","weight":9.27},{"source":"Medical technology","target":"Water purification","weight":9.27},{"source":"CCS / CCU","target":"Bioprocess technology","weight":8.94},{"source":"Bioprocess technology","target":"CCS / CCU","weight":8.94},{"source":"Medical technology","target":"Automation & robotics","weight":8.81},{"source":"Personalized medicine","target":"Nanotechnologies","weight":8.81},{"source":"Nanotechnologies","target":"Personalized medicine","weight":8.81},{"source":"Quantum technologies","target":"Platform economy","weight":8.8},{"source":"Bioprocess technology","target":"Biophotonics","weight":8.72},{"source":"Biophotonics","target":"Bioprocess technology","weight":8.72},{"source":"Medical technology","target":"Bioprocess technology","weight":8.7},{"source":"Bioprocess technology","target":"Medical technology","weight":8.7},{"source":"Autonomous & connected mobility","target":"Automation & robotics","weight":8.66},{"source":"Automation & robotics","target":"Autonomous & connected mobility","weight":8.66},{"source":"UAS & drone defense","target":"Autonomous & connected mobility","weight":8.66},{"source":"Autonomous & connected mobility","target":"UAS & drone defense","weight":8.66},{"source":"More flexible energy systems","target":"Autonomous & connected mobility","weight":8.64},{"source":"Ubiquitous computing","target":"Data ecosystems","weight":8.48},{"source":"Data ecosystems","target":"Ubiquitous computing","weight":8.48},{"source":"Personalized nutrition","target":"Biotechnologies","weight":8.46},{"source":"Biotechnologies","target":"Personalized nutrition","weight":8.46},{"source":"Medical technology","target":"AI & Big Data","weight":8.27},{"source":"AI & Big Data","target":"Medical technology","weight":8.27},{"source":"More flexible energy systems","target":"Mobility services","weight":8.27},{"source":"Mobility services","target":"More flexible energy systems","weight":8.27},{"source":"Data sciences & digital health","target":"Automation & robotics","weight":8.26},{"source":"Automation & robotics","target":"Data sciences & digital health","weight":8.26},{"source":"Data sciences & digital health","target":"Data ecosystems","weight":8.22},{"source":"Data ecosystems","target":"Data sciences & digital health","weight":8.22},{"source":"Smart farming","target":"Industrial robotics","weight":7.98},{"source":"Industrial robotics","target":"Smart farming","weight":7.98},{"source":"CO2-neutral production","target":"Bioprocess technology","weight":7.91},{"source":"Bioprocess technology","target":"CO2-neutral production","weight":7.91},{"source":"Semiconductors & microchips","target":"Quantum technologies","weight":7.74},{"source":"Quantum technologies","target":"Semiconductors & microchips","weight":7.74},{"source":"Optics & photonics","target":"Medical technology","weight":7.69},{"source":"Medical technology","target":"Optics & photonics","weight":7.69},{"source":"Semiconductors & microchips","target":"Nanotechnologies","weight":7.64},{"source":"Nanotechnologies","target":"Semiconductors & microchips","weight":7.64},{"source":"Overall defense strategy","target":"AI & Big Data","weight":7.55},{"source":"AI & Big Data","target":"Overall defense strategy","weight":7.55},{"source":"Industrial robotics","target":"Data sciences & digital health","weight":7.4},{"source":"Data sciences & digital health","target":"Industrial robotics","weight":7.4},{"source":"Mobility services","target":"Maritime technology","weight":7.39},{"source":"Maritime technology","target":"Mobility services","weight":7.39},{"source":"Ubiquitous computing","target":"Neural interfaces","weight":7.38},{"source":"Neural interfaces","target":"Ubiquitous computing","weight":7.38},{"source":"Quantum technologies","target":"Optics & photonics","weight":7.24},{"source":"Optics & photonics","target":"Quantum technologies","weight":7.24},{"source":"Medical technology","target":"Industrial robotics","weight":7.17},{"source":"Industrial robotics","target":"Medical technology","weight":7.17},{"source":"Nuclear fusion","target":"More flexible energy systems","weight":7.11},{"source":"Smart farming","target":"Individual mass production","weight":6.97},{"source":"Individual mass production","target":"Smart farming","weight":6.97},{"source":"Ubiquitous computing","target":"Quantum technologies","weight":6.85},{"source":"Quantum technologies","target":"Ubiquitous computing","weight":6.85},{"source":"Personalized medicine","target":"Biophotonics","weight":6.83},{"source":"Biophotonics","target":"Personalized medicine","weight":6.83},{"source":"Immersive technologies","target":"AI & Big Data","weight":6.8},{"source":"Personalized nutrition","target":"Data sciences & digital health","weight":6.8},{"source":"AI & Big Data","target":"Immersive technologies","weight":6.8},{"source":"Data sciences & digital health","target":"Personalized nutrition","weight":6.8},{"source":"Smart farming","target":"Precision breeding","weight":6.78},{"source":"Precision breeding","target":"Smart farming","weight":6.78},{"source":"Cyber defense & infrastructure","target":"AI & Big Data","weight":6.75},{"source":"Geothermal energy","target":"CCS / CCU","weight":4.93},{"source":"CCS / CCU","target":"Geothermal energy","weight":4.93},{"source":"Nuclear fusion","target":"Geothermal energy","weight":3.46},{"source":"Geothermal energy","target":"Nuclear fusion","weight":3.46},{"source":"Platform economy","target":"AI & Big Data","weight":3.84},{"source":"AI & Big Data","target":"Platform economy","weight":3.84},{"source":"Space logistics","target":"Private air transport","weight":1.46},{"source":"Space logistics","target":"Nuclear fusion","weight":1.26},{"source":"Nuclear fusion","target":"Space logistics","weight":1.26},{"source":"Weapon systems & ammunition","target":"Private air transport","weight":1.69},{"source":"Private air transport","target":"Weapon systems & ammunition","weight":1.69}]  ;
+
+      var svg = d3.select("svg.network");
+      var svgNode = svg.node();
+      var width = (svgNode && svgNode.clientWidth) || window.innerWidth;
+      var height = (svgNode && svgNode.clientHeight) || Math.round(window.innerHeight * 0.9);
+      var nodeRadius = 48;
+      var HOR_PADDING = nodeRadius * 2;
+      var padding = nodeRadius * 2;
+
+      var extentX = d3.extent(nodes, function(d) { return d.x; });
+      var extentY = d3.extent(nodes, function(d) { return d.y; });
+
+      var availableWidth = Math.max(width - padding * 2, padding);
+      var availableHeight = Math.max(height - padding * 2, padding);
+
+      var baseLeft = padding;
+      var baseRight = padding + availableWidth;
+
+      var minXBound = baseLeft + HOR_PADDING + nodeRadius;
+      var maxXBound = baseRight - HOR_PADDING - nodeRadius;
+
+      if (maxXBound <= minXBound) {
+        var midpoint = (baseLeft + baseRight) / 2;
+        minXBound = midpoint - 1;
+        maxXBound = midpoint + 1;
+      }
+
+      var horizontalBounds = {
+        min: minXBound,
+        max: maxXBound
+      };
+
+      var scaleX = d3.scaleLinear()
+        .domain(extentX)
+        .range([horizontalBounds.min, horizontalBounds.max]);
+
+      var scaleY = d3.scaleLinear()
+        .domain(extentY)
+        .range([padding, padding + availableHeight]);
+
+      function clampX(value) {
+        return Math.max(horizontalBounds.min, Math.min(horizontalBounds.max, value));
+      }
+
+      nodes.forEach(function(node) {
+        var targetX = clampX(scaleX(node.x));
+        var targetY = scaleY(node.y);
+        node.originalX = targetX;
+        node.originalY = targetY;
+        node.x = targetX;
+        node.y = targetY;
+      });
+
+      svg
+        .attr("viewBox", [0, 0, width, height])
+        .attr("preserveAspectRatio", "xMidYMid meet");
+
+      var container = svg.append("g");
+
+      var zoomBehavior = d3.zoom()
+        .scaleExtent([0.6, 3])
+        .on("zoom", function(event) {
+          container.attr("transform", event.transform);
+        });
+
+      svg.call(zoomBehavior);
+
+      var nodeById = new Map(nodes.map(function(node) {
+        return [node.id, node];
+      }));
+
+      var linkData = links.map(function(link) {
+        return {
+          source: nodeById.get(link.source),
+          target: nodeById.get(link.target),
+          weight: link.weight
+        };
+      }).filter(function(link) {
+        return link.source && link.target;
+      });
+
+      var linkExtent = linkData.length ? d3.extent(linkData, function(d) { return d.weight || 1; }) : [1, 1];
+      if (linkExtent[0] === linkExtent[1]) {
+        linkExtent[1] = linkExtent[0] + 1;
+      }
+
+      var linkWidth = d3.scaleSqrt()
+        .domain(linkExtent)
+        .range([0.6, 4]);
+
+      var link = container.append("g")
+        .attr("stroke-linecap", "round")
+        .selectAll("line")
+        .data(linkData)
+        .join("line")
+        .attr("class", "link")
+        .attr("stroke-width", function(d) { return linkWidth(d.weight || 1); });
+
+      var adjacency = new Map();
+
+      linkData.forEach(function(link) {
+        var sourceId = link.source.id;
+        var targetId = link.target.id;
+
+        if (!adjacency.has(sourceId)) {
+          adjacency.set(sourceId, new Set());
+        }
+
+        if (!adjacency.has(targetId)) {
+          adjacency.set(targetId, new Set());
+        }
+
+        adjacency.get(sourceId).add(targetId);
+        adjacency.get(targetId).add(sourceId);
+      });
+
+      var node = container.append("g")
+        .selectAll("g")
+        .data(nodes)
+        .join("g")
+        .attr("class", "node")
+        .call(d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended))
+        .on("mouseenter", highlightConnected)
+        .on("mouseleave", resetHighlight);
+
+      node.append("circle")
+        .attr("r", nodeRadius)
+        .attr("fill", function(d) { return d.color; });
+
+      node.append("text")
+        .attr("class", "node-label")
+        .attr("fill", function(d) {
+          return getContrastingTextColor(d.color);
+        })
+        .style("fill", function(d) {
+          return getContrastingTextColor(d.color);
+        })
+        .call(wrapText, nodeRadius);
+
+      node.append("title")
+        .text(function(d) {
+          return d.id + (d.parent ? " (" + d.parent + ")" : "");
+        });
+
+      renderLegend();
+
+      var simulation = d3.forceSimulation(nodes)
+        .alpha(0.9)
+        .alphaDecay(0.09)
+        .force("collide", d3.forceCollide(nodeRadius + 8).strength(0.95).iterations(4))
+        .force("x", d3.forceX(function(d) { return d.originalX; }).strength(1))
+        .force("y", d3.forceY(function(d) { return d.originalY; }).strength(1))
+        .on("tick", ticked);
+
+      function ticked() {
+        nodes.forEach(function(d) {
+          d.x = clampX(d.x);
+          if (d.fx != null) {
+            d.fx = clampX(d.fx);
+          }
+        });
+
+        link
+          .attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; });
+
+        node.attr("transform", function(d) {
+          return "translate(" + d.x + "," + d.y + ")";
+        });
+      }
+
+      function dragstarted(event, d) {
+        if (!event.active) {
+          simulation.alphaTarget(0.3).restart();
+        }
+        d.fx = clampX(d.x);
+        d.fy = d.y;
+      }
+
+      function dragged(event, d) {
+        var clampedX = clampX(event.x);
+        d.fx = clampedX;
+        d.fy = event.y;
+        d.x = clampedX;
+        d.y = event.y;
+      }
+
+      function dragended(event, d) {
+        if (!event.active) {
+          simulation.alphaTarget(0);
+        }
+        d.fx = null;
+        d.fy = null;
+      }
+
+      function darkenColor(hexColor, factor) {
+        factor = factor || 0.5;
+        var hex = hexColor.trim().replace("#", "");
+        if (hex.length === 3) {
+          hex = hex.split("").map(function(ch) { return ch + ch; }).join("");
+        }
+
+        var r = parseInt(hex.slice(0, 2), 16);
+        var g = parseInt(hex.slice(2, 4), 16);
+        var b = parseInt(hex.slice(4, 6), 16);
+
+        r = Math.round(r * factor);
+        g = Math.round(g * factor);
+        b = Math.round(b * factor);
+
+        return "#" + [r, g, b].map(function(val) {
+          var hexVal = val.toString(16);
+          return hexVal.length === 1 ? "0" + hexVal : hexVal;
+        }).join("");
+      }
+
+      function highlightConnected(event, nodeDatum) {
+        var neighbors = adjacency.get(nodeDatum.id) || new Set();
+        var activeIds = new Set(neighbors);
+        activeIds.add(nodeDatum.id);
+
+        node.each(function(d) {
+          var isActive = activeIds.has(d.id);
+          var nodeElement = d3.select(this);
+          nodeElement
+            .classed("highlighted", isActive)
+            .classed("dimmed", !isActive);
+
+          if (isActive) {
+            var darkerColor = darkenColor(d.color, 0.6);
+            nodeElement.select("circle").style("stroke", darkerColor);
+          }
+        });
+
+        link.each(function(l) {
+          var isActive = l.source.id === nodeDatum.id || l.target.id === nodeDatum.id;
+          d3.select(this)
+            .classed("highlighted", isActive)
+            .classed("dimmed", !isActive);
+        });
+      }
+
+      function resetHighlight() {
+        node.classed("highlighted", false)
+          .classed("dimmed", false)
+          .select("circle").style("stroke", null);
+        link.classed("highlighted", false)
+          .classed("dimmed", false);
+      }
+
+      function renderLegend() {
+        var legend = d3.select("#legend");
+        if (legend.empty()) {
+          return;
+        }
+
+        legend.attr("role", "list");
+
+        var parentColorMap = new Map();
+        nodes.forEach(function(node) {
+          var parentName = node.parent || "Other";
+          if (!parentColorMap.has(parentName)) {
+            parentColorMap.set(parentName, node.color || "#6c6f7d");
+          }
+        });
+
+        var legendData = Array.from(parentColorMap, function(entry) {
+          return { parent: entry[0], color: entry[1] };
+        });
+
+        var legendItems = legend.selectAll(".legend-item")
+          .data(legendData, function(d) { return d.parent; });
+
+        legendItems.exit().remove();
+
+        var legendEnter = legendItems.enter()
+          .append("div")
+          .attr("class", "legend-item")
+          .attr("role", "listitem");
+
+        legendEnter.append("span")
+          .attr("class", "legend-square");
+
+        legendEnter.append("span")
+          .attr("class", "legend-label");
+
+        legendItems = legendEnter.merge(legendItems);
+
+        legendItems.select(".legend-square")
+          .style("background-color", function(d) { return d.color; });
+
+        legendItems.select(".legend-label")
+          .text(function(d) { return d.parent; });
+      }
+
+      function isColorDark(hexColor) {
+        if (!hexColor) {
+          return false;
+        }
+
+        var hex = hexColor.trim().replace("#", "");
+        if (hex.length === 3) {
+          hex = hex.split("").map(function(ch) { return ch + ch; }).join("");
+        }
+
+        if (hex.length !== 6) {
+          return false;
+        }
+
+        var r = parseInt(hex.slice(0, 2), 16) / 255;
+        var g = parseInt(hex.slice(2, 4), 16) / 255;
+        var b = parseInt(hex.slice(4, 6), 16) / 255;
+
+        var convert = function(channel) {
+          return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+        };
+
+        var lum = 0.2126 * convert(r) + 0.7152 * convert(g) + 0.0722 * convert(b);
+        return lum < 0.55;
+      }
+
+      function getContrastingTextColor(hexColor) {
+        return isColorDark(hexColor) ? "#ffffff" : "#1b1d21";
+      }
+
+      function wrapText(selection, radius) {
+        var diameter = radius * 2;
+        var maxWidth = diameter * 0.85;
+        var maxHeight = diameter * 0.85;
+        var lineHeightMultiplier = 1.15;
+        var minFontSize = 8;
+
+        selection.each(function(d) {
+          var text = d3.select(this);
+          var label = (d.id || "").trim();
+
+          text.selectAll("tspan").remove();
+          text.text("");
+
+          if (!label) {
+            return;
+          }
+
+          var words = label.split(/\s+/).filter(function(word) { return word.length; });
+          if (!words.length) {
+            text.append("tspan")
+              .attr("x", 0)
+              .attr("y", 0)
+              .text(label);
+            return;
+          }
+
+          var maxFontSize = Math.min(16, radius * 0.45);
+          var startingFontSize = Math.max(Math.round(maxFontSize), minFontSize);
+          var bestFit = null;
+
+          for (var fontSize = startingFontSize; fontSize >= minFontSize; fontSize -= 1) {
+            var layout = layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth);
+            bestFit = layout;
+            var totalHeight = layout.lines.length * layout.lineHeight;
+
+            if (layout.maxLineWidth <= maxWidth && totalHeight <= maxHeight) {
+              break;
+            }
+          }
+
+          if (!bestFit) {
+            bestFit = {
+              lines: [label],
+              fontSize: minFontSize,
+              lineHeight: Math.round(minFontSize * lineHeightMultiplier)
+            };
+          }
+
+          text.style("font-size", bestFit.fontSize + "px");
+          text.selectAll("tspan").remove();
+
+          var offset = (bestFit.lines.length - 1) * bestFit.lineHeight / 2;
+
+          bestFit.lines.forEach(function(line, index) {
+            text.append("tspan")
+              .attr("x", 0)
+              .attr("y", -offset + index * bestFit.lineHeight)
+              .text(line);
+          });
+        });
+
+        function layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth) {
+          text.style("font-size", fontSize + "px");
+          text.selectAll("tspan").remove();
+
+          var lines = [];
+          var currentLine = [];
+          var maxLineWidth = 0;
+
+          words.forEach(function(word) {
+            currentLine.push(word);
+            var tester = text.append("tspan")
+              .attr("x", 0)
+              .attr("y", 0)
+              .text(currentLine.join(" "));
+            var lineLength = tester.node().getComputedTextLength();
+            tester.remove();
+
+            if (lineLength > maxWidth && currentLine.length > 1) {
+              currentLine.pop();
+              var finalized = currentLine.join(" ");
+              var measureFinal = text.append("tspan")
+                .attr("x", 0)
+                .attr("y", 0)
+                .text(finalized);
+              var finalLength = measureFinal.node().getComputedTextLength();
+              measureFinal.remove();
+
+              lines.push(finalized);
+              maxLineWidth = Math.max(maxLineWidth, finalLength);
+
+              currentLine = [word];
+              var measureWord = text.append("tspan")
+                .attr("x", 0)
+                .attr("y", 0)
+                .text(word);
+              var wordLength = measureWord.node().getComputedTextLength();
+              measureWord.remove();
+              maxLineWidth = Math.max(maxLineWidth, wordLength);
+            } else {
+              maxLineWidth = Math.max(maxLineWidth, lineLength);
+            }
+          });
+
+          if (currentLine.length) {
+            var finalLine = currentLine.join(" ");
+            var finalTester = text.append("tspan")
+              .attr("x", 0)
+              .attr("y", 0)
+              .text(finalLine);
+            var finalLineLength = finalTester.node().getComputedTextLength();
+            finalTester.remove();
+
+            lines.push(finalLine);
+            maxLineWidth = Math.max(maxLineWidth, finalLineLength);
+          }
+
+          var lineHeight = Math.max(Math.round(fontSize * lineHeightMultiplier), Math.ceil(fontSize));
+
+          return {
+            lines: lines,
+            fontSize: fontSize,
+            lineHeight: lineHeight,
+            maxLineWidth: maxLineWidth
+          };
+        }
+      }
+
+    </script>
+
+  </body>
+
+</html>
