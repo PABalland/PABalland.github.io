@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      font-family: sans-serif;
+    }
+    svg {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+    .links path {
+      fill: none;
+      stroke-opacity: 0.4;
+      transition: all 0.3s ease;
+    }
+    .nodes rect {
+      stroke-width: 1px;
+      transition: all 0.3s ease;
+    }
+    .nodes text {
+      font-size: 14px;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+    .hoveredNode rect {
+      filter: drop-shadow(0 0 5px #fff);
+      stroke-width: 2px;
+    }
+    .hoveredNode text {
+      font-size: 16px;
+      stroke: #fff;
+      stroke-width: 2px;
+      paint-order: stroke fill;
+      font-weight: bold;
+    }
+    .hoveredLink {
+      stroke-opacity: 1 !important;
+      filter: drop-shadow(0 0 5px #fff);
+    }
+    .dimmedNode rect {
+      fill: #ccc !important;
+      stroke: #ccc !important;
+      filter: none;
+    }
+    .dimmedNode text {
+      fill: #666 !important;
+      stroke: none;
+      font-weight: normal;
+      font-size: 14px;
+    }
+    .dimmedLink {
+      stroke: #ccc !important;
+      filter: none;
+    }
+    .tooltip {
+      position: absolute;
+      text-align: left;
+      padding: 4px;
+      background: #fff;
+      border: 1px solid #ccc;
+      font-size: 12px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+<svg></svg>
+<script src="https://d3js.org/d3.v5.min.js"></script>
+<script src="https://unpkg.com/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+<script>
+  const svg = d3.select("svg")
+    .attr("width", window.innerWidth)
+    .attr("height", window.innerHeight)
+    .attr("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`);
+
+  let width = window.innerWidth;
+  let height = window.innerHeight;
+
+  const sankey = d3.sankey()
+      .nodeWidth(20)
+      .nodePadding(16)
+      .size([width, height]);
+
+  const linkPath = d3.sankeyLinkHorizontal();
+  const tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+  // Embedded data from openalex.csv
+  const rawData = [
+    {"from":"AI & Big Data","to":"Berlin (DE30)","count":"250","parent":"ICT","color":"#365a94","IDsource":"0","IDtarget":"37"},
+    {"from":"Automation & robotics","to":"Berkshire, Buckinghamshire and Oxfordshire (UKJ1)","count":"60","parent":"ICT","color":"#365a94","IDsource":"1","IDtarget":"38"},
+    {"from":"Autonomous & connected mobility","to":"Köln (DEA2)","count":"65","parent":"Future Mobility","color":"#6a0dad","IDsource":"2","IDtarget":"39"},
+    {"from":"Biophotonics","to":"Berlin (DE30)","count":"189","parent":"Life Sciences","color":"#EEDC82","IDsource":"3","IDtarget":"37"},
+    {"from":"Bioprocess technology","to":"Oberbayern (DE21)","count":"131","parent":"AgriFood Tech","color":"#800020","IDsource":"4","IDtarget":"40"},
+    {"from":"Biotechnologies","to":"Saarland (DEC0)","count":"63","parent":"Life Sciences","color":"#EEDC82","IDsource":"5","IDtarget":"41"},
+    {"from":"CCS / CCU","to":"Chemnitz (DED4)","count":"22","parent":"Climate Tech","color":"#8cab79","IDsource":"6","IDtarget":"42"},
+    {"from":"CO2-neutral production","to":"Berlin (DE30)","count":"20","parent":"Industrial Tech","color":"#e28f26","IDsource":"7","IDtarget":"37"},
+    {"from":"Cybersecurity","to":"Arnsberg (DEA5)","count":"31","parent":"ICT","color":"#365a94","IDsource":"8","IDtarget":"43"},
+    {"from":"Data ecosystems","to":"Berlin (DE30)","count":"73","parent":"Industrial Tech","color":"#e28f26","IDsource":"9","IDtarget":"37"},
+    {"from":"Data sciences & digital health","to":"Berlin (DE30)","count":"36","parent":"Life Sciences","color":"#EEDC82","IDsource":"10","IDtarget":"37"},
+    {"from":"Geothermal energy","to":"Schleswig-Holstein (DEF0)","count":"20","parent":"Climate Tech","color":"#8cab79","IDsource":"11","IDtarget":"44"},
+    {"from":"Immersive technologies","to":"Bremen (DE50)","count":"15","parent":"ICT","color":"#365a94","IDsource":"12","IDtarget":"45"},
+    {"from":"Individual mass production","to":"Berlin (DE30)","count":"88","parent":"Industrial Tech","color":"#e28f26","IDsource":"13","IDtarget":"37"},
+    {"from":"Industrial robotics","to":"Oberbayern (DE21)","count":"16","parent":"Industrial Tech","color":"#e28f26","IDsource":"14","IDtarget":"40"},
+    {"from":"Maritime technology","to":"Zuid-Holland (NL33)","count":"5","parent":"Defense Tech","color":"#8B4513","IDsource":"15","IDtarget":"46"},
+    {"from":"Medical technology","to":"Berlin (DE30)","count":"433","parent":"Life Sciences","color":"#EEDC82","IDsource":"16","IDtarget":"37"},
+    {"from":"Mobility services","to":"Köln (DEA2)","count":"26","parent":"Future Mobility","color":"#6a0dad","IDsource":"17","IDtarget":"39"},
+    {"from":"More flexible energy systems","to":"Köln (DEA2)","count":"68","parent":"Climate Tech","color":"#8cab79","IDsource":"18","IDtarget":"39"},
+    {"from":"Nanotechnologies","to":"Berlin (DE30)","count":"136","parent":"Deep Tech","color":"#669999","IDsource":"19","IDtarget":"37"},
+    {"from":"Neural interfaces","to":"Berlin (DE30)","count":"213","parent":"Deep Tech","color":"#669999","IDsource":"20","IDtarget":"37"},
+    {"from":"Nuclear fusion","to":"Île de France (FR10)","count":"75","parent":"Climate Tech","color":"#8cab79","IDsource":"21","IDtarget":"47"},
+    {"from":"Optics & photonics","to":"Île de France (FR10)","count":"450","parent":"Deep Tech","color":"#669999","IDsource":"22","IDtarget":"47"},
+    {"from":"Overall defense strategy","to":"Köln (DEA2)","count":"27","parent":"Defense Tech","color":"#8B4513","IDsource":"23","IDtarget":"39"},
+    {"from":"Personalized medicine","to":"Köln (DEA2)","count":"101","parent":"Life Sciences","color":"#EEDC82","IDsource":"24","IDtarget":"39"},
+    {"from":"Personalized nutrition","to":"Köln (DEA2)","count":"20","parent":"AgriFood Tech","color":"#800020","IDsource":"25","IDtarget":"39"},
+    {"from":"Precision breeding","to":"Sachsen-Anhalt (DEE0)","count":"97","parent":"AgriFood Tech","color":"#800020","IDsource":"26","IDtarget":"48"},
+    {"from":"Private air transport","to":"Köln (DEA2)","count":"24","parent":"Future Mobility","color":"#6a0dad","IDsource":"27","IDtarget":"39"},
+    {"from":"Quantum technologies","to":"Berlin (DE30)","count":"63","parent":"Deep Tech","color":"#669999","IDsource":"28","IDtarget":"37"},
+    {"from":"Semiconductors & microchips","to":"Berlin (DE30)","count":"22","parent":"Deep Tech","color":"#669999","IDsource":"29","IDtarget":"37"},
+    {"from":"Smart factories","to":"Hamburg (DE60)","count":"24","parent":"Industrial Tech","color":"#e28f26","IDsource":"30","IDtarget":"49"},
+    {"from":"Smart farming","to":"Brandenburg (DE40)","count":"12","parent":"AgriFood Tech","color":"#800020","IDsource":"31","IDtarget":"50"},
+    {"from":"Space logistics","to":"Île de France (FR10)","count":"56","parent":"Future Mobility","color":"#6a0dad","IDsource":"32","IDtarget":"47"},
+    {"from":"UAS & drone defense","to":"Köln (DEA2)","count":"25","parent":"Defense Tech","color":"#8B4513","IDsource":"33","IDtarget":"39"},
+    {"from":"Ubiquitous computing","to":"Köln (DEA2)","count":"30","parent":"ICT","color":"#365a94","IDsource":"34","IDtarget":"39"},
+    {"from":"Water purification","to":"Berlin (DE30)","count":"35","parent":"Climate Tech","color":"#8cab79","IDsource":"35","IDtarget":"37"},
+    {"from":"Weapon systems & ammunition","to":"Düsseldorf (DEA1)","count":"2","parent":"Defense Tech","color":"#8B4513","IDsource":"36","IDtarget":"51"}
+  ];
+
+  const cleanData = rawData
+    .map(row => {
+      const from = row.from ? row.from.trim() : null;
+      const to = row.to ? row.to.trim() : null;
+      const parent = row.parent ? row.parent.trim() : null;
+      const color = row.color ? row.color.trim() : null;
+      const value = row.count ? +row.count : NaN;
+      return { from, to, parent, color, value };
+    })
+    .filter(d => d.from && d.to && d.parent && Number.isFinite(d.value));
+
+    const fromParentMap = new Map();
+    const nodeColorMap = new Map();
+    cleanData.forEach(d => {
+      if (!fromParentMap.has(d.from)) {
+        fromParentMap.set(d.from, d.parent);
+      }
+      if (d.color) {
+        if (!nodeColorMap.has(d.parent)) {
+          nodeColorMap.set(d.parent, d.color);
+        }
+        if (!nodeColorMap.has(d.from)) {
+          nodeColorMap.set(d.from, d.color);
+        }
+      }
+    });
+
+    function buildGraph(data) {
+      const parentNames = Array.from(new Set(data.map(d => d.parent)));
+      const fromNames = Array.from(new Set(data.map(d => d.from)));
+      const toNames = Array.from(new Set(data.map(d => d.to)));
+
+      const parentNodes = parentNames.map(name => ({
+        name,
+        type: "parent",
+        color: nodeColorMap.get(name) || "#b3b3b3"
+      }));
+
+      const fromNodes = fromNames.map(name => {
+        const parent = fromParentMap.get(name);
+        const color = nodeColorMap.get(name) || nodeColorMap.get(parent) || "#b3b3b3";
+        return { name, type: "from", color };
+      });
+
+      const toNodes = toNames.map(name => ({
+        name,
+        type: "to",
+        color: "#d0d0d0"
+      }));
+
+      const nodes = parentNodes.concat(fromNodes, toNodes);
+
+      const parentIndexMap = new Map(parentNames.map((name, i) => [name, i]));
+      const fromStart = parentNames.length;
+      const fromIndexMap = new Map(fromNames.map((name, i) => [name, fromStart + i]));
+      const toStart = fromStart + fromNames.length;
+      const toIndexMap = new Map(toNames.map((name, i) => [name, toStart + i]));
+
+      const parentFromLinks = new Map();
+      const fromToLinks = new Map();
+
+      data.forEach(d => {
+        const parentIdx = parentIndexMap.get(d.parent);
+        const fromIdx = fromIndexMap.get(d.from);
+        const toIdx = toIndexMap.get(d.to);
+
+        if (parentIdx === undefined || fromIdx === undefined || toIdx === undefined) {
+          return;
+        }
+
+        const color = nodeColorMap.get(d.from) || nodeColorMap.get(d.parent) || "#999";
+
+        const pfKey = `${d.parent}|${d.from}`;
+        let pfLink = parentFromLinks.get(pfKey);
+        if (!pfLink) {
+          pfLink = {
+            source: parentIdx,
+            target: fromIdx,
+            value: 0,
+            color
+          };
+          parentFromLinks.set(pfKey, pfLink);
+        }
+        pfLink.value += d.value;
+
+        const ftKey = `${d.from}|${d.to}`;
+        let ftLink = fromToLinks.get(ftKey);
+        if (!ftLink) {
+          ftLink = {
+            source: fromIdx,
+            target: toIdx,
+            value: 0,
+            color
+          };
+          fromToLinks.set(ftKey, ftLink);
+        }
+        ftLink.value += d.value;
+      });
+
+      const links = Array.from(parentFromLinks.values())
+        .concat(Array.from(fromToLinks.values()))
+        .filter(l => l.value > 0);
+
+      return { nodes, links };
+    }
+
+    function render() {
+      svg.selectAll("*").remove();
+      svg
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", `0 0 ${width} ${height}`);
+
+      sankey.size([width, height]);
+
+      const graph = buildGraph(cleanData);
+      sankey(graph);
+
+      const linkSelection = svg.append("g")
+        .attr("class", "links")
+        .selectAll("path")
+        .data(graph.links)
+        .enter().append("path")
+          .attr("d", linkPath)
+          .attr("stroke-width", d => Math.max(1, d.width))
+          .attr("stroke", d => d.color);
+
+      const nodeSelection = svg.append("g")
+        .attr("class", "nodes")
+        .selectAll("g")
+        .data(graph.nodes)
+        .enter().append("g")
+          .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+      nodeSelection.append("rect")
+          .attr("height", d => d.y1 - d.y0)
+          .attr("width", sankey.nodeWidth())
+          .attr("fill", d => d.color || "#b3b3b3")
+          .attr("stroke", "#999");
+
+      nodeSelection.append("text")
+          .attr("x", -6)
+          .attr("y", d => (d.y1 - d.y0) / 2)
+          .attr("dy", "0.35em")
+          .attr("text-anchor", "end")
+          .attr("fill", "#000")
+          .text(d => d.name)
+          .filter(d => d.x0 < width / 2)
+          .attr("x", 6 + sankey.nodeWidth())
+          .attr("text-anchor", "start");
+
+      nodeSelection
+        .on("mouseover", function(d) {
+          d3.select(this).style("cursor", "pointer");
+          tooltip.transition().duration(200).style("opacity", 0.9);
+          tooltip.html("Name: " + d.name + "<br/>Total: " + d.value)
+            .style("left", (d3.event.pageX + 10) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+
+          const nodeIndex = d.index;
+          const connectedLinks = graph.links.filter(l => l.source.index === nodeIndex || l.target.index === nodeIndex);
+          const connectedNodes = new Set([nodeIndex]);
+          connectedLinks.forEach(l => {
+            connectedNodes.add(l.source.index);
+            connectedNodes.add(l.target.index);
+          });
+
+          nodeSelection.classed("dimmedNode", true).classed("hoveredNode", false);
+          linkSelection.classed("dimmedLink", true).classed("hoveredLink", false);
+
+          nodeSelection.filter(nd => connectedNodes.has(nd.index))
+            .classed("dimmedNode", false)
+            .classed("hoveredNode", true);
+          linkSelection.filter(ld => connectedLinks.includes(ld))
+            .classed("dimmedLink", false)
+            .classed("hoveredLink", true);
+        })
+        .on("mousemove", function() {
+          tooltip
+            .style("left", (d3.event.pageX + 10) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+          tooltip.transition().duration(200).style("opacity", 0);
+          nodeSelection.classed("hoveredNode", false).classed("dimmedNode", false);
+          linkSelection.classed("hoveredLink", false).classed("dimmedLink", false);
+          d3.select(this).style("cursor", null);
+        });
+
+      linkSelection
+        .on("mouseover", function(d) {
+          d3.select(this).style("cursor", "pointer");
+          tooltip.transition().duration(200).style("opacity", 0.9);
+          const sourceName = graph.nodes[d.source.index].name;
+          const targetName = graph.nodes[d.target.index].name;
+          tooltip.html("Source: " + sourceName + "<br/>Target: " + targetName + "<br/>Value: " + d.value)
+            .style("left", (d3.event.pageX + 10) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+
+          const connectedNodes = new Set([d.source.index, d.target.index]);
+          nodeSelection.classed("dimmedNode", true).classed("hoveredNode", false);
+          linkSelection.classed("dimmedLink", true).classed("hoveredLink", false);
+
+          nodeSelection.filter(nd => connectedNodes.has(nd.index))
+            .classed("dimmedNode", false)
+            .classed("hoveredNode", true);
+          d3.select(this).classed("dimmedLink", false).classed("hoveredLink", true);
+        })
+        .on("mousemove", function() {
+          tooltip
+            .style("left", (d3.event.pageX + 10) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+        })
+        .on("mouseout", function() {
+          tooltip.transition().duration(200).style("opacity", 0);
+          nodeSelection.classed("hoveredNode", false).classed("dimmedNode", false);
+          linkSelection.classed("hoveredLink", false).classed("dimmedLink", false);
+          d3.select(this).style("cursor", null);
+        });
+    }
+
+    render();
+
+  window.addEventListener("resize", () => {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    render();
+  });
+</script>
+</body>
+</html>
