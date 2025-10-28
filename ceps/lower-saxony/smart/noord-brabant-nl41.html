@@ -1,0 +1,1196 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;position:relative;}
+#chart{position:absolute;top:0;left:0;right:0;bottom:clamp(110px,14vh,160px);} 
+.custom-legend{position:fixed;bottom:5px;left:50%;transform:translateX(-50%);display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;column-gap:clamp(8px, 2vw, 16px);row-gap:clamp(6px, 1.2vh, 10px);background:rgba(255,255,255,0.88);padding:clamp(6px, 1.4vh, 10px) clamp(10px, 1.6vw, 16px);border-radius:clamp(4px, 1vw, 8px);box-shadow:0 6px 24px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.5) inset;border:1px solid rgba(0,0,0,0.06);font-family:Arial, sans-serif;font-size:clamp(9px, 1vw, 13px);z-index:1000;max-width:96vw;white-space:nowrap;}
+.legend-square{width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex:0 0 18px;border-radius:0;display:inline-block;line-height:0;box-sizing:border-box;position:relative;box-shadow:0 0 0 1px rgba(0,0,0,0.15) inset;}
+.custom-legend.overlapped{opacity:0.15;}
+.custom-legend.overlapped:hover{opacity:1;}
+.legend-item{display:flex;align-items:center;gap:8px;cursor:pointer;transition:opacity 0.3s ease;position:relative;line-height:1;}
+.legend-item.inactive{opacity:0.3;}
+.legend-item:hover{opacity:1;}
+.legend-item.active .legend-square::after{content:"✓";position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);font-size:clamp(10px,1.6vw,14px);color:#ffffff;text-shadow:0 0 2px rgba(0,0,0,0.35);}
+.legend-item.inactive .legend-square::before{content:"";position:absolute;left:2px;right:2px;top:50%;height:2px;background:rgba(255,255,255,0.9);transform:rotate(-45deg);}
+.legend-item{flex:0 0 auto;}
+.legend-item span{white-space:nowrap;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label.dimmed {
+  opacity: 0.35 !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="controls-section">
+    <div class="custom-legend" id="legend"></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(a,b,pad=0){
+  return !((a.x + a.width + pad) < (b.x - pad) || (b.x + b.width + pad) < (a.x - pad) || (a.y + a.height + pad) < (b.y - pad) || (b.y + b.height + pad) < (a.y - pad));
+}
+function bboxOfCircle(cx,cy,r){ return {x:cx - r, y:cy - r, width:r*2, height:r*2}; }
+
+function getPositionOptions(cx,cy,r,p=6){
+  const dy=10;
+  const dx=6;
+  return [
+    {name:'right',x:cx+r+p,y:cy+3,anchor:'start'},
+    {name:'right-up',x:cx+r+p+dx,y:cy-dy,anchor:'start'},
+    {name:'right-down',x:cx+r+p+dx,y:cy+dy,anchor:'start'},
+    {name:'left',x:cx-r-p,y:cy+3,anchor:'end'},
+    {name:'left-up',x:cx-r-p-dx,y:cy-dy,anchor:'end'},
+    {name:'left-down',x:cx-r-p-dx,y:cy+dy,anchor:'end'},
+    {name:'above',x:cx,y:cy-r-p,anchor:'middle'},
+    {name:'below',x:cx,y:cy+r+p+10,anchor:'middle'}
+  ];
+}
+
+
+function getSVGBounds(svg){
+  const vb = svg.viewBox && svg.viewBox.baseVal;
+  if(vb && vb.width && vb.height){ return {x:vb.x, y:vb.y, width:vb.width, height:vb.height}; }
+  const w = parseFloat(svg.getAttribute('width')) || svg.clientWidth || 0;
+  const h = parseFloat(svg.getAttribute('height')) || svg.clientHeight || 0;
+  return {x:0, y:0, width:w, height:h};
+}
+
+
+function outsideBounds(tb, bounds, pad=2){
+  return tb.x < bounds.x + pad || tb.y < bounds.y + pad || (tb.x + tb.width) > (bounds.x + bounds.width - pad) || (tb.y + tb.height) > (bounds.y + bounds.height - pad);
+}
+
+
+function detectAxesBounds(svg, base){
+  const lines = svg.querySelectorAll('line');
+  let leftX = null;
+  let bottomY = null;
+  const minTall = Math.max(40, base.height * 0.3);
+  const minWide = Math.max(40, base.width * 0.3);
+  lines.forEach(l=>{
+    const x1 = parseFloat(l.getAttribute('x1'));
+    const x2 = parseFloat(l.getAttribute('x2'));
+    const y1 = parseFloat(l.getAttribute('y1'));
+    const y2 = parseFloat(l.getAttribute('y2'));
+    if([x1,x2,y1,y2].some(v=>isNaN(v))) return;
+    if(Math.abs(x1 - x2) < 0.5 && Math.abs(y2 - y1) >= minTall){
+      leftX = leftX === null ? x1 : Math.min(leftX, x1);
+    }
+    if(Math.abs(y1 - y2) < 0.5 && Math.abs(x2 - x1) >= minWide){
+      bottomY = bottomY === null ? Math.max(y1, y2) : Math.max(bottomY, y1, y2);
+    }
+  });
+  const pad = 6;
+  const bounds = {x:base.x, y:base.y, width:base.width, height:base.height};
+  if(leftX !== null){
+    bounds.x = Math.max(bounds.x, leftX + pad);
+    bounds.width = base.width - (bounds.x - base.x);
+  }
+  if(bottomY !== null){
+    const newH = Math.max(0, (bottomY - base.y) - pad);
+    bounds.height = Math.min(bounds.height, newH);
+  }
+  return bounds;
+}
+
+function getPlotBounds(svg){
+  const base = getSVGBounds(svg);
+  return detectAxesBounds(svg, base);
+}
+
+function hasCollision(textElement, allCircles, placedBoxes, bounds){
+  try{
+    const tb=textElement.getBBox();
+    if(bounds && outsideBounds(tb,bounds,2)) return true;
+    for(const c of allCircles){
+      const r=parseFloat(c.circle.getAttribute('r'))||7.5;
+      const cb=bboxOfCircle(c.coords.x,c.coords.y,r);
+      if(rectanglesOverlap(tb,cb,2)) return true;
+    }
+    if(placedBoxes && placedBoxes.length){
+      for(const b of placedBoxes){ if(rectanglesOverlap(tb,b,2)) return true; }
+    }
+    return false;
+  }catch(e){ return false; }
+}
+
+function findBestPosition(textElement,cx,cy,r,allCircles,fullText,placedBoxes,bounds){
+  const positions=getPositionOptions(cx,cy,r);
+  textElement.textContent=fullText;
+  for(const pos of positions){
+    textElement.setAttribute('x',pos.x);
+    textElement.setAttribute('y',pos.y);
+    textElement.setAttribute('text-anchor',pos.anchor);
+    if(!hasCollision(textElement,allCircles,placedBoxes,bounds)){
+      return {...pos,text:fullText,hasCollision:false};
+    }
+  }
+  const truncated=truncateText(fullText,20);
+  textElement.textContent=truncated;
+  for(const pos of positions){
+    textElement.setAttribute('x',pos.x);
+    textElement.setAttribute('y',pos.y);
+    textElement.setAttribute('text-anchor',pos.anchor);
+    if(!hasCollision(textElement,allCircles,placedBoxes,bounds)){
+      return {...pos,text:truncated,hasCollision:true};
+    }
+  }
+  const fallback=positions[0];
+  return {...fallback,text:truncated,hasCollision:true};
+}
+
+function getBoundData(element) {
+  if (element.__data__) {
+    return element.__data__;
+  }
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data= 
+
+ [
+  {
+    "domain": "AI & Big Data",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 10.29,
+    "reldens.op": 77.97,
+    "y": 75.58,
+    "reldens.reg": 43.5,
+    "parent": "ICT",
+    "color": "#365a94",
+    "rank.reg": 29,
+    "rank.op": 26,
+    "rank.cb": 15,
+    "rank": 70,
+    "rank.rs": 68.35,
+    "id": "AI & Big Data",
+    "x": 68.35,
+    "value": 1
+  },
+  {
+    "domain": "Automation & robotics",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 13.26,
+    "reldens.op": 85.73,
+    "y": 63.4,
+    "reldens.reg": 22.66,
+    "parent": "ICT",
+    "color": "#365a94",
+    "rank.reg": 24,
+    "rank.op": 29,
+    "rank.cb": 18,
+    "rank": 71,
+    "rank.rs": 69.62,
+    "id": "Automation & robotics",
+    "x": 69.62,
+    "value": 1
+  },
+  {
+    "domain": "Autonomous & connected mobility",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 6.67,
+    "reldens.op": 83.77,
+    "y": 72.24,
+    "reldens.reg": 18.94,
+    "parent": "Future Mobility",
+    "color": "#6a0dad",
+    "rank.reg": 21,
+    "rank.op": 28,
+    "rank.cb": 10,
+    "rank": 59,
+    "rank.rs": 54.43,
+    "id": "Autonomous & connected mobility",
+    "x": 54.43,
+    "value": 1
+  },
+  {
+    "domain": "Biophotonics",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 62.97,
+    "reldens.op": 65.03,
+    "y": 70.33,
+    "reldens.reg": 57.31,
+    "parent": "Life Sciences",
+    "color": "#EEDC82",
+    "rank.reg": 35,
+    "rank.op": 14,
+    "rank.cb": 38,
+    "rank": 87,
+    "rank.rs": 89.87,
+    "id": "Biophotonics",
+    "x": 89.87,
+    "value": 1
+  },
+  {
+    "domain": "Bioprocess technology",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 45.9,
+    "reldens.op": 2.96,
+    "y": 60.82,
+    "reldens.reg": 13.56,
+    "parent": "AgriFood Tech",
+    "color": "#800020",
+    "rank.reg": 13,
+    "rank.op": 2,
+    "rank.cb": 30,
+    "rank": 45,
+    "rank.rs": 36.71,
+    "id": "Bioprocess technology",
+    "x": 36.71,
+    "value": 1
+  },
+  {
+    "domain": "Biotechnologies",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 51.24,
+    "reldens.op": 10.83,
+    "y": 63.9,
+    "reldens.reg": 11.2,
+    "parent": "Life Sciences",
+    "color": "#EEDC82",
+    "rank.reg": 10,
+    "rank.op": 3,
+    "rank.cb": 35,
+    "rank": 48,
+    "rank.rs": 40.51,
+    "id": "Biotechnologies",
+    "x": 40.51,
+    "value": 1
+  },
+  {
+    "domain": "CCS / CCU",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 47.36,
+    "reldens.op": 75.67,
+    "y": 51.52,
+    "reldens.reg": 9.48,
+    "parent": "Climate Tech",
+    "color": "#8cab79",
+    "rank.reg": 7,
+    "rank.op": 24,
+    "rank.cb": 33,
+    "rank": 64,
+    "rank.rs": 60.76,
+    "id": "CCS / CCU",
+    "x": 60.76,
+    "value": 1
+  },
+  {
+    "domain": "CO2-neutral production",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 6.07,
+    "reldens.op": 88.04,
+    "y": 62.04,
+    "reldens.reg": 8.17,
+    "parent": "Industrial Tech",
+    "color": "#e28f26",
+    "rank.reg": 5,
+    "rank.op": 33,
+    "rank.cb": 9,
+    "rank": 47,
+    "rank.rs": 39.24,
+    "id": "CO2-neutral production",
+    "x": 39.24,
+    "value": 1
+  },
+  {
+    "domain": "Cyber defense & infrastructure",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 2.25,
+    "reldens.op": 94.32,
+    "y": 69.05,
+    "reldens.reg": 16.35,
+    "parent": "Defense Tech",
+    "color": "#8B4513",
+    "rank.reg": 16,
+    "rank.op": 38,
+    "rank.cb": 2,
+    "rank": 56,
+    "rank.rs": 50.63,
+    "id": "Cyber defense & infrastructure",
+    "x": 50.63,
+    "value": 1
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 3.12,
+    "reldens.op": 89.62,
+    "y": 71.33,
+    "reldens.reg": 21.15,
+    "parent": "ICT",
+    "color": "#365a94",
+    "rank.reg": 23,
+    "rank.op": 34,
+    "rank.cb": 3,
+    "rank": 60,
+    "rank.rs": 55.7,
+    "id": "Cybersecurity",
+    "x": 55.7,
+    "value": 1
+  },
+  {
+    "domain": "Data ecosystems",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 4.37,
+    "reldens.op": 75.23,
+    "y": 66.57,
+    "reldens.reg": 35.14,
+    "parent": "Industrial Tech",
+    "color": "#e28f26",
+    "rank.reg": 28,
+    "rank.op": 23,
+    "rank.cb": 5,
+    "rank": 56,
+    "rank.rs": 50.63,
+    "id": "Data ecosystems",
+    "x": 50.63,
+    "value": 1
+  },
+  {
+    "domain": "Data sciences & digital health",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 22.18,
+    "reldens.op": 64.58,
+    "y": 64.24,
+    "reldens.reg": 71.55,
+    "parent": "Life Sciences",
+    "color": "#EEDC82",
+    "rank.reg": 38,
+    "rank.op": 13,
+    "rank.cb": 23,
+    "rank": 74,
+    "rank.rs": 73.42,
+    "id": "Data sciences & digital health",
+    "x": 73.42,
+    "value": 1
+  },
+  {
+    "domain": "Geothermal energy",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 8.28,
+    "reldens.op": 34.77,
+    "y": 62.07,
+    "reldens.reg": 10.36,
+    "parent": "Climate Tech",
+    "color": "#8cab79",
+    "rank.reg": 8,
+    "rank.op": 7,
+    "rank.cb": 12,
+    "rank": 27,
+    "rank.rs": 13.92,
+    "id": "Geothermal energy",
+    "x": 13.92,
+    "value": 1
+  },
+  {
+    "domain": "Immersive technologies",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 14.69,
+    "reldens.op": 87.04,
+    "y": 75.45,
+    "reldens.reg": 54.74,
+    "parent": "ICT",
+    "color": "#365a94",
+    "rank.reg": 33,
+    "rank.op": 31,
+    "rank.cb": 19,
+    "rank": 83,
+    "rank.rs": 84.81,
+    "id": "Immersive technologies",
+    "x": 84.81,
+    "value": 1
+  },
+  {
+    "domain": "Individual mass production",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 10.09,
+    "reldens.op": 85.87,
+    "y": 61.32,
+    "reldens.reg": 12.09,
+    "parent": "Industrial Tech",
+    "color": "#e28f26",
+    "rank.reg": 11,
+    "rank.op": 30,
+    "rank.cb": 14,
+    "rank": 55,
+    "rank.rs": 49.37,
+    "id": "Individual mass production",
+    "x": 49.37,
+    "value": 1
+  },
+  {
+    "domain": "Industrial robotics",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 15.19,
+    "reldens.op": 94.28,
+    "y": 62.59,
+    "reldens.reg": 18.75,
+    "parent": "Industrial Tech",
+    "color": "#e28f26",
+    "rank.reg": 19,
+    "rank.op": 37,
+    "rank.cb": 20,
+    "rank": 76,
+    "rank.rs": 75.95,
+    "id": "Industrial robotics",
+    "x": 75.95,
+    "value": 1
+  },
+  {
+    "domain": "Maritime technology",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 12.59,
+    "reldens.op": 17.85,
+    "y": 46.71,
+    "reldens.reg": 5.53,
+    "parent": "Defense Tech",
+    "color": "#8B4513",
+    "rank.reg": 2,
+    "rank.op": 6,
+    "rank.cb": 17,
+    "rank": 25,
+    "rank.rs": 11.39,
+    "id": "Maritime technology",
+    "x": 11.39,
+    "value": 1
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 46.75,
+    "reldens.op": 69.33,
+    "y": 58.66,
+    "reldens.reg": 58.42,
+    "parent": "Life Sciences",
+    "color": "#EEDC82",
+    "rank.reg": 36,
+    "rank.op": 18,
+    "rank.cb": 32,
+    "rank": 86,
+    "rank.rs": 88.61,
+    "id": "Medical technology",
+    "x": 88.61,
+    "value": 1
+  },
+  {
+    "domain": "Mobility services",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 5.11,
+    "reldens.op": 77.22,
+    "y": 66.24,
+    "reldens.reg": 14.15,
+    "parent": "Future Mobility",
+    "color": "#6a0dad",
+    "rank.reg": 14,
+    "rank.op": 25,
+    "rank.cb": 7,
+    "rank": 46,
+    "rank.rs": 37.97,
+    "id": "Mobility services",
+    "x": 37.97,
+    "value": 1
+  },
+  {
+    "domain": "More flexible energy systems",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 18.26,
+    "reldens.op": 75.1,
+    "y": 68.56,
+    "reldens.reg": 20.72,
+    "parent": "Climate Tech",
+    "color": "#8cab79",
+    "rank.reg": 22,
+    "rank.op": 22,
+    "rank.cb": 21,
+    "rank": 65,
+    "rank.rs": 62.03,
+    "id": "More flexible energy systems",
+    "x": 62.03,
+    "value": 1
+  },
+  {
+    "domain": "Nanotechnologies",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 51.39,
+    "reldens.op": 71.82,
+    "y": 66.29,
+    "reldens.reg": 30.33,
+    "parent": "Deep Tech",
+    "color": "#669999",
+    "rank.reg": 27,
+    "rank.op": 21,
+    "rank.cb": 36,
+    "rank": 84,
+    "rank.rs": 86.08,
+    "id": "Nanotechnologies",
+    "x": 86.08,
+    "value": 1
+  },
+  {
+    "domain": "Neural interfaces",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 51.94,
+    "reldens.op": 69.81,
+    "y": 56.66,
+    "reldens.reg": 64.61,
+    "parent": "Deep Tech",
+    "color": "#669999",
+    "rank.reg": 37,
+    "rank.op": 19,
+    "rank.cb": 37,
+    "rank": 93,
+    "rank.rs": 97.47,
+    "id": "Neural interfaces",
+    "x": 97.47,
+    "value": 1
+  },
+  {
+    "domain": "Nuclear fusion",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 46.47,
+    "reldens.op": 48.79,
+    "y": 54.48,
+    "reldens.reg": 8.08,
+    "parent": "Climate Tech",
+    "color": "#8cab79",
+    "rank.reg": 4,
+    "rank.op": 9,
+    "rank.cb": 31,
+    "rank": 44,
+    "rank.rs": 35.44,
+    "id": "Nuclear fusion",
+    "x": 35.44,
+    "value": 1
+  },
+  {
+    "domain": "Optics & photonics",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 35.65,
+    "reldens.op": 70.73,
+    "y": 71.46,
+    "reldens.reg": 57.22,
+    "parent": "Deep Tech",
+    "color": "#669999",
+    "rank.reg": 34,
+    "rank.op": 20,
+    "rank.cb": 27,
+    "rank": 81,
+    "rank.rs": 82.28,
+    "id": "Optics & photonics",
+    "x": 82.28,
+    "value": 1
+  },
+  {
+    "domain": "Overall defense strategy",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 2.21,
+    "reldens.op": 50.95,
+    "y": 67.7,
+    "reldens.reg": 18.79,
+    "parent": "Defense Tech",
+    "color": "#8B4513",
+    "rank.reg": 20,
+    "rank.op": 10,
+    "rank.cb": 1,
+    "rank": 31,
+    "rank.rs": 18.99,
+    "id": "Overall defense strategy",
+    "x": 18.99,
+    "value": 1
+  },
+  {
+    "domain": "Personalized medicine",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 30.46,
+    "reldens.op": 65.15,
+    "y": 65.8,
+    "reldens.reg": 23.16,
+    "parent": "Life Sciences",
+    "color": "#EEDC82",
+    "rank.reg": 25,
+    "rank.op": 15,
+    "rank.cb": 26,
+    "rank": 66,
+    "rank.rs": 63.29,
+    "id": "Personalized medicine",
+    "x": 63.29,
+    "value": 1
+  },
+  {
+    "domain": "Personalized nutrition",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 9.23,
+    "reldens.op": 16.94,
+    "y": 56.62,
+    "reldens.reg": 17.45,
+    "parent": "AgriFood Tech",
+    "color": "#800020",
+    "rank.reg": 18,
+    "rank.op": 5,
+    "rank.cb": 13,
+    "rank": 36,
+    "rank.rs": 25.32,
+    "id": "Personalized nutrition",
+    "x": 25.32,
+    "value": 1
+  },
+  {
+    "domain": "Precision breeding",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 50.78,
+    "reldens.op": 2.63,
+    "y": 59.41,
+    "reldens.reg": 10.94,
+    "parent": "AgriFood Tech",
+    "color": "#800020",
+    "rank.reg": 9,
+    "rank.op": 1,
+    "rank.cb": 34,
+    "rank": 44,
+    "rank.rs": 35.44,
+    "id": "Precision breeding",
+    "x": 35.44,
+    "value": 1
+  },
+  {
+    "domain": "Private air transport",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 4.54,
+    "reldens.op": 67.09,
+    "y": 63.56,
+    "reldens.reg": 6.6,
+    "parent": "Future Mobility",
+    "color": "#6a0dad",
+    "rank.reg": 3,
+    "rank.op": 16,
+    "rank.cb": 6,
+    "rank": 25,
+    "rank.rs": 11.39,
+    "id": "Private air transport",
+    "x": 11.39,
+    "value": 1
+  },
+  {
+    "domain": "Quantum technologies",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 12.29,
+    "reldens.op": 87.39,
+    "y": 73.71,
+    "reldens.reg": 53.16,
+    "parent": "Deep Tech",
+    "color": "#669999",
+    "rank.reg": 32,
+    "rank.op": 32,
+    "rank.cb": 16,
+    "rank": 80,
+    "rank.rs": 81.01,
+    "id": "Quantum technologies",
+    "x": 81.01,
+    "value": 1
+  },
+  {
+    "domain": "Semiconductors & microchips",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 39.97,
+    "reldens.op": 93.79,
+    "y": 75.34,
+    "reldens.reg": 44.8,
+    "parent": "Deep Tech",
+    "color": "#669999",
+    "rank.reg": 30,
+    "rank.op": 36,
+    "rank.cb": 29,
+    "rank": 95,
+    "rank.rs": 100,
+    "id": "Semiconductors & microchips",
+    "x": 100,
+    "value": 1
+  },
+  {
+    "domain": "Smart factories",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 23.85,
+    "reldens.op": 90.59,
+    "y": 66.72,
+    "reldens.reg": 16.88,
+    "parent": "Industrial Tech",
+    "color": "#e28f26",
+    "rank.reg": 17,
+    "rank.op": 35,
+    "rank.cb": 24,
+    "rank": 76,
+    "rank.rs": 75.95,
+    "id": "Smart factories",
+    "x": 75.95,
+    "value": 1
+  },
+  {
+    "domain": "Smart farming",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 36.79,
+    "reldens.op": 15.05,
+    "y": 40.73,
+    "reldens.reg": 28.13,
+    "parent": "AgriFood Tech",
+    "color": "#800020",
+    "rank.reg": 26,
+    "rank.op": 4,
+    "rank.cb": 28,
+    "rank": 58,
+    "rank.rs": 53.16,
+    "id": "Smart farming",
+    "x": 53.16,
+    "value": 1
+  },
+  {
+    "domain": "Space logistics",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 3.93,
+    "reldens.op": 53.89,
+    "y": 60.15,
+    "reldens.reg": 3.87,
+    "parent": "Future Mobility",
+    "color": "#6a0dad",
+    "rank.reg": 1,
+    "rank.op": 11,
+    "rank.cb": 4,
+    "rank": 16,
+    "rank.rs": 0,
+    "id": "Space logistics",
+    "x": 0,
+    "value": 1
+  },
+  {
+    "domain": "UAS & drone defense",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 5.98,
+    "reldens.op": 57.23,
+    "y": 68.52,
+    "reldens.reg": 8.86,
+    "parent": "Defense Tech",
+    "color": "#8B4513",
+    "rank.reg": 6,
+    "rank.op": 12,
+    "rank.cb": 8,
+    "rank": 26,
+    "rank.rs": 12.66,
+    "id": "UAS & drone defense",
+    "x": 12.66,
+    "value": 1
+  },
+  {
+    "domain": "Ubiquitous computing",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 25.04,
+    "reldens.op": 78.57,
+    "y": 65.84,
+    "reldens.reg": 46.05,
+    "parent": "ICT",
+    "color": "#365a94",
+    "rank.reg": 31,
+    "rank.op": 27,
+    "rank.cb": 25,
+    "rank": 83,
+    "rank.rs": 84.81,
+    "id": "Ubiquitous computing",
+    "x": 84.81,
+    "value": 1
+  },
+  {
+    "domain": "Water purification",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 19.83,
+    "reldens.op": 40.28,
+    "y": 51.57,
+    "reldens.reg": 16.3,
+    "parent": "Climate Tech",
+    "color": "#8cab79",
+    "rank.reg": 15,
+    "rank.op": 8,
+    "rank.cb": 22,
+    "rank": 45,
+    "rank.rs": 36.71,
+    "id": "Water purification",
+    "x": 36.71,
+    "value": 1
+  },
+  {
+    "domain": "Weapon systems & ammunition",
+    "geo": "Noord-Brabant (NL41)",
+    "reldens.cb": 7.75,
+    "reldens.op": 67.66,
+    "y": 39.86,
+    "reldens.reg": 12.24,
+    "parent": "Defense Tech",
+    "color": "#8B4513",
+    "rank.reg": 12,
+    "rank.op": 17,
+    "rank.cb": 11,
+    "rank": 40,
+    "rank.rs": 30.38,
+    "id": "Weapon systems & ammunition",
+    "x": 30.38,
+    "value": 1
+  }
+]  ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,110];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+const parents = Array.from(new Set(data.map(d=>d.parent)));
+const parentColors = {};
+parents.forEach(p=>{ const c = (data.find(d=>d.parent===p)||{}).color || "#666666"; parentColors[p]=c; });
+let activeParents = new Set(parents);
+function renderLegend(){
+  const legend = document.getElementById('legend');
+  if(!legend) return;
+  legend.innerHTML = '';
+  parents.forEach(p=>{
+    const item = document.createElement('div');
+    item.className = 'legend-item active';
+    item.setAttribute('data-group', p);
+    item.setAttribute('role','button');
+    item.setAttribute('tabindex','0');
+    item.setAttribute('aria-pressed','true');
+    const square = document.createElement('div');
+    square.className = 'legend-square';
+    square.style.backgroundColor = parentColors[p];
+    const label = document.createElement('span');
+    label.textContent = p;
+    item.appendChild(square);
+    item.appendChild(label);
+    item.addEventListener('click', ()=>toggleGroup(p,item));
+    item.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleGroup(p,item); } });
+    legend.appendChild(item);
+  });
+}
+function adjustLayoutForLegend(){
+  const chart=document.getElementById('chart');
+  const legend=document.getElementById('legend');
+  if(!chart||!legend)return;
+  const h=Math.ceil(legend.getBoundingClientRect().height);
+  chart.style.bottom=(h+5)+'px';
+}
+function toggleGroup(group,item){
+  if(activeParents.has(group)){
+    activeParents.delete(group);
+    item.classList.remove('active');
+    item.classList.add('inactive');
+    item.setAttribute('aria-pressed','false');
+  } else {
+    activeParents.add(group);
+    item.classList.add('active');
+    item.classList.remove('inactive');
+    item.setAttribute('aria-pressed','true');
+  }
+  updateVisualization();
+}
+function updateVisualization(){
+  const filtered = data.filter(d=>activeParents.has(d.parent));
+  plot.data(filtered).render();
+  setTimeout(adjustLayoutForLegend,0);
+  setTimeout(()=>{
+    document.querySelectorAll('text.custom-label').forEach(el=>el.remove());
+    customLabels = [];
+    hoveringElements = new Set();
+    initializeCustomLabels();
+    adjustLayoutForLegend();
+  },400);
+}
+renderLegend();
+adjustLayoutForLegend();
+window.addEventListener('resize',adjustLayoutForLegend);
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+var plot = new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy("id")
+  .tooltip(false)
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"Technological Complexity",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Composite Relatedness Density",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  if(!window.__labelsUpdaterStarted){ startPositionUpdater(); window.__labelsUpdaterStarted = true; }
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      const svgEl = document.querySelector('#chart svg');
+      svgEl.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+
+        customLabels.forEach(l=>{
+          if(l.circle!==circle){
+            l.text.classList.add('dimmed');
+            l.circle.style.opacity='0.35';
+          } else {
+            l.text.classList.remove('dimmed');
+            l.circle.style.opacity='1';
+          }
+        });
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+
+        customLabels.forEach(l=>{
+          l.text.classList.remove('dimmed');
+          l.circle.style.opacity='';
+        });
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+
+  const bounds = getPlotBounds(svg);
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  const labelsOrdered=[...customLabels].map(ld=>{
+    const cp=circlePositions.find(cp=>cp.circle===ld.circle);
+    return {ld,cp};
+  }).filter(d=>d.cp).sort((a,b)=>a.cp.coords.y-b.cp.coords.y || a.cp.coords.x-b.cp.coords.x);
+  const placedBoxes=[];
+  labelsOrdered.forEach(({ld,cp})=>{
+    const {circle,text,fullText}=ld;
+    const r = parseFloat(circle.getAttribute('r')) || 7.5;
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    const pos = findBestPosition(text, cp.coords.x, cp.coords.y, r, circlePositions, fullText, placedBoxes, bounds);
+    text.setAttribute('x', pos.x);
+    text.setAttribute('y', pos.y);
+    text.setAttribute('text-anchor', pos.anchor);
+    text.textContent = pos.text;
+    ld.defaultText = pos.text;
+    const bb = text.getBBox();
+    if(!pos.hasCollision){
+      text.classList.remove('collision');
+      text.setAttribute('opacity','1');
+      placedBoxes.push({x:bb.x,y:bb.y,width:bb.width,height:bb.height});
+    } else {
+      text.classList.add('collision');
+      text.setAttribute('opacity','0.35');
+    }
+  });
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+</body>
+</html>
