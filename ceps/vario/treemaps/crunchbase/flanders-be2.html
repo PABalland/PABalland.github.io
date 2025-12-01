@@ -1,0 +1,578 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Advanced Manufacturing",
+    "geo": "Flanders (BE2)",
+    "count": 783.58,
+    "rca": 1.83,
+    "share": 6.9329,
+    "share_d": 3.7853,
+    "reldens": 19.32,
+    "comp_TCI": 12.13,
+    "parent": "Advanced Industry & Materials",
+    "color": "#679A67",
+    "id": "Advanced Manufacturing",
+    "value": 783.58
+  },
+  {
+    "domain": "Advanced Materials",
+    "geo": "Flanders (BE2)",
+    "count": 5.3,
+    "rca": 0.47,
+    "share": 0.0469,
+    "share_d": 0.0995,
+    "reldens": 18.59,
+    "comp_TCI": 23.64,
+    "parent": "Advanced Industry & Materials",
+    "color": "#BC9191",
+    "id": "Advanced Materials",
+    "value": 5.3
+  },
+  {
+    "domain": "Advanced Therapy Medicinal Products (ATMP)",
+    "geo": "Flanders (BE2)",
+    "count": 358.9,
+    "rca": 2.22,
+    "share": 3.1754,
+    "share_d": 1.4308,
+    "reldens": 66.37,
+    "comp_TCI": 19.21,
+    "parent": "Health & Biotech",
+    "color": "#579257",
+    "id": "Advanced Therapy Medicinal Products (ATMP)",
+    "value": 358.9
+  },
+  {
+    "domain": "Artificial Intelligence",
+    "geo": "Flanders (BE2)",
+    "count": 613.1,
+    "rca": 1.01,
+    "share": 5.4245,
+    "share_d": 5.3646,
+    "reldens": 24.73,
+    "comp_TCI": 15.86,
+    "parent": "Digital & AI",
+    "color": "#C5CCC5",
+    "id": "Artificial Intelligence",
+    "value": 613.1
+  },
+  {
+    "domain": "Autonomous Robots",
+    "geo": "Flanders (BE2)",
+    "count": 16.59,
+    "rca": 0.43,
+    "share": 0.1468,
+    "share_d": 0.3442,
+    "reldens": 19.74,
+    "comp_TCI": 21.39,
+    "parent": "Advanced Industry & Materials",
+    "color": "#BA8A8A",
+    "id": "Autonomous Robots",
+    "value": 16.59
+  },
+  {
+    "domain": "Bioinformatics",
+    "geo": "Flanders (BE2)",
+    "count": 11.71,
+    "rca": 3.51,
+    "share": 0.1036,
+    "share_d": 0.0296,
+    "reldens": 34.38,
+    "comp_TCI": 31.58,
+    "parent": "Health & Biotech",
+    "color": "#378137",
+    "id": "Bioinformatics",
+    "value": 11.71
+  },
+  {
+    "domain": "Biomanufacturing",
+    "geo": "Flanders (BE2)",
+    "count": 105.35,
+    "rca": 1.63,
+    "share": 0.9321,
+    "share_d": 0.5704,
+    "reldens": 75.96,
+    "comp_TCI": 17.12,
+    "parent": "Health & Biotech",
+    "color": "#72A072",
+    "id": "Biomanufacturing",
+    "value": 105.35
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Flanders (BE2)",
+    "count": 184.15,
+    "rca": 1.82,
+    "share": 1.6293,
+    "share_d": 0.8966,
+    "reldens": 49.58,
+    "comp_TCI": 11.58,
+    "parent": "Health & Biotech",
+    "color": "#679A67",
+    "id": "Biotechnology",
+    "value": 184.15
+  },
+  {
+    "domain": "Carbon Capture & Storage",
+    "geo": "Flanders (BE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1444,
+    "reldens": 11.27,
+    "comp_TCI": 29.09,
+    "parent": "Energy & Climate",
+    "color": "darkred",
+    "id": "Carbon Capture & Storage",
+    "value": 0
+  },
+  {
+    "domain": "Cloud and Edge Computing",
+    "geo": "Flanders (BE2)",
+    "count": 17.81,
+    "rca": 0.17,
+    "share": 0.1576,
+    "share_d": 0.9316,
+    "reldens": 20.24,
+    "comp_TCI": 28.65,
+    "parent": "Digital & AI",
+    "color": "#A95757",
+    "id": "Cloud and Edge Computing",
+    "value": 17.81
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Flanders (BE2)",
+    "count": 444.09,
+    "rca": 4.03,
+    "share": 3.9292,
+    "share_d": 0.9755,
+    "reldens": 45.44,
+    "comp_TCI": 22.08,
+    "parent": "Security & Space",
+    "color": "#2F7D2F",
+    "id": "Cybersecurity",
+    "value": 444.09
+  },
+  {
+    "domain": "Defence Technologies",
+    "geo": "Flanders (BE2)",
+    "count": 12.69,
+    "rca": 0.28,
+    "share": 0.1123,
+    "share_d": 0.408,
+    "reldens": 20.24,
+    "comp_TCI": 24.75,
+    "parent": "Security & Space",
+    "color": "#B17070",
+    "id": "Defence Technologies",
+    "value": 12.69
+  },
+  {
+    "domain": "Drones",
+    "geo": "Flanders (BE2)",
+    "count": 12.69,
+    "rca": 0.47,
+    "share": 0.1123,
+    "share_d": 0.2377,
+    "reldens": 25.36,
+    "comp_TCI": 20.32,
+    "parent": "Security & Space",
+    "color": "#BC9191",
+    "id": "Drones",
+    "value": 12.69
+  },
+  {
+    "domain": "Food Technology",
+    "geo": "Flanders (BE2)",
+    "count": 459.6,
+    "rca": 3.23,
+    "share": 4.0664,
+    "share_d": 1.258,
+    "reldens": 38.65,
+    "comp_TCI": 14.12,
+    "parent": "Advanced Industry & Materials",
+    "color": "#3C843C",
+    "id": "Food Technology",
+    "value": 459.6
+  },
+  {
+    "domain": "Generative AI",
+    "geo": "Flanders (BE2)",
+    "count": 19.09,
+    "rca": 0.69,
+    "share": 0.1689,
+    "share_d": 0.2442,
+    "reldens": 26.82,
+    "comp_TCI": 18.85,
+    "parent": "Digital & AI",
+    "color": "#C7AFAF",
+    "id": "Generative AI",
+    "value": 19.09
+  },
+  {
+    "domain": "Genomics & Gene Editing",
+    "geo": "Flanders (BE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.3309,
+    "reldens": 43.04,
+    "comp_TCI": 23.71,
+    "parent": "Health & Biotech",
+    "color": "darkred",
+    "id": "Genomics & Gene Editing",
+    "value": 0
+  },
+  {
+    "domain": "High-Performance Computing (HPC)",
+    "geo": "Flanders (BE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.3505,
+    "reldens": 15.93,
+    "comp_TCI": 37.98,
+    "parent": "Digital & AI",
+    "color": "darkred",
+    "id": "High-Performance Computing (HPC)",
+    "value": 0
+  },
+  {
+    "domain": "Immunotherapy",
+    "geo": "Flanders (BE2)",
+    "count": 375.23,
+    "rca": 2.12,
+    "share": 3.3199,
+    "share_d": 1.5649,
+    "reldens": 62.88,
+    "comp_TCI": 18.44,
+    "parent": "Health & Biotech",
+    "color": "#5A945A",
+    "id": "Immunotherapy",
+    "value": 375.23
+  },
+  {
+    "domain": "Internet of Things (IOT)",
+    "geo": "Flanders (BE2)",
+    "count": 21.42,
+    "rca": 0.47,
+    "share": 0.1895,
+    "share_d": 0.4004,
+    "reldens": 22,
+    "comp_TCI": 19.8,
+    "parent": "Digital & AI",
+    "color": "#BC9191",
+    "id": "Internet of Things (IOT)",
+    "value": 21.42
+  },
+  {
+    "domain": "Medical Devices",
+    "geo": "Flanders (BE2)",
+    "count": 89.4,
+    "rca": 0.65,
+    "share": 0.791,
+    "share_d": 1.2247,
+    "reldens": 33.86,
+    "comp_TCI": 11.77,
+    "parent": "Health & Biotech",
+    "color": "#C5AAAA",
+    "id": "Medical Devices",
+    "value": 89.4
+  },
+  {
+    "domain": "Microelectronics",
+    "geo": "Flanders (BE2)",
+    "count": 33.96,
+    "rca": 0.26,
+    "share": 0.3005,
+    "share_d": 1.1433,
+    "reldens": 22.67,
+    "comp_TCI": 14.47,
+    "parent": "Digital & AI",
+    "color": "#B06C6C",
+    "id": "Microelectronics",
+    "value": 33.96
+  },
+  {
+    "domain": "mRNA Technology",
+    "geo": "Flanders (BE2)",
+    "count": 105.35,
+    "rca": 1.63,
+    "share": 0.9321,
+    "share_d": 0.5704,
+    "reldens": 76.16,
+    "comp_TCI": 17.12,
+    "parent": "Health & Biotech",
+    "color": "#72A072",
+    "id": "mRNA Technology",
+    "value": 105.35
+  },
+  {
+    "domain": "Nanotechnologies",
+    "geo": "Flanders (BE2)",
+    "count": 5.3,
+    "rca": 0.37,
+    "share": 0.0469,
+    "share_d": 0.1277,
+    "reldens": 16.22,
+    "comp_TCI": 17.4,
+    "parent": "Advanced Industry & Materials",
+    "color": "#B78080",
+    "id": "Nanotechnologies",
+    "value": 5.3
+  },
+  {
+    "domain": "Natural Language Processing",
+    "geo": "Flanders (BE2)",
+    "count": 10.53,
+    "rca": 0.84,
+    "share": 0.0932,
+    "share_d": 0.1107,
+    "reldens": 26.16,
+    "comp_TCI": 26.52,
+    "parent": "Digital & AI",
+    "color": "#CDC1C1",
+    "id": "Natural Language Processing",
+    "value": 10.53
+  },
+  {
+    "domain": "Nuclear Energy",
+    "geo": "Flanders (BE2)",
+    "count": 11.06,
+    "rca": 0.86,
+    "share": 0.0979,
+    "share_d": 0.1133,
+    "reldens": 16.86,
+    "comp_TCI": 44.77,
+    "parent": "Energy & Climate",
+    "color": "#CEC4C4",
+    "id": "Nuclear Energy",
+    "value": 11.06
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Flanders (BE2)",
+    "count": 309.56,
+    "rca": 1.64,
+    "share": 2.7389,
+    "share_d": 1.6684,
+    "reldens": 64.55,
+    "comp_TCI": 15.75,
+    "parent": "Health & Biotech",
+    "color": "#71A071",
+    "id": "Pharmaceuticals",
+    "value": 309.56
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Flanders (BE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.172,
+    "reldens": 14.78,
+    "comp_TCI": 18.46,
+    "parent": "Digital & AI",
+    "color": "darkred",
+    "id": "Photonics",
+    "value": 0
+  },
+  {
+    "domain": "Precision Medicine",
+    "geo": "Flanders (BE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.044,
+    "reldens": 54.91,
+    "comp_TCI": 22.47,
+    "parent": "Health & Biotech",
+    "color": "darkred",
+    "id": "Precision Medicine",
+    "value": 0
+  },
+  {
+    "domain": "Quantum computing",
+    "geo": "Flanders (BE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.2492,
+    "reldens": 16.89,
+    "comp_TCI": 28.71,
+    "parent": "Digital & AI",
+    "color": "darkred",
+    "id": "Quantum computing",
+    "value": 0
+  },
+  {
+    "domain": "Regenerative Medicine",
+    "geo": "Flanders (BE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0089,
+    "reldens": 13.9,
+    "comp_TCI": 32.98,
+    "parent": "Health & Biotech",
+    "color": "darkred",
+    "id": "Regenerative Medicine",
+    "value": 0
+  },
+  {
+    "domain": "Robotics",
+    "geo": "Flanders (BE2)",
+    "count": 42,
+    "rca": 0.81,
+    "share": 0.3716,
+    "share_d": 0.4609,
+    "reldens": 22.43,
+    "comp_TCI": 14.38,
+    "parent": "Advanced Industry & Materials",
+    "color": "#CCBEBE",
+    "id": "Robotics",
+    "value": 42
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Flanders (BE2)",
+    "count": 107.52,
+    "rca": 1.43,
+    "share": 0.9513,
+    "share_d": 0.6673,
+    "reldens": 32.14,
+    "comp_TCI": 17.11,
+    "parent": "Digital & AI",
+    "color": "#80A780",
+    "id": "Semiconductors",
+    "value": 107.52
+  },
+  {
+    "domain": "Sensor Technologies",
+    "geo": "Flanders (BE2)",
+    "count": 1.64,
+    "rca": 0.12,
+    "share": 0.0145,
+    "share_d": 0.1174,
+    "reldens": 20.53,
+    "comp_TCI": 23.08,
+    "parent": "Advanced Industry & Materials",
+    "color": "#A44949",
+    "id": "Sensor Technologies",
+    "value": 1.64
+  },
+  {
+    "domain": "Smart Grids",
+    "geo": "Flanders (BE2)",
+    "count": 107.32,
+    "rca": 1.4,
+    "share": 0.9495,
+    "share_d": 0.6798,
+    "reldens": 45.63,
+    "comp_TCI": 25.04,
+    "parent": "Energy & Climate",
+    "color": "#82A982",
+    "id": "Smart Grids",
+    "value": 107.32
+  },
+  {
+    "domain": "Smart Materials",
+    "geo": "Flanders (BE2)",
+    "count": 9.62,
+    "rca": 0.17,
+    "share": 0.0851,
+    "share_d": 0.4987,
+    "reldens": 16.38,
+    "comp_TCI": 17.39,
+    "parent": "Advanced Industry & Materials",
+    "color": "#A95757",
+    "id": "Smart Materials",
+    "value": 9.62
+  },
+  {
+    "domain": "Space technologies",
+    "geo": "Flanders (BE2)",
+    "count": 33.14,
+    "rca": 0.28,
+    "share": 0.2932,
+    "share_d": 1.0454,
+    "reldens": 12.44,
+    "comp_TCI": 21.54,
+    "parent": "Security & Space",
+    "color": "#B17070",
+    "id": "Space technologies",
+    "value": 33.14
+  },
+  {
+    "domain": "Waste Management",
+    "geo": "Flanders (BE2)",
+    "count": 21.11,
+    "rca": 0.4,
+    "share": 0.1868,
+    "share_d": 0.4623,
+    "reldens": 17.71,
+    "comp_TCI": 9.62,
+    "parent": "Energy & Climate",
+    "color": "#B98585",
+    "id": "Waste Management",
+    "value": 21.11
+  },
+  {
+    "domain": "Wind Energy",
+    "geo": "Flanders (BE2)",
+    "count": 42.02,
+    "rca": 2.59,
+    "share": 0.3718,
+    "share_d": 0.1433,
+    "reldens": 25.09,
+    "comp_TCI": 25.48,
+    "parent": "Energy & Climate",
+    "color": "#4B8C4B",
+    "id": "Wind Energy",
+    "value": 42.02
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>
