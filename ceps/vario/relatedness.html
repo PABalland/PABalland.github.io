@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>relatedness</title>
+<style>
+html,body{margin:0; height:100%;}
+#scatter-container{width:100vw; height:100vh; overflow:hidden; position:relative;}
+#tooltip{position:fixed; padding:6px 8px; background:rgba(0,0,0,0.75); color:#fff; font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; font-size:12px; border-radius:4px; pointer-events:none; opacity:0; transform:translate(8px,8px); transition:opacity 0.08s linear; white-space:nowrap;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/three@0.106.2/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/scatter-gl@0.0.1/lib/scatter-gl.min.js"></script>
+</head>
+<body>
+<div id="scatter-container"></div>
+<div id="tooltip"></div>
+<script>
+(function(){
+var scatterDiv=document.getElementById('scatter-container');
+var tooltip=document.getElementById('tooltip');
+var mouseX=0;
+var mouseY=0;
+scatterDiv.addEventListener('mousemove',function(e){mouseX=e.clientX;mouseY=e.clientY;});
+fetch('https://franri3008.github.io/pages/Vizs/RelatednessNetwork/Regpat/x_y_z.json').then(function(r){return r.json()}).then(function(data){
+var rows=Array.isArray(data)?data:(data&&Array.isArray(data.data)?data.data:[]);
+var points=[];
+var labels=[];
+var colors=[];
+var defaultColor='#4a90e2';
+function isHex(s){return /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(s);}
+for(var i=0;i<rows.length;i++){
+var row=rows[i]||{};
+var nx=row.node!==undefined?String(row.node):'';
+var x=parseFloat(row.x);
+var y=parseFloat(row.y);
+var z=parseFloat(row.z);
+if(isFinite(x)&&isFinite(y)&&isFinite(z)){
+points.push([x,y,z]);
+labels.push(nx);
+var col=(row.color!==undefined&&row.color!==null?String(row.color).trim():'');
+colors.push(isHex(col)?col:defaultColor);
+}
+}
+var dataset=new ScatterGL.Dataset(points);
+var scatterGL=new ScatterGL(scatterDiv,{selectEnabled:true,rotateOnStart:true,orbitControls:{autoRotateSpeed:1.2,zoomSpeed:1.0,mouseRotateSpeed:1.0},pointColorer:function(index){return colors[index]||defaultColor},onHover:function(ix){
+if(ix===null||ix===undefined){tooltip.style.opacity=0;return}
+var name=labels[ix]!==undefined?labels[ix]:'';
+if(!name){tooltip.style.opacity=0;return}
+tooltip.textContent=name;
+tooltip.style.left=(mouseX+12)+'px';
+tooltip.style.top=(mouseY+12)+'px';
+tooltip.style.opacity=1;
+}});
+scatterGL.render(dataset);
+scatterGL.startOrbitAnimation();
+var idleTimer=null;
+function scheduleAutoRotate(){
+if(idleTimer){clearTimeout(idleTimer);}
+idleTimer=setTimeout(function(){scatterGL.startOrbitAnimation();},3000);
+}
+['mousedown','mouseup','wheel','touchstart','touchend','mousemove','keydown'].forEach(function(evt){
+window.addEventListener(evt,scheduleAutoRotate,{passive:true});
+});
+function onResize(){scatterGL.resize();}
+window.addEventListener('resize',onResize);
+}).catch(function(err){console.error(err);});
+})();
+</script>
+</body>
+</html>
