@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #viz-container {
+            width: 88%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #legend-container {
+            width: 12%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        #legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .axis-label {
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="viz-container">
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        <div id="legend-container">
+            <div id="legend-title">Complementarity</div>
+            <div id="legend"></div>
+        </div>
+    </div>
+
+    <script>
+        async function drawViz() {
+            const data =  [
+  {
+    "from": "Canada (CA)",
+    "to": "European Union (EU)",
+    "domain": "Drones",
+    "full": 707,
+    "binary": 75,
+    "expected": 92.2,
+    "untapped": -282.8,
+    "links.rca": 4.07,
+    "sum_from": 8696,
+    "sum_to": 22858,
+    "binary.pc": 0.7158,
+    "th.max": 15777,
+    "th.max.pc": 0.176,
+    "RD": 35.92,
+    "RD.added": 8.87,
+    "value": 8.87
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "India (IN)",
+    "domain": "Drones",
+    "full": 113,
+    "binary": 30,
+    "expected": 57.11,
+    "untapped": -92.89,
+    "links.rca": 2.63,
+    "sum_from": 8696,
+    "sum_to": 10851,
+    "binary.pc": 0.2863,
+    "th.max": 9773.5,
+    "th.max.pc": 0.109,
+    "RD": 35.92,
+    "RD.added": 55.48,
+    "value": 55.48
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "Japan (JP)",
+    "domain": "Drones",
+    "full": 48,
+    "binary": 19,
+    "expected": 34.08,
+    "untapped": -60.92,
+    "links.rca": 2.79,
+    "sum_from": 8696,
+    "sum_to": 2968,
+    "binary.pc": 0.1813,
+    "th.max": 5832,
+    "th.max.pc": 0.0651,
+    "RD": 35.92,
+    "RD.added": 48.89,
+    "value": 48.89
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "South Korea (KR)",
+    "domain": "Drones",
+    "full": 205,
+    "binary": 38,
+    "expected": 43.38,
+    "untapped": -146.62,
+    "links.rca": 4.38,
+    "sum_from": 8696,
+    "sum_to": 6150,
+    "binary.pc": 0.3627,
+    "th.max": 7423,
+    "th.max.pc": 0.0828,
+    "RD": 35.92,
+    "RD.added": 57.52,
+    "value": 57.52
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United Kingdom (GB)",
+    "domain": "Drones",
+    "full": 679,
+    "binary": 103,
+    "expected": 37.43,
+    "untapped": -477.57,
+    "links.rca": 13.76,
+    "sum_from": 8696,
+    "sum_to": 4114,
+    "binary.pc": 0.983,
+    "th.max": 6405,
+    "th.max.pc": 0.0714,
+    "RD": 35.92,
+    "RD.added": 0.71,
+    "value": 0.71
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United States (US)",
+    "domain": "Drones",
+    "full": 609,
+    "binary": 100,
+    "expected": 51.07,
+    "untapped": -448.93,
+    "links.rca": 9.79,
+    "sum_from": 8696,
+    "sum_to": 8781,
+    "binary.pc": 0.9544,
+    "th.max": 8738.5,
+    "th.max.pc": 0.0975,
+    "RD": 35.92,
+    "RD.added": 0.19,
+    "value": 0.19
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Canada (CA)",
+    "domain": "Drones",
+    "full": 707,
+    "binary": 75,
+    "expected": 92.2,
+    "untapped": -282.8,
+    "links.rca": 4.07,
+    "sum_from": 8696,
+    "sum_to": 22858,
+    "binary.pc": 0.7158,
+    "th.max": 15777,
+    "th.max.pc": 0.176,
+    "RD": 11.07,
+    "RD.added": 33.72,
+    "value": 33.72
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "India (IN)",
+    "domain": "Drones",
+    "full": 640,
+    "binary": 150,
+    "expected": 98.5,
+    "untapped": -651.5,
+    "links.rca": 7.61,
+    "sum_from": 22858,
+    "sum_to": 10851,
+    "binary.pc": 1.4316,
+    "th.max": 16854.5,
+    "th.max.pc": 0.188,
+    "RD": 11.07,
+    "RD.added": 79.05,
+    "value": 79.05
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Japan (JP)",
+    "domain": "Drones",
+    "full": 457,
+    "binary": 35,
+    "expected": 75.46,
+    "untapped": -99.54,
+    "links.rca": 2.32,
+    "sum_from": 22858,
+    "sum_to": 2968,
+    "binary.pc": 0.334,
+    "th.max": 12913,
+    "th.max.pc": 0.144,
+    "RD": 11.07,
+    "RD.added": 50.42,
+    "value": 50.42
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "South Korea (KR)",
+    "domain": "Drones",
+    "full": 437,
+    "binary": 99,
+    "expected": 84.76,
+    "untapped": -410.24,
+    "links.rca": 5.84,
+    "sum_from": 22858,
+    "sum_to": 6150,
+    "binary.pc": 0.9449,
+    "th.max": 14504,
+    "th.max.pc": 0.1618,
+    "RD": 11.07,
+    "RD.added": 84.23,
+    "value": 84.23
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United Kingdom (GB)",
+    "domain": "Drones",
+    "full": 2392,
+    "binary": 214,
+    "expected": 78.81,
+    "untapped": -991.19,
+    "links.rca": 13.58,
+    "sum_from": 22858,
+    "sum_to": 4114,
+    "binary.pc": 2.0425,
+    "th.max": 13486,
+    "th.max.pc": 0.1504,
+    "RD": 11.07,
+    "RD.added": 8.33,
+    "value": 8.33
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United States (US)",
+    "domain": "Drones",
+    "full": 2220,
+    "binary": 313,
+    "expected": 92.45,
+    "untapped": -1472.55,
+    "links.rca": 16.93,
+    "sum_from": 22858,
+    "sum_to": 8781,
+    "binary.pc": 2.9873,
+    "th.max": 15819.5,
+    "th.max.pc": 0.1765,
+    "RD": 11.07,
+    "RD.added": 0.21,
+    "value": 0.21
+  },
+  {
+    "from": "India (IN)",
+    "to": "Canada (CA)",
+    "domain": "Drones",
+    "full": 113,
+    "binary": 30,
+    "expected": 57.11,
+    "untapped": -92.89,
+    "links.rca": 2.63,
+    "sum_from": 8696,
+    "sum_to": 10851,
+    "binary.pc": 0.2863,
+    "th.max": 9773.5,
+    "th.max.pc": 0.109,
+    "RD": 82.53,
+    "RD.added": 8.86,
+    "value": 8.86
+  },
+  {
+    "from": "India (IN)",
+    "to": "European Union (EU)",
+    "domain": "Drones",
+    "full": 640,
+    "binary": 150,
+    "expected": 98.5,
+    "untapped": -651.5,
+    "links.rca": 7.61,
+    "sum_from": 22858,
+    "sum_to": 10851,
+    "binary.pc": 1.4316,
+    "th.max": 16854.5,
+    "th.max.pc": 0.188,
+    "RD": 82.53,
+    "RD.added": 7.6,
+    "value": 7.6
+  },
+  {
+    "from": "India (IN)",
+    "to": "Japan (JP)",
+    "domain": "Drones",
+    "full": 31,
+    "binary": 16,
+    "expected": 40.38,
+    "untapped": -39.62,
+    "links.rca": 1.98,
+    "sum_from": 10851,
+    "sum_to": 2968,
+    "binary.pc": 0.1527,
+    "th.max": 6909.5,
+    "th.max.pc": 0.0771,
+    "RD": 82.53,
+    "RD.added": 14.02,
+    "value": 14.02
+  },
+  {
+    "from": "India (IN)",
+    "to": "South Korea (KR)",
+    "domain": "Drones",
+    "full": 112,
+    "binary": 31,
+    "expected": 49.68,
+    "untapped": -74.32,
+    "links.rca": 2.5,
+    "sum_from": 10851,
+    "sum_to": 6150,
+    "binary.pc": 0.2367,
+    "th.max": 8500.5,
+    "th.max.pc": 0.0948,
+    "RD": 82.53,
+    "RD.added": 13.8,
+    "value": 13.8
+  },
+  {
+    "from": "India (IN)",
+    "to": "United Kingdom (GB)",
+    "domain": "Drones",
+    "full": 251,
+    "binary": 63,
+    "expected": 43.73,
+    "untapped": -271.27,
+    "links.rca": 7.2,
+    "sum_from": 10851,
+    "sum_to": 4114,
+    "binary.pc": 0.6013,
+    "th.max": 7482.5,
+    "th.max.pc": 0.0835,
+    "RD": 82.53,
+    "RD.added": 9.4,
+    "value": 9.4
+  },
+  {
+    "from": "India (IN)",
+    "to": "United States (US)",
+    "domain": "Drones",
+    "full": 355,
+    "binary": 96,
+    "expected": 57.36,
+    "untapped": -422.64,
+    "links.rca": 8.37,
+    "sum_from": 10851,
+    "sum_to": 8781,
+    "binary.pc": 0.9162,
+    "th.max": 9816,
+    "th.max.pc": 0.1095,
+    "RD": 82.53,
+    "RD.added": 0.79,
+    "value": 0.79
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "Canada (CA)",
+    "domain": "Drones",
+    "full": 48,
+    "binary": 19,
+    "expected": 34.08,
+    "untapped": -60.92,
+    "links.rca": 2.79,
+    "sum_from": 8696,
+    "sum_to": 2968,
+    "binary.pc": 0.1813,
+    "th.max": 5832,
+    "th.max.pc": 0.0651,
+    "RD": 56.91,
+    "RD.added": 27.89,
+    "value": 27.89
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "European Union (EU)",
+    "domain": "Drones",
+    "full": 457,
+    "binary": 35,
+    "expected": 75.46,
+    "untapped": -99.54,
+    "links.rca": 2.32,
+    "sum_from": 22858,
+    "sum_to": 2968,
+    "binary.pc": 0.334,
+    "th.max": 12913,
+    "th.max.pc": 0.144,
+    "RD": 56.91,
+    "RD.added": 4.58,
+    "value": 4.58
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "India (IN)",
+    "domain": "Drones",
+    "full": 31,
+    "binary": 16,
+    "expected": 40.38,
+    "untapped": -39.62,
+    "links.rca": 1.98,
+    "sum_from": 10851,
+    "sum_to": 2968,
+    "binary.pc": 0.1527,
+    "th.max": 6909.5,
+    "th.max.pc": 0.0771,
+    "RD": 56.91,
+    "RD.added": 39.63,
+    "value": 39.63
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "South Korea (KR)",
+    "domain": "Drones",
+    "full": 28,
+    "binary": 6,
+    "expected": 26.64,
+    "untapped": 2.64,
+    "links.rca": 0.9,
+    "sum_from": 2968,
+    "sum_to": 6150,
+    "binary.pc": 0.0458,
+    "th.max": 4559,
+    "th.max.pc": 0.0509,
+    "RD": 56.91,
+    "RD.added": 35.66,
+    "value": 35.66
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United Kingdom (GB)",
+    "domain": "Drones",
+    "full": 167,
+    "binary": 17,
+    "expected": 20.69,
+    "untapped": -64.31,
+    "links.rca": 4.11,
+    "sum_from": 2968,
+    "sum_to": 4114,
+    "binary.pc": 0.1623,
+    "th.max": 3541,
+    "th.max.pc": 0.0395,
+    "RD": 56.91,
+    "RD.added": 1.52,
+    "value": 1.52
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United States (US)",
+    "domain": "Drones",
+    "full": 131,
+    "binary": 34,
+    "expected": 34.33,
+    "untapped": -135.67,
+    "links.rca": 4.95,
+    "sum_from": 2968,
+    "sum_to": 8781,
+    "binary.pc": 0.3245,
+    "th.max": 5874.5,
+    "th.max.pc": 0.0655,
+    "RD": 56.91,
+    "RD.added": 0.47,
+    "value": 0.47
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Canada (CA)",
+    "domain": "Drones",
+    "full": 205,
+    "binary": 38,
+    "expected": 43.38,
+    "untapped": -146.62,
+    "links.rca": 4.38,
+    "sum_from": 8696,
+    "sum_to": 6150,
+    "binary.pc": 0.3627,
+    "th.max": 7423,
+    "th.max.pc": 0.0828,
+    "RD": 92.35,
+    "RD.added": 1.08,
+    "value": 1.08
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "European Union (EU)",
+    "domain": "Drones",
+    "full": 437,
+    "binary": 99,
+    "expected": 84.76,
+    "untapped": -410.24,
+    "links.rca": 5.84,
+    "sum_from": 22858,
+    "sum_to": 6150,
+    "binary.pc": 0.9449,
+    "th.max": 14504,
+    "th.max.pc": 0.1618,
+    "RD": 92.35,
+    "RD.added": 2.95,
+    "value": 2.95
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "India (IN)",
+    "domain": "Drones",
+    "full": 112,
+    "binary": 31,
+    "expected": 49.68,
+    "untapped": -74.32,
+    "links.rca": 2.5,
+    "sum_from": 10851,
+    "sum_to": 6150,
+    "binary.pc": 0.2367,
+    "th.max": 8500.5,
+    "th.max.pc": 0.0948,
+    "RD": 92.35,
+    "RD.added": 3.97,
+    "value": 3.97
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Japan (JP)",
+    "domain": "Drones",
+    "full": 28,
+    "binary": 6,
+    "expected": 26.64,
+    "untapped": 2.64,
+    "links.rca": 0.9,
+    "sum_from": 2968,
+    "sum_to": 6150,
+    "binary.pc": 0.0458,
+    "th.max": 4559,
+    "th.max.pc": 0.0509,
+    "RD": 92.35,
+    "RD.added": 0.22,
+    "value": 0.22
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United Kingdom (GB)",
+    "domain": "Drones",
+    "full": 403,
+    "binary": 55,
+    "expected": 29.99,
+    "untapped": -245.01,
+    "links.rca": 9.17,
+    "sum_from": 6150,
+    "sum_to": 4114,
+    "binary.pc": 0.5249,
+    "th.max": 5132,
+    "th.max.pc": 0.0572,
+    "RD": 92.35,
+    "RD.added": 1.72,
+    "value": 1.72
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United States (US)",
+    "domain": "Drones",
+    "full": 843,
+    "binary": 204,
+    "expected": 43.63,
+    "untapped": -976.37,
+    "links.rca": 23.38,
+    "sum_from": 6150,
+    "sum_to": 8781,
+    "binary.pc": 1.947,
+    "th.max": 7465.5,
+    "th.max.pc": 0.0833,
+    "RD": 92.35,
+    "RD.added": 0.64,
+    "value": 0.64
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Canada (CA)",
+    "domain": "Drones",
+    "full": 679,
+    "binary": 103,
+    "expected": 37.43,
+    "untapped": -477.57,
+    "links.rca": 13.76,
+    "sum_from": 8696,
+    "sum_to": 4114,
+    "binary.pc": 0.983,
+    "th.max": 6405,
+    "th.max.pc": 0.0714,
+    "RD": 9.6,
+    "RD.added": 27.03,
+    "value": 27.03
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "European Union (EU)",
+    "domain": "Drones",
+    "full": 2392,
+    "binary": 214,
+    "expected": 78.81,
+    "untapped": -991.19,
+    "links.rca": 13.58,
+    "sum_from": 22858,
+    "sum_to": 4114,
+    "binary.pc": 2.0425,
+    "th.max": 13486,
+    "th.max.pc": 0.1504,
+    "RD": 9.6,
+    "RD.added": 9.81,
+    "value": 9.81
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "India (IN)",
+    "domain": "Drones",
+    "full": 251,
+    "binary": 63,
+    "expected": 43.73,
+    "untapped": -271.27,
+    "links.rca": 7.2,
+    "sum_from": 10851,
+    "sum_to": 4114,
+    "binary.pc": 0.6013,
+    "th.max": 7482.5,
+    "th.max.pc": 0.0835,
+    "RD": 9.6,
+    "RD.added": 82.33,
+    "value": 82.33
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Japan (JP)",
+    "domain": "Drones",
+    "full": 167,
+    "binary": 17,
+    "expected": 20.69,
+    "untapped": -64.31,
+    "links.rca": 4.11,
+    "sum_from": 2968,
+    "sum_to": 4114,
+    "binary.pc": 0.1623,
+    "th.max": 3541,
+    "th.max.pc": 0.0395,
+    "RD": 9.6,
+    "RD.added": 48.83,
+    "value": 48.83
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "South Korea (KR)",
+    "domain": "Drones",
+    "full": 403,
+    "binary": 55,
+    "expected": 29.99,
+    "untapped": -245.01,
+    "links.rca": 9.17,
+    "sum_from": 6150,
+    "sum_to": 4114,
+    "binary.pc": 0.5249,
+    "th.max": 5132,
+    "th.max.pc": 0.0572,
+    "RD": 9.6,
+    "RD.added": 84.48,
+    "value": 84.48
+  },
+  {
+    "from": "United States (US)",
+    "to": "Canada (CA)",
+    "domain": "Drones",
+    "full": 609,
+    "binary": 100,
+    "expected": 51.07,
+    "untapped": -448.93,
+    "links.rca": 9.79,
+    "sum_from": 8696,
+    "sum_to": 8781,
+    "binary.pc": 0.9544,
+    "th.max": 8738.5,
+    "th.max.pc": 0.0975,
+    "RD": 0.92,
+    "RD.added": 35.18,
+    "value": 35.18
+  },
+  {
+    "from": "United States (US)",
+    "to": "European Union (EU)",
+    "domain": "Drones",
+    "full": 2220,
+    "binary": 313,
+    "expected": 92.45,
+    "untapped": -1472.55,
+    "links.rca": 16.93,
+    "sum_from": 22858,
+    "sum_to": 8781,
+    "binary.pc": 2.9873,
+    "th.max": 15819.5,
+    "th.max.pc": 0.1765,
+    "RD": 0.92,
+    "RD.added": 10.36,
+    "value": 10.36
+  },
+  {
+    "from": "United States (US)",
+    "to": "India (IN)",
+    "domain": "Drones",
+    "full": 355,
+    "binary": 96,
+    "expected": 57.36,
+    "untapped": -422.64,
+    "links.rca": 8.37,
+    "sum_from": 10851,
+    "sum_to": 8781,
+    "binary.pc": 0.9162,
+    "th.max": 9816,
+    "th.max.pc": 0.1095,
+    "RD": 0.92,
+    "RD.added": 82.4,
+    "value": 82.4
+  },
+  {
+    "from": "United States (US)",
+    "to": "Japan (JP)",
+    "domain": "Drones",
+    "full": 131,
+    "binary": 34,
+    "expected": 34.33,
+    "untapped": -135.67,
+    "links.rca": 4.95,
+    "sum_from": 2968,
+    "sum_to": 8781,
+    "binary.pc": 0.3245,
+    "th.max": 5874.5,
+    "th.max.pc": 0.0655,
+    "RD": 0.92,
+    "RD.added": 56.46,
+    "value": 56.46
+  },
+  {
+    "from": "United States (US)",
+    "to": "South Korea (KR)",
+    "domain": "Drones",
+    "full": 843,
+    "binary": 204,
+    "expected": 43.63,
+    "untapped": -976.37,
+    "links.rca": 23.38,
+    "sum_from": 6150,
+    "sum_to": 8781,
+    "binary.pc": 1.947,
+    "th.max": 7465.5,
+    "th.max.pc": 0.0833,
+    "RD": 0.92,
+    "RD.added": 92.08,
+    "value": 92.08
+  }
+] 
+
+            const froms = Array.from(new Set(data.map(d => d.from))).sort();
+            const tos = Array.from(new Set(data.map(d => d.to))).sort();
+
+            const vizContainer = document.getElementById('viz-container');
+            const legendContainer = document.getElementById('legend-container');
+            const tooltip = d3.select("#tooltip");
+
+            d3.select("#viz-container svg").remove();
+            d3.select("#legend svg").remove();
+
+            const width = vizContainer.clientWidth;
+            const height = vizContainer.clientHeight;
+            const margin = { top: 50, right: 50, bottom: 100, left: 150 };
+            const availableWidth = width - margin.left - margin.right;
+            const availableHeight = height - margin.top - margin.bottom;
+
+            const size = Math.min(availableWidth, availableHeight);
+
+            const svg = d3.select("#viz-container")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left + (availableWidth - size) / 2}, ${margin.top + (availableHeight - size) / 2})`);
+
+            const x = d3.scaleBand()
+                .range([0, size])
+                .domain(tos)
+                .padding(0.01);
+
+            const y = d3.scaleBand()
+                .range([0, size])
+                .domain(froms)
+                .padding(0.01);
+
+            const maxVal = d3.max(data, d => d.value);
+            const color = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range(["#ffffff", "#376bbe"]);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + size + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
+
+            svg.append("g")
+                .call(d3.axisLeft(y))
+                .style("font-size", "10px");
+
+            svg.selectAll()
+                .data(data, function (d) { return d.isKey ? (d.from + ':' + d.to) : (this.id); })
+                .enter()
+                .append("rect")
+                .attr("x", function (d) { return x(d.to) })
+                .attr("y", function (d) { return y(d.from) })
+                .attr("width", x.bandwidth())
+                .attr("height", y.bandwidth())
+                .style("fill", function (d) {
+                    return d.from === d.to ? "#8f9194" : color(d.value);
+                })
+                .style("stroke", "#eee")
+                .style("stroke-width", 1)
+                .on("mouseover", function (event, d) {
+                    d3.select(this).style("stroke", "black").style("stroke-width", 2);
+                    tooltip.style("opacity", 1);
+                    tooltip.html(`From: <b>${d.from}</b><br>To: <b>${d.to}</b><br>Value: <b>${d.value}</b>`);
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mousemove", function (event) {
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseleave", function (d) {
+                    d3.select(this).style("stroke", "#eee").style("stroke-width", 1);
+                    tooltip.style("opacity", 0);
+                });
+
+            const legendHeight = size * 0.8;
+            const legendWidth = Math.max(10, size * 0.04);
+            const legendFontSize = Math.max(10, size * 0.02);
+
+            d3.select("#legend-title")
+                .style("font-size", Math.max(9, size * 0.018) + "px")
+                .style("margin-bottom", Math.max(10, size * 0.02) + "px");
+
+            const legendSvg = d3.select("#legend")
+                .append("svg")
+                .attr("width", legendWidth + 60)
+                .attr("height", legendHeight + 20);
+
+            const defs = legendSvg.append("defs");
+            const linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+
+            linearGradient
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
+
+            linearGradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#ffffff");
+
+            linearGradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#376bbe");
+
+            legendSvg.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", "url(#linear-gradient)")
+                .style("stroke", "#ccc")
+                .attr("transform", "translate(0, 10)");
+
+            const legendScale = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range([legendHeight, 0]);
+
+            const legendAxis = d3.axisRight(legendScale)
+                .ticks(5);
+
+            legendSvg.append("g")
+                .attr("class", "legend-axis")
+                .attr("transform", `translate(${legendWidth}, 10)`)
+                .call(legendAxis)
+                .style("font-size", legendFontSize + "px");
+
+        }
+
+        drawViz();
+        window.addEventListener('resize', drawViz);
+
+    </script>
+</body>
+
+</html>

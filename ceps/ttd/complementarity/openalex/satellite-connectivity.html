@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #viz-container {
+            width: 88%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #legend-container {
+            width: 12%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        #legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .axis-label {
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="viz-container">
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        <div id="legend-container">
+            <div id="legend-title">Complementarity</div>
+            <div id="legend"></div>
+        </div>
+    </div>
+
+    <script>
+        async function drawViz() {
+            const data =  [
+  {
+    "from": "Canada (CA)",
+    "to": "European Union (EU)",
+    "domain": "Satellite Connectivity",
+    "full": 124106,
+    "binary": 167,
+    "expected": 205.45,
+    "untapped": -629.55,
+    "links.rca": 4.06,
+    "sum_from": 9588,
+    "sum_to": 40756,
+    "binary.pc": 0.8721,
+    "th.max": 25172,
+    "th.max.pc": 0.2146,
+    "RD": 35.56,
+    "RD.added": 15.88,
+    "value": 15.88
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "India (IN)",
+    "domain": "Satellite Connectivity",
+    "full": 242,
+    "binary": 27,
+    "expected": 75.53,
+    "untapped": -32.47,
+    "links.rca": 1.43,
+    "sum_from": 9588,
+    "sum_to": 8920,
+    "binary.pc": 0.1128,
+    "th.max": 9254,
+    "th.max.pc": 0.0789,
+    "RD": 35.56,
+    "RD.added": 49.3,
+    "value": 49.3
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "Japan (JP)",
+    "domain": "Satellite Connectivity",
+    "full": 738,
+    "binary": 25,
+    "expected": 61.64,
+    "untapped": -63.36,
+    "links.rca": 2.03,
+    "sum_from": 9588,
+    "sum_to": 5517,
+    "binary.pc": 0.1305,
+    "th.max": 7552.5,
+    "th.max.pc": 0.0644,
+    "RD": 35.56,
+    "RD.added": 52.94,
+    "value": 52.94
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 273,
+    "binary": 23,
+    "expected": 61.57,
+    "untapped": -53.43,
+    "links.rca": 1.87,
+    "sum_from": 9588,
+    "sum_to": 5499,
+    "binary.pc": 0.1201,
+    "th.max": 7543.5,
+    "th.max.pc": 0.0643,
+    "RD": 35.56,
+    "RD.added": 50.51,
+    "value": 50.51
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United Kingdom (GB)",
+    "domain": "Satellite Connectivity",
+    "full": 11852,
+    "binary": 114,
+    "expected": 66.93,
+    "untapped": -503.07,
+    "links.rca": 8.52,
+    "sum_from": 9588,
+    "sum_to": 6813,
+    "binary.pc": 0.5953,
+    "th.max": 8200.5,
+    "th.max.pc": 0.0699,
+    "RD": 35.56,
+    "RD.added": 10.57,
+    "value": 10.57
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United States (US)",
+    "domain": "Satellite Connectivity",
+    "full": 132314,
+    "binary": 179,
+    "expected": 122.13,
+    "untapped": -772.87,
+    "links.rca": 7.33,
+    "sum_from": 9588,
+    "sum_to": 20338,
+    "binary.pc": 0.9347,
+    "th.max": 14963,
+    "th.max.pc": 0.1275,
+    "RD": 35.56,
+    "RD.added": 12.38,
+    "value": 12.38
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Canada (CA)",
+    "domain": "Satellite Connectivity",
+    "full": 124106,
+    "binary": 167,
+    "expected": 205.45,
+    "untapped": -629.55,
+    "links.rca": 4.06,
+    "sum_from": 9588,
+    "sum_to": 40756,
+    "binary.pc": 0.8721,
+    "th.max": 25172,
+    "th.max.pc": 0.2146,
+    "RD": 18.22,
+    "RD.added": 33.23,
+    "value": 33.23
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "India (IN)",
+    "domain": "Satellite Connectivity",
+    "full": 2133,
+    "binary": 112,
+    "expected": 202.73,
+    "untapped": -357.27,
+    "links.rca": 2.76,
+    "sum_from": 40756,
+    "sum_to": 8920,
+    "binary.pc": 0.5849,
+    "th.max": 24838,
+    "th.max.pc": 0.2117,
+    "RD": 18.22,
+    "RD.added": 79.42,
+    "value": 79.42
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Japan (JP)",
+    "domain": "Satellite Connectivity",
+    "full": 27774,
+    "binary": 126,
+    "expected": 188.84,
+    "untapped": -441.16,
+    "links.rca": 3.34,
+    "sum_from": 40756,
+    "sum_to": 5517,
+    "binary.pc": 0.658,
+    "th.max": 23136.5,
+    "th.max.pc": 0.1972,
+    "RD": 18.22,
+    "RD.added": 39.35,
+    "value": 39.35
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 595,
+    "binary": 87,
+    "expected": 188.77,
+    "untapped": -246.23,
+    "links.rca": 2.3,
+    "sum_from": 40756,
+    "sum_to": 5499,
+    "binary.pc": 0.4543,
+    "th.max": 23127.5,
+    "th.max.pc": 0.1971,
+    "RD": 18.22,
+    "RD.added": 78.65,
+    "value": 78.65
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United Kingdom (GB)",
+    "domain": "Satellite Connectivity",
+    "full": 137685,
+    "binary": 578,
+    "expected": 194.13,
+    "untapped": -2695.87,
+    "links.rca": 14.89,
+    "sum_from": 40756,
+    "sum_to": 6813,
+    "binary.pc": 3.0183,
+    "th.max": 23784.5,
+    "th.max.pc": 0.2027,
+    "RD": 18.22,
+    "RD.added": 0.5,
+    "value": 0.5
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United States (US)",
+    "domain": "Satellite Connectivity",
+    "full": 1494425,
+    "binary": 750,
+    "expected": 249.32,
+    "untapped": -3500.68,
+    "links.rca": 15.04,
+    "sum_from": 40756,
+    "sum_to": 20338,
+    "binary.pc": 3.9164,
+    "th.max": 30547,
+    "th.max.pc": 0.2604,
+    "RD": 18.22,
+    "RD.added": 0.59,
+    "value": 0.59
+  },
+  {
+    "from": "India (IN)",
+    "to": "Canada (CA)",
+    "domain": "Satellite Connectivity",
+    "full": 242,
+    "binary": 27,
+    "expected": 75.53,
+    "untapped": -32.47,
+    "links.rca": 1.43,
+    "sum_from": 9588,
+    "sum_to": 8920,
+    "binary.pc": 0.1128,
+    "th.max": 9254,
+    "th.max.pc": 0.0789,
+    "RD": 82.88,
+    "RD.added": 1.99,
+    "value": 1.99
+  },
+  {
+    "from": "India (IN)",
+    "to": "European Union (EU)",
+    "domain": "Satellite Connectivity",
+    "full": 2133,
+    "binary": 112,
+    "expected": 202.73,
+    "untapped": -357.27,
+    "links.rca": 2.76,
+    "sum_from": 40756,
+    "sum_to": 8920,
+    "binary.pc": 0.5849,
+    "th.max": 24838,
+    "th.max.pc": 0.2117,
+    "RD": 82.88,
+    "RD.added": 14.75,
+    "value": 14.75
+  },
+  {
+    "from": "India (IN)",
+    "to": "Japan (JP)",
+    "domain": "Satellite Connectivity",
+    "full": 151,
+    "binary": 21,
+    "expected": 58.92,
+    "untapped": -25.08,
+    "links.rca": 1.43,
+    "sum_from": 8920,
+    "sum_to": 5517,
+    "binary.pc": 0.0877,
+    "th.max": 7218.5,
+    "th.max.pc": 0.0615,
+    "RD": 82.88,
+    "RD.added": 14.3,
+    "value": 14.3
+  },
+  {
+    "from": "India (IN)",
+    "to": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 64,
+    "binary": 18,
+    "expected": 58.84,
+    "untapped": -13.16,
+    "links.rca": 1.22,
+    "sum_from": 8920,
+    "sum_to": 5499,
+    "binary.pc": 0.0752,
+    "th.max": 7209.5,
+    "th.max.pc": 0.0615,
+    "RD": 82.88,
+    "RD.added": 3.77,
+    "value": 3.77
+  },
+  {
+    "from": "India (IN)",
+    "to": "United Kingdom (GB)",
+    "domain": "Satellite Connectivity",
+    "full": 290,
+    "binary": 50,
+    "expected": 64.21,
+    "untapped": -185.79,
+    "links.rca": 3.89,
+    "sum_from": 8920,
+    "sum_to": 6813,
+    "binary.pc": 0.2611,
+    "th.max": 7866.5,
+    "th.max.pc": 0.0671,
+    "RD": 82.88,
+    "RD.added": 11.97,
+    "value": 11.97
+  },
+  {
+    "from": "India (IN)",
+    "to": "United States (US)",
+    "domain": "Satellite Connectivity",
+    "full": 2305,
+    "binary": 104,
+    "expected": 119.4,
+    "untapped": -400.6,
+    "links.rca": 4.36,
+    "sum_from": 8920,
+    "sum_to": 20338,
+    "binary.pc": 0.5431,
+    "th.max": 14629,
+    "th.max.pc": 0.1247,
+    "RD": 82.88,
+    "RD.added": 12.32,
+    "value": 12.32
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "Canada (CA)",
+    "domain": "Satellite Connectivity",
+    "full": 738,
+    "binary": 25,
+    "expected": 61.64,
+    "untapped": -63.36,
+    "links.rca": 2.03,
+    "sum_from": 9588,
+    "sum_to": 5517,
+    "binary.pc": 0.1305,
+    "th.max": 7552.5,
+    "th.max.pc": 0.0644,
+    "RD": 54.57,
+    "RD.added": 33.94,
+    "value": 33.94
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "European Union (EU)",
+    "domain": "Satellite Connectivity",
+    "full": 27774,
+    "binary": 126,
+    "expected": 188.84,
+    "untapped": -441.16,
+    "links.rca": 3.34,
+    "sum_from": 40756,
+    "sum_to": 5517,
+    "binary.pc": 0.658,
+    "th.max": 23136.5,
+    "th.max.pc": 0.1972,
+    "RD": 54.57,
+    "RD.added": 3.01,
+    "value": 3.01
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "India (IN)",
+    "domain": "Satellite Connectivity",
+    "full": 151,
+    "binary": 21,
+    "expected": 58.92,
+    "untapped": -25.08,
+    "links.rca": 1.43,
+    "sum_from": 8920,
+    "sum_to": 5517,
+    "binary.pc": 0.0877,
+    "th.max": 7218.5,
+    "th.max.pc": 0.0615,
+    "RD": 54.57,
+    "RD.added": 42.62,
+    "value": 42.62
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 24,
+    "binary": 5,
+    "expected": 44.96,
+    "untapped": 29.96,
+    "links.rca": 0.33,
+    "sum_from": 5517,
+    "sum_to": 5499,
+    "binary.pc": 0.0157,
+    "th.max": 5508,
+    "th.max.pc": 0.047,
+    "RD": 54.57,
+    "RD.added": 41.18,
+    "value": 41.18
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United Kingdom (GB)",
+    "domain": "Satellite Connectivity",
+    "full": 1552,
+    "binary": 57,
+    "expected": 50.32,
+    "untapped": -234.68,
+    "links.rca": 5.66,
+    "sum_from": 5517,
+    "sum_to": 6813,
+    "binary.pc": 0.2977,
+    "th.max": 6165,
+    "th.max.pc": 0.0526,
+    "RD": 54.57,
+    "RD.added": 0.86,
+    "value": 0.86
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United States (US)",
+    "domain": "Satellite Connectivity",
+    "full": 7317,
+    "binary": 86,
+    "expected": 105.51,
+    "untapped": -324.49,
+    "links.rca": 4.08,
+    "sum_from": 5517,
+    "sum_to": 20338,
+    "binary.pc": 0.4491,
+    "th.max": 12927.5,
+    "th.max.pc": 0.1102,
+    "RD": 54.57,
+    "RD.added": 1.88,
+    "value": 1.88
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Canada (CA)",
+    "domain": "Satellite Connectivity",
+    "full": 273,
+    "binary": 23,
+    "expected": 61.57,
+    "untapped": -53.43,
+    "links.rca": 1.87,
+    "sum_from": 9588,
+    "sum_to": 5499,
+    "binary.pc": 0.1201,
+    "th.max": 7543.5,
+    "th.max.pc": 0.0643,
+    "RD": 85.07,
+    "RD.added": 1,
+    "value": 1
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "European Union (EU)",
+    "domain": "Satellite Connectivity",
+    "full": 595,
+    "binary": 87,
+    "expected": 188.77,
+    "untapped": -246.23,
+    "links.rca": 2.3,
+    "sum_from": 40756,
+    "sum_to": 5499,
+    "binary.pc": 0.4543,
+    "th.max": 23127.5,
+    "th.max.pc": 0.1971,
+    "RD": 85.07,
+    "RD.added": 11.79,
+    "value": 11.79
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "India (IN)",
+    "domain": "Satellite Connectivity",
+    "full": 64,
+    "binary": 18,
+    "expected": 58.84,
+    "untapped": -13.16,
+    "links.rca": 1.22,
+    "sum_from": 8920,
+    "sum_to": 5499,
+    "binary.pc": 0.0752,
+    "th.max": 7209.5,
+    "th.max.pc": 0.0615,
+    "RD": 85.07,
+    "RD.added": 1.58,
+    "value": 1.58
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Japan (JP)",
+    "domain": "Satellite Connectivity",
+    "full": 24,
+    "binary": 5,
+    "expected": 44.96,
+    "untapped": 29.96,
+    "links.rca": 0.33,
+    "sum_from": 5517,
+    "sum_to": 5499,
+    "binary.pc": 0.0157,
+    "th.max": 5508,
+    "th.max.pc": 0.047,
+    "RD": 85.07,
+    "RD.added": 10.68,
+    "value": 10.68
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United Kingdom (GB)",
+    "domain": "Satellite Connectivity",
+    "full": 679,
+    "binary": 71,
+    "expected": 50.24,
+    "untapped": -304.76,
+    "links.rca": 7.07,
+    "sum_from": 5499,
+    "sum_to": 6813,
+    "binary.pc": 0.3708,
+    "th.max": 6156,
+    "th.max.pc": 0.0525,
+    "RD": 85.07,
+    "RD.added": 11.09,
+    "value": 11.09
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United States (US)",
+    "domain": "Satellite Connectivity",
+    "full": 1661,
+    "binary": 152,
+    "expected": 105.44,
+    "untapped": -654.56,
+    "links.rca": 7.21,
+    "sum_from": 5499,
+    "sum_to": 20338,
+    "binary.pc": 0.7937,
+    "th.max": 12918.5,
+    "th.max.pc": 0.1101,
+    "RD": 85.07,
+    "RD.added": 10.97,
+    "value": 10.97
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Canada (CA)",
+    "domain": "Satellite Connectivity",
+    "full": 11852,
+    "binary": 114,
+    "expected": 66.93,
+    "untapped": -503.07,
+    "links.rca": 8.52,
+    "sum_from": 9588,
+    "sum_to": 6813,
+    "binary.pc": 0.5953,
+    "th.max": 8200.5,
+    "th.max.pc": 0.0699,
+    "RD": 12.51,
+    "RD.added": 33.62,
+    "value": 33.62
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "European Union (EU)",
+    "domain": "Satellite Connectivity",
+    "full": 137685,
+    "binary": 578,
+    "expected": 194.13,
+    "untapped": -2695.87,
+    "links.rca": 14.89,
+    "sum_from": 40756,
+    "sum_to": 6813,
+    "binary.pc": 3.0183,
+    "th.max": 23784.5,
+    "th.max.pc": 0.2027,
+    "RD": 12.51,
+    "RD.added": 6.2,
+    "value": 6.2
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "India (IN)",
+    "domain": "Satellite Connectivity",
+    "full": 290,
+    "binary": 50,
+    "expected": 64.21,
+    "untapped": -185.79,
+    "links.rca": 3.89,
+    "sum_from": 8920,
+    "sum_to": 6813,
+    "binary.pc": 0.2611,
+    "th.max": 7866.5,
+    "th.max.pc": 0.0671,
+    "RD": 12.51,
+    "RD.added": 82.34,
+    "value": 82.34
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Japan (JP)",
+    "domain": "Satellite Connectivity",
+    "full": 1552,
+    "binary": 57,
+    "expected": 50.32,
+    "untapped": -234.68,
+    "links.rca": 5.66,
+    "sum_from": 5517,
+    "sum_to": 6813,
+    "binary.pc": 0.2977,
+    "th.max": 6165,
+    "th.max.pc": 0.0526,
+    "RD": 12.51,
+    "RD.added": 42.92,
+    "value": 42.92
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 679,
+    "binary": 71,
+    "expected": 50.24,
+    "untapped": -304.76,
+    "links.rca": 7.07,
+    "sum_from": 5499,
+    "sum_to": 6813,
+    "binary.pc": 0.3708,
+    "th.max": 6156,
+    "th.max.pc": 0.0525,
+    "RD": 12.51,
+    "RD.added": 83.65,
+    "value": 83.65
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "United States (US)",
+    "domain": "Satellite Connectivity",
+    "full": 137021,
+    "binary": 316,
+    "expected": 110.8,
+    "untapped": -1469.2,
+    "links.rca": 14.26,
+    "sum_from": 6813,
+    "sum_to": 20338,
+    "binary.pc": 1.6501,
+    "th.max": 13575.5,
+    "th.max.pc": 0.1157,
+    "RD": 12.51,
+    "RD.added": 2.49,
+    "value": 2.49
+  },
+  {
+    "from": "United States (US)",
+    "to": "Canada (CA)",
+    "domain": "Satellite Connectivity",
+    "full": 132314,
+    "binary": 179,
+    "expected": 122.13,
+    "untapped": -772.87,
+    "links.rca": 7.33,
+    "sum_from": 9588,
+    "sum_to": 20338,
+    "binary.pc": 0.9347,
+    "th.max": 14963,
+    "th.max.pc": 0.1275,
+    "RD": 14.27,
+    "RD.added": 33.67,
+    "value": 33.67
+  },
+  {
+    "from": "United States (US)",
+    "to": "European Union (EU)",
+    "domain": "Satellite Connectivity",
+    "full": 1494425,
+    "binary": 750,
+    "expected": 249.32,
+    "untapped": -3500.68,
+    "links.rca": 15.04,
+    "sum_from": 40756,
+    "sum_to": 20338,
+    "binary.pc": 3.9164,
+    "th.max": 30547,
+    "th.max.pc": 0.2604,
+    "RD": 14.27,
+    "RD.added": 4.54,
+    "value": 4.54
+  },
+  {
+    "from": "United States (US)",
+    "to": "India (IN)",
+    "domain": "Satellite Connectivity",
+    "full": 2305,
+    "binary": 104,
+    "expected": 119.4,
+    "untapped": -400.6,
+    "links.rca": 4.36,
+    "sum_from": 8920,
+    "sum_to": 20338,
+    "binary.pc": 0.5431,
+    "th.max": 14629,
+    "th.max.pc": 0.1247,
+    "RD": 14.27,
+    "RD.added": 80.93,
+    "value": 80.93
+  },
+  {
+    "from": "United States (US)",
+    "to": "Japan (JP)",
+    "domain": "Satellite Connectivity",
+    "full": 7317,
+    "binary": 86,
+    "expected": 105.51,
+    "untapped": -324.49,
+    "links.rca": 4.08,
+    "sum_from": 5517,
+    "sum_to": 20338,
+    "binary.pc": 0.4491,
+    "th.max": 12927.5,
+    "th.max.pc": 0.1102,
+    "RD": 14.27,
+    "RD.added": 42.17,
+    "value": 42.17
+  },
+  {
+    "from": "United States (US)",
+    "to": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 1661,
+    "binary": 152,
+    "expected": 105.44,
+    "untapped": -654.56,
+    "links.rca": 7.21,
+    "sum_from": 5499,
+    "sum_to": 20338,
+    "binary.pc": 0.7937,
+    "th.max": 12918.5,
+    "th.max.pc": 0.1101,
+    "RD": 14.27,
+    "RD.added": 81.77,
+    "value": 81.77
+  },
+  {
+    "from": "United States (US)",
+    "to": "United Kingdom (GB)",
+    "domain": "Satellite Connectivity",
+    "full": 137021,
+    "binary": 316,
+    "expected": 110.8,
+    "untapped": -1469.2,
+    "links.rca": 14.26,
+    "sum_from": 6813,
+    "sum_to": 20338,
+    "binary.pc": 1.6501,
+    "th.max": 13575.5,
+    "th.max.pc": 0.1157,
+    "RD": 14.27,
+    "RD.added": 0.73,
+    "value": 0.73
+  }
+] 
+
+            const froms = Array.from(new Set(data.map(d => d.from))).sort();
+            const tos = Array.from(new Set(data.map(d => d.to))).sort();
+
+            const vizContainer = document.getElementById('viz-container');
+            const legendContainer = document.getElementById('legend-container');
+            const tooltip = d3.select("#tooltip");
+
+            d3.select("#viz-container svg").remove();
+            d3.select("#legend svg").remove();
+
+            const width = vizContainer.clientWidth;
+            const height = vizContainer.clientHeight;
+            const margin = { top: 50, right: 50, bottom: 100, left: 150 };
+            const availableWidth = width - margin.left - margin.right;
+            const availableHeight = height - margin.top - margin.bottom;
+
+            const size = Math.min(availableWidth, availableHeight);
+
+            const svg = d3.select("#viz-container")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left + (availableWidth - size) / 2}, ${margin.top + (availableHeight - size) / 2})`);
+
+            const x = d3.scaleBand()
+                .range([0, size])
+                .domain(tos)
+                .padding(0.01);
+
+            const y = d3.scaleBand()
+                .range([0, size])
+                .domain(froms)
+                .padding(0.01);
+
+            const maxVal = d3.max(data, d => d.value);
+            const color = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range(["#ffffff", "#376bbe"]);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + size + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
+
+            svg.append("g")
+                .call(d3.axisLeft(y))
+                .style("font-size", "10px");
+
+            svg.selectAll()
+                .data(data, function (d) { return d.isKey ? (d.from + ':' + d.to) : (this.id); })
+                .enter()
+                .append("rect")
+                .attr("x", function (d) { return x(d.to) })
+                .attr("y", function (d) { return y(d.from) })
+                .attr("width", x.bandwidth())
+                .attr("height", y.bandwidth())
+                .style("fill", function (d) {
+                    return d.from === d.to ? "#8f9194" : color(d.value);
+                })
+                .style("stroke", "#eee")
+                .style("stroke-width", 1)
+                .on("mouseover", function (event, d) {
+                    d3.select(this).style("stroke", "black").style("stroke-width", 2);
+                    tooltip.style("opacity", 1);
+                    tooltip.html(`From: <b>${d.from}</b><br>To: <b>${d.to}</b><br>Value: <b>${d.value}</b>`);
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mousemove", function (event) {
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseleave", function (d) {
+                    d3.select(this).style("stroke", "#eee").style("stroke-width", 1);
+                    tooltip.style("opacity", 0);
+                });
+
+            const legendHeight = size * 0.8;
+            const legendWidth = Math.max(10, size * 0.04);
+            const legendFontSize = Math.max(10, size * 0.02);
+
+            d3.select("#legend-title")
+                .style("font-size", Math.max(9, size * 0.018) + "px")
+                .style("margin-bottom", Math.max(10, size * 0.02) + "px");
+
+            const legendSvg = d3.select("#legend")
+                .append("svg")
+                .attr("width", legendWidth + 60)
+                .attr("height", legendHeight + 20);
+
+            const defs = legendSvg.append("defs");
+            const linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+
+            linearGradient
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
+
+            linearGradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#ffffff");
+
+            linearGradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#376bbe");
+
+            legendSvg.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", "url(#linear-gradient)")
+                .style("stroke", "#ccc")
+                .attr("transform", "translate(0, 10)");
+
+            const legendScale = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range([legendHeight, 0]);
+
+            const legendAxis = d3.axisRight(legendScale)
+                .ticks(5);
+
+            legendSvg.append("g")
+                .attr("class", "legend-axis")
+                .attr("transform", `translate(${legendWidth}, 10)`)
+                .call(legendAxis)
+                .style("font-size", legendFontSize + "px");
+
+        }
+
+        drawViz();
+        window.addEventListener('resize', drawViz);
+
+    </script>
+</body>
+
+</html>

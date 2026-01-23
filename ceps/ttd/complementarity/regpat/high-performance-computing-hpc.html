@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #viz-container {
+            width: 88%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #legend-container {
+            width: 12%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        #legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .axis-label {
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="viz-container">
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        <div id="legend-container">
+            <div id="legend-title">Complementarity</div>
+            <div id="legend"></div>
+        </div>
+    </div>
+
+    <script>
+        async function drawViz() {
+            const data =  [
+  {
+    "from": "Canada (CA)",
+    "to": "European Union (EU)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 307,
+    "binary": 50,
+    "expected": 160.73,
+    "untapped": -89.27,
+    "links.rca": 1.56,
+    "sum_from": 2298,
+    "sum_to": 14061,
+    "binary.pc": 0.4275,
+    "th.max": 8179.5,
+    "th.max.pc": 0.2748,
+    "RD": 41.71,
+    "RD.added": 11.54,
+    "value": 11.54
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "India (IN)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 17,
+    "binary": 6,
+    "expected": 45.14,
+    "untapped": 15.14,
+    "links.rca": 0.66,
+    "sum_from": 2298,
+    "sum_to": 2296,
+    "binary.pc": 0.0513,
+    "th.max": 2297,
+    "th.max.pc": 0.0772,
+    "RD": 41.71,
+    "RD.added": 8.73,
+    "value": 8.73
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 16,
+    "binary": 3,
+    "expected": 203.43,
+    "untapped": 200.43,
+    "links.rca": 0.01,
+    "sum_from": 2298,
+    "sum_to": 18407,
+    "binary.pc": 0.0051,
+    "th.max": 10352.5,
+    "th.max.pc": 0.3479,
+    "RD": 41.71,
+    "RD.added": 38.78,
+    "value": 38.78
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "South Korea (KR)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 1,
+    "binary": 1,
+    "expected": 109.06,
+    "untapped": 108.06,
+    "links.rca": 0.01,
+    "sum_from": 2298,
+    "sum_to": 8802,
+    "binary.pc": 0.0017,
+    "th.max": 5550,
+    "th.max.pc": 0.1865,
+    "RD": 41.71,
+    "RD.added": 25.94,
+    "value": 25.94
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United Kingdom (GB)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 25,
+    "binary": 12,
+    "expected": 44.05,
+    "untapped": -15.95,
+    "links.rca": 1.36,
+    "sum_from": 2298,
+    "sum_to": 2185,
+    "binary.pc": 0.1026,
+    "th.max": 2241.5,
+    "th.max.pc": 0.0753,
+    "RD": 41.71,
+    "RD.added": 2.98,
+    "value": 2.98
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United States (US)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 613,
+    "binary": 103,
+    "expected": 436.82,
+    "untapped": -78.18,
+    "links.rca": 1.18,
+    "sum_from": 2298,
+    "sum_to": 42161,
+    "binary.pc": 0.8806,
+    "th.max": 22229.5,
+    "th.max.pc": 0.7469,
+    "RD": 41.71,
+    "RD.added": 19.8,
+    "value": 19.8
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Canada (CA)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 307,
+    "binary": 50,
+    "expected": 160.73,
+    "untapped": -89.27,
+    "links.rca": 1.56,
+    "sum_from": 2298,
+    "sum_to": 14061,
+    "binary.pc": 0.4275,
+    "th.max": 8179.5,
+    "th.max.pc": 0.2748,
+    "RD": 15.12,
+    "RD.added": 38.13,
+    "value": 38.13
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "India (IN)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 209,
+    "binary": 40,
+    "expected": 160.71,
+    "untapped": -39.29,
+    "links.rca": 1.24,
+    "sum_from": 14061,
+    "sum_to": 2296,
+    "binary.pc": 0.342,
+    "th.max": 8178.5,
+    "th.max.pc": 0.2748,
+    "RD": 15.12,
+    "RD.added": 28.7,
+    "value": 28.7
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 46,
+    "binary": 19,
+    "expected": 319.01,
+    "untapped": 224.01,
+    "links.rca": 0.3,
+    "sum_from": 14061,
+    "sum_to": 18407,
+    "binary.pc": 0.1624,
+    "th.max": 16234,
+    "th.max.pc": 0.5455,
+    "RD": 15.12,
+    "RD.added": 37.49,
+    "value": 37.49
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "South Korea (KR)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 10,
+    "binary": 3,
+    "expected": 224.64,
+    "untapped": 215.64,
+    "links.rca": 0.04,
+    "sum_from": 14061,
+    "sum_to": 8802,
+    "binary.pc": 0.0154,
+    "th.max": 11431.5,
+    "th.max.pc": 0.3841,
+    "RD": 15.12,
+    "RD.added": 33.98,
+    "value": 33.98
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United Kingdom (GB)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 235,
+    "binary": 66,
+    "expected": 159.62,
+    "untapped": -170.38,
+    "links.rca": 2.07,
+    "sum_from": 14061,
+    "sum_to": 2185,
+    "binary.pc": 0.5643,
+    "th.max": 8123,
+    "th.max.pc": 0.2729,
+    "RD": 15.12,
+    "RD.added": 17.7,
+    "value": 17.7
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United States (US)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 3665,
+    "binary": 367,
+    "expected": 552.4,
+    "untapped": -1282.6,
+    "links.rca": 3.32,
+    "sum_from": 14061,
+    "sum_to": 42161,
+    "binary.pc": 3.1377,
+    "th.max": 28111,
+    "th.max.pc": 0.9445,
+    "RD": 15.12,
+    "RD.added": 52.96,
+    "value": 52.96
+  },
+  {
+    "from": "India (IN)",
+    "to": "Canada (CA)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 17,
+    "binary": 6,
+    "expected": 45.14,
+    "untapped": 15.14,
+    "links.rca": 0.66,
+    "sum_from": 2298,
+    "sum_to": 2296,
+    "binary.pc": 0.0513,
+    "th.max": 2297,
+    "th.max.pc": 0.0772,
+    "RD": 32.74,
+    "RD.added": 17.7,
+    "value": 17.7
+  },
+  {
+    "from": "India (IN)",
+    "to": "European Union (EU)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 209,
+    "binary": 40,
+    "expected": 160.71,
+    "untapped": -39.29,
+    "links.rca": 1.24,
+    "sum_from": 14061,
+    "sum_to": 2296,
+    "binary.pc": 0.342,
+    "th.max": 8178.5,
+    "th.max.pc": 0.2748,
+    "RD": 32.74,
+    "RD.added": 11.08,
+    "value": 11.08
+  },
+  {
+    "from": "India (IN)",
+    "to": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 26,
+    "binary": 9,
+    "expected": 203.41,
+    "untapped": 176.41,
+    "links.rca": 0.13,
+    "sum_from": 2296,
+    "sum_to": 18407,
+    "binary.pc": 0.0462,
+    "th.max": 10351.5,
+    "th.max.pc": 0.3478,
+    "RD": 32.74,
+    "RD.added": 43.98,
+    "value": 43.98
+  },
+  {
+    "from": "India (IN)",
+    "to": "South Korea (KR)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 52,
+    "binary": 2,
+    "expected": 109.04,
+    "untapped": 105.04,
+    "links.rca": 0.04,
+    "sum_from": 2296,
+    "sum_to": 8802,
+    "binary.pc": 0.0068,
+    "th.max": 5549,
+    "th.max.pc": 0.1864,
+    "RD": 32.74,
+    "RD.added": 21.34,
+    "value": 21.34
+  },
+  {
+    "from": "India (IN)",
+    "to": "United Kingdom (GB)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 75,
+    "binary": 11,
+    "expected": 44.03,
+    "untapped": 0.03,
+    "links.rca": 1,
+    "sum_from": 2296,
+    "sum_to": 2185,
+    "binary.pc": 0.0752,
+    "th.max": 2240.5,
+    "th.max.pc": 0.0753,
+    "RD": 32.74,
+    "RD.added": 12.54,
+    "value": 12.54
+  },
+  {
+    "from": "India (IN)",
+    "to": "United States (US)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 1459,
+    "binary": 160,
+    "expected": 436.8,
+    "untapped": -363.2,
+    "links.rca": 1.83,
+    "sum_from": 2296,
+    "sum_to": 42161,
+    "binary.pc": 1.3679,
+    "th.max": 22228.5,
+    "th.max.pc": 0.7469,
+    "RD": 32.74,
+    "RD.added": 26.45,
+    "value": 26.45
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "Canada (CA)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 16,
+    "binary": 3,
+    "expected": 203.43,
+    "untapped": 200.43,
+    "links.rca": 0.01,
+    "sum_from": 2298,
+    "sum_to": 18407,
+    "binary.pc": 0.0051,
+    "th.max": 10352.5,
+    "th.max.pc": 0.3479,
+    "RD": 49.15,
+    "RD.added": 31.35,
+    "value": 31.35
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "European Union (EU)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 46,
+    "binary": 19,
+    "expected": 319.01,
+    "untapped": 224.01,
+    "links.rca": 0.3,
+    "sum_from": 14061,
+    "sum_to": 18407,
+    "binary.pc": 0.1624,
+    "th.max": 16234,
+    "th.max.pc": 0.5455,
+    "RD": 49.15,
+    "RD.added": 3.46,
+    "value": 3.46
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "India (IN)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 26,
+    "binary": 9,
+    "expected": 203.41,
+    "untapped": 176.41,
+    "links.rca": 0.13,
+    "sum_from": 2296,
+    "sum_to": 18407,
+    "binary.pc": 0.0462,
+    "th.max": 10351.5,
+    "th.max.pc": 0.3478,
+    "RD": 49.15,
+    "RD.added": 27.57,
+    "value": 27.57
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "South Korea (KR)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 18,
+    "binary": 3,
+    "expected": 267.34,
+    "untapped": 258.34,
+    "links.rca": 0.03,
+    "sum_from": 18407,
+    "sum_to": 8802,
+    "binary.pc": 0.0154,
+    "th.max": 13604.5,
+    "th.max.pc": 0.4571,
+    "RD": 49.15,
+    "RD.added": 17.52,
+    "value": 17.52
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United Kingdom (GB)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 42,
+    "binary": 5,
+    "expected": 202.32,
+    "untapped": 182.32,
+    "links.rca": 0.1,
+    "sum_from": 18407,
+    "sum_to": 2185,
+    "binary.pc": 0.0342,
+    "th.max": 10296,
+    "th.max.pc": 0.346,
+    "RD": 49.15,
+    "RD.added": 17.2,
+    "value": 17.2
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United States (US)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 407,
+    "binary": 81,
+    "expected": 595.1,
+    "untapped": 190.1,
+    "links.rca": 0.68,
+    "sum_from": 18407,
+    "sum_to": 42161,
+    "binary.pc": 0.6925,
+    "th.max": 30284,
+    "th.max.pc": 1.0176,
+    "RD": 49.15,
+    "RD.added": 44.47,
+    "value": 44.47
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Canada (CA)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 1,
+    "binary": 1,
+    "expected": 109.06,
+    "untapped": 108.06,
+    "links.rca": 0.01,
+    "sum_from": 2298,
+    "sum_to": 8802,
+    "binary.pc": 0.0017,
+    "th.max": 5550,
+    "th.max.pc": 0.1865,
+    "RD": 38.38,
+    "RD.added": 29.27,
+    "value": 29.27
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "European Union (EU)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 10,
+    "binary": 3,
+    "expected": 224.64,
+    "untapped": 215.64,
+    "links.rca": 0.04,
+    "sum_from": 14061,
+    "sum_to": 8802,
+    "binary.pc": 0.0154,
+    "th.max": 11431.5,
+    "th.max.pc": 0.3841,
+    "RD": 38.38,
+    "RD.added": 10.72,
+    "value": 10.72
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "India (IN)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 52,
+    "binary": 2,
+    "expected": 109.04,
+    "untapped": 105.04,
+    "links.rca": 0.04,
+    "sum_from": 2296,
+    "sum_to": 8802,
+    "binary.pc": 0.0068,
+    "th.max": 5549,
+    "th.max.pc": 0.1864,
+    "RD": 38.38,
+    "RD.added": 15.7,
+    "value": 15.7
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 18,
+    "binary": 3,
+    "expected": 267.34,
+    "untapped": 258.34,
+    "links.rca": 0.03,
+    "sum_from": 18407,
+    "sum_to": 8802,
+    "binary.pc": 0.0154,
+    "th.max": 13604.5,
+    "th.max.pc": 0.4571,
+    "RD": 38.38,
+    "RD.added": 28.28,
+    "value": 28.28
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United Kingdom (GB)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 4,
+    "binary": 1,
+    "expected": 107.95,
+    "untapped": 106.95,
+    "links.rca": 0.01,
+    "sum_from": 8802,
+    "sum_to": 2185,
+    "binary.pc": 0.0017,
+    "th.max": 5493.5,
+    "th.max.pc": 0.1846,
+    "RD": 38.38,
+    "RD.added": 14.21,
+    "value": 14.21
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United States (US)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 62,
+    "binary": 17,
+    "expected": 500.73,
+    "untapped": 415.73,
+    "links.rca": 0.17,
+    "sum_from": 8802,
+    "sum_to": 42161,
+    "binary.pc": 0.1453,
+    "th.max": 25481.5,
+    "th.max.pc": 0.8562,
+    "RD": 38.38,
+    "RD.added": 38.39,
+    "value": 38.39
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Canada (CA)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 25,
+    "binary": 12,
+    "expected": 44.05,
+    "untapped": -15.95,
+    "links.rca": 1.36,
+    "sum_from": 2298,
+    "sum_to": 2185,
+    "binary.pc": 0.1026,
+    "th.max": 2241.5,
+    "th.max.pc": 0.0753,
+    "RD": 22.32,
+    "RD.added": 22.37,
+    "value": 22.37
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "European Union (EU)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 235,
+    "binary": 66,
+    "expected": 159.62,
+    "untapped": -170.38,
+    "links.rca": 2.07,
+    "sum_from": 14061,
+    "sum_to": 2185,
+    "binary.pc": 0.5643,
+    "th.max": 8123,
+    "th.max.pc": 0.2729,
+    "RD": 22.32,
+    "RD.added": 10.49,
+    "value": 10.49
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "India (IN)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 75,
+    "binary": 11,
+    "expected": 44.03,
+    "untapped": 0.03,
+    "links.rca": 1,
+    "sum_from": 2296,
+    "sum_to": 2185,
+    "binary.pc": 0.0752,
+    "th.max": 2240.5,
+    "th.max.pc": 0.0753,
+    "RD": 22.32,
+    "RD.added": 22.96,
+    "value": 22.96
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 42,
+    "binary": 5,
+    "expected": 202.32,
+    "untapped": 182.32,
+    "links.rca": 0.1,
+    "sum_from": 18407,
+    "sum_to": 2185,
+    "binary.pc": 0.0342,
+    "th.max": 10296,
+    "th.max.pc": 0.346,
+    "RD": 22.32,
+    "RD.added": 44.02,
+    "value": 44.02
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "South Korea (KR)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 4,
+    "binary": 1,
+    "expected": 107.95,
+    "untapped": 106.95,
+    "links.rca": 0.01,
+    "sum_from": 8802,
+    "sum_to": 2185,
+    "binary.pc": 0.0017,
+    "th.max": 5493.5,
+    "th.max.pc": 0.1846,
+    "RD": 22.32,
+    "RD.added": 30.27,
+    "value": 30.27
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "United States (US)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 383,
+    "binary": 63,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 0,
+    "sum_to": 0,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 22.32,
+    "RD.added": 37.11,
+    "value": 37.11
+  },
+  {
+    "from": "United States (US)",
+    "to": "Canada (CA)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 613,
+    "binary": 103,
+    "expected": 436.82,
+    "untapped": -78.18,
+    "links.rca": 1.18,
+    "sum_from": 2298,
+    "sum_to": 42161,
+    "binary.pc": 0.8806,
+    "th.max": 22229.5,
+    "th.max.pc": 0.7469,
+    "RD": 55.59,
+    "RD.added": 5.92,
+    "value": 5.92
+  },
+  {
+    "from": "United States (US)",
+    "to": "European Union (EU)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 3665,
+    "binary": 367,
+    "expected": 552.4,
+    "untapped": -1282.6,
+    "links.rca": 3.32,
+    "sum_from": 14061,
+    "sum_to": 42161,
+    "binary.pc": 3.1377,
+    "th.max": 28111,
+    "th.max.pc": 0.9445,
+    "RD": 55.59,
+    "RD.added": 12.5,
+    "value": 12.5
+  },
+  {
+    "from": "United States (US)",
+    "to": "India (IN)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 1459,
+    "binary": 160,
+    "expected": 436.8,
+    "untapped": -363.2,
+    "links.rca": 1.83,
+    "sum_from": 2296,
+    "sum_to": 42161,
+    "binary.pc": 1.3679,
+    "th.max": 22228.5,
+    "th.max.pc": 0.7469,
+    "RD": 55.59,
+    "RD.added": 3.61,
+    "value": 3.61
+  },
+  {
+    "from": "United States (US)",
+    "to": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 407,
+    "binary": 81,
+    "expected": 595.1,
+    "untapped": 190.1,
+    "links.rca": 0.68,
+    "sum_from": 18407,
+    "sum_to": 42161,
+    "binary.pc": 0.6925,
+    "th.max": 30284,
+    "th.max.pc": 1.0176,
+    "RD": 55.59,
+    "RD.added": 38.03,
+    "value": 38.03
+  },
+  {
+    "from": "United States (US)",
+    "to": "South Korea (KR)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 62,
+    "binary": 17,
+    "expected": 500.73,
+    "untapped": 415.73,
+    "links.rca": 0.17,
+    "sum_from": 8802,
+    "sum_to": 42161,
+    "binary.pc": 0.1453,
+    "th.max": 25481.5,
+    "th.max.pc": 0.8562,
+    "RD": 55.59,
+    "RD.added": 21.19,
+    "value": 21.19
+  },
+  {
+    "from": "United States (US)",
+    "to": "United Kingdom (GB)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 383,
+    "binary": 63,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 0,
+    "sum_to": 0,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 55.59,
+    "RD.added": 3.85,
+    "value": 3.85
+  }
+] 
+
+            const froms = Array.from(new Set(data.map(d => d.from))).sort();
+            const tos = Array.from(new Set(data.map(d => d.to))).sort();
+
+            const vizContainer = document.getElementById('viz-container');
+            const legendContainer = document.getElementById('legend-container');
+            const tooltip = d3.select("#tooltip");
+
+            d3.select("#viz-container svg").remove();
+            d3.select("#legend svg").remove();
+
+            const width = vizContainer.clientWidth;
+            const height = vizContainer.clientHeight;
+            const margin = { top: 50, right: 50, bottom: 100, left: 150 };
+            const availableWidth = width - margin.left - margin.right;
+            const availableHeight = height - margin.top - margin.bottom;
+
+            const size = Math.min(availableWidth, availableHeight);
+
+            const svg = d3.select("#viz-container")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left + (availableWidth - size) / 2}, ${margin.top + (availableHeight - size) / 2})`);
+
+            const x = d3.scaleBand()
+                .range([0, size])
+                .domain(tos)
+                .padding(0.01);
+
+            const y = d3.scaleBand()
+                .range([0, size])
+                .domain(froms)
+                .padding(0.01);
+
+            const maxVal = d3.max(data, d => d.value);
+            const color = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range(["#ffffff", "#376bbe"]);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + size + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
+
+            svg.append("g")
+                .call(d3.axisLeft(y))
+                .style("font-size", "10px");
+
+            svg.selectAll()
+                .data(data, function (d) { return d.isKey ? (d.from + ':' + d.to) : (this.id); })
+                .enter()
+                .append("rect")
+                .attr("x", function (d) { return x(d.to) })
+                .attr("y", function (d) { return y(d.from) })
+                .attr("width", x.bandwidth())
+                .attr("height", y.bandwidth())
+                .style("fill", function (d) {
+                    return d.from === d.to ? "#8f9194" : color(d.value);
+                })
+                .style("stroke", "#eee")
+                .style("stroke-width", 1)
+                .on("mouseover", function (event, d) {
+                    d3.select(this).style("stroke", "black").style("stroke-width", 2);
+                    tooltip.style("opacity", 1);
+                    tooltip.html(`From: <b>${d.from}</b><br>To: <b>${d.to}</b><br>Value: <b>${d.value}</b>`);
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mousemove", function (event) {
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseleave", function (d) {
+                    d3.select(this).style("stroke", "#eee").style("stroke-width", 1);
+                    tooltip.style("opacity", 0);
+                });
+
+            const legendHeight = size * 0.8;
+            const legendWidth = Math.max(10, size * 0.04);
+            const legendFontSize = Math.max(10, size * 0.02);
+
+            d3.select("#legend-title")
+                .style("font-size", Math.max(9, size * 0.018) + "px")
+                .style("margin-bottom", Math.max(10, size * 0.02) + "px");
+
+            const legendSvg = d3.select("#legend")
+                .append("svg")
+                .attr("width", legendWidth + 60)
+                .attr("height", legendHeight + 20);
+
+            const defs = legendSvg.append("defs");
+            const linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+
+            linearGradient
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
+
+            linearGradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#ffffff");
+
+            linearGradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#376bbe");
+
+            legendSvg.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", "url(#linear-gradient)")
+                .style("stroke", "#ccc")
+                .attr("transform", "translate(0, 10)");
+
+            const legendScale = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range([legendHeight, 0]);
+
+            const legendAxis = d3.axisRight(legendScale)
+                .ticks(5);
+
+            legendSvg.append("g")
+                .attr("class", "legend-axis")
+                .attr("transform", `translate(${legendWidth}, 10)`)
+                .call(legendAxis)
+                .style("font-size", legendFontSize + "px");
+
+        }
+
+        drawViz();
+        window.addEventListener('resize', drawViz);
+
+    </script>
+</body>
+
+</html>

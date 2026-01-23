@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #viz-container {
+            width: 88%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #legend-container {
+            width: 12%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        #legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .axis-label {
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="viz-container">
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        <div id="legend-container">
+            <div id="legend-title">Complementarity</div>
+            <div id="legend"></div>
+        </div>
+    </div>
+
+    <script>
+        async function drawViz() {
+            const data =  [
+  {
+    "from": "Canada (CA)",
+    "to": "European Union (EU)",
+    "domain": "Semiconductors/Chips",
+    "full": 152,
+    "binary": 30,
+    "expected": 33.92,
+    "untapped": -116.08,
+    "links.rca": 4.42,
+    "sum_from": 1966,
+    "sum_to": 33184,
+    "binary.pc": 1.1933,
+    "th.max": 17575,
+    "th.max.pc": 0.2698,
+    "RD": 26.07,
+    "RD.added": 31.67,
+    "value": 31.67
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "Japan (JP)",
+    "domain": "Semiconductors/Chips",
+    "full": 26,
+    "binary": 3,
+    "expected": 77.99,
+    "untapped": 71.99,
+    "links.rca": 0.08,
+    "sum_from": 1966,
+    "sum_to": 78858,
+    "binary.pc": 0.0477,
+    "th.max": 40412,
+    "th.max.pc": 0.6204,
+    "RD": 26.07,
+    "RD.added": 59.88,
+    "value": 59.88
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "South Korea (KR)",
+    "domain": "Semiconductors/Chips",
+    "full": 37,
+    "binary": 4,
+    "expected": 26.25,
+    "untapped": 18.25,
+    "links.rca": 0.3,
+    "sum_from": 1966,
+    "sum_to": 25241,
+    "binary.pc": 0.0636,
+    "th.max": 13603.5,
+    "th.max.pc": 0.2089,
+    "RD": 26.07,
+    "RD.added": 25.29,
+    "value": 25.29
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United Kingdom (GB)",
+    "domain": "Semiconductors/Chips",
+    "full": 21,
+    "binary": 8,
+    "expected": 4.97,
+    "untapped": -19.03,
+    "links.rca": 4.83,
+    "sum_from": 1966,
+    "sum_to": 3180,
+    "binary.pc": 0.1909,
+    "th.max": 2573,
+    "th.max.pc": 0.0395,
+    "RD": 26.07,
+    "RD.added": 6.29,
+    "value": 6.29
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United States (US)",
+    "domain": "Semiconductors/Chips",
+    "full": 478,
+    "binary": 62,
+    "expected": 50.75,
+    "untapped": -259.25,
+    "links.rca": 6.11,
+    "sum_from": 1966,
+    "sum_to": 50625,
+    "binary.pc": 2.4662,
+    "th.max": 26295.5,
+    "th.max.pc": 0.4037,
+    "RD": 26.07,
+    "RD.added": 12.37,
+    "value": 12.37
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Canada (CA)",
+    "domain": "Semiconductors/Chips",
+    "full": 152,
+    "binary": 30,
+    "expected": 33.92,
+    "untapped": -116.08,
+    "links.rca": 4.42,
+    "sum_from": 1966,
+    "sum_to": 33184,
+    "binary.pc": 1.1933,
+    "th.max": 17575,
+    "th.max.pc": 0.2698,
+    "RD": 41.05,
+    "RD.added": 16.69,
+    "value": 16.69
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 87,
+    "binary": 17,
+    "expected": 33.99,
+    "untapped": -34.01,
+    "links.rca": 2,
+    "sum_from": 33184,
+    "sum_to": 2040,
+    "binary.pc": 0.541,
+    "th.max": 17612,
+    "th.max.pc": 0.2704,
+    "RD": 41.05,
+    "RD.added": 6.42,
+    "value": 6.42
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Japan (JP)",
+    "domain": "Semiconductors/Chips",
+    "full": 421,
+    "binary": 69,
+    "expected": 108.11,
+    "untapped": -236.89,
+    "links.rca": 3.19,
+    "sum_from": 33184,
+    "sum_to": 78858,
+    "binary.pc": 2.7446,
+    "th.max": 56021,
+    "th.max.pc": 0.8601,
+    "RD": 41.05,
+    "RD.added": 41.6,
+    "value": 41.6
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "South Korea (KR)",
+    "domain": "Semiconductors/Chips",
+    "full": 216,
+    "binary": 43,
+    "expected": 56.38,
+    "untapped": -158.62,
+    "links.rca": 3.81,
+    "sum_from": 33184,
+    "sum_to": 25241,
+    "binary.pc": 1.7104,
+    "th.max": 29212.5,
+    "th.max.pc": 0.4485,
+    "RD": 41.05,
+    "RD.added": 23.12,
+    "value": 23.12
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United Kingdom (GB)",
+    "domain": "Semiconductors/Chips",
+    "full": 239,
+    "binary": 52,
+    "expected": 35.09,
+    "untapped": -224.91,
+    "links.rca": 7.41,
+    "sum_from": 33184,
+    "sum_to": 3180,
+    "binary.pc": 2.0684,
+    "th.max": 18182,
+    "th.max.pc": 0.2792,
+    "RD": 41.05,
+    "RD.added": 13.03,
+    "value": 13.03
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United States (US)",
+    "domain": "Semiconductors/Chips",
+    "full": 6064,
+    "binary": 591,
+    "expected": 80.87,
+    "untapped": -2874.13,
+    "links.rca": 36.54,
+    "sum_from": 33184,
+    "sum_to": 50625,
+    "binary.pc": 23.5084,
+    "th.max": 41904.5,
+    "th.max.pc": 0.6434,
+    "RD": 41.05,
+    "RD.added": 20.78,
+    "value": 20.78
+  },
+  {
+    "from": "India (IN)",
+    "to": "European Union (EU)",
+    "domain": "Semiconductors/Chips",
+    "full": 87,
+    "binary": 17,
+    "expected": 33.99,
+    "untapped": -34.01,
+    "links.rca": 2,
+    "sum_from": 33184,
+    "sum_to": 2040,
+    "binary.pc": 0.541,
+    "th.max": 17612,
+    "th.max.pc": 0.2704,
+    "RD": 13.42,
+    "RD.added": 34.04,
+    "value": 34.04
+  },
+  {
+    "from": "India (IN)",
+    "to": "Japan (JP)",
+    "domain": "Semiconductors/Chips",
+    "full": 4,
+    "binary": 3,
+    "expected": 78.06,
+    "untapped": 72.06,
+    "links.rca": 0.08,
+    "sum_from": 2040,
+    "sum_to": 78858,
+    "binary.pc": 0.0477,
+    "th.max": 40449,
+    "th.max.pc": 0.621,
+    "RD": 13.42,
+    "RD.added": 67.93,
+    "value": 67.93
+  },
+  {
+    "from": "India (IN)",
+    "to": "South Korea (KR)",
+    "domain": "Semiconductors/Chips",
+    "full": 34,
+    "binary": 2,
+    "expected": 26.32,
+    "untapped": 22.32,
+    "links.rca": 0.15,
+    "sum_from": 2040,
+    "sum_to": 25241,
+    "binary.pc": 0.0318,
+    "th.max": 13640.5,
+    "th.max.pc": 0.2094,
+    "RD": 13.42,
+    "RD.added": 30.18,
+    "value": 30.18
+  },
+  {
+    "from": "India (IN)",
+    "to": "United Kingdom (GB)",
+    "domain": "Semiconductors/Chips",
+    "full": 10,
+    "binary": 3,
+    "expected": 5.04,
+    "untapped": -0.96,
+    "links.rca": 1.19,
+    "sum_from": 2040,
+    "sum_to": 3180,
+    "binary.pc": 0.0477,
+    "th.max": 2610,
+    "th.max.pc": 0.0401,
+    "RD": 13.42,
+    "RD.added": 19.05,
+    "value": 19.05
+  },
+  {
+    "from": "India (IN)",
+    "to": "United States (US)",
+    "domain": "Semiconductors/Chips",
+    "full": 2776,
+    "binary": 184,
+    "expected": 50.82,
+    "untapped": -869.18,
+    "links.rca": 18.1,
+    "sum_from": 2040,
+    "sum_to": 50625,
+    "binary.pc": 7.319,
+    "th.max": 26332.5,
+    "th.max.pc": 0.4043,
+    "RD": 13.42,
+    "RD.added": 17.07,
+    "value": 17.07
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "Canada (CA)",
+    "domain": "Semiconductors/Chips",
+    "full": 26,
+    "binary": 3,
+    "expected": 77.99,
+    "untapped": 71.99,
+    "links.rca": 0.08,
+    "sum_from": 1966,
+    "sum_to": 78858,
+    "binary.pc": 0.0477,
+    "th.max": 40412,
+    "th.max.pc": 0.6204,
+    "RD": 74.37,
+    "RD.added": 11.58,
+    "value": 11.58
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "European Union (EU)",
+    "domain": "Semiconductors/Chips",
+    "full": 421,
+    "binary": 69,
+    "expected": 108.11,
+    "untapped": -236.89,
+    "links.rca": 3.19,
+    "sum_from": 33184,
+    "sum_to": 78858,
+    "binary.pc": 2.7446,
+    "th.max": 56021,
+    "th.max.pc": 0.8601,
+    "RD": 74.37,
+    "RD.added": 8.27,
+    "value": 8.27
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 4,
+    "binary": 3,
+    "expected": 78.06,
+    "untapped": 72.06,
+    "links.rca": 0.08,
+    "sum_from": 2040,
+    "sum_to": 78858,
+    "binary.pc": 0.0477,
+    "th.max": 40449,
+    "th.max.pc": 0.621,
+    "RD": 74.37,
+    "RD.added": 6.98,
+    "value": 6.98
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "South Korea (KR)",
+    "domain": "Semiconductors/Chips",
+    "full": 469,
+    "binary": 62,
+    "expected": 100.45,
+    "untapped": -209.55,
+    "links.rca": 3.09,
+    "sum_from": 78858,
+    "sum_to": 25241,
+    "binary.pc": 2.4662,
+    "th.max": 52049.5,
+    "th.max.pc": 0.7991,
+    "RD": 74.37,
+    "RD.added": 6.05,
+    "value": 6.05
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United Kingdom (GB)",
+    "domain": "Semiconductors/Chips",
+    "full": 101,
+    "binary": 17,
+    "expected": 79.16,
+    "untapped": 11.16,
+    "links.rca": 0.86,
+    "sum_from": 78858,
+    "sum_to": 3180,
+    "binary.pc": 0.541,
+    "th.max": 41019,
+    "th.max.pc": 0.6298,
+    "RD": 74.37,
+    "RD.added": 10.4,
+    "value": 10.4
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United States (US)",
+    "domain": "Semiconductors/Chips",
+    "full": 1231,
+    "binary": 212,
+    "expected": 124.94,
+    "untapped": -935.06,
+    "links.rca": 8.48,
+    "sum_from": 78858,
+    "sum_to": 50625,
+    "binary.pc": 8.4328,
+    "th.max": 64741.5,
+    "th.max.pc": 0.994,
+    "RD": 74.37,
+    "RD.added": 17.55,
+    "value": 17.55
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Canada (CA)",
+    "domain": "Semiconductors/Chips",
+    "full": 37,
+    "binary": 4,
+    "expected": 26.25,
+    "untapped": 18.25,
+    "links.rca": 0.3,
+    "sum_from": 1966,
+    "sum_to": 25241,
+    "binary.pc": 0.0636,
+    "th.max": 13603.5,
+    "th.max.pc": 0.2089,
+    "RD": 35.31,
+    "RD.added": 16.05,
+    "value": 16.05
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "European Union (EU)",
+    "domain": "Semiconductors/Chips",
+    "full": 216,
+    "binary": 43,
+    "expected": 56.38,
+    "untapped": -158.62,
+    "links.rca": 3.81,
+    "sum_from": 33184,
+    "sum_to": 25241,
+    "binary.pc": 1.7104,
+    "th.max": 29212.5,
+    "th.max.pc": 0.4485,
+    "RD": 35.31,
+    "RD.added": 28.86,
+    "value": 28.86
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 34,
+    "binary": 2,
+    "expected": 26.32,
+    "untapped": 22.32,
+    "links.rca": 0.15,
+    "sum_from": 2040,
+    "sum_to": 25241,
+    "binary.pc": 0.0318,
+    "th.max": 13640.5,
+    "th.max.pc": 0.2094,
+    "RD": 35.31,
+    "RD.added": 8.29,
+    "value": 8.29
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Japan (JP)",
+    "domain": "Semiconductors/Chips",
+    "full": 469,
+    "binary": 62,
+    "expected": 100.45,
+    "untapped": -209.55,
+    "links.rca": 3.09,
+    "sum_from": 78858,
+    "sum_to": 25241,
+    "binary.pc": 2.4662,
+    "th.max": 52049.5,
+    "th.max.pc": 0.7991,
+    "RD": 35.31,
+    "RD.added": 45.11,
+    "value": 45.11
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United Kingdom (GB)",
+    "domain": "Semiconductors/Chips",
+    "full": 3,
+    "binary": 1,
+    "expected": 27.42,
+    "untapped": 26.42,
+    "links.rca": 0.04,
+    "sum_from": 25241,
+    "sum_to": 3180,
+    "binary.pc": 0.008,
+    "th.max": 14210.5,
+    "th.max.pc": 0.2182,
+    "RD": 35.31,
+    "RD.added": 16.36,
+    "value": 16.36
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United States (US)",
+    "domain": "Semiconductors/Chips",
+    "full": 487,
+    "binary": 85,
+    "expected": 73.21,
+    "untapped": -351.79,
+    "links.rca": 5.81,
+    "sum_from": 25241,
+    "sum_to": 50625,
+    "binary.pc": 3.3811,
+    "th.max": 37933,
+    "th.max.pc": 0.5824,
+    "RD": 35.31,
+    "RD.added": 21.37,
+    "value": 21.37
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Canada (CA)",
+    "domain": "Semiconductors/Chips",
+    "full": 21,
+    "binary": 8,
+    "expected": 4.97,
+    "untapped": -19.03,
+    "links.rca": 4.83,
+    "sum_from": 1966,
+    "sum_to": 3180,
+    "binary.pc": 0.1909,
+    "th.max": 2573,
+    "th.max.pc": 0.0395,
+    "RD": 25.47,
+    "RD.added": 6.89,
+    "value": 6.89
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "European Union (EU)",
+    "domain": "Semiconductors/Chips",
+    "full": 239,
+    "binary": 52,
+    "expected": 35.09,
+    "untapped": -224.91,
+    "links.rca": 7.41,
+    "sum_from": 33184,
+    "sum_to": 3180,
+    "binary.pc": 2.0684,
+    "th.max": 18182,
+    "th.max.pc": 0.2792,
+    "RD": 25.47,
+    "RD.added": 28.61,
+    "value": 28.61
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 10,
+    "binary": 3,
+    "expected": 5.04,
+    "untapped": -0.96,
+    "links.rca": 1.19,
+    "sum_from": 2040,
+    "sum_to": 3180,
+    "binary.pc": 0.0477,
+    "th.max": 2610,
+    "th.max.pc": 0.0401,
+    "RD": 25.47,
+    "RD.added": 7,
+    "value": 7
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Japan (JP)",
+    "domain": "Semiconductors/Chips",
+    "full": 101,
+    "binary": 17,
+    "expected": 79.16,
+    "untapped": 11.16,
+    "links.rca": 0.86,
+    "sum_from": 78858,
+    "sum_to": 3180,
+    "binary.pc": 0.541,
+    "th.max": 41019,
+    "th.max.pc": 0.6298,
+    "RD": 25.47,
+    "RD.added": 59.3,
+    "value": 59.3
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "South Korea (KR)",
+    "domain": "Semiconductors/Chips",
+    "full": 3,
+    "binary": 1,
+    "expected": 27.42,
+    "untapped": 26.42,
+    "links.rca": 0.04,
+    "sum_from": 25241,
+    "sum_to": 3180,
+    "binary.pc": 0.008,
+    "th.max": 14210.5,
+    "th.max.pc": 0.2182,
+    "RD": 25.47,
+    "RD.added": 26.2,
+    "value": 26.2
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "United States (US)",
+    "domain": "Semiconductors/Chips",
+    "full": 741,
+    "binary": 84,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 0,
+    "sum_to": 0,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 25.47,
+    "RD.added": 14.89,
+    "value": 14.89
+  },
+  {
+    "from": "United States (US)",
+    "to": "Canada (CA)",
+    "domain": "Semiconductors/Chips",
+    "full": 478,
+    "binary": 62,
+    "expected": 50.75,
+    "untapped": -259.25,
+    "links.rca": 6.11,
+    "sum_from": 1966,
+    "sum_to": 50625,
+    "binary.pc": 2.4662,
+    "th.max": 26295.5,
+    "th.max.pc": 0.4037,
+    "RD": 24.76,
+    "RD.added": 13.68,
+    "value": 13.68
+  },
+  {
+    "from": "United States (US)",
+    "to": "European Union (EU)",
+    "domain": "Semiconductors/Chips",
+    "full": 6064,
+    "binary": 591,
+    "expected": 80.87,
+    "untapped": -2874.13,
+    "links.rca": 36.54,
+    "sum_from": 33184,
+    "sum_to": 50625,
+    "binary.pc": 23.5084,
+    "th.max": 41904.5,
+    "th.max.pc": 0.6434,
+    "RD": 24.76,
+    "RD.added": 37.06,
+    "value": 37.06
+  },
+  {
+    "from": "United States (US)",
+    "to": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 2776,
+    "binary": 184,
+    "expected": 50.82,
+    "untapped": -869.18,
+    "links.rca": 18.1,
+    "sum_from": 2040,
+    "sum_to": 50625,
+    "binary.pc": 7.319,
+    "th.max": 26332.5,
+    "th.max.pc": 0.4043,
+    "RD": 24.76,
+    "RD.added": 5.73,
+    "value": 5.73
+  },
+  {
+    "from": "United States (US)",
+    "to": "Japan (JP)",
+    "domain": "Semiconductors/Chips",
+    "full": 1231,
+    "binary": 212,
+    "expected": 124.94,
+    "untapped": -935.06,
+    "links.rca": 8.48,
+    "sum_from": 78858,
+    "sum_to": 50625,
+    "binary.pc": 8.4328,
+    "th.max": 64741.5,
+    "th.max.pc": 0.994,
+    "RD": 24.76,
+    "RD.added": 67.16,
+    "value": 67.16
+  },
+  {
+    "from": "United States (US)",
+    "to": "South Korea (KR)",
+    "domain": "Semiconductors/Chips",
+    "full": 487,
+    "binary": 85,
+    "expected": 73.21,
+    "untapped": -351.79,
+    "links.rca": 5.81,
+    "sum_from": 25241,
+    "sum_to": 50625,
+    "binary.pc": 3.3811,
+    "th.max": 37933,
+    "th.max.pc": 0.5824,
+    "RD": 24.76,
+    "RD.added": 31.92,
+    "value": 31.92
+  },
+  {
+    "from": "United States (US)",
+    "to": "United Kingdom (GB)",
+    "domain": "Semiconductors/Chips",
+    "full": 741,
+    "binary": 84,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 0,
+    "sum_to": 0,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 24.76,
+    "RD.added": 15.6,
+    "value": 15.6
+  }
+] 
+
+            const froms = Array.from(new Set(data.map(d => d.from))).sort();
+            const tos = Array.from(new Set(data.map(d => d.to))).sort();
+
+            const vizContainer = document.getElementById('viz-container');
+            const legendContainer = document.getElementById('legend-container');
+            const tooltip = d3.select("#tooltip");
+
+            d3.select("#viz-container svg").remove();
+            d3.select("#legend svg").remove();
+
+            const width = vizContainer.clientWidth;
+            const height = vizContainer.clientHeight;
+            const margin = { top: 50, right: 50, bottom: 100, left: 150 };
+            const availableWidth = width - margin.left - margin.right;
+            const availableHeight = height - margin.top - margin.bottom;
+
+            const size = Math.min(availableWidth, availableHeight);
+
+            const svg = d3.select("#viz-container")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left + (availableWidth - size) / 2}, ${margin.top + (availableHeight - size) / 2})`);
+
+            const x = d3.scaleBand()
+                .range([0, size])
+                .domain(tos)
+                .padding(0.01);
+
+            const y = d3.scaleBand()
+                .range([0, size])
+                .domain(froms)
+                .padding(0.01);
+
+            const maxVal = d3.max(data, d => d.value);
+            const color = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range(["#ffffff", "#376bbe"]);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + size + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
+
+            svg.append("g")
+                .call(d3.axisLeft(y))
+                .style("font-size", "10px");
+
+            svg.selectAll()
+                .data(data, function (d) { return d.isKey ? (d.from + ':' + d.to) : (this.id); })
+                .enter()
+                .append("rect")
+                .attr("x", function (d) { return x(d.to) })
+                .attr("y", function (d) { return y(d.from) })
+                .attr("width", x.bandwidth())
+                .attr("height", y.bandwidth())
+                .style("fill", function (d) {
+                    return d.from === d.to ? "#8f9194" : color(d.value);
+                })
+                .style("stroke", "#eee")
+                .style("stroke-width", 1)
+                .on("mouseover", function (event, d) {
+                    d3.select(this).style("stroke", "black").style("stroke-width", 2);
+                    tooltip.style("opacity", 1);
+                    tooltip.html(`From: <b>${d.from}</b><br>To: <b>${d.to}</b><br>Value: <b>${d.value}</b>`);
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mousemove", function (event) {
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseleave", function (d) {
+                    d3.select(this).style("stroke", "#eee").style("stroke-width", 1);
+                    tooltip.style("opacity", 0);
+                });
+
+            const legendHeight = size * 0.8;
+            const legendWidth = Math.max(10, size * 0.04);
+            const legendFontSize = Math.max(10, size * 0.02);
+
+            d3.select("#legend-title")
+                .style("font-size", Math.max(9, size * 0.018) + "px")
+                .style("margin-bottom", Math.max(10, size * 0.02) + "px");
+
+            const legendSvg = d3.select("#legend")
+                .append("svg")
+                .attr("width", legendWidth + 60)
+                .attr("height", legendHeight + 20);
+
+            const defs = legendSvg.append("defs");
+            const linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+
+            linearGradient
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
+
+            linearGradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#ffffff");
+
+            linearGradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#376bbe");
+
+            legendSvg.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", "url(#linear-gradient)")
+                .style("stroke", "#ccc")
+                .attr("transform", "translate(0, 10)");
+
+            const legendScale = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range([legendHeight, 0]);
+
+            const legendAxis = d3.axisRight(legendScale)
+                .ticks(5);
+
+            legendSvg.append("g")
+                .attr("class", "legend-axis")
+                .attr("transform", `translate(${legendWidth}, 10)`)
+                .call(legendAxis)
+                .style("font-size", legendFontSize + "px");
+
+        }
+
+        drawViz();
+        window.addEventListener('resize', drawViz);
+
+    </script>
+</body>
+
+</html>

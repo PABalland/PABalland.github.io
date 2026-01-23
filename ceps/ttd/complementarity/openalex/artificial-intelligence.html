@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #viz-container {
+            width: 88%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #legend-container {
+            width: 12%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        #legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .axis-label {
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="viz-container">
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        <div id="legend-container">
+            <div id="legend-title">Complementarity</div>
+            <div id="legend"></div>
+        </div>
+    </div>
+
+    <script>
+        async function drawViz() {
+            const data =  [
+  {
+    "from": "Canada (CA)",
+    "to": "European Union (EU)",
+    "domain": "Artificial Intelligence",
+    "full": 10551024,
+    "binary": 5023,
+    "expected": 9399.89,
+    "untapped": -15715.11,
+    "links.rca": 2.67,
+    "sum_from": 293959,
+    "sum_to": 1482620,
+    "binary.pc": 0.3018,
+    "th.max": 888289.5,
+    "th.max.pc": 0.113,
+    "RD": 30.27,
+    "RD.added": 23,
+    "value": 23
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "India (IN)",
+    "domain": "Artificial Intelligence",
+    "full": 695940,
+    "binary": 853,
+    "expected": 4534.52,
+    "untapped": 269.52,
+    "links.rca": 0.94,
+    "sum_from": 293959,
+    "sum_to": 563065,
+    "binary.pc": 0.0513,
+    "th.max": 428512,
+    "th.max.pc": 0.0545,
+    "RD": 30.27,
+    "RD.added": 47.38,
+    "value": 47.38
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "Japan (JP)",
+    "domain": "Artificial Intelligence",
+    "full": 467040,
+    "binary": 577,
+    "expected": 2542.96,
+    "untapped": -342.04,
+    "links.rca": 1.13,
+    "sum_from": 293959,
+    "sum_to": 186661,
+    "binary.pc": 0.0347,
+    "th.max": 240310,
+    "th.max.pc": 0.0306,
+    "RD": 30.27,
+    "RD.added": 29.23,
+    "value": 29.23
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "South Korea (KR)",
+    "domain": "Artificial Intelligence",
+    "full": 53192,
+    "binary": 646,
+    "expected": 2293.12,
+    "untapped": -936.88,
+    "links.rca": 1.41,
+    "sum_from": 293959,
+    "sum_to": 139440,
+    "binary.pc": 0.0388,
+    "th.max": 216699.5,
+    "th.max.pc": 0.0276,
+    "RD": 30.27,
+    "RD.added": 38.83,
+    "value": 38.83
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United Kingdom (GB)",
+    "domain": "Artificial Intelligence",
+    "full": 1472012,
+    "binary": 2146,
+    "expected": 3303.72,
+    "untapped": -7426.28,
+    "links.rca": 3.25,
+    "sum_from": 293959,
+    "sum_to": 330444,
+    "binary.pc": 0.1289,
+    "th.max": 312201.5,
+    "th.max.pc": 0.0397,
+    "RD": 30.27,
+    "RD.added": 4.26,
+    "value": 4.26
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United States (US)",
+    "domain": "Artificial Intelligence",
+    "full": 14387148,
+    "binary": 6444,
+    "expected": 6525.61,
+    "untapped": -25694.39,
+    "links.rca": 4.94,
+    "sum_from": 293959,
+    "sum_to": 939381,
+    "binary.pc": 0.3872,
+    "th.max": 616670,
+    "th.max.pc": 0.0784,
+    "RD": 30.27,
+    "RD.added": 6.86,
+    "value": 6.86
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Canada (CA)",
+    "domain": "Artificial Intelligence",
+    "full": 10551024,
+    "binary": 5023,
+    "expected": 9399.89,
+    "untapped": -15715.11,
+    "links.rca": 2.67,
+    "sum_from": 293959,
+    "sum_to": 1482620,
+    "binary.pc": 0.3018,
+    "th.max": 888289.5,
+    "th.max.pc": 0.113,
+    "RD": 45.45,
+    "RD.added": 7.82,
+    "value": 7.82
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "India (IN)",
+    "domain": "Artificial Intelligence",
+    "full": 7847404,
+    "binary": 4202,
+    "expected": 10823.73,
+    "untapped": -10186.27,
+    "links.rca": 1.94,
+    "sum_from": 1482620,
+    "sum_to": 563065,
+    "binary.pc": 0.2525,
+    "th.max": 1022842.5,
+    "th.max.pc": 0.1301,
+    "RD": 45.45,
+    "RD.added": 44.6,
+    "value": 44.6
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Japan (JP)",
+    "domain": "Artificial Intelligence",
+    "full": 10180316,
+    "binary": 2906,
+    "expected": 8832.17,
+    "untapped": -5697.83,
+    "links.rca": 1.65,
+    "sum_from": 1482620,
+    "sum_to": 186661,
+    "binary.pc": 0.1746,
+    "th.max": 834640.5,
+    "th.max.pc": 0.1061,
+    "RD": 45.45,
+    "RD.added": 18.53,
+    "value": 18.53
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "South Korea (KR)",
+    "domain": "Artificial Intelligence",
+    "full": 3459324,
+    "binary": 1643,
+    "expected": 8582.33,
+    "untapped": 367.33,
+    "links.rca": 0.96,
+    "sum_from": 1482620,
+    "sum_to": 139440,
+    "binary.pc": 0.0987,
+    "th.max": 811030,
+    "th.max.pc": 0.1031,
+    "RD": 45.45,
+    "RD.added": 33.66,
+    "value": 33.66
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United Kingdom (GB)",
+    "domain": "Artificial Intelligence",
+    "full": 25062248,
+    "binary": 14691,
+    "expected": 9592.93,
+    "untapped": -63862.07,
+    "links.rca": 7.66,
+    "sum_from": 1482620,
+    "sum_to": 330444,
+    "binary.pc": 0.8827,
+    "th.max": 906532,
+    "th.max.pc": 0.1153,
+    "RD": 45.45,
+    "RD.added": 4.55,
+    "value": 4.55
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United States (US)",
+    "domain": "Artificial Intelligence",
+    "full": 96771200,
+    "binary": 21932,
+    "expected": 12814.82,
+    "untapped": -96845.18,
+    "links.rca": 8.56,
+    "sum_from": 1482620,
+    "sum_to": 939381,
+    "binary.pc": 1.3178,
+    "th.max": 1211000.5,
+    "th.max.pc": 0.154,
+    "RD": 45.45,
+    "RD.added": 5.19,
+    "value": 5.19
+  },
+  {
+    "from": "India (IN)",
+    "to": "Canada (CA)",
+    "domain": "Artificial Intelligence",
+    "full": 695940,
+    "binary": 853,
+    "expected": 4534.52,
+    "untapped": 269.52,
+    "links.rca": 0.94,
+    "sum_from": 293959,
+    "sum_to": 563065,
+    "binary.pc": 0.0513,
+    "th.max": 428512,
+    "th.max.pc": 0.0545,
+    "RD": 63.13,
+    "RD.added": 14.51,
+    "value": 14.51
+  },
+  {
+    "from": "India (IN)",
+    "to": "European Union (EU)",
+    "domain": "Artificial Intelligence",
+    "full": 7847404,
+    "binary": 4202,
+    "expected": 10823.73,
+    "untapped": -10186.27,
+    "links.rca": 1.94,
+    "sum_from": 1482620,
+    "sum_to": 563065,
+    "binary.pc": 0.2525,
+    "th.max": 1022842.5,
+    "th.max.pc": 0.1301,
+    "RD": 63.13,
+    "RD.added": 26.91,
+    "value": 26.91
+  },
+  {
+    "from": "India (IN)",
+    "to": "Japan (JP)",
+    "domain": "Artificial Intelligence",
+    "full": 62512,
+    "binary": 506,
+    "expected": 3966.8,
+    "untapped": 1436.8,
+    "links.rca": 0.64,
+    "sum_from": 563065,
+    "sum_to": 186661,
+    "binary.pc": 0.0304,
+    "th.max": 374863,
+    "th.max.pc": 0.0477,
+    "RD": 63.13,
+    "RD.added": 12.72,
+    "value": 12.72
+  },
+  {
+    "from": "India (IN)",
+    "to": "South Korea (KR)",
+    "domain": "Artificial Intelligence",
+    "full": 369628,
+    "binary": 865,
+    "expected": 3716.96,
+    "untapped": -608.04,
+    "links.rca": 1.16,
+    "sum_from": 563065,
+    "sum_to": 139440,
+    "binary.pc": 0.052,
+    "th.max": 351252.5,
+    "th.max.pc": 0.0447,
+    "RD": 63.13,
+    "RD.added": 8.97,
+    "value": 8.97
+  },
+  {
+    "from": "India (IN)",
+    "to": "United Kingdom (GB)",
+    "domain": "Artificial Intelligence",
+    "full": 334444,
+    "binary": 1802,
+    "expected": 4727.56,
+    "untapped": -4282.44,
+    "links.rca": 1.91,
+    "sum_from": 563065,
+    "sum_to": 330444,
+    "binary.pc": 0.1083,
+    "th.max": 446754.5,
+    "th.max.pc": 0.0568,
+    "RD": 63.13,
+    "RD.added": 16.76,
+    "value": 16.76
+  },
+  {
+    "from": "India (IN)",
+    "to": "United States (US)",
+    "domain": "Artificial Intelligence",
+    "full": 7864760,
+    "binary": 4548,
+    "expected": 7949.45,
+    "untapped": -14790.55,
+    "links.rca": 2.86,
+    "sum_from": 563065,
+    "sum_to": 939381,
+    "binary.pc": 0.2733,
+    "th.max": 751223,
+    "th.max.pc": 0.0955,
+    "RD": 63.13,
+    "RD.added": 16.47,
+    "value": 16.47
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "Canada (CA)",
+    "domain": "Artificial Intelligence",
+    "full": 467040,
+    "binary": 577,
+    "expected": 2542.96,
+    "untapped": -342.04,
+    "links.rca": 1.13,
+    "sum_from": 293959,
+    "sum_to": 186661,
+    "binary.pc": 0.0347,
+    "th.max": 240310,
+    "th.max.pc": 0.0306,
+    "RD": 37.16,
+    "RD.added": 22.34,
+    "value": 22.34
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "European Union (EU)",
+    "domain": "Artificial Intelligence",
+    "full": 10180316,
+    "binary": 2906,
+    "expected": 8832.17,
+    "untapped": -5697.83,
+    "links.rca": 1.65,
+    "sum_from": 1482620,
+    "sum_to": 186661,
+    "binary.pc": 0.1746,
+    "th.max": 834640.5,
+    "th.max.pc": 0.1061,
+    "RD": 37.16,
+    "RD.added": 26.82,
+    "value": 26.82
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "India (IN)",
+    "domain": "Artificial Intelligence",
+    "full": 62512,
+    "binary": 506,
+    "expected": 3966.8,
+    "untapped": 1436.8,
+    "links.rca": 0.64,
+    "sum_from": 563065,
+    "sum_to": 186661,
+    "binary.pc": 0.0304,
+    "th.max": 374863,
+    "th.max.pc": 0.0477,
+    "RD": 37.16,
+    "RD.added": 38.7,
+    "value": 38.7
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "South Korea (KR)",
+    "domain": "Artificial Intelligence",
+    "full": 19016,
+    "binary": 317,
+    "expected": 1725.4,
+    "untapped": 140.4,
+    "links.rca": 0.92,
+    "sum_from": 186661,
+    "sum_to": 139440,
+    "binary.pc": 0.019,
+    "th.max": 163050.5,
+    "th.max.pc": 0.0207,
+    "RD": 37.16,
+    "RD.added": 17.79,
+    "value": 17.79
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United Kingdom (GB)",
+    "domain": "Artificial Intelligence",
+    "full": 1157152,
+    "binary": 940,
+    "expected": 2736.01,
+    "untapped": -1963.99,
+    "links.rca": 1.72,
+    "sum_from": 186661,
+    "sum_to": 330444,
+    "binary.pc": 0.0565,
+    "th.max": 258552.5,
+    "th.max.pc": 0.0329,
+    "RD": 37.16,
+    "RD.added": 16.54,
+    "value": 16.54
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United States (US)",
+    "domain": "Artificial Intelligence",
+    "full": 8068676,
+    "binary": 2534,
+    "expected": 5957.89,
+    "untapped": -6712.11,
+    "links.rca": 2.13,
+    "sum_from": 186661,
+    "sum_to": 939381,
+    "binary.pc": 0.1523,
+    "th.max": 563021,
+    "th.max.pc": 0.0716,
+    "RD": 37.16,
+    "RD.added": 13.44,
+    "value": 13.44
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Canada (CA)",
+    "domain": "Artificial Intelligence",
+    "full": 53192,
+    "binary": 646,
+    "expected": 2293.12,
+    "untapped": -936.88,
+    "links.rca": 1.41,
+    "sum_from": 293959,
+    "sum_to": 139440,
+    "binary.pc": 0.0388,
+    "th.max": 216699.5,
+    "th.max.pc": 0.0276,
+    "RD": 50.31,
+    "RD.added": 18.78,
+    "value": 18.78
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "European Union (EU)",
+    "domain": "Artificial Intelligence",
+    "full": 3459324,
+    "binary": 1643,
+    "expected": 8582.33,
+    "untapped": 367.33,
+    "links.rca": 0.96,
+    "sum_from": 1482620,
+    "sum_to": 139440,
+    "binary.pc": 0.0987,
+    "th.max": 811030,
+    "th.max.pc": 0.1031,
+    "RD": 50.31,
+    "RD.added": 28.79,
+    "value": 28.79
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "India (IN)",
+    "domain": "Artificial Intelligence",
+    "full": 369628,
+    "binary": 865,
+    "expected": 3716.96,
+    "untapped": -608.04,
+    "links.rca": 1.16,
+    "sum_from": 563065,
+    "sum_to": 139440,
+    "binary.pc": 0.052,
+    "th.max": 351252.5,
+    "th.max.pc": 0.0447,
+    "RD": 50.31,
+    "RD.added": 21.79,
+    "value": 21.79
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Japan (JP)",
+    "domain": "Artificial Intelligence",
+    "full": 19016,
+    "binary": 317,
+    "expected": 1725.4,
+    "untapped": 140.4,
+    "links.rca": 0.92,
+    "sum_from": 186661,
+    "sum_to": 139440,
+    "binary.pc": 0.019,
+    "th.max": 163050.5,
+    "th.max.pc": 0.0207,
+    "RD": 50.31,
+    "RD.added": 4.63,
+    "value": 4.63
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United Kingdom (GB)",
+    "domain": "Artificial Intelligence",
+    "full": 190484,
+    "binary": 718,
+    "expected": 2486.16,
+    "untapped": -1103.84,
+    "links.rca": 1.44,
+    "sum_from": 139440,
+    "sum_to": 330444,
+    "binary.pc": 0.0431,
+    "th.max": 234942,
+    "th.max.pc": 0.0299,
+    "RD": 50.31,
+    "RD.added": 17.75,
+    "value": 17.75
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United States (US)",
+    "domain": "Artificial Intelligence",
+    "full": 3029976,
+    "binary": 2940,
+    "expected": 5708.05,
+    "untapped": -8991.95,
+    "links.rca": 2.58,
+    "sum_from": 139440,
+    "sum_to": 939381,
+    "binary.pc": 0.1767,
+    "th.max": 539410.5,
+    "th.max.pc": 0.0686,
+    "RD": 50.31,
+    "RD.added": 14.31,
+    "value": 14.31
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Canada (CA)",
+    "domain": "Artificial Intelligence",
+    "full": 1472012,
+    "binary": 2146,
+    "expected": 3303.72,
+    "untapped": -7426.28,
+    "links.rca": 3.25,
+    "sum_from": 293959,
+    "sum_to": 330444,
+    "binary.pc": 0.1289,
+    "th.max": 312201.5,
+    "th.max.pc": 0.0397,
+    "RD": 24.16,
+    "RD.added": 10.36,
+    "value": 10.36
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "European Union (EU)",
+    "domain": "Artificial Intelligence",
+    "full": 25062248,
+    "binary": 14691,
+    "expected": 9592.93,
+    "untapped": -63862.07,
+    "links.rca": 7.66,
+    "sum_from": 1482620,
+    "sum_to": 330444,
+    "binary.pc": 0.8827,
+    "th.max": 906532,
+    "th.max.pc": 0.1153,
+    "RD": 24.16,
+    "RD.added": 25.83,
+    "value": 25.83
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "India (IN)",
+    "domain": "Artificial Intelligence",
+    "full": 334444,
+    "binary": 1802,
+    "expected": 4727.56,
+    "untapped": -4282.44,
+    "links.rca": 1.91,
+    "sum_from": 563065,
+    "sum_to": 330444,
+    "binary.pc": 0.1083,
+    "th.max": 446754.5,
+    "th.max.pc": 0.0568,
+    "RD": 24.16,
+    "RD.added": 55.72,
+    "value": 55.72
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Japan (JP)",
+    "domain": "Artificial Intelligence",
+    "full": 1157152,
+    "binary": 940,
+    "expected": 2736.01,
+    "untapped": -1963.99,
+    "links.rca": 1.72,
+    "sum_from": 186661,
+    "sum_to": 330444,
+    "binary.pc": 0.0565,
+    "th.max": 258552.5,
+    "th.max.pc": 0.0329,
+    "RD": 24.16,
+    "RD.added": 29.53,
+    "value": 29.53
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "South Korea (KR)",
+    "domain": "Artificial Intelligence",
+    "full": 190484,
+    "binary": 718,
+    "expected": 2486.16,
+    "untapped": -1103.84,
+    "links.rca": 1.44,
+    "sum_from": 139440,
+    "sum_to": 330444,
+    "binary.pc": 0.0431,
+    "th.max": 234942,
+    "th.max.pc": 0.0299,
+    "RD": 24.16,
+    "RD.added": 43.9,
+    "value": 43.9
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "United States (US)",
+    "domain": "Artificial Intelligence",
+    "full": 8844548,
+    "binary": 9090,
+    "expected": 6718.65,
+    "untapped": -38731.35,
+    "links.rca": 6.76,
+    "sum_from": 330444,
+    "sum_to": 939381,
+    "binary.pc": 0.5462,
+    "th.max": 634912.5,
+    "th.max.pc": 0.0807,
+    "RD": 24.16,
+    "RD.added": 6.63,
+    "value": 6.63
+  },
+  {
+    "from": "United States (US)",
+    "to": "Canada (CA)",
+    "domain": "Artificial Intelligence",
+    "full": 14387148,
+    "binary": 6444,
+    "expected": 6525.61,
+    "untapped": -25694.39,
+    "links.rca": 4.94,
+    "sum_from": 293959,
+    "sum_to": 939381,
+    "binary.pc": 0.3872,
+    "th.max": 616670,
+    "th.max.pc": 0.0784,
+    "RD": 22.88,
+    "RD.added": 14.25,
+    "value": 14.25
+  },
+  {
+    "from": "United States (US)",
+    "to": "European Union (EU)",
+    "domain": "Artificial Intelligence",
+    "full": 96771200,
+    "binary": 21932,
+    "expected": 12814.82,
+    "untapped": -96845.18,
+    "links.rca": 8.56,
+    "sum_from": 1482620,
+    "sum_to": 939381,
+    "binary.pc": 1.3178,
+    "th.max": 1211000.5,
+    "th.max.pc": 0.154,
+    "RD": 22.88,
+    "RD.added": 27.76,
+    "value": 27.76
+  },
+  {
+    "from": "United States (US)",
+    "to": "India (IN)",
+    "domain": "Artificial Intelligence",
+    "full": 7864760,
+    "binary": 4548,
+    "expected": 7949.45,
+    "untapped": -14790.55,
+    "links.rca": 2.86,
+    "sum_from": 563065,
+    "sum_to": 939381,
+    "binary.pc": 0.2733,
+    "th.max": 751223,
+    "th.max.pc": 0.0955,
+    "RD": 22.88,
+    "RD.added": 56.73,
+    "value": 56.73
+  },
+  {
+    "from": "United States (US)",
+    "to": "Japan (JP)",
+    "domain": "Artificial Intelligence",
+    "full": 8068676,
+    "binary": 2534,
+    "expected": 5957.89,
+    "untapped": -6712.11,
+    "links.rca": 2.13,
+    "sum_from": 186661,
+    "sum_to": 939381,
+    "binary.pc": 0.1523,
+    "th.max": 563021,
+    "th.max.pc": 0.0716,
+    "RD": 22.88,
+    "RD.added": 27.72,
+    "value": 27.72
+  },
+  {
+    "from": "United States (US)",
+    "to": "South Korea (KR)",
+    "domain": "Artificial Intelligence",
+    "full": 3029976,
+    "binary": 2940,
+    "expected": 5708.05,
+    "untapped": -8991.95,
+    "links.rca": 2.58,
+    "sum_from": 139440,
+    "sum_to": 939381,
+    "binary.pc": 0.1767,
+    "th.max": 539410.5,
+    "th.max.pc": 0.0686,
+    "RD": 22.88,
+    "RD.added": 41.75,
+    "value": 41.75
+  },
+  {
+    "from": "United States (US)",
+    "to": "United Kingdom (GB)",
+    "domain": "Artificial Intelligence",
+    "full": 8844548,
+    "binary": 9090,
+    "expected": 6718.65,
+    "untapped": -38731.35,
+    "links.rca": 6.76,
+    "sum_from": 330444,
+    "sum_to": 939381,
+    "binary.pc": 0.5462,
+    "th.max": 634912.5,
+    "th.max.pc": 0.0807,
+    "RD": 22.88,
+    "RD.added": 7.92,
+    "value": 7.92
+  }
+] 
+
+            const froms = Array.from(new Set(data.map(d => d.from))).sort();
+            const tos = Array.from(new Set(data.map(d => d.to))).sort();
+
+            const vizContainer = document.getElementById('viz-container');
+            const legendContainer = document.getElementById('legend-container');
+            const tooltip = d3.select("#tooltip");
+
+            d3.select("#viz-container svg").remove();
+            d3.select("#legend svg").remove();
+
+            const width = vizContainer.clientWidth;
+            const height = vizContainer.clientHeight;
+            const margin = { top: 50, right: 50, bottom: 100, left: 150 };
+            const availableWidth = width - margin.left - margin.right;
+            const availableHeight = height - margin.top - margin.bottom;
+
+            const size = Math.min(availableWidth, availableHeight);
+
+            const svg = d3.select("#viz-container")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left + (availableWidth - size) / 2}, ${margin.top + (availableHeight - size) / 2})`);
+
+            const x = d3.scaleBand()
+                .range([0, size])
+                .domain(tos)
+                .padding(0.01);
+
+            const y = d3.scaleBand()
+                .range([0, size])
+                .domain(froms)
+                .padding(0.01);
+
+            const maxVal = d3.max(data, d => d.value);
+            const color = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range(["#ffffff", "#376bbe"]);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + size + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
+
+            svg.append("g")
+                .call(d3.axisLeft(y))
+                .style("font-size", "10px");
+
+            svg.selectAll()
+                .data(data, function (d) { return d.isKey ? (d.from + ':' + d.to) : (this.id); })
+                .enter()
+                .append("rect")
+                .attr("x", function (d) { return x(d.to) })
+                .attr("y", function (d) { return y(d.from) })
+                .attr("width", x.bandwidth())
+                .attr("height", y.bandwidth())
+                .style("fill", function (d) {
+                    return d.from === d.to ? "#8f9194" : color(d.value);
+                })
+                .style("stroke", "#eee")
+                .style("stroke-width", 1)
+                .on("mouseover", function (event, d) {
+                    d3.select(this).style("stroke", "black").style("stroke-width", 2);
+                    tooltip.style("opacity", 1);
+                    tooltip.html(`From: <b>${d.from}</b><br>To: <b>${d.to}</b><br>Value: <b>${d.value}</b>`);
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mousemove", function (event) {
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseleave", function (d) {
+                    d3.select(this).style("stroke", "#eee").style("stroke-width", 1);
+                    tooltip.style("opacity", 0);
+                });
+
+            const legendHeight = size * 0.8;
+            const legendWidth = Math.max(10, size * 0.04);
+            const legendFontSize = Math.max(10, size * 0.02);
+
+            d3.select("#legend-title")
+                .style("font-size", Math.max(9, size * 0.018) + "px")
+                .style("margin-bottom", Math.max(10, size * 0.02) + "px");
+
+            const legendSvg = d3.select("#legend")
+                .append("svg")
+                .attr("width", legendWidth + 60)
+                .attr("height", legendHeight + 20);
+
+            const defs = legendSvg.append("defs");
+            const linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+
+            linearGradient
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
+
+            linearGradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#ffffff");
+
+            linearGradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#376bbe");
+
+            legendSvg.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", "url(#linear-gradient)")
+                .style("stroke", "#ccc")
+                .attr("transform", "translate(0, 10)");
+
+            const legendScale = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range([legendHeight, 0]);
+
+            const legendAxis = d3.axisRight(legendScale)
+                .ticks(5);
+
+            legendSvg.append("g")
+                .attr("class", "legend-axis")
+                .attr("transform", `translate(${legendWidth}, 10)`)
+                .call(legendAxis)
+                .style("font-size", legendFontSize + "px");
+
+        }
+
+        drawViz();
+        window.addEventListener('resize', drawViz);
+
+    </script>
+</body>
+
+</html>

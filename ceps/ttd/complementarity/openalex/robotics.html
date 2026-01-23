@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #viz-container {
+            width: 88%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #legend-container {
+            width: 12%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        #legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .axis-label {
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="viz-container">
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        <div id="legend-container">
+            <div id="legend-title">Complementarity</div>
+            <div id="legend"></div>
+        </div>
+    </div>
+
+    <script>
+        async function drawViz() {
+            const data =  [
+  {
+    "from": "Canada (CA)",
+    "to": "European Union (EU)",
+    "domain": "Robotics",
+    "full": 85034,
+    "binary": 1255,
+    "expected": 633.51,
+    "untapped": -5641.49,
+    "links.rca": 9.91,
+    "sum_from": 65012,
+    "sum_to": 427665,
+    "binary.pc": 1.5099,
+    "th.max": 246338.5,
+    "th.max.pc": 0.1524,
+    "RD": 16.98,
+    "RD.added": 21.72,
+    "value": 21.72
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "India (IN)",
+    "domain": "Robotics",
+    "full": 657,
+    "binary": 148,
+    "expected": 206.32,
+    "untapped": -533.68,
+    "links.rca": 3.59,
+    "sum_from": 65012,
+    "sum_to": 95443,
+    "binary.pc": 0.1781,
+    "th.max": 80227.5,
+    "th.max.pc": 0.0496,
+    "RD": 16.98,
+    "RD.added": 70.43,
+    "value": 70.43
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "Japan (JP)",
+    "domain": "Robotics",
+    "full": 883,
+    "binary": 161,
+    "expected": 196.81,
+    "untapped": -608.19,
+    "links.rca": 4.09,
+    "sum_from": 65012,
+    "sum_to": 88043,
+    "binary.pc": 0.1937,
+    "th.max": 76527.5,
+    "th.max.pc": 0.0474,
+    "RD": 16.98,
+    "RD.added": 36.64,
+    "value": 36.64
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "South Korea (KR)",
+    "domain": "Robotics",
+    "full": 1299,
+    "binary": 153,
+    "expected": 145.54,
+    "untapped": -619.46,
+    "links.rca": 5.26,
+    "sum_from": 65012,
+    "sum_to": 48174,
+    "binary.pc": 0.1841,
+    "th.max": 56593,
+    "th.max.pc": 0.035,
+    "RD": 16.98,
+    "RD.added": 59.09,
+    "value": 59.09
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United Kingdom (GB)",
+    "domain": "Robotics",
+    "full": 53377,
+    "binary": 482,
+    "expected": 156.33,
+    "untapped": -2253.67,
+    "links.rca": 15.42,
+    "sum_from": 65012,
+    "sum_to": 56565,
+    "binary.pc": 0.5799,
+    "th.max": 60788.5,
+    "th.max.pc": 0.0376,
+    "RD": 16.98,
+    "RD.added": 1.51,
+    "value": 1.51
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United States (US)",
+    "domain": "Robotics",
+    "full": 115570,
+    "binary": 1462,
+    "expected": 323.82,
+    "untapped": -6986.18,
+    "links.rca": 22.57,
+    "sum_from": 65012,
+    "sum_to": 186819,
+    "binary.pc": 1.759,
+    "th.max": 125915.5,
+    "th.max.pc": 0.0779,
+    "RD": 16.98,
+    "RD.added": 3.73,
+    "value": 3.73
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 85034,
+    "binary": 1255,
+    "expected": 633.51,
+    "untapped": -5641.49,
+    "links.rca": 9.91,
+    "sum_from": 65012,
+    "sum_to": 427665,
+    "binary.pc": 1.5099,
+    "th.max": 246338.5,
+    "th.max.pc": 0.1524,
+    "RD": 33.14,
+    "RD.added": 5.55,
+    "value": 5.55
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "India (IN)",
+    "domain": "Robotics",
+    "full": 4689,
+    "binary": 895,
+    "expected": 672.64,
+    "untapped": -3802.36,
+    "links.rca": 6.65,
+    "sum_from": 427665,
+    "sum_to": 95443,
+    "binary.pc": 1.0768,
+    "th.max": 261554,
+    "th.max.pc": 0.1619,
+    "RD": 33.14,
+    "RD.added": 60.06,
+    "value": 60.06
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Japan (JP)",
+    "domain": "Robotics",
+    "full": 10141,
+    "binary": 969,
+    "expected": 663.12,
+    "untapped": -4181.88,
+    "links.rca": 7.31,
+    "sum_from": 427665,
+    "sum_to": 88043,
+    "binary.pc": 1.1658,
+    "th.max": 257854,
+    "th.max.pc": 0.1596,
+    "RD": 33.14,
+    "RD.added": 32.06,
+    "value": 32.06
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "South Korea (KR)",
+    "domain": "Robotics",
+    "full": 3225,
+    "binary": 508,
+    "expected": 611.86,
+    "untapped": -1928.14,
+    "links.rca": 4.15,
+    "sum_from": 427665,
+    "sum_to": 48174,
+    "binary.pc": 0.6112,
+    "th.max": 237919.5,
+    "th.max.pc": 0.1472,
+    "RD": 33.14,
+    "RD.added": 54.21,
+    "value": 54.21
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United Kingdom (GB)",
+    "domain": "Robotics",
+    "full": 411056,
+    "binary": 3540,
+    "expected": 622.65,
+    "untapped": -17077.35,
+    "links.rca": 28.43,
+    "sum_from": 427665,
+    "sum_to": 56565,
+    "binary.pc": 4.2591,
+    "th.max": 242115,
+    "th.max.pc": 0.1498,
+    "RD": 33.14,
+    "RD.added": 1.81,
+    "value": 1.81
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United States (US)",
+    "domain": "Robotics",
+    "full": 783096,
+    "binary": 5427,
+    "expected": 790.13,
+    "untapped": -26344.87,
+    "links.rca": 34.34,
+    "sum_from": 427665,
+    "sum_to": 186819,
+    "binary.pc": 6.5294,
+    "th.max": 307242,
+    "th.max.pc": 0.1901,
+    "RD": 33.14,
+    "RD.added": 0.57,
+    "value": 0.57
+  },
+  {
+    "from": "India (IN)",
+    "to": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 657,
+    "binary": 148,
+    "expected": 206.32,
+    "untapped": -533.68,
+    "links.rca": 3.59,
+    "sum_from": 65012,
+    "sum_to": 95443,
+    "binary.pc": 0.1781,
+    "th.max": 80227.5,
+    "th.max.pc": 0.0496,
+    "RD": 79.8,
+    "RD.added": 7.61,
+    "value": 7.61
+  },
+  {
+    "from": "India (IN)",
+    "to": "European Union (EU)",
+    "domain": "Robotics",
+    "full": 4689,
+    "binary": 895,
+    "expected": 672.64,
+    "untapped": -3802.36,
+    "links.rca": 6.65,
+    "sum_from": 427665,
+    "sum_to": 95443,
+    "binary.pc": 1.0768,
+    "th.max": 261554,
+    "th.max.pc": 0.1619,
+    "RD": 79.8,
+    "RD.added": 13.4,
+    "value": 13.4
+  },
+  {
+    "from": "India (IN)",
+    "to": "Japan (JP)",
+    "domain": "Robotics",
+    "full": 968,
+    "binary": 102,
+    "expected": 235.93,
+    "untapped": -274.07,
+    "links.rca": 2.16,
+    "sum_from": 95443,
+    "sum_to": 88043,
+    "binary.pc": 0.1227,
+    "th.max": 91743,
+    "th.max.pc": 0.0568,
+    "RD": 79.8,
+    "RD.added": 10.7,
+    "value": 10.7
+  },
+  {
+    "from": "India (IN)",
+    "to": "South Korea (KR)",
+    "domain": "Robotics",
+    "full": 699,
+    "binary": 174,
+    "expected": 184.67,
+    "untapped": -685.33,
+    "links.rca": 4.71,
+    "sum_from": 95443,
+    "sum_to": 48174,
+    "binary.pc": 0.2093,
+    "th.max": 71808.5,
+    "th.max.pc": 0.0444,
+    "RD": 79.8,
+    "RD.added": 7.91,
+    "value": 7.91
+  },
+  {
+    "from": "India (IN)",
+    "to": "United Kingdom (GB)",
+    "domain": "Robotics",
+    "full": 2163,
+    "binary": 318,
+    "expected": 195.46,
+    "untapped": -1394.54,
+    "links.rca": 8.13,
+    "sum_from": 95443,
+    "sum_to": 56565,
+    "binary.pc": 0.3826,
+    "th.max": 76004,
+    "th.max.pc": 0.047,
+    "RD": 79.8,
+    "RD.added": 8.02,
+    "value": 8.02
+  },
+  {
+    "from": "India (IN)",
+    "to": "United States (US)",
+    "domain": "Robotics",
+    "full": 6020,
+    "binary": 863,
+    "expected": 362.95,
+    "untapped": -3952.05,
+    "links.rca": 11.89,
+    "sum_from": 95443,
+    "sum_to": 186819,
+    "binary.pc": 1.0383,
+    "th.max": 141131,
+    "th.max.pc": 0.0873,
+    "RD": 79.8,
+    "RD.added": 9.18,
+    "value": 9.18
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 883,
+    "binary": 161,
+    "expected": 196.81,
+    "untapped": -608.19,
+    "links.rca": 4.09,
+    "sum_from": 65012,
+    "sum_to": 88043,
+    "binary.pc": 0.1937,
+    "th.max": 76527.5,
+    "th.max.pc": 0.0474,
+    "RD": 44.13,
+    "RD.added": 9.49,
+    "value": 9.49
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "European Union (EU)",
+    "domain": "Robotics",
+    "full": 10141,
+    "binary": 969,
+    "expected": 663.12,
+    "untapped": -4181.88,
+    "links.rca": 7.31,
+    "sum_from": 427665,
+    "sum_to": 88043,
+    "binary.pc": 1.1658,
+    "th.max": 257854,
+    "th.max.pc": 0.1596,
+    "RD": 44.13,
+    "RD.added": 21.07,
+    "value": 21.07
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "India (IN)",
+    "domain": "Robotics",
+    "full": 968,
+    "binary": 102,
+    "expected": 235.93,
+    "untapped": -274.07,
+    "links.rca": 2.16,
+    "sum_from": 95443,
+    "sum_to": 88043,
+    "binary.pc": 0.1227,
+    "th.max": 91743,
+    "th.max.pc": 0.0568,
+    "RD": 44.13,
+    "RD.added": 46.37,
+    "value": 46.37
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "South Korea (KR)",
+    "domain": "Robotics",
+    "full": 467,
+    "binary": 115,
+    "expected": 175.15,
+    "untapped": -399.85,
+    "links.rca": 3.28,
+    "sum_from": 88043,
+    "sum_to": 48174,
+    "binary.pc": 0.1384,
+    "th.max": 68108.5,
+    "th.max.pc": 0.0421,
+    "RD": 44.13,
+    "RD.added": 29.87,
+    "value": 29.87
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United Kingdom (GB)",
+    "domain": "Robotics",
+    "full": 2736,
+    "binary": 341,
+    "expected": 185.94,
+    "untapped": -1519.06,
+    "links.rca": 9.17,
+    "sum_from": 88043,
+    "sum_to": 56565,
+    "binary.pc": 0.4103,
+    "th.max": 72304,
+    "th.max.pc": 0.0447,
+    "RD": 44.13,
+    "RD.added": 4.07,
+    "value": 4.07
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United States (US)",
+    "domain": "Robotics",
+    "full": 8928,
+    "binary": 804,
+    "expected": 353.43,
+    "untapped": -3666.57,
+    "links.rca": 11.37,
+    "sum_from": 88043,
+    "sum_to": 186819,
+    "binary.pc": 0.9673,
+    "th.max": 137431,
+    "th.max.pc": 0.085,
+    "RD": 44.13,
+    "RD.added": 2.41,
+    "value": 2.41
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 1299,
+    "binary": 153,
+    "expected": 145.54,
+    "untapped": -619.46,
+    "links.rca": 5.26,
+    "sum_from": 65012,
+    "sum_to": 48174,
+    "binary.pc": 0.1841,
+    "th.max": 56593,
+    "th.max.pc": 0.035,
+    "RD": 70.91,
+    "RD.added": 5.16,
+    "value": 5.16
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "European Union (EU)",
+    "domain": "Robotics",
+    "full": 3225,
+    "binary": 508,
+    "expected": 611.86,
+    "untapped": -1928.14,
+    "links.rca": 4.15,
+    "sum_from": 427665,
+    "sum_to": 48174,
+    "binary.pc": 0.6112,
+    "th.max": 237919.5,
+    "th.max.pc": 0.1472,
+    "RD": 70.91,
+    "RD.added": 16.44,
+    "value": 16.44
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "India (IN)",
+    "domain": "Robotics",
+    "full": 699,
+    "binary": 174,
+    "expected": 184.67,
+    "untapped": -685.33,
+    "links.rca": 4.71,
+    "sum_from": 95443,
+    "sum_to": 48174,
+    "binary.pc": 0.2093,
+    "th.max": 71808.5,
+    "th.max.pc": 0.0444,
+    "RD": 70.91,
+    "RD.added": 16.8,
+    "value": 16.8
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Japan (JP)",
+    "domain": "Robotics",
+    "full": 467,
+    "binary": 115,
+    "expected": 175.15,
+    "untapped": -399.85,
+    "links.rca": 3.28,
+    "sum_from": 88043,
+    "sum_to": 48174,
+    "binary.pc": 0.1384,
+    "th.max": 68108.5,
+    "th.max.pc": 0.0421,
+    "RD": 70.91,
+    "RD.added": 3.09,
+    "value": 3.09
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United Kingdom (GB)",
+    "domain": "Robotics",
+    "full": 976,
+    "binary": 163,
+    "expected": 134.68,
+    "untapped": -680.32,
+    "links.rca": 6.05,
+    "sum_from": 48174,
+    "sum_to": 56565,
+    "binary.pc": 0.1961,
+    "th.max": 52369.5,
+    "th.max.pc": 0.0324,
+    "RD": 70.91,
+    "RD.added": 4.78,
+    "value": 4.78
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United States (US)",
+    "domain": "Robotics",
+    "full": 9813,
+    "binary": 922,
+    "expected": 302.16,
+    "untapped": -4307.84,
+    "links.rca": 15.26,
+    "sum_from": 48174,
+    "sum_to": 186819,
+    "binary.pc": 1.1093,
+    "th.max": 117496.5,
+    "th.max.pc": 0.0727,
+    "RD": 70.91,
+    "RD.added": 2.86,
+    "value": 2.86
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 53377,
+    "binary": 482,
+    "expected": 156.33,
+    "untapped": -2253.67,
+    "links.rca": 15.42,
+    "sum_from": 65012,
+    "sum_to": 56565,
+    "binary.pc": 0.5799,
+    "th.max": 60788.5,
+    "th.max.pc": 0.0376,
+    "RD": 11.01,
+    "RD.added": 7.48,
+    "value": 7.48
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "European Union (EU)",
+    "domain": "Robotics",
+    "full": 411056,
+    "binary": 3540,
+    "expected": 622.65,
+    "untapped": -17077.35,
+    "links.rca": 28.43,
+    "sum_from": 427665,
+    "sum_to": 56565,
+    "binary.pc": 4.2591,
+    "th.max": 242115,
+    "th.max.pc": 0.1498,
+    "RD": 11.01,
+    "RD.added": 23.95,
+    "value": 23.95
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "India (IN)",
+    "domain": "Robotics",
+    "full": 2163,
+    "binary": 318,
+    "expected": 195.46,
+    "untapped": -1394.54,
+    "links.rca": 8.13,
+    "sum_from": 95443,
+    "sum_to": 56565,
+    "binary.pc": 0.3826,
+    "th.max": 76004,
+    "th.max.pc": 0.047,
+    "RD": 11.01,
+    "RD.added": 76.81,
+    "value": 76.81
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Japan (JP)",
+    "domain": "Robotics",
+    "full": 2736,
+    "binary": 341,
+    "expected": 185.94,
+    "untapped": -1519.06,
+    "links.rca": 9.17,
+    "sum_from": 88043,
+    "sum_to": 56565,
+    "binary.pc": 0.4103,
+    "th.max": 72304,
+    "th.max.pc": 0.0447,
+    "RD": 11.01,
+    "RD.added": 37.19,
+    "value": 37.19
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "South Korea (KR)",
+    "domain": "Robotics",
+    "full": 976,
+    "binary": 163,
+    "expected": 134.68,
+    "untapped": -680.32,
+    "links.rca": 6.05,
+    "sum_from": 48174,
+    "sum_to": 56565,
+    "binary.pc": 0.1961,
+    "th.max": 52369.5,
+    "th.max.pc": 0.0324,
+    "RD": 11.01,
+    "RD.added": 64.68,
+    "value": 64.68
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "United States (US)",
+    "domain": "Robotics",
+    "full": 470725,
+    "binary": 1843,
+    "expected": 312.95,
+    "untapped": -8902.05,
+    "links.rca": 29.45,
+    "sum_from": 56565,
+    "sum_to": 186819,
+    "binary.pc": 2.2174,
+    "th.max": 121692,
+    "th.max.pc": 0.0753,
+    "RD": 11.01,
+    "RD.added": 3.67,
+    "value": 3.67
+  },
+  {
+    "from": "United States (US)",
+    "to": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 115570,
+    "binary": 1462,
+    "expected": 323.82,
+    "untapped": -6986.18,
+    "links.rca": 22.57,
+    "sum_from": 65012,
+    "sum_to": 186819,
+    "binary.pc": 1.759,
+    "th.max": 125915.5,
+    "th.max.pc": 0.0779,
+    "RD": 10.49,
+    "RD.added": 10.22,
+    "value": 10.22
+  },
+  {
+    "from": "United States (US)",
+    "to": "European Union (EU)",
+    "domain": "Robotics",
+    "full": 783096,
+    "binary": 5427,
+    "expected": 790.13,
+    "untapped": -26344.87,
+    "links.rca": 34.34,
+    "sum_from": 427665,
+    "sum_to": 186819,
+    "binary.pc": 6.5294,
+    "th.max": 307242,
+    "th.max.pc": 0.1901,
+    "RD": 10.49,
+    "RD.added": 23.23,
+    "value": 23.23
+  },
+  {
+    "from": "United States (US)",
+    "to": "India (IN)",
+    "domain": "Robotics",
+    "full": 6020,
+    "binary": 863,
+    "expected": 362.95,
+    "untapped": -3952.05,
+    "links.rca": 11.89,
+    "sum_from": 95443,
+    "sum_to": 186819,
+    "binary.pc": 1.0383,
+    "th.max": 141131,
+    "th.max.pc": 0.0873,
+    "RD": 10.49,
+    "RD.added": 78.48,
+    "value": 78.48
+  },
+  {
+    "from": "United States (US)",
+    "to": "Japan (JP)",
+    "domain": "Robotics",
+    "full": 8928,
+    "binary": 804,
+    "expected": 353.43,
+    "untapped": -3666.57,
+    "links.rca": 11.37,
+    "sum_from": 88043,
+    "sum_to": 186819,
+    "binary.pc": 0.9673,
+    "th.max": 137431,
+    "th.max.pc": 0.085,
+    "RD": 10.49,
+    "RD.added": 36.05,
+    "value": 36.05
+  },
+  {
+    "from": "United States (US)",
+    "to": "South Korea (KR)",
+    "domain": "Robotics",
+    "full": 9813,
+    "binary": 922,
+    "expected": 302.16,
+    "untapped": -4307.84,
+    "links.rca": 15.26,
+    "sum_from": 48174,
+    "sum_to": 186819,
+    "binary.pc": 1.1093,
+    "th.max": 117496.5,
+    "th.max.pc": 0.0727,
+    "RD": 10.49,
+    "RD.added": 63.28,
+    "value": 63.28
+  },
+  {
+    "from": "United States (US)",
+    "to": "United Kingdom (GB)",
+    "domain": "Robotics",
+    "full": 470725,
+    "binary": 1843,
+    "expected": 312.95,
+    "untapped": -8902.05,
+    "links.rca": 29.45,
+    "sum_from": 56565,
+    "sum_to": 186819,
+    "binary.pc": 2.2174,
+    "th.max": 121692,
+    "th.max.pc": 0.0753,
+    "RD": 10.49,
+    "RD.added": 4.2,
+    "value": 4.2
+  }
+] 
+
+            const froms = Array.from(new Set(data.map(d => d.from))).sort();
+            const tos = Array.from(new Set(data.map(d => d.to))).sort();
+
+            const vizContainer = document.getElementById('viz-container');
+            const legendContainer = document.getElementById('legend-container');
+            const tooltip = d3.select("#tooltip");
+
+            d3.select("#viz-container svg").remove();
+            d3.select("#legend svg").remove();
+
+            const width = vizContainer.clientWidth;
+            const height = vizContainer.clientHeight;
+            const margin = { top: 50, right: 50, bottom: 100, left: 150 };
+            const availableWidth = width - margin.left - margin.right;
+            const availableHeight = height - margin.top - margin.bottom;
+
+            const size = Math.min(availableWidth, availableHeight);
+
+            const svg = d3.select("#viz-container")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left + (availableWidth - size) / 2}, ${margin.top + (availableHeight - size) / 2})`);
+
+            const x = d3.scaleBand()
+                .range([0, size])
+                .domain(tos)
+                .padding(0.01);
+
+            const y = d3.scaleBand()
+                .range([0, size])
+                .domain(froms)
+                .padding(0.01);
+
+            const maxVal = d3.max(data, d => d.value);
+            const color = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range(["#ffffff", "#376bbe"]);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + size + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
+
+            svg.append("g")
+                .call(d3.axisLeft(y))
+                .style("font-size", "10px");
+
+            svg.selectAll()
+                .data(data, function (d) { return d.isKey ? (d.from + ':' + d.to) : (this.id); })
+                .enter()
+                .append("rect")
+                .attr("x", function (d) { return x(d.to) })
+                .attr("y", function (d) { return y(d.from) })
+                .attr("width", x.bandwidth())
+                .attr("height", y.bandwidth())
+                .style("fill", function (d) {
+                    return d.from === d.to ? "#8f9194" : color(d.value);
+                })
+                .style("stroke", "#eee")
+                .style("stroke-width", 1)
+                .on("mouseover", function (event, d) {
+                    d3.select(this).style("stroke", "black").style("stroke-width", 2);
+                    tooltip.style("opacity", 1);
+                    tooltip.html(`From: <b>${d.from}</b><br>To: <b>${d.to}</b><br>Value: <b>${d.value}</b>`);
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mousemove", function (event) {
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseleave", function (d) {
+                    d3.select(this).style("stroke", "#eee").style("stroke-width", 1);
+                    tooltip.style("opacity", 0);
+                });
+
+            const legendHeight = size * 0.8;
+            const legendWidth = Math.max(10, size * 0.04);
+            const legendFontSize = Math.max(10, size * 0.02);
+
+            d3.select("#legend-title")
+                .style("font-size", Math.max(9, size * 0.018) + "px")
+                .style("margin-bottom", Math.max(10, size * 0.02) + "px");
+
+            const legendSvg = d3.select("#legend")
+                .append("svg")
+                .attr("width", legendWidth + 60)
+                .attr("height", legendHeight + 20);
+
+            const defs = legendSvg.append("defs");
+            const linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+
+            linearGradient
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
+
+            linearGradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#ffffff");
+
+            linearGradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#376bbe");
+
+            legendSvg.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", "url(#linear-gradient)")
+                .style("stroke", "#ccc")
+                .attr("transform", "translate(0, 10)");
+
+            const legendScale = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range([legendHeight, 0]);
+
+            const legendAxis = d3.axisRight(legendScale)
+                .ticks(5);
+
+            legendSvg.append("g")
+                .attr("class", "legend-axis")
+                .attr("transform", `translate(${legendWidth}, 10)`)
+                .call(legendAxis)
+                .style("font-size", legendFontSize + "px");
+
+        }
+
+        drawViz();
+        window.addEventListener('resize', drawViz);
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #viz-container {
+            width: 88%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #legend-container {
+            width: 12%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        #legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .axis-label {
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="viz-container">
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        <div id="legend-container">
+            <div id="legend-title">Complementarity</div>
+            <div id="legend"></div>
+        </div>
+    </div>
+
+    <script>
+        async function drawViz() {
+            const data =  [
+  {
+    "from": "Canada (CA)",
+    "to": "European Union (EU)",
+    "domain": "Generative AI",
+    "full": 3270,
+    "binary": 220,
+    "expected": 165.44,
+    "untapped": -934.56,
+    "links.rca": 6.65,
+    "sum_from": 16624,
+    "sum_to": 71981,
+    "binary.pc": 0.7627,
+    "th.max": 44302.5,
+    "th.max.pc": 0.1147,
+    "RD": 12.53,
+    "RD.added": 12.55,
+    "value": 12.55
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "India (IN)",
+    "domain": "Generative AI",
+    "full": 303,
+    "binary": 68,
+    "expected": 111.62,
+    "untapped": -228.38,
+    "links.rca": 3.05,
+    "sum_from": 16624,
+    "sum_to": 43156,
+    "binary.pc": 0.2357,
+    "th.max": 29890,
+    "th.max.pc": 0.0774,
+    "RD": 12.53,
+    "RD.added": 78.98,
+    "value": 78.98
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "Japan (JP)",
+    "domain": "Generative AI",
+    "full": 102,
+    "binary": 31,
+    "expected": 52.74,
+    "untapped": -71.26,
+    "links.rca": 2.35,
+    "sum_from": 16624,
+    "sum_to": 11622,
+    "binary.pc": 0.086,
+    "th.max": 14123,
+    "th.max.pc": 0.0366,
+    "RD": 12.53,
+    "RD.added": 61.93,
+    "value": 61.93
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "South Korea (KR)",
+    "domain": "Generative AI",
+    "full": 973,
+    "binary": 117,
+    "expected": 69.33,
+    "untapped": -515.67,
+    "links.rca": 8.44,
+    "sum_from": 16624,
+    "sum_to": 20510,
+    "binary.pc": 0.4056,
+    "th.max": 18567,
+    "th.max.pc": 0.0481,
+    "RD": 12.53,
+    "RD.added": 71.77,
+    "value": 71.77
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United Kingdom (GB)",
+    "domain": "Generative AI",
+    "full": 740,
+    "binary": 126,
+    "expected": 59.42,
+    "untapped": -570.58,
+    "links.rca": 10.6,
+    "sum_from": 16624,
+    "sum_to": 15198,
+    "binary.pc": 0.4368,
+    "th.max": 15911,
+    "th.max.pc": 0.0412,
+    "RD": 12.53,
+    "RD.added": 0.32,
+    "value": 0.32
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United States (US)",
+    "domain": "Generative AI",
+    "full": 4203,
+    "binary": 395,
+    "expected": 121.09,
+    "untapped": -1853.91,
+    "links.rca": 16.31,
+    "sum_from": 16624,
+    "sum_to": 48230,
+    "binary.pc": 1.3694,
+    "th.max": 32427,
+    "th.max.pc": 0.084,
+    "RD": 12.53,
+    "RD.added": 2.27,
+    "value": 2.27
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Canada (CA)",
+    "domain": "Generative AI",
+    "full": 3270,
+    "binary": 220,
+    "expected": 165.44,
+    "untapped": -934.56,
+    "links.rca": 6.65,
+    "sum_from": 16624,
+    "sum_to": 71981,
+    "binary.pc": 0.7627,
+    "th.max": 44302.5,
+    "th.max.pc": 0.1147,
+    "RD": 22.47,
+    "RD.added": 2.61,
+    "value": 2.61
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "India (IN)",
+    "domain": "Generative AI",
+    "full": 2209,
+    "binary": 321,
+    "expected": 214.98,
+    "untapped": -1390.02,
+    "links.rca": 7.47,
+    "sum_from": 71981,
+    "sum_to": 43156,
+    "binary.pc": 1.1128,
+    "th.max": 57568.5,
+    "th.max.pc": 0.1491,
+    "RD": 22.47,
+    "RD.added": 73.67,
+    "value": 73.67
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Japan (JP)",
+    "domain": "Generative AI",
+    "full": 765,
+    "binary": 122,
+    "expected": 156.1,
+    "untapped": -453.9,
+    "links.rca": 3.91,
+    "sum_from": 71981,
+    "sum_to": 11622,
+    "binary.pc": 0.4229,
+    "th.max": 41801.5,
+    "th.max.pc": 0.1082,
+    "RD": 22.47,
+    "RD.added": 55.87,
+    "value": 55.87
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "South Korea (KR)",
+    "domain": "Generative AI",
+    "full": 1113,
+    "binary": 131,
+    "expected": 172.69,
+    "untapped": -482.31,
+    "links.rca": 3.79,
+    "sum_from": 71981,
+    "sum_to": 20510,
+    "binary.pc": 0.4541,
+    "th.max": 46245.5,
+    "th.max.pc": 0.1197,
+    "RD": 22.47,
+    "RD.added": 65.88,
+    "value": 65.88
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United Kingdom (GB)",
+    "domain": "Generative AI",
+    "full": 6982,
+    "binary": 606,
+    "expected": 162.77,
+    "untapped": -2867.23,
+    "links.rca": 18.62,
+    "sum_from": 71981,
+    "sum_to": 15198,
+    "binary.pc": 2.1008,
+    "th.max": 43589.5,
+    "th.max.pc": 0.1129,
+    "RD": 22.47,
+    "RD.added": 0.34,
+    "value": 0.34
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United States (US)",
+    "domain": "Generative AI",
+    "full": 18686,
+    "binary": 1181,
+    "expected": 224.45,
+    "untapped": -5680.55,
+    "links.rca": 26.31,
+    "sum_from": 71981,
+    "sum_to": 48230,
+    "binary.pc": 4.0942,
+    "th.max": 60105.5,
+    "th.max.pc": 0.1556,
+    "RD": 22.47,
+    "RD.added": 0.49,
+    "value": 0.49
+  },
+  {
+    "from": "India (IN)",
+    "to": "Canada (CA)",
+    "domain": "Generative AI",
+    "full": 303,
+    "binary": 68,
+    "expected": 111.62,
+    "untapped": -228.38,
+    "links.rca": 3.05,
+    "sum_from": 16624,
+    "sum_to": 43156,
+    "binary.pc": 0.2357,
+    "th.max": 29890,
+    "th.max.pc": 0.0774,
+    "RD": 87.66,
+    "RD.added": 3.85,
+    "value": 3.85
+  },
+  {
+    "from": "India (IN)",
+    "to": "European Union (EU)",
+    "domain": "Generative AI",
+    "full": 2209,
+    "binary": 321,
+    "expected": 214.98,
+    "untapped": -1390.02,
+    "links.rca": 7.47,
+    "sum_from": 71981,
+    "sum_to": 43156,
+    "binary.pc": 1.1128,
+    "th.max": 57568.5,
+    "th.max.pc": 0.1491,
+    "RD": 87.66,
+    "RD.added": 8.48,
+    "value": 8.48
+  },
+  {
+    "from": "India (IN)",
+    "to": "Japan (JP)",
+    "domain": "Generative AI",
+    "full": 133,
+    "binary": 35,
+    "expected": 102.28,
+    "untapped": -72.72,
+    "links.rca": 1.71,
+    "sum_from": 43156,
+    "sum_to": 11622,
+    "binary.pc": 0.1213,
+    "th.max": 27389,
+    "th.max.pc": 0.0709,
+    "RD": 87.66,
+    "RD.added": 9.81,
+    "value": 9.81
+  },
+  {
+    "from": "India (IN)",
+    "to": "South Korea (KR)",
+    "domain": "Generative AI",
+    "full": 355,
+    "binary": 81,
+    "expected": 118.87,
+    "untapped": -286.13,
+    "links.rca": 3.41,
+    "sum_from": 43156,
+    "sum_to": 20510,
+    "binary.pc": 0.2808,
+    "th.max": 31833,
+    "th.max.pc": 0.0824,
+    "RD": 87.66,
+    "RD.added": 8.06,
+    "value": 8.06
+  },
+  {
+    "from": "India (IN)",
+    "to": "United Kingdom (GB)",
+    "domain": "Generative AI",
+    "full": 1133,
+    "binary": 145,
+    "expected": 108.95,
+    "untapped": -616.05,
+    "links.rca": 6.65,
+    "sum_from": 43156,
+    "sum_to": 15198,
+    "binary.pc": 0.5027,
+    "th.max": 29177,
+    "th.max.pc": 0.0755,
+    "RD": 87.66,
+    "RD.added": 3.09,
+    "value": 3.09
+  },
+  {
+    "from": "India (IN)",
+    "to": "United States (US)",
+    "domain": "Generative AI",
+    "full": 2538,
+    "binary": 368,
+    "expected": 170.63,
+    "untapped": -1669.37,
+    "links.rca": 10.78,
+    "sum_from": 43156,
+    "sum_to": 48230,
+    "binary.pc": 1.2758,
+    "th.max": 45693,
+    "th.max.pc": 0.1183,
+    "RD": 87.66,
+    "RD.added": 3.92,
+    "value": 3.92
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "Canada (CA)",
+    "domain": "Generative AI",
+    "full": 102,
+    "binary": 31,
+    "expected": 52.74,
+    "untapped": -71.26,
+    "links.rca": 2.35,
+    "sum_from": 16624,
+    "sum_to": 11622,
+    "binary.pc": 0.086,
+    "th.max": 14123,
+    "th.max.pc": 0.0366,
+    "RD": 70.05,
+    "RD.added": 4.41,
+    "value": 4.41
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "European Union (EU)",
+    "domain": "Generative AI",
+    "full": 765,
+    "binary": 122,
+    "expected": 156.1,
+    "untapped": -453.9,
+    "links.rca": 3.91,
+    "sum_from": 71981,
+    "sum_to": 11622,
+    "binary.pc": 0.4229,
+    "th.max": 41801.5,
+    "th.max.pc": 0.1082,
+    "RD": 70.05,
+    "RD.added": 8.29,
+    "value": 8.29
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "India (IN)",
+    "domain": "Generative AI",
+    "full": 133,
+    "binary": 35,
+    "expected": 102.28,
+    "untapped": -72.72,
+    "links.rca": 1.71,
+    "sum_from": 43156,
+    "sum_to": 11622,
+    "binary.pc": 0.1213,
+    "th.max": 27389,
+    "th.max.pc": 0.0709,
+    "RD": 70.05,
+    "RD.added": 27.42,
+    "value": 27.42
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "South Korea (KR)",
+    "domain": "Generative AI",
+    "full": 105,
+    "binary": 19,
+    "expected": 59.99,
+    "untapped": -16.01,
+    "links.rca": 1.27,
+    "sum_from": 11622,
+    "sum_to": 20510,
+    "binary.pc": 0.0527,
+    "th.max": 16066,
+    "th.max.pc": 0.0416,
+    "RD": 70.05,
+    "RD.added": 13.97,
+    "value": 13.97
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United Kingdom (GB)",
+    "domain": "Generative AI",
+    "full": 167,
+    "binary": 39,
+    "expected": 50.08,
+    "untapped": -144.92,
+    "links.rca": 3.89,
+    "sum_from": 11622,
+    "sum_to": 15198,
+    "binary.pc": 0.1352,
+    "th.max": 13410,
+    "th.max.pc": 0.0347,
+    "RD": 70.05,
+    "RD.added": 0.92,
+    "value": 0.92
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United States (US)",
+    "domain": "Generative AI",
+    "full": 1192,
+    "binary": 154,
+    "expected": 111.75,
+    "untapped": -658.25,
+    "links.rca": 6.89,
+    "sum_from": 11622,
+    "sum_to": 48230,
+    "binary.pc": 0.5339,
+    "th.max": 29926,
+    "th.max.pc": 0.0775,
+    "RD": 70.05,
+    "RD.added": 1.53,
+    "value": 1.53
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Canada (CA)",
+    "domain": "Generative AI",
+    "full": 973,
+    "binary": 117,
+    "expected": 69.33,
+    "untapped": -515.67,
+    "links.rca": 8.44,
+    "sum_from": 16624,
+    "sum_to": 20510,
+    "binary.pc": 0.4056,
+    "th.max": 18567,
+    "th.max.pc": 0.0481,
+    "RD": 82.23,
+    "RD.added": 2.06,
+    "value": 2.06
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "European Union (EU)",
+    "domain": "Generative AI",
+    "full": 1113,
+    "binary": 131,
+    "expected": 172.69,
+    "untapped": -482.31,
+    "links.rca": 3.79,
+    "sum_from": 71981,
+    "sum_to": 20510,
+    "binary.pc": 0.4541,
+    "th.max": 46245.5,
+    "th.max.pc": 0.1197,
+    "RD": 82.23,
+    "RD.added": 6.12,
+    "value": 6.12
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "India (IN)",
+    "domain": "Generative AI",
+    "full": 355,
+    "binary": 81,
+    "expected": 118.87,
+    "untapped": -286.13,
+    "links.rca": 3.41,
+    "sum_from": 43156,
+    "sum_to": 20510,
+    "binary.pc": 0.2808,
+    "th.max": 31833,
+    "th.max.pc": 0.0824,
+    "RD": 82.23,
+    "RD.added": 13.5,
+    "value": 13.5
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Japan (JP)",
+    "domain": "Generative AI",
+    "full": 105,
+    "binary": 19,
+    "expected": 59.99,
+    "untapped": -16.01,
+    "links.rca": 1.27,
+    "sum_from": 11622,
+    "sum_to": 20510,
+    "binary.pc": 0.0527,
+    "th.max": 16066,
+    "th.max.pc": 0.0416,
+    "RD": 82.23,
+    "RD.added": 1.79,
+    "value": 1.79
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United Kingdom (GB)",
+    "domain": "Generative AI",
+    "full": 531,
+    "binary": 90,
+    "expected": 66.67,
+    "untapped": -383.33,
+    "links.rca": 6.75,
+    "sum_from": 20510,
+    "sum_to": 15198,
+    "binary.pc": 0.312,
+    "th.max": 17854,
+    "th.max.pc": 0.0462,
+    "RD": 82.23,
+    "RD.added": 1.13,
+    "value": 1.13
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United States (US)",
+    "domain": "Generative AI",
+    "full": 1870,
+    "binary": 361,
+    "expected": 128.35,
+    "untapped": -1676.65,
+    "links.rca": 14.06,
+    "sum_from": 20510,
+    "sum_to": 48230,
+    "binary.pc": 1.2515,
+    "th.max": 34370,
+    "th.max.pc": 0.089,
+    "RD": 82.23,
+    "RD.added": 1.78,
+    "value": 1.78
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Canada (CA)",
+    "domain": "Generative AI",
+    "full": 740,
+    "binary": 126,
+    "expected": 59.42,
+    "untapped": -570.58,
+    "links.rca": 10.6,
+    "sum_from": 16624,
+    "sum_to": 15198,
+    "binary.pc": 0.4368,
+    "th.max": 15911,
+    "th.max.pc": 0.0412,
+    "RD": 8.26,
+    "RD.added": 4.59,
+    "value": 4.59
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "European Union (EU)",
+    "domain": "Generative AI",
+    "full": 6982,
+    "binary": 606,
+    "expected": 162.77,
+    "untapped": -2867.23,
+    "links.rca": 18.62,
+    "sum_from": 71981,
+    "sum_to": 15198,
+    "binary.pc": 2.1008,
+    "th.max": 43589.5,
+    "th.max.pc": 0.1129,
+    "RD": 8.26,
+    "RD.added": 14.56,
+    "value": 14.56
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "India (IN)",
+    "domain": "Generative AI",
+    "full": 1133,
+    "binary": 145,
+    "expected": 108.95,
+    "untapped": -616.05,
+    "links.rca": 6.65,
+    "sum_from": 43156,
+    "sum_to": 15198,
+    "binary.pc": 0.5027,
+    "th.max": 29177,
+    "th.max.pc": 0.0755,
+    "RD": 8.26,
+    "RD.added": 82.5,
+    "value": 82.5
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Japan (JP)",
+    "domain": "Generative AI",
+    "full": 167,
+    "binary": 39,
+    "expected": 50.08,
+    "untapped": -144.92,
+    "links.rca": 3.89,
+    "sum_from": 11622,
+    "sum_to": 15198,
+    "binary.pc": 0.1352,
+    "th.max": 13410,
+    "th.max.pc": 0.0347,
+    "RD": 8.26,
+    "RD.added": 62.71,
+    "value": 62.71
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "South Korea (KR)",
+    "domain": "Generative AI",
+    "full": 531,
+    "binary": 90,
+    "expected": 66.67,
+    "untapped": -383.33,
+    "links.rca": 6.75,
+    "sum_from": 20510,
+    "sum_to": 15198,
+    "binary.pc": 0.312,
+    "th.max": 17854,
+    "th.max.pc": 0.0462,
+    "RD": 8.26,
+    "RD.added": 75.11,
+    "value": 75.11
+  },
+  {
+    "from": "United States (US)",
+    "to": "Canada (CA)",
+    "domain": "Generative AI",
+    "full": 4203,
+    "binary": 395,
+    "expected": 121.09,
+    "untapped": -1853.91,
+    "links.rca": 16.31,
+    "sum_from": 16624,
+    "sum_to": 48230,
+    "binary.pc": 1.3694,
+    "th.max": 32427,
+    "th.max.pc": 0.084,
+    "RD": 10.45,
+    "RD.added": 4.35,
+    "value": 4.35
+  },
+  {
+    "from": "United States (US)",
+    "to": "European Union (EU)",
+    "domain": "Generative AI",
+    "full": 18686,
+    "binary": 1181,
+    "expected": 224.45,
+    "untapped": -5680.55,
+    "links.rca": 26.31,
+    "sum_from": 71981,
+    "sum_to": 48230,
+    "binary.pc": 4.0942,
+    "th.max": 60105.5,
+    "th.max.pc": 0.1556,
+    "RD": 10.45,
+    "RD.added": 12.51,
+    "value": 12.51
+  },
+  {
+    "from": "United States (US)",
+    "to": "India (IN)",
+    "domain": "Generative AI",
+    "full": 2538,
+    "binary": 368,
+    "expected": 170.63,
+    "untapped": -1669.37,
+    "links.rca": 10.78,
+    "sum_from": 43156,
+    "sum_to": 48230,
+    "binary.pc": 1.2758,
+    "th.max": 45693,
+    "th.max.pc": 0.1183,
+    "RD": 10.45,
+    "RD.added": 81.13,
+    "value": 81.13
+  },
+  {
+    "from": "United States (US)",
+    "to": "Japan (JP)",
+    "domain": "Generative AI",
+    "full": 1192,
+    "binary": 154,
+    "expected": 111.75,
+    "untapped": -658.25,
+    "links.rca": 6.89,
+    "sum_from": 11622,
+    "sum_to": 48230,
+    "binary.pc": 0.5339,
+    "th.max": 29926,
+    "th.max.pc": 0.0775,
+    "RD": 10.45,
+    "RD.added": 61.13,
+    "value": 61.13
+  },
+  {
+    "from": "United States (US)",
+    "to": "South Korea (KR)",
+    "domain": "Generative AI",
+    "full": 1870,
+    "binary": 361,
+    "expected": 128.35,
+    "untapped": -1676.65,
+    "links.rca": 14.06,
+    "sum_from": 20510,
+    "sum_to": 48230,
+    "binary.pc": 1.2515,
+    "th.max": 34370,
+    "th.max.pc": 0.089,
+    "RD": 10.45,
+    "RD.added": 73.56,
+    "value": 73.56
+  }
+] 
+
+            const froms = Array.from(new Set(data.map(d => d.from))).sort();
+            const tos = Array.from(new Set(data.map(d => d.to))).sort();
+
+            const vizContainer = document.getElementById('viz-container');
+            const legendContainer = document.getElementById('legend-container');
+            const tooltip = d3.select("#tooltip");
+
+            d3.select("#viz-container svg").remove();
+            d3.select("#legend svg").remove();
+
+            const width = vizContainer.clientWidth;
+            const height = vizContainer.clientHeight;
+            const margin = { top: 50, right: 50, bottom: 100, left: 150 };
+            const availableWidth = width - margin.left - margin.right;
+            const availableHeight = height - margin.top - margin.bottom;
+
+            const size = Math.min(availableWidth, availableHeight);
+
+            const svg = d3.select("#viz-container")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left + (availableWidth - size) / 2}, ${margin.top + (availableHeight - size) / 2})`);
+
+            const x = d3.scaleBand()
+                .range([0, size])
+                .domain(tos)
+                .padding(0.01);
+
+            const y = d3.scaleBand()
+                .range([0, size])
+                .domain(froms)
+                .padding(0.01);
+
+            const maxVal = d3.max(data, d => d.value);
+            const color = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range(["#ffffff", "#376bbe"]);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + size + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
+
+            svg.append("g")
+                .call(d3.axisLeft(y))
+                .style("font-size", "10px");
+
+            svg.selectAll()
+                .data(data, function (d) { return d.isKey ? (d.from + ':' + d.to) : (this.id); })
+                .enter()
+                .append("rect")
+                .attr("x", function (d) { return x(d.to) })
+                .attr("y", function (d) { return y(d.from) })
+                .attr("width", x.bandwidth())
+                .attr("height", y.bandwidth())
+                .style("fill", function (d) {
+                    return d.from === d.to ? "#8f9194" : color(d.value);
+                })
+                .style("stroke", "#eee")
+                .style("stroke-width", 1)
+                .on("mouseover", function (event, d) {
+                    d3.select(this).style("stroke", "black").style("stroke-width", 2);
+                    tooltip.style("opacity", 1);
+                    tooltip.html(`From: <b>${d.from}</b><br>To: <b>${d.to}</b><br>Value: <b>${d.value}</b>`);
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mousemove", function (event) {
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseleave", function (d) {
+                    d3.select(this).style("stroke", "#eee").style("stroke-width", 1);
+                    tooltip.style("opacity", 0);
+                });
+
+            const legendHeight = size * 0.8;
+            const legendWidth = Math.max(10, size * 0.04);
+            const legendFontSize = Math.max(10, size * 0.02);
+
+            d3.select("#legend-title")
+                .style("font-size", Math.max(9, size * 0.018) + "px")
+                .style("margin-bottom", Math.max(10, size * 0.02) + "px");
+
+            const legendSvg = d3.select("#legend")
+                .append("svg")
+                .attr("width", legendWidth + 60)
+                .attr("height", legendHeight + 20);
+
+            const defs = legendSvg.append("defs");
+            const linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+
+            linearGradient
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
+
+            linearGradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#ffffff");
+
+            linearGradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#376bbe");
+
+            legendSvg.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", "url(#linear-gradient)")
+                .style("stroke", "#ccc")
+                .attr("transform", "translate(0, 10)");
+
+            const legendScale = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range([legendHeight, 0]);
+
+            const legendAxis = d3.axisRight(legendScale)
+                .ticks(5);
+
+            legendSvg.append("g")
+                .attr("class", "legend-axis")
+                .attr("transform", `translate(${legendWidth}, 10)`)
+                .call(legendAxis)
+                .style("font-size", legendFontSize + "px");
+
+        }
+
+        drawViz();
+        window.addEventListener('resize', drawViz);
+
+    </script>
+</body>
+
+</html>

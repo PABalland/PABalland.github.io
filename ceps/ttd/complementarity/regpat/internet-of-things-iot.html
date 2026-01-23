@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #viz-container {
+            width: 88%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #legend-container {
+            width: 12%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        #legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .axis-label {
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="viz-container">
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        <div id="legend-container">
+            <div id="legend-title">Complementarity</div>
+            <div id="legend"></div>
+        </div>
+    </div>
+
+    <script>
+        async function drawViz() {
+            const data =  [
+  {
+    "from": "Canada (CA)",
+    "to": "European Union (EU)",
+    "domain": "Internet of Things (IoT)",
+    "full": 110,
+    "binary": 22,
+    "expected": 16.83,
+    "untapped": -93.17,
+    "links.rca": 6.54,
+    "sum_from": 1525,
+    "sum_to": 12005,
+    "binary.pc": 2.4586,
+    "th.max": 6765,
+    "th.max.pc": 0.3761,
+    "RD": 53.8,
+    "RD.added": 22.82,
+    "value": 22.82
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "India (IN)",
+    "domain": "Internet of Things (IoT)",
+    "full": 20,
+    "binary": 5,
+    "expected": 4.43,
+    "untapped": -10.57,
+    "links.rca": 3.39,
+    "sum_from": 1525,
+    "sum_to": 2040,
+    "binary.pc": 0.3353,
+    "th.max": 1782.5,
+    "th.max.pc": 0.0991,
+    "RD": 53.8,
+    "RD.added": 19.07,
+    "value": 19.07
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 1,
+    "binary": 1,
+    "expected": 13.14,
+    "untapped": 12.14,
+    "links.rca": 0.08,
+    "sum_from": 1525,
+    "sum_to": 9036,
+    "binary.pc": 0.0224,
+    "th.max": 5280.5,
+    "th.max.pc": 0.2936,
+    "RD": 53.8,
+    "RD.added": 28.12,
+    "value": 28.12
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "South Korea (KR)",
+    "domain": "Internet of Things (IoT)",
+    "full": 1,
+    "binary": 1,
+    "expected": 10.83,
+    "untapped": 9.83,
+    "links.rca": 0.09,
+    "sum_from": 1525,
+    "sum_to": 7179,
+    "binary.pc": 0.0224,
+    "th.max": 4352,
+    "th.max.pc": 0.242,
+    "RD": 53.8,
+    "RD.added": 23.19,
+    "value": 23.19
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United Kingdom (GB)",
+    "domain": "Internet of Things (IoT)",
+    "full": 43,
+    "binary": 10,
+    "expected": 3.61,
+    "untapped": -46.39,
+    "links.rca": 13.85,
+    "sum_from": 1525,
+    "sum_to": 1375,
+    "binary.pc": 1.1176,
+    "th.max": 1450,
+    "th.max.pc": 0.0806,
+    "RD": 53.8,
+    "RD.added": 11.15,
+    "value": 11.15
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United States (US)",
+    "domain": "Internet of Things (IoT)",
+    "full": 357,
+    "binary": 65,
+    "expected": 24.03,
+    "untapped": -300.97,
+    "links.rca": 13.52,
+    "sum_from": 1525,
+    "sum_to": 17795,
+    "binary.pc": 7.2642,
+    "th.max": 9660,
+    "th.max.pc": 0.5371,
+    "RD": 53.8,
+    "RD.added": 8.47,
+    "value": 8.47
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Canada (CA)",
+    "domain": "Internet of Things (IoT)",
+    "full": 110,
+    "binary": 22,
+    "expected": 16.83,
+    "untapped": -93.17,
+    "links.rca": 6.54,
+    "sum_from": 1525,
+    "sum_to": 12005,
+    "binary.pc": 2.4586,
+    "th.max": 6765,
+    "th.max.pc": 0.3761,
+    "RD": 35.07,
+    "RD.added": 41.55,
+    "value": 41.55
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "India (IN)",
+    "domain": "Internet of Things (IoT)",
+    "full": 161,
+    "binary": 40,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 0,
+    "sum_to": 0,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 35.07,
+    "RD.added": 45.2,
+    "value": 45.2
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 68,
+    "binary": 20,
+    "expected": 26.17,
+    "untapped": -53.83,
+    "links.rca": 3.06,
+    "sum_from": 12005,
+    "sum_to": 9036,
+    "binary.pc": 1.7881,
+    "th.max": 10520.5,
+    "th.max.pc": 0.5849,
+    "RD": 35.07,
+    "RD.added": 19.72,
+    "value": 19.72
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "South Korea (KR)",
+    "domain": "Internet of Things (IoT)",
+    "full": 18,
+    "binary": 4,
+    "expected": 23.86,
+    "untapped": 11.86,
+    "links.rca": 0.5,
+    "sum_from": 12005,
+    "sum_to": 7179,
+    "binary.pc": 0.2682,
+    "th.max": 9592,
+    "th.max.pc": 0.5333,
+    "RD": 35.07,
+    "RD.added": 43.8,
+    "value": 43.8
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United Kingdom (GB)",
+    "domain": "Internet of Things (IoT)",
+    "full": 144,
+    "binary": 42,
+    "expected": 16.64,
+    "untapped": -193.36,
+    "links.rca": 12.62,
+    "sum_from": 12005,
+    "sum_to": 1375,
+    "binary.pc": 4.6938,
+    "th.max": 6690,
+    "th.max.pc": 0.372,
+    "RD": 35.07,
+    "RD.added": 16.76,
+    "value": 16.76
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United States (US)",
+    "domain": "Internet of Things (IoT)",
+    "full": 1543,
+    "binary": 224,
+    "expected": 37.06,
+    "untapped": -1082.94,
+    "links.rca": 30.22,
+    "sum_from": 12005,
+    "sum_to": 17795,
+    "binary.pc": 25.0335,
+    "th.max": 14900,
+    "th.max.pc": 0.8284,
+    "RD": 35.07,
+    "RD.added": 38.32,
+    "value": 38.32
+  },
+  {
+    "from": "India (IN)",
+    "to": "Canada (CA)",
+    "domain": "Internet of Things (IoT)",
+    "full": 20,
+    "binary": 5,
+    "expected": 4.43,
+    "untapped": -10.57,
+    "links.rca": 3.39,
+    "sum_from": 1525,
+    "sum_to": 2040,
+    "binary.pc": 0.3353,
+    "th.max": 1782.5,
+    "th.max.pc": 0.0991,
+    "RD": 56.03,
+    "RD.added": 16.84,
+    "value": 16.84
+  },
+  {
+    "from": "India (IN)",
+    "to": "European Union (EU)",
+    "domain": "Internet of Things (IoT)",
+    "full": 161,
+    "binary": 40,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 0,
+    "sum_to": 0,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 56.03,
+    "RD.added": 24.24,
+    "value": 24.24
+  },
+  {
+    "from": "India (IN)",
+    "to": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 2,
+    "binary": 2,
+    "expected": 13.78,
+    "untapped": 11.78,
+    "links.rca": 0.15,
+    "sum_from": 2040,
+    "sum_to": 9036,
+    "binary.pc": 0.0447,
+    "th.max": 5538,
+    "th.max.pc": 0.3079,
+    "RD": 56.03,
+    "RD.added": 22.05,
+    "value": 22.05
+  },
+  {
+    "from": "India (IN)",
+    "to": "South Korea (KR)",
+    "domain": "Internet of Things (IoT)",
+    "full": 154,
+    "binary": 9,
+    "expected": 11.47,
+    "untapped": -24.53,
+    "links.rca": 3.14,
+    "sum_from": 2040,
+    "sum_to": 7179,
+    "binary.pc": 0.8046,
+    "th.max": 4609.5,
+    "th.max.pc": 0.2563,
+    "RD": 56.03,
+    "RD.added": 18.93,
+    "value": 18.93
+  },
+  {
+    "from": "India (IN)",
+    "to": "United Kingdom (GB)",
+    "domain": "Internet of Things (IoT)",
+    "full": 19,
+    "binary": 4,
+    "expected": 4.25,
+    "untapped": -7.75,
+    "links.rca": 2.82,
+    "sum_from": 2040,
+    "sum_to": 1375,
+    "binary.pc": 0.2682,
+    "th.max": 1707.5,
+    "th.max.pc": 0.0949,
+    "RD": 56.03,
+    "RD.added": 16.86,
+    "value": 16.86
+  },
+  {
+    "from": "India (IN)",
+    "to": "United States (US)",
+    "domain": "Internet of Things (IoT)",
+    "full": 494,
+    "binary": 88,
+    "expected": 24.67,
+    "untapped": -415.33,
+    "links.rca": 17.84,
+    "sum_from": 2040,
+    "sum_to": 17795,
+    "binary.pc": 9.8346,
+    "th.max": 9917.5,
+    "th.max.pc": 0.5514,
+    "RD": 56.03,
+    "RD.added": 11.47,
+    "value": 11.47
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "Canada (CA)",
+    "domain": "Internet of Things (IoT)",
+    "full": 1,
+    "binary": 1,
+    "expected": 13.14,
+    "untapped": 12.14,
+    "links.rca": 0.08,
+    "sum_from": 1525,
+    "sum_to": 9036,
+    "binary.pc": 0.0224,
+    "th.max": 5280.5,
+    "th.max.pc": 0.2936,
+    "RD": 40.38,
+    "RD.added": 41.54,
+    "value": 41.54
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "European Union (EU)",
+    "domain": "Internet of Things (IoT)",
+    "full": 68,
+    "binary": 20,
+    "expected": 26.17,
+    "untapped": -53.83,
+    "links.rca": 3.06,
+    "sum_from": 12005,
+    "sum_to": 9036,
+    "binary.pc": 1.7881,
+    "th.max": 10520.5,
+    "th.max.pc": 0.5849,
+    "RD": 40.38,
+    "RD.added": 14.4,
+    "value": 14.4
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "India (IN)",
+    "domain": "Internet of Things (IoT)",
+    "full": 2,
+    "binary": 2,
+    "expected": 13.78,
+    "untapped": 11.78,
+    "links.rca": 0.15,
+    "sum_from": 2040,
+    "sum_to": 9036,
+    "binary.pc": 0.0447,
+    "th.max": 5538,
+    "th.max.pc": 0.3079,
+    "RD": 40.38,
+    "RD.added": 37.7,
+    "value": 37.7
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "South Korea (KR)",
+    "domain": "Internet of Things (IoT)",
+    "full": 2,
+    "binary": 2,
+    "expected": 20.17,
+    "untapped": 18.17,
+    "links.rca": 0.1,
+    "sum_from": 9036,
+    "sum_to": 7179,
+    "binary.pc": 0.0447,
+    "th.max": 8107.5,
+    "th.max.pc": 0.4508,
+    "RD": 40.38,
+    "RD.added": 34.37,
+    "value": 34.37
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United Kingdom (GB)",
+    "domain": "Internet of Things (IoT)",
+    "full": 15,
+    "binary": 3,
+    "expected": 12.95,
+    "untapped": 3.95,
+    "links.rca": 0.69,
+    "sum_from": 9036,
+    "sum_to": 1375,
+    "binary.pc": 0.2012,
+    "th.max": 5205.5,
+    "th.max.pc": 0.2894,
+    "RD": 40.38,
+    "RD.added": 24.77,
+    "value": 24.77
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United States (US)",
+    "domain": "Internet of Things (IoT)",
+    "full": 194,
+    "binary": 24,
+    "expected": 33.37,
+    "untapped": -86.63,
+    "links.rca": 3.6,
+    "sum_from": 9036,
+    "sum_to": 17795,
+    "binary.pc": 2.6822,
+    "th.max": 13415.5,
+    "th.max.pc": 0.7459,
+    "RD": 40.38,
+    "RD.added": 37.67,
+    "value": 37.67
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Canada (CA)",
+    "domain": "Internet of Things (IoT)",
+    "full": 1,
+    "binary": 1,
+    "expected": 10.83,
+    "untapped": 9.83,
+    "links.rca": 0.09,
+    "sum_from": 1525,
+    "sum_to": 7179,
+    "binary.pc": 0.0224,
+    "th.max": 4352,
+    "th.max.pc": 0.242,
+    "RD": 54.54,
+    "RD.added": 22.45,
+    "value": 22.45
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "European Union (EU)",
+    "domain": "Internet of Things (IoT)",
+    "full": 18,
+    "binary": 4,
+    "expected": 23.86,
+    "untapped": 11.86,
+    "links.rca": 0.5,
+    "sum_from": 12005,
+    "sum_to": 7179,
+    "binary.pc": 0.2682,
+    "th.max": 9592,
+    "th.max.pc": 0.5333,
+    "RD": 54.54,
+    "RD.added": 24.33,
+    "value": 24.33
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "India (IN)",
+    "domain": "Internet of Things (IoT)",
+    "full": 154,
+    "binary": 9,
+    "expected": 11.47,
+    "untapped": -24.53,
+    "links.rca": 3.14,
+    "sum_from": 2040,
+    "sum_to": 7179,
+    "binary.pc": 0.8046,
+    "th.max": 4609.5,
+    "th.max.pc": 0.2563,
+    "RD": 54.54,
+    "RD.added": 20.43,
+    "value": 20.43
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 2,
+    "binary": 2,
+    "expected": 20.17,
+    "untapped": 18.17,
+    "links.rca": 0.1,
+    "sum_from": 9036,
+    "sum_to": 7179,
+    "binary.pc": 0.0447,
+    "th.max": 8107.5,
+    "th.max.pc": 0.4508,
+    "RD": 54.54,
+    "RD.added": 20.21,
+    "value": 20.21
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United Kingdom (GB)",
+    "domain": "Internet of Things (IoT)",
+    "full": 7,
+    "binary": 3,
+    "expected": 10.64,
+    "untapped": 1.64,
+    "links.rca": 0.85,
+    "sum_from": 7179,
+    "sum_to": 1375,
+    "binary.pc": 0.2012,
+    "th.max": 4277,
+    "th.max.pc": 0.2378,
+    "RD": 54.54,
+    "RD.added": 15.62,
+    "value": 15.62
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United States (US)",
+    "domain": "Internet of Things (IoT)",
+    "full": 48,
+    "binary": 9,
+    "expected": 31.06,
+    "untapped": -13.94,
+    "links.rca": 1.45,
+    "sum_from": 7179,
+    "sum_to": 17795,
+    "binary.pc": 1.0058,
+    "th.max": 12487,
+    "th.max.pc": 0.6943,
+    "RD": 54.54,
+    "RD.added": 20.04,
+    "value": 20.04
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Canada (CA)",
+    "domain": "Internet of Things (IoT)",
+    "full": 43,
+    "binary": 10,
+    "expected": 3.61,
+    "untapped": -46.39,
+    "links.rca": 13.85,
+    "sum_from": 1525,
+    "sum_to": 1375,
+    "binary.pc": 1.1176,
+    "th.max": 1450,
+    "th.max.pc": 0.0806,
+    "RD": 32.77,
+    "RD.added": 32.18,
+    "value": 32.18
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "European Union (EU)",
+    "domain": "Internet of Things (IoT)",
+    "full": 144,
+    "binary": 42,
+    "expected": 16.64,
+    "untapped": -193.36,
+    "links.rca": 12.62,
+    "sum_from": 12005,
+    "sum_to": 1375,
+    "binary.pc": 4.6938,
+    "th.max": 6690,
+    "th.max.pc": 0.372,
+    "RD": 32.77,
+    "RD.added": 19.06,
+    "value": 19.06
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "India (IN)",
+    "domain": "Internet of Things (IoT)",
+    "full": 19,
+    "binary": 4,
+    "expected": 4.25,
+    "untapped": -7.75,
+    "links.rca": 2.82,
+    "sum_from": 2040,
+    "sum_to": 1375,
+    "binary.pc": 0.2682,
+    "th.max": 1707.5,
+    "th.max.pc": 0.0949,
+    "RD": 32.77,
+    "RD.added": 40.13,
+    "value": 40.13
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 15,
+    "binary": 3,
+    "expected": 12.95,
+    "untapped": 3.95,
+    "links.rca": 0.69,
+    "sum_from": 9036,
+    "sum_to": 1375,
+    "binary.pc": 0.2012,
+    "th.max": 5205.5,
+    "th.max.pc": 0.2894,
+    "RD": 32.77,
+    "RD.added": 32.39,
+    "value": 32.39
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "South Korea (KR)",
+    "domain": "Internet of Things (IoT)",
+    "full": 7,
+    "binary": 3,
+    "expected": 10.64,
+    "untapped": 1.64,
+    "links.rca": 0.85,
+    "sum_from": 7179,
+    "sum_to": 1375,
+    "binary.pc": 0.2012,
+    "th.max": 4277,
+    "th.max.pc": 0.2378,
+    "RD": 32.77,
+    "RD.added": 37.4,
+    "value": 37.4
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "United States (US)",
+    "domain": "Internet of Things (IoT)",
+    "full": 292,
+    "binary": 60,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 0,
+    "sum_to": 0,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 32.77,
+    "RD.added": 24.6,
+    "value": 24.6
+  },
+  {
+    "from": "United States (US)",
+    "to": "Canada (CA)",
+    "domain": "Internet of Things (IoT)",
+    "full": 357,
+    "binary": 65,
+    "expected": 24.03,
+    "untapped": -300.97,
+    "links.rca": 13.52,
+    "sum_from": 1525,
+    "sum_to": 17795,
+    "binary.pc": 7.2642,
+    "th.max": 9660,
+    "th.max.pc": 0.5371,
+    "RD": 46.11,
+    "RD.added": 16.17,
+    "value": 16.17
+  },
+  {
+    "from": "United States (US)",
+    "to": "European Union (EU)",
+    "domain": "Internet of Things (IoT)",
+    "full": 1543,
+    "binary": 224,
+    "expected": 37.06,
+    "untapped": -1082.94,
+    "links.rca": 30.22,
+    "sum_from": 12005,
+    "sum_to": 17795,
+    "binary.pc": 25.0335,
+    "th.max": 14900,
+    "th.max.pc": 0.8284,
+    "RD": 46.11,
+    "RD.added": 27.28,
+    "value": 27.28
+  },
+  {
+    "from": "United States (US)",
+    "to": "India (IN)",
+    "domain": "Internet of Things (IoT)",
+    "full": 494,
+    "binary": 88,
+    "expected": 24.67,
+    "untapped": -415.33,
+    "links.rca": 17.84,
+    "sum_from": 2040,
+    "sum_to": 17795,
+    "binary.pc": 9.8346,
+    "th.max": 9917.5,
+    "th.max.pc": 0.5514,
+    "RD": 46.11,
+    "RD.added": 21.39,
+    "value": 21.39
+  },
+  {
+    "from": "United States (US)",
+    "to": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 194,
+    "binary": 24,
+    "expected": 33.37,
+    "untapped": -86.63,
+    "links.rca": 3.6,
+    "sum_from": 9036,
+    "sum_to": 17795,
+    "binary.pc": 2.6822,
+    "th.max": 13415.5,
+    "th.max.pc": 0.7459,
+    "RD": 46.11,
+    "RD.added": 31.95,
+    "value": 31.95
+  },
+  {
+    "from": "United States (US)",
+    "to": "South Korea (KR)",
+    "domain": "Internet of Things (IoT)",
+    "full": 48,
+    "binary": 9,
+    "expected": 31.06,
+    "untapped": -13.94,
+    "links.rca": 1.45,
+    "sum_from": 7179,
+    "sum_to": 17795,
+    "binary.pc": 1.0058,
+    "th.max": 12487,
+    "th.max.pc": 0.6943,
+    "RD": 46.11,
+    "RD.added": 28.47,
+    "value": 28.47
+  },
+  {
+    "from": "United States (US)",
+    "to": "United Kingdom (GB)",
+    "domain": "Internet of Things (IoT)",
+    "full": 292,
+    "binary": 60,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 0,
+    "sum_to": 0,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 46.11,
+    "RD.added": 11.26,
+    "value": 11.26
+  }
+] 
+
+            const froms = Array.from(new Set(data.map(d => d.from))).sort();
+            const tos = Array.from(new Set(data.map(d => d.to))).sort();
+
+            const vizContainer = document.getElementById('viz-container');
+            const legendContainer = document.getElementById('legend-container');
+            const tooltip = d3.select("#tooltip");
+
+            d3.select("#viz-container svg").remove();
+            d3.select("#legend svg").remove();
+
+            const width = vizContainer.clientWidth;
+            const height = vizContainer.clientHeight;
+            const margin = { top: 50, right: 50, bottom: 100, left: 150 };
+            const availableWidth = width - margin.left - margin.right;
+            const availableHeight = height - margin.top - margin.bottom;
+
+            const size = Math.min(availableWidth, availableHeight);
+
+            const svg = d3.select("#viz-container")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left + (availableWidth - size) / 2}, ${margin.top + (availableHeight - size) / 2})`);
+
+            const x = d3.scaleBand()
+                .range([0, size])
+                .domain(tos)
+                .padding(0.01);
+
+            const y = d3.scaleBand()
+                .range([0, size])
+                .domain(froms)
+                .padding(0.01);
+
+            const maxVal = d3.max(data, d => d.value);
+            const color = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range(["#ffffff", "#376bbe"]);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + size + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
+
+            svg.append("g")
+                .call(d3.axisLeft(y))
+                .style("font-size", "10px");
+
+            svg.selectAll()
+                .data(data, function (d) { return d.isKey ? (d.from + ':' + d.to) : (this.id); })
+                .enter()
+                .append("rect")
+                .attr("x", function (d) { return x(d.to) })
+                .attr("y", function (d) { return y(d.from) })
+                .attr("width", x.bandwidth())
+                .attr("height", y.bandwidth())
+                .style("fill", function (d) {
+                    return d.from === d.to ? "#8f9194" : color(d.value);
+                })
+                .style("stroke", "#eee")
+                .style("stroke-width", 1)
+                .on("mouseover", function (event, d) {
+                    d3.select(this).style("stroke", "black").style("stroke-width", 2);
+                    tooltip.style("opacity", 1);
+                    tooltip.html(`From: <b>${d.from}</b><br>To: <b>${d.to}</b><br>Value: <b>${d.value}</b>`);
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mousemove", function (event) {
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseleave", function (d) {
+                    d3.select(this).style("stroke", "#eee").style("stroke-width", 1);
+                    tooltip.style("opacity", 0);
+                });
+
+            const legendHeight = size * 0.8;
+            const legendWidth = Math.max(10, size * 0.04);
+            const legendFontSize = Math.max(10, size * 0.02);
+
+            d3.select("#legend-title")
+                .style("font-size", Math.max(9, size * 0.018) + "px")
+                .style("margin-bottom", Math.max(10, size * 0.02) + "px");
+
+            const legendSvg = d3.select("#legend")
+                .append("svg")
+                .attr("width", legendWidth + 60)
+                .attr("height", legendHeight + 20);
+
+            const defs = legendSvg.append("defs");
+            const linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+
+            linearGradient
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
+
+            linearGradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#ffffff");
+
+            linearGradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#376bbe");
+
+            legendSvg.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", "url(#linear-gradient)")
+                .style("stroke", "#ccc")
+                .attr("transform", "translate(0, 10)");
+
+            const legendScale = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range([legendHeight, 0]);
+
+            const legendAxis = d3.axisRight(legendScale)
+                .ticks(5);
+
+            legendSvg.append("g")
+                .attr("class", "legend-axis")
+                .attr("transform", `translate(${legendWidth}, 10)`)
+                .call(legendAxis)
+                .style("font-size", legendFontSize + "px");
+
+        }
+
+        drawViz();
+        window.addEventListener('resize', drawViz);
+
+    </script>
+</body>
+
+</html>

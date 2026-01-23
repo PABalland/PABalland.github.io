@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualization</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            font-family: sans-serif;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        #viz-container {
+            width: 88%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #legend-container {
+            width: 12%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+
+
+        .tooltip {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ccc;
+            padding: 8px;
+            border-radius: 4px;
+            pointer-events: none;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+        }
+
+        #legend-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .axis-label {
+            font-size: 10px;
+        }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+    <div id="container">
+        <div id="viz-container">
+            <div id="tooltip" class="tooltip"></div>
+        </div>
+        <div id="legend-container">
+            <div id="legend-title">Complementarity</div>
+            <div id="legend"></div>
+        </div>
+    </div>
+
+    <script>
+        async function drawViz() {
+            const data =  [
+  {
+    "from": "Canada (CA)",
+    "to": "European Union (EU)",
+    "domain": "Quantum Technologies",
+    "full": 25621636,
+    "binary": 2015,
+    "expected": 2532.07,
+    "untapped": -7542.93,
+    "links.rca": 3.98,
+    "sum_from": 73648,
+    "sum_to": 550909,
+    "binary.pc": 0.6232,
+    "th.max": 312278.5,
+    "th.max.pc": 0.1566,
+    "RD": 8.19,
+    "RD.added": 56.25,
+    "value": 56.25
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "India (IN)",
+    "domain": "Quantum Technologies",
+    "full": 138421,
+    "binary": 347,
+    "expected": 980.16,
+    "untapped": -754.84,
+    "links.rca": 1.77,
+    "sum_from": 73648,
+    "sum_to": 168118,
+    "binary.pc": 0.1073,
+    "th.max": 120883,
+    "th.max.pc": 0.0606,
+    "RD": 8.19,
+    "RD.added": 39.6,
+    "value": 39.6
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 1471043,
+    "binary": 398,
+    "expected": 700.79,
+    "untapped": -1289.21,
+    "links.rca": 2.84,
+    "sum_from": 73648,
+    "sum_to": 99207,
+    "binary.pc": 0.1231,
+    "th.max": 86427.5,
+    "th.max.pc": 0.0433,
+    "RD": 8.19,
+    "RD.added": 76.9,
+    "value": 76.9
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "South Korea (KR)",
+    "domain": "Quantum Technologies",
+    "full": 80641,
+    "binary": 194,
+    "expected": 540.46,
+    "untapped": -429.54,
+    "links.rca": 1.79,
+    "sum_from": 73648,
+    "sum_to": 59661,
+    "binary.pc": 0.06,
+    "th.max": 66654.5,
+    "th.max.pc": 0.0334,
+    "RD": 8.19,
+    "RD.added": 54.54,
+    "value": 54.54
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United Kingdom (GB)",
+    "domain": "Quantum Technologies",
+    "full": 4932875,
+    "binary": 770,
+    "expected": 563.81,
+    "untapped": -3286.19,
+    "links.rca": 6.83,
+    "sum_from": 73648,
+    "sum_to": 65420,
+    "binary.pc": 0.2381,
+    "th.max": 69534,
+    "th.max.pc": 0.0349,
+    "RD": 8.19,
+    "RD.added": 13.43,
+    "value": 13.43
+  },
+  {
+    "from": "Canada (CA)",
+    "to": "United States (US)",
+    "domain": "Quantum Technologies",
+    "full": 9010845,
+    "binary": 1958,
+    "expected": 1053.96,
+    "untapped": -8736.04,
+    "links.rca": 9.29,
+    "sum_from": 73648,
+    "sum_to": 186321,
+    "binary.pc": 0.6056,
+    "th.max": 129984.5,
+    "th.max.pc": 0.0652,
+    "RD": 8.19,
+    "RD.added": 19.26,
+    "value": 19.26
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Canada (CA)",
+    "domain": "Quantum Technologies",
+    "full": 25621636,
+    "binary": 2015,
+    "expected": 2532.07,
+    "untapped": -7542.93,
+    "links.rca": 3.98,
+    "sum_from": 73648,
+    "sum_to": 550909,
+    "binary.pc": 0.6232,
+    "th.max": 312278.5,
+    "th.max.pc": 0.1566,
+    "RD": 63.48,
+    "RD.added": 0.96,
+    "value": 0.96
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "India (IN)",
+    "domain": "Quantum Technologies",
+    "full": 30420628,
+    "binary": 2868,
+    "expected": 2915.07,
+    "untapped": -11424.93,
+    "links.rca": 4.92,
+    "sum_from": 550909,
+    "sum_to": 168118,
+    "binary.pc": 0.887,
+    "th.max": 359513.5,
+    "th.max.pc": 0.1803,
+    "RD": 63.48,
+    "RD.added": 34.21,
+    "value": 34.21
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 20340860,
+    "binary": 3157,
+    "expected": 2635.69,
+    "untapped": -13149.31,
+    "links.rca": 5.99,
+    "sum_from": 550909,
+    "sum_to": 99207,
+    "binary.pc": 0.9764,
+    "th.max": 325058,
+    "th.max.pc": 0.163,
+    "RD": 63.48,
+    "RD.added": 23.93,
+    "value": 23.93
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "South Korea (KR)",
+    "domain": "Quantum Technologies",
+    "full": 14899862,
+    "binary": 1601,
+    "expected": 2475.36,
+    "untapped": -5529.64,
+    "links.rca": 3.23,
+    "sum_from": 550909,
+    "sum_to": 59661,
+    "binary.pc": 0.4952,
+    "th.max": 305285,
+    "th.max.pc": 0.1531,
+    "RD": 63.48,
+    "RD.added": 26.57,
+    "value": 26.57
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United Kingdom (GB)",
+    "domain": "Quantum Technologies",
+    "full": 97416672,
+    "binary": 6585,
+    "expected": 2498.71,
+    "untapped": -30426.29,
+    "links.rca": 13.18,
+    "sum_from": 550909,
+    "sum_to": 65420,
+    "binary.pc": 2.0366,
+    "th.max": 308164.5,
+    "th.max.pc": 0.1546,
+    "RD": 63.48,
+    "RD.added": 0.43,
+    "value": 0.43
+  },
+  {
+    "from": "European Union (EU)",
+    "to": "United States (US)",
+    "domain": "Quantum Technologies",
+    "full": 260250495,
+    "binary": 12012,
+    "expected": 2988.87,
+    "untapped": -57071.13,
+    "links.rca": 20.09,
+    "sum_from": 550909,
+    "sum_to": 186321,
+    "binary.pc": 3.7151,
+    "th.max": 368615,
+    "th.max.pc": 0.1849,
+    "RD": 63.48,
+    "RD.added": 1.19,
+    "value": 1.19
+  },
+  {
+    "from": "India (IN)",
+    "to": "Canada (CA)",
+    "domain": "Quantum Technologies",
+    "full": 138421,
+    "binary": 347,
+    "expected": 980.16,
+    "untapped": -754.84,
+    "links.rca": 1.77,
+    "sum_from": 73648,
+    "sum_to": 168118,
+    "binary.pc": 0.1073,
+    "th.max": 120883,
+    "th.max.pc": 0.0606,
+    "RD": 43.95,
+    "RD.added": 3.84,
+    "value": 3.84
+  },
+  {
+    "from": "India (IN)",
+    "to": "European Union (EU)",
+    "domain": "Quantum Technologies",
+    "full": 30420628,
+    "binary": 2868,
+    "expected": 2915.07,
+    "untapped": -11424.93,
+    "links.rca": 4.92,
+    "sum_from": 550909,
+    "sum_to": 168118,
+    "binary.pc": 0.887,
+    "th.max": 359513.5,
+    "th.max.pc": 0.1803,
+    "RD": 43.95,
+    "RD.added": 53.75,
+    "value": 53.75
+  },
+  {
+    "from": "India (IN)",
+    "to": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 482993,
+    "binary": 701,
+    "expected": 1083.79,
+    "untapped": -2421.21,
+    "links.rca": 3.23,
+    "sum_from": 168118,
+    "sum_to": 99207,
+    "binary.pc": 0.2168,
+    "th.max": 133662.5,
+    "th.max.pc": 0.067,
+    "RD": 43.95,
+    "RD.added": 53.4,
+    "value": 53.4
+  },
+  {
+    "from": "India (IN)",
+    "to": "South Korea (KR)",
+    "domain": "Quantum Technologies",
+    "full": 1427360,
+    "binary": 1186,
+    "expected": 923.46,
+    "untapped": -5006.54,
+    "links.rca": 6.42,
+    "sum_from": 168118,
+    "sum_to": 59661,
+    "binary.pc": 0.3668,
+    "th.max": 113889.5,
+    "th.max.pc": 0.0571,
+    "RD": 43.95,
+    "RD.added": 30.28,
+    "value": 30.28
+  },
+  {
+    "from": "India (IN)",
+    "to": "United Kingdom (GB)",
+    "domain": "Quantum Technologies",
+    "full": 1506033,
+    "binary": 1079,
+    "expected": 946.81,
+    "untapped": -4448.19,
+    "links.rca": 5.7,
+    "sum_from": 168118,
+    "sum_to": 65420,
+    "binary.pc": 0.3337,
+    "th.max": 116769,
+    "th.max.pc": 0.0586,
+    "RD": 43.95,
+    "RD.added": 16.78,
+    "value": 16.78
+  },
+  {
+    "from": "India (IN)",
+    "to": "United States (US)",
+    "domain": "Quantum Technologies",
+    "full": 15281847,
+    "binary": 2179,
+    "expected": 1436.96,
+    "untapped": -9458.04,
+    "links.rca": 7.58,
+    "sum_from": 168118,
+    "sum_to": 186321,
+    "binary.pc": 0.6739,
+    "th.max": 177219.5,
+    "th.max.pc": 0.0889,
+    "RD": 43.95,
+    "RD.added": 21.9,
+    "value": 21.9
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "Canada (CA)",
+    "domain": "Quantum Technologies",
+    "full": 1471043,
+    "binary": 398,
+    "expected": 700.79,
+    "untapped": -1289.21,
+    "links.rca": 2.84,
+    "sum_from": 73648,
+    "sum_to": 99207,
+    "binary.pc": 0.1231,
+    "th.max": 86427.5,
+    "th.max.pc": 0.0433,
+    "RD": 82.86,
+    "RD.added": 2.23,
+    "value": 2.23
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "European Union (EU)",
+    "domain": "Quantum Technologies",
+    "full": 20340860,
+    "binary": 3157,
+    "expected": 2635.69,
+    "untapped": -13149.31,
+    "links.rca": 5.99,
+    "sum_from": 550909,
+    "sum_to": 99207,
+    "binary.pc": 0.9764,
+    "th.max": 325058,
+    "th.max.pc": 0.163,
+    "RD": 82.86,
+    "RD.added": 4.55,
+    "value": 4.55
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "India (IN)",
+    "domain": "Quantum Technologies",
+    "full": 482993,
+    "binary": 701,
+    "expected": 1083.79,
+    "untapped": -2421.21,
+    "links.rca": 3.23,
+    "sum_from": 168118,
+    "sum_to": 99207,
+    "binary.pc": 0.2168,
+    "th.max": 133662.5,
+    "th.max.pc": 0.067,
+    "RD": 82.86,
+    "RD.added": 14.49,
+    "value": 14.49
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "South Korea (KR)",
+    "domain": "Quantum Technologies",
+    "full": 197098,
+    "binary": 631,
+    "expected": 644.08,
+    "untapped": -2510.92,
+    "links.rca": 4.9,
+    "sum_from": 99207,
+    "sum_to": 59661,
+    "binary.pc": 0.1952,
+    "th.max": 79434,
+    "th.max.pc": 0.0398,
+    "RD": 82.86,
+    "RD.added": 3.29,
+    "value": 3.29
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United Kingdom (GB)",
+    "domain": "Quantum Technologies",
+    "full": 3635711,
+    "binary": 908,
+    "expected": 667.43,
+    "untapped": -3872.57,
+    "links.rca": 6.8,
+    "sum_from": 99207,
+    "sum_to": 65420,
+    "binary.pc": 0.2808,
+    "th.max": 82313.5,
+    "th.max.pc": 0.0413,
+    "RD": 82.86,
+    "RD.added": 1.63,
+    "value": 1.63
+  },
+  {
+    "from": "Japan (JP)",
+    "to": "United States (US)",
+    "domain": "Quantum Technologies",
+    "full": 6761210,
+    "binary": 2382,
+    "expected": 1157.58,
+    "untapped": -10752.42,
+    "links.rca": 10.29,
+    "sum_from": 99207,
+    "sum_to": 186321,
+    "binary.pc": 0.7367,
+    "th.max": 142764,
+    "th.max.pc": 0.0716,
+    "RD": 82.86,
+    "RD.added": 2.07,
+    "value": 2.07
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Canada (CA)",
+    "domain": "Quantum Technologies",
+    "full": 80641,
+    "binary": 194,
+    "expected": 540.46,
+    "untapped": -429.54,
+    "links.rca": 1.79,
+    "sum_from": 73648,
+    "sum_to": 59661,
+    "binary.pc": 0.06,
+    "th.max": 66654.5,
+    "th.max.pc": 0.0334,
+    "RD": 57.73,
+    "RD.added": 5,
+    "value": 5
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "European Union (EU)",
+    "domain": "Quantum Technologies",
+    "full": 14899862,
+    "binary": 1601,
+    "expected": 2475.36,
+    "untapped": -5529.64,
+    "links.rca": 3.23,
+    "sum_from": 550909,
+    "sum_to": 59661,
+    "binary.pc": 0.4952,
+    "th.max": 305285,
+    "th.max.pc": 0.1531,
+    "RD": 57.73,
+    "RD.added": 32.32,
+    "value": 32.32
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "India (IN)",
+    "domain": "Quantum Technologies",
+    "full": 1427360,
+    "binary": 1186,
+    "expected": 923.46,
+    "untapped": -5006.54,
+    "links.rca": 6.42,
+    "sum_from": 168118,
+    "sum_to": 59661,
+    "binary.pc": 0.3668,
+    "th.max": 113889.5,
+    "th.max.pc": 0.0571,
+    "RD": 57.73,
+    "RD.added": 16.5,
+    "value": 16.5
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 197098,
+    "binary": 631,
+    "expected": 644.08,
+    "untapped": -2510.92,
+    "links.rca": 4.9,
+    "sum_from": 99207,
+    "sum_to": 59661,
+    "binary.pc": 0.1952,
+    "th.max": 79434,
+    "th.max.pc": 0.0398,
+    "RD": 57.73,
+    "RD.added": 28.42,
+    "value": 28.42
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United Kingdom (GB)",
+    "domain": "Quantum Technologies",
+    "full": 912521,
+    "binary": 844,
+    "expected": 507.1,
+    "untapped": -3712.9,
+    "links.rca": 8.32,
+    "sum_from": 59661,
+    "sum_to": 65420,
+    "binary.pc": 0.261,
+    "th.max": 62540.5,
+    "th.max.pc": 0.0314,
+    "RD": 57.73,
+    "RD.added": 15.48,
+    "value": 15.48
+  },
+  {
+    "from": "South Korea (KR)",
+    "to": "United States (US)",
+    "domain": "Quantum Technologies",
+    "full": 8121943,
+    "binary": 1732,
+    "expected": 997.26,
+    "untapped": -7662.74,
+    "links.rca": 8.68,
+    "sum_from": 59661,
+    "sum_to": 186321,
+    "binary.pc": 0.5357,
+    "th.max": 122991,
+    "th.max.pc": 0.0617,
+    "RD": 57.73,
+    "RD.added": 14.08,
+    "value": 14.08
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Canada (CA)",
+    "domain": "Quantum Technologies",
+    "full": 4932875,
+    "binary": 770,
+    "expected": 563.81,
+    "untapped": -3286.19,
+    "links.rca": 6.83,
+    "sum_from": 73648,
+    "sum_to": 65420,
+    "binary.pc": 0.2381,
+    "th.max": 69534,
+    "th.max.pc": 0.0349,
+    "RD": 18.93,
+    "RD.added": 2.69,
+    "value": 2.69
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "European Union (EU)",
+    "domain": "Quantum Technologies",
+    "full": 97416672,
+    "binary": 6585,
+    "expected": 2498.71,
+    "untapped": -30426.29,
+    "links.rca": 13.18,
+    "sum_from": 550909,
+    "sum_to": 65420,
+    "binary.pc": 2.0366,
+    "th.max": 308164.5,
+    "th.max.pc": 0.1546,
+    "RD": 18.93,
+    "RD.added": 44.98,
+    "value": 44.98
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "India (IN)",
+    "domain": "Quantum Technologies",
+    "full": 1506033,
+    "binary": 1079,
+    "expected": 946.81,
+    "untapped": -4448.19,
+    "links.rca": 5.7,
+    "sum_from": 168118,
+    "sum_to": 65420,
+    "binary.pc": 0.3337,
+    "th.max": 116769,
+    "th.max.pc": 0.0586,
+    "RD": 18.93,
+    "RD.added": 41.79,
+    "value": 41.79
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 3635711,
+    "binary": 908,
+    "expected": 667.43,
+    "untapped": -3872.57,
+    "links.rca": 6.8,
+    "sum_from": 99207,
+    "sum_to": 65420,
+    "binary.pc": 0.2808,
+    "th.max": 82313.5,
+    "th.max.pc": 0.0413,
+    "RD": 18.93,
+    "RD.added": 65.56,
+    "value": 65.56
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "South Korea (KR)",
+    "domain": "Quantum Technologies",
+    "full": 912521,
+    "binary": 844,
+    "expected": 507.1,
+    "untapped": -3712.9,
+    "links.rca": 8.32,
+    "sum_from": 59661,
+    "sum_to": 65420,
+    "binary.pc": 0.261,
+    "th.max": 62540.5,
+    "th.max.pc": 0.0314,
+    "RD": 18.93,
+    "RD.added": 54.28,
+    "value": 54.28
+  },
+  {
+    "from": "United Kingdom (GB)",
+    "to": "United States (US)",
+    "domain": "Quantum Technologies",
+    "full": 32309062,
+    "binary": 3532,
+    "expected": 1020.6,
+    "untapped": -16639.4,
+    "links.rca": 17.3,
+    "sum_from": 65420,
+    "sum_to": 186321,
+    "binary.pc": 1.0924,
+    "th.max": 125870.5,
+    "th.max.pc": 0.0631,
+    "RD": 18.93,
+    "RD.added": 7.35,
+    "value": 7.35
+  },
+  {
+    "from": "United States (US)",
+    "to": "Canada (CA)",
+    "domain": "Quantum Technologies",
+    "full": 9010845,
+    "binary": 1958,
+    "expected": 1053.96,
+    "untapped": -8736.04,
+    "links.rca": 9.29,
+    "sum_from": 73648,
+    "sum_to": 186321,
+    "binary.pc": 0.6056,
+    "th.max": 129984.5,
+    "th.max.pc": 0.0652,
+    "RD": 23.03,
+    "RD.added": 4.42,
+    "value": 4.42
+  },
+  {
+    "from": "United States (US)",
+    "to": "European Union (EU)",
+    "domain": "Quantum Technologies",
+    "full": 260250495,
+    "binary": 12012,
+    "expected": 2988.87,
+    "untapped": -57071.13,
+    "links.rca": 20.09,
+    "sum_from": 550909,
+    "sum_to": 186321,
+    "binary.pc": 3.7151,
+    "th.max": 368615,
+    "th.max.pc": 0.1849,
+    "RD": 23.03,
+    "RD.added": 41.64,
+    "value": 41.64
+  },
+  {
+    "from": "United States (US)",
+    "to": "India (IN)",
+    "domain": "Quantum Technologies",
+    "full": 15281847,
+    "binary": 2179,
+    "expected": 1436.96,
+    "untapped": -9458.04,
+    "links.rca": 7.58,
+    "sum_from": 168118,
+    "sum_to": 186321,
+    "binary.pc": 0.6739,
+    "th.max": 177219.5,
+    "th.max.pc": 0.0889,
+    "RD": 23.03,
+    "RD.added": 42.82,
+    "value": 42.82
+  },
+  {
+    "from": "United States (US)",
+    "to": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 6761210,
+    "binary": 2382,
+    "expected": 1157.58,
+    "untapped": -10752.42,
+    "links.rca": 10.29,
+    "sum_from": 99207,
+    "sum_to": 186321,
+    "binary.pc": 0.7367,
+    "th.max": 142764,
+    "th.max.pc": 0.0716,
+    "RD": 23.03,
+    "RD.added": 61.9,
+    "value": 61.9
+  },
+  {
+    "from": "United States (US)",
+    "to": "South Korea (KR)",
+    "domain": "Quantum Technologies",
+    "full": 8121943,
+    "binary": 1732,
+    "expected": 997.26,
+    "untapped": -7662.74,
+    "links.rca": 8.68,
+    "sum_from": 59661,
+    "sum_to": 186321,
+    "binary.pc": 0.5357,
+    "th.max": 122991,
+    "th.max.pc": 0.0617,
+    "RD": 23.03,
+    "RD.added": 48.79,
+    "value": 48.79
+  },
+  {
+    "from": "United States (US)",
+    "to": "United Kingdom (GB)",
+    "domain": "Quantum Technologies",
+    "full": 32309062,
+    "binary": 3532,
+    "expected": 1020.6,
+    "untapped": -16639.4,
+    "links.rca": 17.3,
+    "sum_from": 65420,
+    "sum_to": 186321,
+    "binary.pc": 1.0924,
+    "th.max": 125870.5,
+    "th.max.pc": 0.0631,
+    "RD": 23.03,
+    "RD.added": 3.26,
+    "value": 3.26
+  }
+] 
+
+            const froms = Array.from(new Set(data.map(d => d.from))).sort();
+            const tos = Array.from(new Set(data.map(d => d.to))).sort();
+
+            const vizContainer = document.getElementById('viz-container');
+            const legendContainer = document.getElementById('legend-container');
+            const tooltip = d3.select("#tooltip");
+
+            d3.select("#viz-container svg").remove();
+            d3.select("#legend svg").remove();
+
+            const width = vizContainer.clientWidth;
+            const height = vizContainer.clientHeight;
+            const margin = { top: 50, right: 50, bottom: 100, left: 150 };
+            const availableWidth = width - margin.left - margin.right;
+            const availableHeight = height - margin.top - margin.bottom;
+
+            const size = Math.min(availableWidth, availableHeight);
+
+            const svg = d3.select("#viz-container")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .append("g")
+                .attr("transform", `translate(${margin.left + (availableWidth - size) / 2}, ${margin.top + (availableHeight - size) / 2})`);
+
+            const x = d3.scaleBand()
+                .range([0, size])
+                .domain(tos)
+                .padding(0.01);
+
+            const y = d3.scaleBand()
+                .range([0, size])
+                .domain(froms)
+                .padding(0.01);
+
+            const maxVal = d3.max(data, d => d.value);
+            const color = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range(["#ffffff", "#376bbe"]);
+
+            svg.append("g")
+                .attr("transform", "translate(0," + size + ")")
+                .call(d3.axisBottom(x))
+                .selectAll("text")
+                .attr("transform", "translate(-10,0)rotate(-45)")
+                .style("text-anchor", "end")
+                .style("font-size", "10px");
+
+            svg.append("g")
+                .call(d3.axisLeft(y))
+                .style("font-size", "10px");
+
+            svg.selectAll()
+                .data(data, function (d) { return d.isKey ? (d.from + ':' + d.to) : (this.id); })
+                .enter()
+                .append("rect")
+                .attr("x", function (d) { return x(d.to) })
+                .attr("y", function (d) { return y(d.from) })
+                .attr("width", x.bandwidth())
+                .attr("height", y.bandwidth())
+                .style("fill", function (d) {
+                    return d.from === d.to ? "#8f9194" : color(d.value);
+                })
+                .style("stroke", "#eee")
+                .style("stroke-width", 1)
+                .on("mouseover", function (event, d) {
+                    d3.select(this).style("stroke", "black").style("stroke-width", 2);
+                    tooltip.style("opacity", 1);
+                    tooltip.html(`From: <b>${d.from}</b><br>To: <b>${d.to}</b><br>Value: <b>${d.value}</b>`);
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mousemove", function (event) {
+                    tooltip.style("left", (event.pageX + 15) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                })
+                .on("mouseleave", function (d) {
+                    d3.select(this).style("stroke", "#eee").style("stroke-width", 1);
+                    tooltip.style("opacity", 0);
+                });
+
+            const legendHeight = size * 0.8;
+            const legendWidth = Math.max(10, size * 0.04);
+            const legendFontSize = Math.max(10, size * 0.02);
+
+            d3.select("#legend-title")
+                .style("font-size", Math.max(9, size * 0.018) + "px")
+                .style("margin-bottom", Math.max(10, size * 0.02) + "px");
+
+            const legendSvg = d3.select("#legend")
+                .append("svg")
+                .attr("width", legendWidth + 60)
+                .attr("height", legendHeight + 20);
+
+            const defs = legendSvg.append("defs");
+            const linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+
+            linearGradient
+                .attr("x1", "0%")
+                .attr("y1", "100%")
+                .attr("x2", "0%")
+                .attr("y2", "0%");
+
+            linearGradient.append("stop")
+                .attr("offset", "0%")
+                .attr("stop-color", "#ffffff");
+
+            linearGradient.append("stop")
+                .attr("offset", "100%")
+                .attr("stop-color", "#376bbe");
+
+            legendSvg.append("rect")
+                .attr("width", legendWidth)
+                .attr("height", legendHeight)
+                .style("fill", "url(#linear-gradient)")
+                .style("stroke", "#ccc")
+                .attr("transform", "translate(0, 10)");
+
+            const legendScale = d3.scaleLinear()
+                .domain([0, maxVal])
+                .range([legendHeight, 0]);
+
+            const legendAxis = d3.axisRight(legendScale)
+                .ticks(5);
+
+            legendSvg.append("g")
+                .attr("class", "legend-axis")
+                .attr("transform", `translate(${legendWidth}, 10)`)
+                .call(legendAxis)
+                .style("font-size", legendFontSize + "px");
+
+        }
+
+        drawViz();
+        window.addEventListener('resize', drawViz);
+
+    </script>
+</body>
+
+</html>
