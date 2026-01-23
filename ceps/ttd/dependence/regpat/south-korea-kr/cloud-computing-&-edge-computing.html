@@ -1,0 +1,343 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Australia (AU)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 2,
+    "binary": 1,
+    "expected": 143.62,
+    "untapped": 142.62,
+    "links.rca": 0.01,
+    "sum_from": 28,
+    "sum_to": 31,
+    "binary.pc": 0.0012,
+    "th.max": 4157,
+    "th.max.pc": 0.1781,
+    "RD": 55.19,
+    "RD.added": 9.65,
+    "pct_from": 0.62,
+    "pct_to": 0.6864,
+    "pct_binary_from": 1.4568,
+    "parent": "Oceania",
+    "n": 0.44,
+    "pct": 1.79,
+    "nn": 4.0682,
+    "color": "#2E7C2E",
+    "id": "Australia (AU)",
+    "value": 1
+  },
+  {
+    "to": "China (CN)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 18,
+    "binary": 1,
+    "expected": 801.51,
+    "untapped": 800.51,
+    "links.rca": 0,
+    "sum_from": 28,
+    "sum_to": 302,
+    "binary.pc": 0.0012,
+    "th.max": 23200,
+    "th.max.pc": 0.9942,
+    "RD": 55.19,
+    "RD.added": 36.79,
+    "pct_from": 0.62,
+    "pct_to": 6.6873,
+    "pct_binary_from": 0.1495,
+    "parent": "Asia",
+    "n": 33.69,
+    "pct": 1.79,
+    "nn": 0.0531,
+    "color": "#9C3131",
+    "id": "China (CN)",
+    "value": 1
+  },
+  {
+    "to": "European Union (EU)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 53,
+    "binary": 10,
+    "expected": 388.77,
+    "untapped": 338.77,
+    "links.rca": 0.13,
+    "sum_from": 28,
+    "sum_to": 502,
+    "binary.pc": 0.062,
+    "th.max": 11253,
+    "th.max.pc": 0.4822,
+    "RD": 55.19,
+    "RD.added": 7.75,
+    "pct_from": 0.62,
+    "pct_to": 11.116,
+    "pct_binary_from": 0.8996,
+    "parent": "Europe",
+    "n": 11.16,
+    "pct": 17.86,
+    "nn": 1.6004,
+    "color": "#74A174",
+    "id": "European Union (EU)",
+    "value": 10
+  },
+  {
+    "to": "Hong Kong (HK)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 24,
+    "binary": 1,
+    "expected": 137.09,
+    "untapped": 136.09,
+    "links.rca": 0.01,
+    "sum_from": 28,
+    "sum_to": 8.5,
+    "binary.pc": 0.0012,
+    "th.max": 3968,
+    "th.max.pc": 0.17,
+    "RD": 55.19,
+    "RD.added": 10.82,
+    "pct_from": 0.62,
+    "pct_to": 0.1882,
+    "pct_binary_from": 5.3129,
+    "parent": "Asia",
+    "n": 0.13,
+    "pct": 1.79,
+    "nn": 13.7692,
+    "color": "#006400",
+    "id": "Hong Kong (HK)",
+    "value": 1
+  },
+  {
+    "to": "India (IN)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 400,
+    "binary": 18,
+    "expected": 198.44,
+    "untapped": 126.44,
+    "links.rca": 0.36,
+    "sum_from": 28,
+    "sum_to": 193.5,
+    "binary.pc": 0.0893,
+    "th.max": 5744,
+    "th.max.pc": 0.2462,
+    "RD": 55.19,
+    "RD.added": 21.83,
+    "pct_from": 0.62,
+    "pct_to": 4.2848,
+    "pct_binary_from": 4.2009,
+    "parent": "Asia",
+    "n": 2.79,
+    "pct": 32.14,
+    "nn": 11.5197,
+    "color": "#006400",
+    "id": "India (IN)",
+    "value": 18
+  },
+  {
+    "to": "Japan (JP)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 7,
+    "binary": 3,
+    "expected": 292.71,
+    "untapped": 286.71,
+    "links.rca": 0.02,
+    "sum_from": 28,
+    "sum_to": 98,
+    "binary.pc": 0.0074,
+    "th.max": 8472.5,
+    "th.max.pc": 0.3631,
+    "RD": 55.19,
+    "RD.added": 10.08,
+    "pct_from": 0.62,
+    "pct_to": 2.1701,
+    "pct_binary_from": 1.3824,
+    "parent": "Asia",
+    "n": 9.64,
+    "pct": 5.36,
+    "nn": 0.556,
+    "color": "#C19D9D",
+    "id": "Japan (JP)",
+    "value": 3
+  },
+  {
+    "to": "Philippines (PH)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 30,
+    "binary": 1,
+    "expected": 134.87,
+    "untapped": 133.87,
+    "links.rca": 0.01,
+    "sum_from": 28,
+    "sum_to": 0.5,
+    "binary.pc": 0.0012,
+    "th.max": 3904,
+    "th.max.pc": 0.1673,
+    "RD": 55.19,
+    "RD.added": 21.97,
+    "pct_from": 0.62,
+    "pct_to": 0.0111,
+    "pct_binary_from": 90.32,
+    "parent": "Asia",
+    "n": 0.01,
+    "pct": 1.79,
+    "nn": 179,
+    "color": "darkgreen",
+    "id": "Philippines (PH)",
+    "value": 1
+  },
+  {
+    "to": "Russia (RU)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 42,
+    "binary": 2,
+    "expected": 138.92,
+    "untapped": 134.92,
+    "links.rca": 0.03,
+    "sum_from": 28,
+    "sum_to": 25,
+    "binary.pc": 0.005,
+    "th.max": 4021,
+    "th.max.pc": 0.1723,
+    "RD": 55.19,
+    "RD.added": 11.22,
+    "pct_from": 0.62,
+    "pct_to": 0.5536,
+    "pct_binary_from": 3.6128,
+    "parent": "Europe",
+    "n": 0.21,
+    "pct": 3.57,
+    "nn": 17,
+    "color": "#006400",
+    "id": "Russia (RU)",
+    "value": 2
+  },
+  {
+    "to": "Ukraine (UA)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 16,
+    "binary": 1,
+    "expected": 135.03,
+    "untapped": 134.03,
+    "links.rca": 0.01,
+    "sum_from": 28,
+    "sum_to": 3.5,
+    "binary.pc": 0.0012,
+    "th.max": 3908.5,
+    "th.max.pc": 0.1675,
+    "RD": 55.19,
+    "RD.added": 9.73,
+    "pct_from": 0.62,
+    "pct_to": 0.0775,
+    "pct_binary_from": 12.9029,
+    "parent": "Europe",
+    "n": 0.02,
+    "pct": 1.79,
+    "nn": 89.5,
+    "color": "#006400",
+    "id": "Ukraine (UA)",
+    "value": 1
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 66,
+    "binary": 11,
+    "expected": 172.58,
+    "untapped": 117.58,
+    "links.rca": 0.32,
+    "sum_from": 28,
+    "sum_to": 137,
+    "binary.pc": 0.0682,
+    "th.max": 4995.5,
+    "th.max.pc": 0.2141,
+    "RD": 55.19,
+    "RD.added": 8.26,
+    "pct_from": 0.62,
+    "pct_to": 3.0337,
+    "pct_binary_from": 3.626,
+    "parent": "Europe",
+    "n": 2.28,
+    "pct": 19.64,
+    "nn": 8.614,
+    "color": "#076807",
+    "id": "United Kingdom (GB)",
+    "value": 11
+  },
+  {
+    "to": "United States (US)",
+    "from": "South Korea (KR)",
+    "domain": "Cloud Computing & Edge Computing",
+    "full": 35,
+    "binary": 7,
+    "expected": 651.85,
+    "untapped": 616.85,
+    "links.rca": 0.05,
+    "sum_from": 28,
+    "sum_to": 633,
+    "binary.pc": 0.0434,
+    "th.max": 18868,
+    "th.max.pc": 0.8086,
+    "RD": 55.19,
+    "RD.added": 33.08,
+    "pct_from": 0.62,
+    "pct_to": 14.0168,
+    "pct_binary_from": 0.4994,
+    "parent": "North America",
+    "n": 27.64,
+    "pct": 12.5,
+    "nn": 0.4522,
+    "color": "#BB8E8E",
+    "id": "United States (US)",
+    "value": 7
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

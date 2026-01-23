@@ -1,0 +1,289 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Australia (AU)",
+    "from": "South Korea (KR)",
+    "domain": "Blockchain Technologies",
+    "full": 2,
+    "binary": 1,
+    "expected": 28.93,
+    "untapped": 27.93,
+    "links.rca": 0.03,
+    "sum_from": 9,
+    "sum_to": 18,
+    "binary.pc": 0.0037,
+    "th.max": 1766.5,
+    "th.max.pc": 0.1072,
+    "RD": 58.77,
+    "RD.added": 15.79,
+    "pct_from": 0.4573,
+    "pct_to": 0.9146,
+    "pct_binary_from": 1.0933,
+    "parent": "Oceania",
+    "n": 1.28,
+    "pct": 5.56,
+    "nn": 4.3438,
+    "color": "#2A7A2A",
+    "id": "Australia (AU)",
+    "value": 1
+  },
+  {
+    "to": "Canada (CA)",
+    "from": "South Korea (KR)",
+    "domain": "Blockchain Technologies",
+    "full": 2,
+    "binary": 1,
+    "expected": 36.62,
+    "untapped": 35.62,
+    "links.rca": 0.03,
+    "sum_from": 9,
+    "sum_to": 57.5,
+    "binary.pc": 0.0037,
+    "th.max": 2236,
+    "th.max.pc": 0.1357,
+    "RD": 58.77,
+    "RD.added": 23.26,
+    "pct_from": 0.4573,
+    "pct_to": 2.9217,
+    "pct_binary_from": 0.3423,
+    "parent": "North America",
+    "n": 2.19,
+    "pct": 5.56,
+    "nn": 2.5388,
+    "color": "#4D8C4D",
+    "id": "Canada (CA)",
+    "value": 1
+  },
+  {
+    "to": "European Union (EU)",
+    "from": "South Korea (KR)",
+    "domain": "Blockchain Technologies",
+    "full": 12,
+    "binary": 3,
+    "expected": 78.26,
+    "untapped": 72.26,
+    "links.rca": 0.08,
+    "sum_from": 9,
+    "sum_to": 169.5,
+    "binary.pc": 0.0222,
+    "th.max": 4779,
+    "th.max.pc": 0.2901,
+    "RD": 58.77,
+    "RD.added": 14.3,
+    "pct_from": 0.4573,
+    "pct_to": 8.6128,
+    "pct_binary_from": 0.3483,
+    "parent": "Europe",
+    "n": 9.48,
+    "pct": 16.67,
+    "nn": 1.7584,
+    "color": "#6B9C6B",
+    "id": "European Union (EU)",
+    "value": 3
+  },
+  {
+    "to": "Japan (JP)",
+    "from": "South Korea (KR)",
+    "domain": "Blockchain Technologies",
+    "full": 14,
+    "binary": 2,
+    "expected": 52.23,
+    "untapped": 50.23,
+    "links.rca": 0.04,
+    "sum_from": 9,
+    "sum_to": 21.5,
+    "binary.pc": 0.0074,
+    "th.max": 3189.5,
+    "th.max.pc": 0.1936,
+    "RD": 58.77,
+    "RD.added": 14.04,
+    "pct_from": 0.4573,
+    "pct_to": 1.0925,
+    "pct_binary_from": 1.8307,
+    "parent": "Asia",
+    "n": 6.86,
+    "pct": 11.11,
+    "nn": 1.6195,
+    "color": "#72A072",
+    "id": "Japan (JP)",
+    "value": 2
+  },
+  {
+    "to": "Singapore (SG)",
+    "from": "South Korea (KR)",
+    "domain": "Blockchain Technologies",
+    "full": 4,
+    "binary": 1,
+    "expected": 29.63,
+    "untapped": 28.63,
+    "links.rca": 0.03,
+    "sum_from": 9,
+    "sum_to": 32.5,
+    "binary.pc": 0.0037,
+    "th.max": 1809.5,
+    "th.max.pc": 0.1098,
+    "RD": 58.77,
+    "RD.added": 17.12,
+    "pct_from": 0.4573,
+    "pct_to": 1.6514,
+    "pct_binary_from": 0.6055,
+    "parent": "Asia",
+    "n": 1.01,
+    "pct": 5.56,
+    "nn": 5.505,
+    "color": "#1D731D",
+    "id": "Singapore (SG)",
+    "value": 1
+  },
+  {
+    "to": "Thailand (TH)",
+    "from": "South Korea (KR)",
+    "domain": "Blockchain Technologies",
+    "full": 2,
+    "binary": 1,
+    "expected": 24.55,
+    "untapped": 23.55,
+    "links.rca": 0.04,
+    "sum_from": 9,
+    "sum_to": 1.5,
+    "binary.pc": 0.0037,
+    "th.max": 1499,
+    "th.max.pc": 0.091,
+    "RD": 58.77,
+    "RD.added": 3.43,
+    "pct_from": 0.4573,
+    "pct_to": 0.0762,
+    "pct_binary_from": 13.12,
+    "parent": "Asia",
+    "n": 0.04,
+    "pct": 5.56,
+    "nn": 139,
+    "color": "darkgreen",
+    "id": "Thailand (TH)",
+    "value": 1
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "South Korea (KR)",
+    "domain": "Blockchain Technologies",
+    "full": 2,
+    "binary": 2,
+    "expected": 48.2,
+    "untapped": 46.2,
+    "links.rca": 0.04,
+    "sum_from": 9,
+    "sum_to": 107.5,
+    "binary.pc": 0.0074,
+    "th.max": 2943.5,
+    "th.max.pc": 0.1787,
+    "RD": 58.77,
+    "RD.added": 18.75,
+    "pct_from": 0.4573,
+    "pct_to": 5.4624,
+    "pct_binary_from": 0.3661,
+    "parent": "Europe",
+    "n": 5,
+    "pct": 11.11,
+    "nn": 2.222,
+    "color": "#579257",
+    "id": "United Kingdom (GB)",
+    "value": 2
+  },
+  {
+    "to": "United States (US)",
+    "from": "South Korea (KR)",
+    "domain": "Blockchain Technologies",
+    "full": 9,
+    "binary": 6,
+    "expected": 189.21,
+    "untapped": 171.21,
+    "links.rca": 0.1,
+    "sum_from": 9,
+    "sum_to": 314.5,
+    "binary.pc": 0.0667,
+    "th.max": 11554,
+    "th.max.pc": 0.7014,
+    "RD": 58.77,
+    "RD.added": 30.9,
+    "pct_from": 0.4573,
+    "pct_to": 15.9807,
+    "pct_binary_from": 0.3755,
+    "parent": "North America",
+    "n": 34.08,
+    "pct": 33.33,
+    "nn": 0.978,
+    "color": "#D2D1D1",
+    "id": "United States (US)",
+    "value": 6
+  },
+  {
+    "to": "Vietnam (VN)",
+    "from": "South Korea (KR)",
+    "domain": "Blockchain Technologies",
+    "full": 4,
+    "binary": 1,
+    "expected": 24.51,
+    "untapped": 23.51,
+    "links.rca": 0.04,
+    "sum_from": 9,
+    "sum_to": 1.5,
+    "binary.pc": 0.0037,
+    "th.max": 1497,
+    "th.max.pc": 0.0909,
+    "RD": 58.77,
+    "RD.added": 7.81,
+    "pct_from": 0.4573,
+    "pct_to": 0.0762,
+    "pct_binary_from": 13.12,
+    "parent": "Asia",
+    "n": 0.04,
+    "pct": 5.56,
+    "nn": 139,
+    "color": "darkgreen",
+    "id": "Vietnam (VN)",
+    "value": 1
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Canada (CA)",
+    "from": "India (IN)",
+    "domain": "Drones",
+    "full": 9,
+    "binary": 1,
+    "expected": 1.74,
+    "untapped": 0.74,
+    "links.rca": 0.57,
+    "sum_from": 22,
+    "sum_to": 54.5,
+    "binary.pc": 0.0295,
+    "th.max": 1098.5,
+    "th.max.pc": 0.0513,
+    "RD": 22.79,
+    "RD.added": 25.16,
+    "pct_from": 1.2926,
+    "pct_to": 3.2021,
+    "pct_binary_from": 0.3123,
+    "parent": "North America",
+    "n": 1.55,
+    "pct": 2.27,
+    "nn": 1.4645,
+    "color": "#7DA67D",
+    "id": "Canada (CA)",
+    "value": 1
+  },
+  {
+    "to": "China (CN)",
+    "from": "India (IN)",
+    "domain": "Drones",
+    "full": 1,
+    "binary": 1,
+    "expected": 16.48,
+    "untapped": 15.48,
+    "links.rca": 0.06,
+    "sum_from": 22,
+    "sum_to": 80,
+    "binary.pc": 0.0295,
+    "th.max": 10425.5,
+    "th.max.pc": 0.4865,
+    "RD": 22.79,
+    "RD.added": 19.07,
+    "pct_from": 1.2926,
+    "pct_to": 4.7004,
+    "pct_binary_from": 0.2128,
+    "parent": "Asia",
+    "n": 19.8,
+    "pct": 2.27,
+    "nn": 0.1146,
+    "color": "#A34747",
+    "id": "China (CN)",
+    "value": 1
+  },
+  {
+    "to": "European Union (EU)",
+    "from": "India (IN)",
+    "domain": "Drones",
+    "full": 70,
+    "binary": 14,
+    "expected": 16.28,
+    "untapped": -53.72,
+    "links.rca": 4.3,
+    "sum_from": 22,
+    "sum_to": 202.5,
+    "binary.pc": 2.0661,
+    "th.max": 10297.5,
+    "th.max.pc": 0.4806,
+    "RD": 22.79,
+    "RD.added": 54.4,
+    "pct_from": 1.2926,
+    "pct_to": 11.8978,
+    "pct_binary_from": 1.1767,
+    "parent": "Europe",
+    "n": 22.7,
+    "pct": 31.82,
+    "nn": 1.4018,
+    "color": "#82A882",
+    "id": "European Union (EU)",
+    "value": 14
+  },
+  {
+    "to": "Japan (JP)",
+    "from": "India (IN)",
+    "domain": "Drones",
+    "full": 1,
+    "binary": 1,
+    "expected": 10.62,
+    "untapped": 9.62,
+    "links.rca": 0.09,
+    "sum_from": 22,
+    "sum_to": 26,
+    "binary.pc": 0.0295,
+    "th.max": 6719,
+    "th.max.pc": 0.3136,
+    "RD": 22.79,
+    "RD.added": 43.31,
+    "pct_from": 1.2926,
+    "pct_to": 1.5276,
+    "pct_binary_from": 0.6546,
+    "parent": "Asia",
+    "n": 16.14,
+    "pct": 2.27,
+    "nn": 0.1406,
+    "color": "#A64F4F",
+    "id": "Japan (JP)",
+    "value": 1
+  },
+  {
+    "to": "Singapore (SG)",
+    "from": "India (IN)",
+    "domain": "Drones",
+    "full": 27,
+    "binary": 1,
+    "expected": 0.92,
+    "untapped": -0.08,
+    "links.rca": 1.09,
+    "sum_from": 22,
+    "sum_to": 21,
+    "binary.pc": 0.0295,
+    "th.max": 580,
+    "th.max.pc": 0.0271,
+    "RD": 22.79,
+    "RD.added": 25.62,
+    "pct_from": 1.2926,
+    "pct_to": 1.2338,
+    "pct_binary_from": 0.8105,
+    "parent": "Asia",
+    "n": 0.59,
+    "pct": 2.27,
+    "nn": 3.8475,
+    "color": "#327E32",
+    "id": "Singapore (SG)",
+    "value": 1
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "India (IN)",
+    "domain": "Drones",
+    "full": 7,
+    "binary": 3,
+    "expected": 2.6,
+    "untapped": -3.4,
+    "links.rca": 2.31,
+    "sum_from": 22,
+    "sum_to": 63,
+    "binary.pc": 0.1771,
+    "th.max": 1641.5,
+    "th.max.pc": 0.0766,
+    "RD": 22.79,
+    "RD.added": 44.8,
+    "pct_from": 1.2926,
+    "pct_to": 3.7015,
+    "pct_binary_from": 0.8105,
+    "parent": "Europe",
+    "n": 3.67,
+    "pct": 6.82,
+    "nn": 1.8583,
+    "color": "#669966",
+    "id": "United Kingdom (GB)",
+    "value": 3
+  },
+  {
+    "to": "United States (US)",
+    "from": "India (IN)",
+    "domain": "Drones",
+    "full": 170,
+    "binary": 23,
+    "expected": 16.02,
+    "untapped": -98.98,
+    "links.rca": 7.18,
+    "sum_from": 22,
+    "sum_to": 245.5,
+    "binary.pc": 3.3943,
+    "th.max": 10130,
+    "th.max.pc": 0.4728,
+    "RD": 22.79,
+    "RD.added": 15.62,
+    "pct_from": 1.2926,
+    "pct_to": 14.4242,
+    "pct_binary_from": 1.5945,
+    "parent": "North America",
+    "n": 22.46,
+    "pct": 52.27,
+    "nn": 2.3272,
+    "color": "#539053",
+    "id": "United States (US)",
+    "value": 23
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

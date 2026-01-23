@@ -1,0 +1,343 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Brazil (BR)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 10,
+    "binary": 1,
+    "expected": 1.47,
+    "untapped": 0.47,
+    "links.rca": 0.68,
+    "sum_from": 46.5,
+    "sum_to": 5,
+    "binary.pc": 0.0174,
+    "th.max": 1079.5,
+    "th.max.pc": 0.0257,
+    "RD": 32.51,
+    "RD.added": 32.69,
+    "pct_from": 1.618,
+    "pct_to": 0.174,
+    "pct_binary_from": 5.748,
+    "parent": "South America",
+    "n": 0.22,
+    "pct": 1.08,
+    "nn": 4.9091,
+    "color": "#247724",
+    "id": "Brazil (BR)",
+    "value": 1
+  },
+  {
+    "to": "Chile (CL)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 3,
+    "binary": 1,
+    "expected": 1.41,
+    "untapped": 0.41,
+    "links.rca": 0.71,
+    "sum_from": 46.5,
+    "sum_to": 2.5,
+    "binary.pc": 0.0174,
+    "th.max": 1036,
+    "th.max.pc": 0.0246,
+    "RD": 32.51,
+    "RD.added": 35.53,
+    "pct_from": 1.618,
+    "pct_to": 0.087,
+    "pct_binary_from": 11.496,
+    "parent": "South America",
+    "n": 0.08,
+    "pct": 1.08,
+    "nn": 13.5,
+    "color": "#006400",
+    "id": "Chile (CL)",
+    "value": 1
+  },
+  {
+    "to": "China (CN)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 23,
+    "binary": 6,
+    "expected": 25.74,
+    "untapped": 1.74,
+    "links.rca": 0.93,
+    "sum_from": 46.5,
+    "sum_to": 95.5,
+    "binary.pc": 0.4186,
+    "th.max": 18888.5,
+    "th.max.pc": 0.4489,
+    "RD": 32.51,
+    "RD.added": 21.7,
+    "pct_from": 1.618,
+    "pct_to": 3.3229,
+    "pct_binary_from": 1.8057,
+    "parent": "Asia",
+    "n": 21.42,
+    "pct": 6.45,
+    "nn": 0.3011,
+    "color": "#B37474",
+    "id": "China (CN)",
+    "value": 6
+  },
+  {
+    "to": "European Union (EU)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 37,
+    "binary": 11,
+    "expected": 20.01,
+    "untapped": -12.99,
+    "links.rca": 1.65,
+    "sum_from": 46.5,
+    "sum_to": 330,
+    "binary.pc": 0.5756,
+    "th.max": 14684,
+    "th.max.pc": 0.349,
+    "RD": 32.51,
+    "RD.added": 51.16,
+    "pct_from": 1.618,
+    "pct_to": 11.4823,
+    "pct_binary_from": 0.958,
+    "parent": "Europe",
+    "n": 18.75,
+    "pct": 11.83,
+    "nn": 0.6309,
+    "color": "#C4A8A8",
+    "id": "European Union (EU)",
+    "value": 11
+  },
+  {
+    "to": "India (IN)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 10,
+    "binary": 2,
+    "expected": 2.1,
+    "untapped": -1.9,
+    "links.rca": 1.9,
+    "sum_from": 46.5,
+    "sum_to": 43,
+    "binary.pc": 0.0698,
+    "th.max": 1539,
+    "th.max.pc": 0.0366,
+    "RD": 32.51,
+    "RD.added": 9.98,
+    "pct_from": 1.618,
+    "pct_to": 1.4962,
+    "pct_binary_from": 1.3367,
+    "parent": "Asia",
+    "n": 0.65,
+    "pct": 2.15,
+    "nn": 3.3077,
+    "color": "#3B833B",
+    "id": "India (IN)",
+    "value": 2
+  },
+  {
+    "to": "Israel (IL)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 15,
+    "binary": 5,
+    "expected": 3.12,
+    "untapped": -6.88,
+    "links.rca": 3.21,
+    "sum_from": 46.5,
+    "sum_to": 47.5,
+    "binary.pc": 0.1744,
+    "th.max": 2289,
+    "th.max.pc": 0.0544,
+    "RD": 32.51,
+    "RD.added": 15.13,
+    "pct_from": 1.618,
+    "pct_to": 1.6527,
+    "pct_binary_from": 3.0253,
+    "parent": "Asia",
+    "n": 1.49,
+    "pct": 5.38,
+    "nn": 3.6107,
+    "color": "#358035",
+    "id": "Israel (IL)",
+    "value": 5
+  },
+  {
+    "to": "Lebanon (LB)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 4,
+    "binary": 1,
+    "expected": 1.34,
+    "untapped": 0.34,
+    "links.rca": 0.75,
+    "sum_from": 46.5,
+    "sum_to": 1,
+    "binary.pc": 0.0174,
+    "th.max": 986,
+    "th.max.pc": 0.0234,
+    "RD": 32.51,
+    "RD.added": 5.87,
+    "pct_from": 1.618,
+    "pct_to": 0.0348,
+    "pct_binary_from": 28.74,
+    "parent": "Asia",
+    "n": 0.01,
+    "pct": 1.08,
+    "nn": 108,
+    "color": "darkgreen",
+    "id": "Lebanon (LB)",
+    "value": 1
+  },
+  {
+    "to": "Switzerland (CH)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 10,
+    "binary": 1,
+    "expected": 2.56,
+    "untapped": 1.56,
+    "links.rca": 0.39,
+    "sum_from": 46.5,
+    "sum_to": 91,
+    "binary.pc": 0.0174,
+    "th.max": 1877.5,
+    "th.max.pc": 0.0446,
+    "RD": 32.51,
+    "RD.added": 26.25,
+    "pct_from": 1.618,
+    "pct_to": 3.1663,
+    "pct_binary_from": 0.3158,
+    "parent": "Europe",
+    "n": 1.19,
+    "pct": 1.08,
+    "nn": 0.9076,
+    "color": "#D0C9C9",
+    "id": "Switzerland (CH)",
+    "value": 1
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 14,
+    "binary": 5,
+    "expected": 4.32,
+    "untapped": -5.68,
+    "links.rca": 2.31,
+    "sum_from": 46.5,
+    "sum_to": 112,
+    "binary.pc": 0.1744,
+    "th.max": 3167.5,
+    "th.max.pc": 0.0753,
+    "RD": 32.51,
+    "RD.added": 30.76,
+    "pct_from": 1.618,
+    "pct_to": 3.897,
+    "pct_binary_from": 1.283,
+    "parent": "Europe",
+    "n": 2.95,
+    "pct": 5.38,
+    "nn": 1.8237,
+    "color": "#679A67",
+    "id": "United Kingdom (GB)",
+    "value": 5
+  },
+  {
+    "to": "United States (US)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 329,
+    "binary": 59,
+    "expected": 25.16,
+    "untapped": -269.84,
+    "links.rca": 11.72,
+    "sum_from": 46.5,
+    "sum_to": 451.5,
+    "binary.pc": 5.1456,
+    "th.max": 18468,
+    "th.max.pc": 0.4389,
+    "RD": 32.51,
+    "RD.added": 4.55,
+    "pct_from": 1.618,
+    "pct_to": 15.7098,
+    "pct_binary_from": 3.7556,
+    "parent": "North America",
+    "n": 22.3,
+    "pct": 63.44,
+    "nn": 2.8448,
+    "color": "#458845",
+    "id": "United States (US)",
+    "value": 59
+  },
+  {
+    "to": "Venezuela (VE)",
+    "from": "Canada (CA)",
+    "domain": "Robotics",
+    "full": 1,
+    "binary": 1,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 46.5,
+    "sum_to": 1.5,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 32.51,
+    "RD.added": 1.55,
+    "pct_from": 1.618,
+    "pct_to": 0.0522,
+    "pct_binary_from": 19.16,
+    "parent": "South America",
+    "n": 0,
+    "pct": 1.08,
+    "nn": 0,
+    "color": "darkred",
+    "id": "Venezuela (VE)",
+    "value": 1
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

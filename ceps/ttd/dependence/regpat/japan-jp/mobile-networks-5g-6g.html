@@ -1,0 +1,316 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Australia (AU)",
+    "from": "Japan (JP)",
+    "domain": "Mobile Networks (5G/6G)",
+    "full": 1,
+    "binary": 1,
+    "expected": 284.13,
+    "untapped": 283.13,
+    "links.rca": 0,
+    "sum_from": 662,
+    "sum_to": 90.5,
+    "binary.pc": 0.0007,
+    "th.max": 12437.5,
+    "th.max.pc": 0.1971,
+    "RD": 13.43,
+    "RD.added": 5.14,
+    "pct_from": 3.9209,
+    "pct_to": 0.536,
+    "pct_binary_from": 1.8656,
+    "parent": "Oceania",
+    "n": 0.38,
+    "pct": 0.08,
+    "nn": 0.2105,
+    "color": "#AC6161",
+    "id": "Australia (AU)",
+    "value": 1
+  },
+  {
+    "to": "Canada (CA)",
+    "from": "Japan (JP)",
+    "domain": "Mobile Networks (5G/6G)",
+    "full": 43,
+    "binary": 17,
+    "expected": 367.14,
+    "untapped": 316.14,
+    "links.rca": 0.14,
+    "sum_from": 662,
+    "sum_to": 420,
+    "binary.pc": 0.0354,
+    "th.max": 16071,
+    "th.max.pc": 0.2547,
+    "RD": 13.43,
+    "RD.added": 77.77,
+    "pct_from": 3.9209,
+    "pct_to": 2.4876,
+    "pct_binary_from": 6.834,
+    "parent": "North America",
+    "n": 1.83,
+    "pct": 1.28,
+    "nn": 0.6995,
+    "color": "#C7B0B0",
+    "id": "Canada (CA)",
+    "value": 17
+  },
+  {
+    "to": "China (CN)",
+    "from": "Japan (JP)",
+    "domain": "Mobile Networks (5G/6G)",
+    "full": 5630,
+    "binary": 762,
+    "expected": 1674.87,
+    "untapped": -2135.13,
+    "links.rca": 2.27,
+    "sum_from": 662,
+    "sum_to": 1951.5,
+    "binary.pc": 2.6432,
+    "th.max": 73315.5,
+    "th.max.pc": 1.1619,
+    "RD": 13.43,
+    "RD.added": 84.24,
+    "pct_from": 3.9209,
+    "pct_to": 11.5583,
+    "pct_binary_from": 65.9268,
+    "parent": "Asia",
+    "n": 37.59,
+    "pct": 57.55,
+    "nn": 1.531,
+    "color": "#78A378",
+    "id": "China (CN)",
+    "value": 762
+  },
+  {
+    "to": "European Union (EU)",
+    "from": "Japan (JP)",
+    "domain": "Mobile Networks (5G/6G)",
+    "full": 1651,
+    "binary": 231,
+    "expected": 742.42,
+    "untapped": -412.58,
+    "links.rca": 1.56,
+    "sum_from": 662,
+    "sum_to": 1855.5,
+    "binary.pc": 0.8013,
+    "th.max": 32498.5,
+    "th.max.pc": 0.515,
+    "RD": 13.43,
+    "RD.added": 2.01,
+    "pct_from": 3.9209,
+    "pct_to": 10.9897,
+    "pct_binary_from": 21.0197,
+    "parent": "Europe",
+    "n": 11.44,
+    "pct": 17.45,
+    "nn": 1.5253,
+    "color": "#79A379",
+    "id": "European Union (EU)",
+    "value": 231
+  },
+  {
+    "to": "Hong Kong (HK)",
+    "from": "Japan (JP)",
+    "domain": "Mobile Networks (5G/6G)",
+    "full": 795,
+    "binary": 35,
+    "expected": 278.97,
+    "untapped": 243.97,
+    "links.rca": 0.13,
+    "sum_from": 662,
+    "sum_to": 31.5,
+    "binary.pc": 0.0243,
+    "th.max": 12211.5,
+    "th.max.pc": 0.1935,
+    "RD": 13.43,
+    "RD.added": 3.85,
+    "pct_from": 3.9209,
+    "pct_to": 0.1866,
+    "pct_binary_from": 187.6,
+    "parent": "Asia",
+    "n": 0.14,
+    "pct": 2.64,
+    "nn": 18.8571,
+    "color": "#006400",
+    "id": "Hong Kong (HK)",
+    "value": 35
+  },
+  {
+    "to": "India (IN)",
+    "from": "Japan (JP)",
+    "domain": "Mobile Networks (5G/6G)",
+    "full": 69,
+    "binary": 24,
+    "expected": 339.57,
+    "untapped": 219.57,
+    "links.rca": 0.35,
+    "sum_from": 662,
+    "sum_to": 356.5,
+    "binary.pc": 0.0832,
+    "th.max": 14864.5,
+    "th.max.pc": 0.2356,
+    "RD": 13.43,
+    "RD.added": 65.14,
+    "pct_from": 3.9209,
+    "pct_to": 2.1115,
+    "pct_binary_from": 11.3665,
+    "parent": "Asia",
+    "n": 1.76,
+    "pct": 1.81,
+    "nn": 1.0284,
+    "color": "#BCC7BC",
+    "id": "India (IN)",
+    "value": 24
+  },
+  {
+    "to": "Singapore (SG)",
+    "from": "Japan (JP)",
+    "domain": "Mobile Networks (5G/6G)",
+    "full": 629,
+    "binary": 85,
+    "expected": 282.5,
+    "untapped": -142.5,
+    "links.rca": 1.5,
+    "sum_from": 662,
+    "sum_to": 97,
+    "binary.pc": 0.2948,
+    "th.max": 12366,
+    "th.max.pc": 0.196,
+    "RD": 13.43,
+    "RD.added": 11.45,
+    "pct_from": 3.9209,
+    "pct_to": 0.5745,
+    "pct_binary_from": 147.9526,
+    "parent": "Asia",
+    "n": 0.33,
+    "pct": 6.42,
+    "nn": 19.4545,
+    "color": "#006400",
+    "id": "Singapore (SG)",
+    "value": 85
+  },
+  {
+    "to": "South Korea (KR)",
+    "from": "Japan (JP)",
+    "domain": "Mobile Networks (5G/6G)",
+    "full": 3,
+    "binary": 3,
+    "expected": 634.58,
+    "untapped": 628.58,
+    "links.rca": 0.01,
+    "sum_from": 662,
+    "sum_to": 132,
+    "binary.pc": 0.0042,
+    "th.max": 27778,
+    "th.max.pc": 0.4402,
+    "RD": 13.43,
+    "RD.added": 58.62,
+    "pct_from": 3.9209,
+    "pct_to": 0.7818,
+    "pct_binary_from": 3.8373,
+    "parent": "Asia",
+    "n": 10.6,
+    "pct": 0.23,
+    "nn": 0.0217,
+    "color": "#961F1F",
+    "id": "South Korea (KR)",
+    "value": 3
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "Japan (JP)",
+    "domain": "Mobile Networks (5G/6G)",
+    "full": 87,
+    "binary": 38,
+    "expected": 316.3,
+    "untapped": 126.3,
+    "links.rca": 0.6,
+    "sum_from": 662,
+    "sum_to": 476.5,
+    "binary.pc": 0.1318,
+    "th.max": 13845.5,
+    "th.max.pc": 0.2194,
+    "RD": 13.43,
+    "RD.added": 12.16,
+    "pct_from": 3.9209,
+    "pct_to": 2.8222,
+    "pct_binary_from": 13.4647,
+    "parent": "Europe",
+    "n": 1.71,
+    "pct": 2.87,
+    "nn": 1.6784,
+    "color": "#6F9E6F",
+    "id": "United Kingdom (GB)",
+    "value": 38
+  },
+  {
+    "to": "United States (US)",
+    "from": "Japan (JP)",
+    "domain": "Mobile Networks (5G/6G)",
+    "full": 327,
+    "binary": 128,
+    "expected": 1039.62,
+    "untapped": 399.62,
+    "links.rca": 0.62,
+    "sum_from": 662,
+    "sum_to": 2004,
+    "binary.pc": 0.444,
+    "th.max": 45508,
+    "th.max.pc": 0.7212,
+    "RD": 13.43,
+    "RD.added": 52.95,
+    "pct_from": 3.9209,
+    "pct_to": 11.8692,
+    "pct_binary_from": 10.7842,
+    "parent": "North America",
+    "n": 23.82,
+    "pct": 9.67,
+    "nn": 0.406,
+    "color": "#B98686",
+    "id": "United States (US)",
+    "value": 128
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

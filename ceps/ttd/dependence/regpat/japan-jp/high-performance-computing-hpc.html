@@ -1,0 +1,343 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Australia (AU)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 2,
+    "binary": 1,
+    "expected": 186.11,
+    "untapped": 185.11,
+    "links.rca": 0.01,
+    "sum_from": 73.5,
+    "sum_to": 18,
+    "binary.pc": 0.0017,
+    "th.max": 9471,
+    "th.max.pc": 0.3182,
+    "RD": 49.15,
+    "RD.added": 11.89,
+    "pct_from": 2.006,
+    "pct_to": 0.4913,
+    "pct_binary_from": 2.0356,
+    "parent": "Oceania",
+    "n": 0.37,
+    "pct": 0.7,
+    "nn": 1.8919,
+    "color": "#649964",
+    "id": "Australia (AU)",
+    "value": 1
+  },
+  {
+    "to": "Canada (CA)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 16,
+    "binary": 3,
+    "expected": 203.43,
+    "untapped": 200.43,
+    "links.rca": 0.01,
+    "sum_from": 73.5,
+    "sum_to": 98,
+    "binary.pc": 0.0051,
+    "th.max": 10352.5,
+    "th.max.pc": 0.3479,
+    "RD": 49.15,
+    "RD.added": 31.35,
+    "pct_from": 2.006,
+    "pct_to": 2.6747,
+    "pct_binary_from": 1.1216,
+    "parent": "North America",
+    "n": 1.26,
+    "pct": 2.11,
+    "nn": 1.6746,
+    "color": "#6F9E6F",
+    "id": "Canada (CA)",
+    "value": 3
+  },
+  {
+    "to": "China (CN)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 34,
+    "binary": 6,
+    "expected": 674.76,
+    "untapped": 650.76,
+    "links.rca": 0.04,
+    "sum_from": 73.5,
+    "sum_to": 201.5,
+    "binary.pc": 0.041,
+    "th.max": 34338,
+    "th.max.pc": 1.1538,
+    "RD": 49.15,
+    "RD.added": 46.4,
+    "pct_from": 2.006,
+    "pct_to": 5.4995,
+    "pct_binary_from": 1.091,
+    "parent": "Asia",
+    "n": 34.58,
+    "pct": 4.23,
+    "nn": 0.1223,
+    "color": "#A44A4A",
+    "id": "China (CN)",
+    "value": 6
+  },
+  {
+    "to": "European Union (EU)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 46,
+    "binary": 19,
+    "expected": 319.01,
+    "untapped": 224.01,
+    "links.rca": 0.3,
+    "sum_from": 73.5,
+    "sum_to": 357.5,
+    "binary.pc": 0.1624,
+    "th.max": 16234,
+    "th.max.pc": 0.5455,
+    "RD": 49.15,
+    "RD.added": 3.46,
+    "pct_from": 2.006,
+    "pct_to": 9.7571,
+    "pct_binary_from": 1.9473,
+    "parent": "Europe",
+    "n": 8.47,
+    "pct": 13.38,
+    "nn": 1.5797,
+    "color": "#75A275",
+    "id": "European Union (EU)",
+    "value": 19
+  },
+  {
+    "to": "Hong Kong (HK)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 1,
+    "binary": 1,
+    "expected": 182.65,
+    "untapped": 181.65,
+    "links.rca": 0.01,
+    "sum_from": 73.5,
+    "sum_to": 8,
+    "binary.pc": 0.0017,
+    "th.max": 9295,
+    "th.max.pc": 0.3123,
+    "RD": 49.15,
+    "RD.added": 11.79,
+    "pct_from": 2.006,
+    "pct_to": 0.2183,
+    "pct_binary_from": 4.58,
+    "parent": "Asia",
+    "n": 0.11,
+    "pct": 0.7,
+    "nn": 6.3636,
+    "color": "#166F16",
+    "id": "Hong Kong (HK)",
+    "value": 1
+  },
+  {
+    "to": "India (IN)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 26,
+    "binary": 9,
+    "expected": 203.41,
+    "untapped": 176.41,
+    "links.rca": 0.13,
+    "sum_from": 73.5,
+    "sum_to": 128,
+    "binary.pc": 0.0462,
+    "th.max": 10351.5,
+    "th.max.pc": 0.3478,
+    "RD": 49.15,
+    "RD.added": 27.57,
+    "pct_from": 2.006,
+    "pct_to": 3.4934,
+    "pct_binary_from": 2.5762,
+    "parent": "Asia",
+    "n": 1.15,
+    "pct": 6.34,
+    "nn": 5.513,
+    "color": "#1D731D",
+    "id": "India (IN)",
+    "value": 9
+  },
+  {
+    "to": "Israel (IL)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 7,
+    "binary": 2,
+    "expected": 192.25,
+    "untapped": 188.25,
+    "links.rca": 0.02,
+    "sum_from": 73.5,
+    "sum_to": 42,
+    "binary.pc": 0.0068,
+    "th.max": 9783.5,
+    "th.max.pc": 0.3287,
+    "RD": 49.15,
+    "RD.added": 24.58,
+    "pct_from": 2.006,
+    "pct_to": 1.1463,
+    "pct_binary_from": 1.7448,
+    "parent": "Asia",
+    "n": 0.74,
+    "pct": 1.41,
+    "nn": 1.9054,
+    "color": "#639863",
+    "id": "Israel (IL)",
+    "value": 2
+  },
+  {
+    "to": "Singapore (SG)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 84,
+    "binary": 12,
+    "expected": 187.69,
+    "untapped": 139.69,
+    "links.rca": 0.26,
+    "sum_from": 73.5,
+    "sum_to": 38,
+    "binary.pc": 0.0821,
+    "th.max": 9551.5,
+    "th.max.pc": 0.3209,
+    "RD": 49.15,
+    "RD.added": 21.28,
+    "pct_from": 2.006,
+    "pct_to": 1.0371,
+    "pct_binary_from": 11.5705,
+    "parent": "Asia",
+    "n": 0.42,
+    "pct": 8.45,
+    "nn": 20.119,
+    "color": "#006400",
+    "id": "Singapore (SG)",
+    "value": 12
+  },
+  {
+    "to": "South Korea (KR)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 18,
+    "binary": 3,
+    "expected": 267.34,
+    "untapped": 258.34,
+    "links.rca": 0.03,
+    "sum_from": 73.5,
+    "sum_to": 16,
+    "binary.pc": 0.0154,
+    "th.max": 13604.5,
+    "th.max.pc": 0.4571,
+    "RD": 49.15,
+    "RD.added": 17.52,
+    "pct_from": 2.006,
+    "pct_to": 0.4367,
+    "pct_binary_from": 6.87,
+    "parent": "Asia",
+    "n": 6.05,
+    "pct": 2.11,
+    "nn": 0.3488,
+    "color": "#B67D7D",
+    "id": "South Korea (KR)",
+    "value": 3
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 42,
+    "binary": 5,
+    "expected": 202.32,
+    "untapped": 182.32,
+    "links.rca": 0.1,
+    "sum_from": 73.5,
+    "sum_to": 93,
+    "binary.pc": 0.0342,
+    "th.max": 10296,
+    "th.max.pc": 0.346,
+    "RD": 49.15,
+    "RD.added": 17.2,
+    "pct_from": 2.006,
+    "pct_to": 2.5382,
+    "pct_binary_from": 1.9699,
+    "parent": "Europe",
+    "n": 1.66,
+    "pct": 3.52,
+    "nn": 2.1205,
+    "color": "#5A945A",
+    "id": "United Kingdom (GB)",
+    "value": 5
+  },
+  {
+    "to": "United States (US)",
+    "from": "Japan (JP)",
+    "domain": "High-Performance Computing (HPC)",
+    "full": 407,
+    "binary": 81,
+    "expected": 595.1,
+    "untapped": 190.1,
+    "links.rca": 0.68,
+    "sum_from": 73.5,
+    "sum_to": 629.5,
+    "binary.pc": 0.6925,
+    "th.max": 30284,
+    "th.max.pc": 1.0176,
+    "RD": 49.15,
+    "RD.added": 44.47,
+    "pct_from": 2.006,
+    "pct_to": 17.1807,
+    "pct_binary_from": 4.7146,
+    "parent": "North America",
+    "n": 28.48,
+    "pct": 57.04,
+    "nn": 2.0028,
+    "color": "#5F965F",
+    "id": "United States (US)",
+    "value": 81
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

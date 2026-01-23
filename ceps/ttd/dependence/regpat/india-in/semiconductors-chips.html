@@ -1,0 +1,343 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "China (CN)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 51,
+    "binary": 4,
+    "expected": 63.6,
+    "untapped": 47.6,
+    "links.rca": 0.25,
+    "sum_from": 118.5,
+    "sum_to": 205.5,
+    "binary.pc": 0.1273,
+    "th.max": 32957.5,
+    "th.max.pc": 0.506,
+    "RD": 13.42,
+    "RD.added": 43.01,
+    "pct_from": 2.1229,
+    "pct_to": 3.6815,
+    "pct_binary_from": 1.0865,
+    "parent": "Asia",
+    "n": 24.31,
+    "pct": 1.72,
+    "nn": 0.0708,
+    "color": "#9E3838",
+    "id": "China (CN)",
+    "value": 4
+  },
+  {
+    "to": "European Union (EU)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 87,
+    "binary": 17,
+    "expected": 33.99,
+    "untapped": -34.01,
+    "links.rca": 2,
+    "sum_from": 118.5,
+    "sum_to": 582.5,
+    "binary.pc": 0.541,
+    "th.max": 17612,
+    "th.max.pc": 0.2704,
+    "RD": 13.42,
+    "RD.added": 34.04,
+    "pct_from": 2.1229,
+    "pct_to": 10.4353,
+    "pct_binary_from": 1.6291,
+    "parent": "Europe",
+    "n": 10.81,
+    "pct": 7.3,
+    "nn": 0.6753,
+    "color": "#C6ADAD",
+    "id": "European Union (EU)",
+    "value": 17
+  },
+  {
+    "to": "Israel (IL)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 2,
+    "binary": 1,
+    "expected": 3.75,
+    "untapped": 2.75,
+    "links.rca": 0.27,
+    "sum_from": 118.5,
+    "sum_to": 58,
+    "binary.pc": 0.008,
+    "th.max": 1942,
+    "th.max.pc": 0.0298,
+    "RD": 13.42,
+    "RD.added": 15.89,
+    "pct_from": 2.1229,
+    "pct_to": 1.0391,
+    "pct_binary_from": 0.9624,
+    "parent": "Asia",
+    "n": 0.62,
+    "pct": 0.43,
+    "nn": 0.6935,
+    "color": "#C7B0B0",
+    "id": "Israel (IL)",
+    "value": 1
+  },
+  {
+    "to": "Japan (JP)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 4,
+    "binary": 3,
+    "expected": 78.06,
+    "untapped": 72.06,
+    "links.rca": 0.08,
+    "sum_from": 118.5,
+    "sum_to": 228.5,
+    "binary.pc": 0.0477,
+    "th.max": 40449,
+    "th.max.pc": 0.621,
+    "RD": 13.42,
+    "RD.added": 67.93,
+    "pct_from": 2.1229,
+    "pct_to": 4.0935,
+    "pct_binary_from": 0.7329,
+    "parent": "Asia",
+    "n": 31.66,
+    "pct": 1.29,
+    "nn": 0.0407,
+    "color": "#9A2B2B",
+    "id": "Japan (JP)",
+    "value": 3
+  },
+  {
+    "to": "Malaysia (MY)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 56,
+    "binary": 3,
+    "expected": 2.31,
+    "untapped": -6.69,
+    "links.rca": 3.9,
+    "sum_from": 118.5,
+    "sum_to": 23,
+    "binary.pc": 0.0716,
+    "th.max": 1199,
+    "th.max.pc": 0.0184,
+    "RD": 13.42,
+    "RD.added": 36.54,
+    "pct_from": 2.1229,
+    "pct_to": 0.412,
+    "pct_binary_from": 7.2809,
+    "parent": "Asia",
+    "n": 0.12,
+    "pct": 1.29,
+    "nn": 10.75,
+    "color": "#006400",
+    "id": "Malaysia (MY)",
+    "value": 3
+  },
+  {
+    "to": "Singapore (SG)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 77,
+    "binary": 14,
+    "expected": 4.03,
+    "untapped": -51.97,
+    "links.rca": 13.9,
+    "sum_from": 118.5,
+    "sum_to": 96,
+    "binary.pc": 0.4455,
+    "th.max": 2086.5,
+    "th.max.pc": 0.032,
+    "RD": 13.42,
+    "RD.added": 35.66,
+    "pct_from": 2.1229,
+    "pct_to": 1.7198,
+    "pct_binary_from": 8.1404,
+    "parent": "Asia",
+    "n": 0.61,
+    "pct": 6.01,
+    "nn": 9.8525,
+    "color": "#016401",
+    "id": "Singapore (SG)",
+    "value": 14
+  },
+  {
+    "to": "South Korea (KR)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 34,
+    "binary": 2,
+    "expected": 26.32,
+    "untapped": 22.32,
+    "links.rca": 0.15,
+    "sum_from": 118.5,
+    "sum_to": 116,
+    "binary.pc": 0.0318,
+    "th.max": 13640.5,
+    "th.max.pc": 0.2094,
+    "RD": 13.42,
+    "RD.added": 30.18,
+    "pct_from": 2.1229,
+    "pct_to": 2.0781,
+    "pct_binary_from": 0.9624,
+    "parent": "Asia",
+    "n": 8.88,
+    "pct": 0.86,
+    "nn": 0.0968,
+    "color": "#A14242",
+    "id": "South Korea (KR)",
+    "value": 2
+  },
+  {
+    "to": "Sri Lanka (LK)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 2,
+    "binary": 1,
+    "expected": 1.97,
+    "untapped": 0.97,
+    "links.rca": 0.51,
+    "sum_from": 118.5,
+    "sum_to": 2,
+    "binary.pc": 0.008,
+    "th.max": 1023,
+    "th.max.pc": 0.0157,
+    "RD": 13.42,
+    "RD.added": 17.5,
+    "pct_from": 2.1229,
+    "pct_to": 0.0358,
+    "pct_binary_from": 27.91,
+    "parent": "Asia",
+    "n": 0.01,
+    "pct": 0.43,
+    "nn": 43,
+    "color": "#006400",
+    "id": "Sri Lanka (LK)",
+    "value": 1
+  },
+  {
+    "to": "Switzerland (CH)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 1,
+    "binary": 1,
+    "expected": 3.85,
+    "untapped": 2.85,
+    "links.rca": 0.26,
+    "sum_from": 118.5,
+    "sum_to": 95.5,
+    "binary.pc": 0.008,
+    "th.max": 1994,
+    "th.max.pc": 0.0306,
+    "RD": 13.42,
+    "RD.added": 18.45,
+    "pct_from": 2.1229,
+    "pct_to": 1.7109,
+    "pct_binary_from": 0.5845,
+    "parent": "Europe",
+    "n": 0.71,
+    "pct": 0.43,
+    "nn": 0.6056,
+    "color": "#C3A4A4",
+    "id": "Switzerland (CH)",
+    "value": 1
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 10,
+    "binary": 3,
+    "expected": 5.04,
+    "untapped": -0.96,
+    "links.rca": 1.19,
+    "sum_from": 118.5,
+    "sum_to": 99.5,
+    "binary.pc": 0.0477,
+    "th.max": 2610,
+    "th.max.pc": 0.0401,
+    "RD": 13.42,
+    "RD.added": 19.05,
+    "pct_from": 2.1229,
+    "pct_to": 1.7825,
+    "pct_binary_from": 1.683,
+    "parent": "Europe",
+    "n": 1.18,
+    "pct": 1.29,
+    "nn": 1.0932,
+    "color": "#A9BDA9",
+    "id": "United Kingdom (GB)",
+    "value": 3
+  },
+  {
+    "to": "United States (US)",
+    "from": "India (IN)",
+    "domain": "Semiconductors/Chips",
+    "full": 2776,
+    "binary": 184,
+    "expected": 50.82,
+    "untapped": -869.18,
+    "links.rca": 18.1,
+    "sum_from": 118.5,
+    "sum_to": 889,
+    "binary.pc": 7.319,
+    "th.max": 26332.5,
+    "th.max.pc": 0.4043,
+    "RD": 13.42,
+    "RD.added": 17.07,
+    "pct_from": 2.1229,
+    "pct_to": 15.9262,
+    "pct_binary_from": 11.5533,
+    "parent": "North America",
+    "n": 18.26,
+    "pct": 78.97,
+    "nn": 4.3248,
+    "color": "#2B7A2B",
+    "id": "United States (US)",
+    "value": 184
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

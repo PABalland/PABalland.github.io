@@ -1,0 +1,316 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Canada (CA)",
+    "from": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 1,
+    "binary": 1,
+    "expected": 13.14,
+    "untapped": 12.14,
+    "links.rca": 0.08,
+    "sum_from": 36,
+    "sum_to": 60.5,
+    "binary.pc": 0.0224,
+    "th.max": 5280.5,
+    "th.max.pc": 0.2936,
+    "RD": 40.38,
+    "RD.added": 41.54,
+    "pct_from": 1.5584,
+    "pct_to": 2.619,
+    "pct_binary_from": 0.3818,
+    "parent": "North America",
+    "n": 1.61,
+    "pct": 1.39,
+    "nn": 0.8634,
+    "color": "#CEC4C4",
+    "id": "Canada (CA)",
+    "value": 1
+  },
+  {
+    "to": "China (CN)",
+    "from": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 100,
+    "binary": 15,
+    "expected": 38.54,
+    "untapped": -21.46,
+    "links.rca": 1.56,
+    "sum_from": 36,
+    "sum_to": 119,
+    "binary.pc": 1.3411,
+    "th.max": 15494.5,
+    "th.max.pc": 0.8615,
+    "RD": 40.38,
+    "RD.added": 43.28,
+    "pct_from": 1.5584,
+    "pct_to": 5.1515,
+    "pct_binary_from": 2.9118,
+    "parent": "Asia",
+    "n": 27.42,
+    "pct": 20.83,
+    "nn": 0.7597,
+    "color": "#CAB8B8",
+    "id": "China (CN)",
+    "value": 15
+  },
+  {
+    "to": "European Union (EU)",
+    "from": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 68,
+    "binary": 20,
+    "expected": 26.17,
+    "untapped": -53.83,
+    "links.rca": 3.06,
+    "sum_from": 36,
+    "sum_to": 265,
+    "binary.pc": 1.7881,
+    "th.max": 10520.5,
+    "th.max.pc": 0.5849,
+    "RD": 40.38,
+    "RD.added": 14.4,
+    "pct_from": 1.5584,
+    "pct_to": 11.4719,
+    "pct_binary_from": 1.7434,
+    "parent": "Europe",
+    "n": 14.16,
+    "pct": 27.78,
+    "nn": 1.9619,
+    "color": "#619761",
+    "id": "European Union (EU)",
+    "value": 20
+  },
+  {
+    "to": "Hong Kong (HK)",
+    "from": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 1,
+    "binary": 1,
+    "expected": 11.42,
+    "untapped": 10.42,
+    "links.rca": 0.09,
+    "sum_from": 36,
+    "sum_to": 8.5,
+    "binary.pc": 0.0224,
+    "th.max": 4589.5,
+    "th.max.pc": 0.2552,
+    "RD": 40.38,
+    "RD.added": 18.42,
+    "pct_from": 1.5584,
+    "pct_to": 0.368,
+    "pct_binary_from": 2.7176,
+    "parent": "Asia",
+    "n": 0.21,
+    "pct": 1.39,
+    "nn": 6.619,
+    "color": "#146E14",
+    "id": "Hong Kong (HK)",
+    "value": 1
+  },
+  {
+    "to": "India (IN)",
+    "from": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 2,
+    "binary": 2,
+    "expected": 13.78,
+    "untapped": 11.78,
+    "links.rca": 0.15,
+    "sum_from": 36,
+    "sum_to": 79.5,
+    "binary.pc": 0.0447,
+    "th.max": 5538,
+    "th.max.pc": 0.3079,
+    "RD": 40.38,
+    "RD.added": 37.7,
+    "pct_from": 1.5584,
+    "pct_to": 3.4416,
+    "pct_binary_from": 0.5811,
+    "parent": "Asia",
+    "n": 2.37,
+    "pct": 2.78,
+    "nn": 1.173,
+    "color": "#9BB69B",
+    "id": "India (IN)",
+    "value": 2
+  },
+  {
+    "to": "Mauritius (MU)",
+    "from": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 2,
+    "binary": 1,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 36,
+    "sum_to": 0.5,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 40.38,
+    "RD.added": 13.96,
+    "pct_from": 1.5584,
+    "pct_to": 0.0216,
+    "pct_binary_from": 46.2,
+    "parent": "Africa",
+    "n": 0.01,
+    "pct": 1.39,
+    "nn": 139,
+    "color": "darkgreen",
+    "id": "Mauritius (MU)",
+    "value": 1
+  },
+  {
+    "to": "Singapore (SG)",
+    "from": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 25,
+    "binary": 3,
+    "expected": 11.64,
+    "untapped": 2.64,
+    "links.rca": 0.77,
+    "sum_from": 36,
+    "sum_to": 21.5,
+    "binary.pc": 0.2012,
+    "th.max": 4679,
+    "th.max.pc": 0.2601,
+    "RD": 40.38,
+    "RD.added": 20.05,
+    "pct_from": 1.5584,
+    "pct_to": 0.9307,
+    "pct_binary_from": 3.2233,
+    "parent": "Asia",
+    "n": 0.45,
+    "pct": 4.17,
+    "nn": 9.2667,
+    "color": "#046604",
+    "id": "Singapore (SG)",
+    "value": 3
+  },
+  {
+    "to": "South Korea (KR)",
+    "from": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 2,
+    "binary": 2,
+    "expected": 20.17,
+    "untapped": 18.17,
+    "links.rca": 0.1,
+    "sum_from": 36,
+    "sum_to": 16.5,
+    "binary.pc": 0.0447,
+    "th.max": 8107.5,
+    "th.max.pc": 0.4508,
+    "RD": 40.38,
+    "RD.added": 34.37,
+    "pct_from": 1.5584,
+    "pct_to": 0.7143,
+    "pct_binary_from": 2.8,
+    "parent": "Asia",
+    "n": 9.15,
+    "pct": 2.78,
+    "nn": 0.3038,
+    "color": "#B37474",
+    "id": "South Korea (KR)",
+    "value": 2
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 15,
+    "binary": 3,
+    "expected": 12.95,
+    "untapped": 3.95,
+    "links.rca": 0.69,
+    "sum_from": 36,
+    "sum_to": 82,
+    "binary.pc": 0.2012,
+    "th.max": 5205.5,
+    "th.max.pc": 0.2894,
+    "RD": 40.38,
+    "RD.added": 24.77,
+    "pct_from": 1.5584,
+    "pct_to": 3.5498,
+    "pct_binary_from": 0.8451,
+    "parent": "Europe",
+    "n": 1.99,
+    "pct": 4.17,
+    "nn": 2.0955,
+    "color": "#5B945B",
+    "id": "United Kingdom (GB)",
+    "value": 3
+  },
+  {
+    "to": "United States (US)",
+    "from": "Japan (JP)",
+    "domain": "Internet of Things (IoT)",
+    "full": 194,
+    "binary": 24,
+    "expected": 33.37,
+    "untapped": -86.63,
+    "links.rca": 3.6,
+    "sum_from": 36,
+    "sum_to": 316,
+    "binary.pc": 2.6822,
+    "th.max": 13415.5,
+    "th.max.pc": 0.7459,
+    "RD": 40.38,
+    "RD.added": 37.67,
+    "pct_from": 1.5584,
+    "pct_to": 13.6797,
+    "pct_binary_from": 1.7544,
+    "parent": "North America",
+    "n": 23.49,
+    "pct": 33.33,
+    "nn": 1.4189,
+    "color": "#81A881",
+    "id": "United States (US)",
+    "value": 24
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

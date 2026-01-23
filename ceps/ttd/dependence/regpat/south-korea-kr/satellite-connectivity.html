@@ -1,0 +1,289 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Australia (AU)",
+    "from": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 1,
+    "binary": 1,
+    "expected": 96.44,
+    "untapped": 95.44,
+    "links.rca": 0.01,
+    "sum_from": 45,
+    "sum_to": 18.5,
+    "binary.pc": 0.0023,
+    "th.max": 4309,
+    "th.max.pc": 0.2224,
+    "RD": 57.02,
+    "RD.added": 22.76,
+    "pct_from": 0.89,
+    "pct_to": 0.3659,
+    "pct_binary_from": 2.733,
+    "parent": "Oceania",
+    "n": 0.62,
+    "pct": 1.11,
+    "nn": 1.7903,
+    "color": "#699B69",
+    "id": "Australia (AU)",
+    "value": 1
+  },
+  {
+    "to": "Canada (CA)",
+    "from": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 2,
+    "binary": 1,
+    "expected": 118.93,
+    "untapped": 117.93,
+    "links.rca": 0.01,
+    "sum_from": 45,
+    "sum_to": 128,
+    "binary.pc": 0.0023,
+    "th.max": 5314,
+    "th.max.pc": 0.2743,
+    "RD": 57.02,
+    "RD.added": 24.38,
+    "pct_from": 0.89,
+    "pct_to": 2.5316,
+    "pct_binary_from": 0.395,
+    "parent": "North America",
+    "n": 1.75,
+    "pct": 1.11,
+    "nn": 0.6343,
+    "color": "#C4A8A8",
+    "id": "Canada (CA)",
+    "value": 1
+  },
+  {
+    "to": "China (CN)",
+    "from": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 46,
+    "binary": 11,
+    "expected": 470.38,
+    "untapped": 415.38,
+    "links.rca": 0.12,
+    "sum_from": 45,
+    "sum_to": 553,
+    "binary.pc": 0.1268,
+    "th.max": 21017,
+    "th.max.pc": 1.0849,
+    "RD": 57.02,
+    "RD.added": 19.07,
+    "pct_from": 0.89,
+    "pct_to": 10.9375,
+    "pct_binary_from": 1.0057,
+    "parent": "Asia",
+    "n": 32.7,
+    "pct": 12.22,
+    "nn": 0.3737,
+    "color": "#B78181",
+    "id": "China (CN)",
+    "value": 11
+  },
+  {
+    "to": "European Union (EU)",
+    "from": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 20,
+    "binary": 10,
+    "expected": 269.69,
+    "untapped": 229.69,
+    "links.rca": 0.15,
+    "sum_from": 45,
+    "sum_to": 603,
+    "binary.pc": 0.0923,
+    "th.max": 12050,
+    "th.max.pc": 0.622,
+    "RD": 57.02,
+    "RD.added": 21.45,
+    "pct_from": 0.89,
+    "pct_to": 11.9264,
+    "pct_binary_from": 0.8385,
+    "parent": "Europe",
+    "n": 14.97,
+    "pct": 11.11,
+    "nn": 0.7422,
+    "color": "#C9B6B6",
+    "id": "European Union (EU)",
+    "value": 10
+  },
+  {
+    "to": "India (IN)",
+    "from": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 166,
+    "binary": 11,
+    "expected": 108.39,
+    "untapped": 53.39,
+    "links.rca": 0.51,
+    "sum_from": 45,
+    "sum_to": 97.5,
+    "binary.pc": 0.1268,
+    "th.max": 4843,
+    "th.max.pc": 0.25,
+    "RD": 57.02,
+    "RD.added": 12.21,
+    "pct_from": 0.89,
+    "pct_to": 1.9284,
+    "pct_binary_from": 5.7042,
+    "parent": "Asia",
+    "n": 1.64,
+    "pct": 12.22,
+    "nn": 7.4512,
+    "color": "#0E6B0E",
+    "id": "India (IN)",
+    "value": 11
+  },
+  {
+    "to": "Israel (IL)",
+    "from": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 1,
+    "binary": 1,
+    "expected": 97.82,
+    "untapped": 96.82,
+    "links.rca": 0.01,
+    "sum_from": 45,
+    "sum_to": 44.5,
+    "binary.pc": 0.0023,
+    "th.max": 4370.5,
+    "th.max.pc": 0.2256,
+    "RD": 57.02,
+    "RD.added": 23.15,
+    "pct_from": 0.89,
+    "pct_to": 0.8801,
+    "pct_binary_from": 1.1362,
+    "parent": "Asia",
+    "n": 0.53,
+    "pct": 1.11,
+    "nn": 2.0943,
+    "color": "#5B945B",
+    "id": "Israel (IL)",
+    "value": 1
+  },
+  {
+    "to": "Russia (RU)",
+    "from": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 11,
+    "binary": 2,
+    "expected": 95.84,
+    "untapped": 91.84,
+    "links.rca": 0.04,
+    "sum_from": 45,
+    "sum_to": 22,
+    "binary.pc": 0.0092,
+    "th.max": 4282,
+    "th.max.pc": 0.221,
+    "RD": 57.02,
+    "RD.added": 23.55,
+    "pct_from": 0.89,
+    "pct_to": 0.4351,
+    "pct_binary_from": 4.5964,
+    "parent": "Europe",
+    "n": 0.35,
+    "pct": 2.22,
+    "nn": 6.3429,
+    "color": "#167016",
+    "id": "Russia (RU)",
+    "value": 2
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 56,
+    "binary": 24,
+    "expected": 109.45,
+    "untapped": 13.45,
+    "links.rca": 0.88,
+    "sum_from": 45,
+    "sum_to": 152,
+    "binary.pc": 0.2214,
+    "th.max": 4890.5,
+    "th.max.pc": 0.2524,
+    "RD": 57.02,
+    "RD.added": 11.7,
+    "pct_from": 0.89,
+    "pct_to": 3.0063,
+    "pct_binary_from": 7.9832,
+    "parent": "Europe",
+    "n": 2.21,
+    "pct": 26.67,
+    "nn": 12.0679,
+    "color": "#006400",
+    "id": "United Kingdom (GB)",
+    "value": 24
+  },
+  {
+    "to": "United States (US)",
+    "from": "South Korea (KR)",
+    "domain": "Satellite Connectivity",
+    "full": 215,
+    "binary": 29,
+    "expected": 329.18,
+    "untapped": 184.18,
+    "links.rca": 0.44,
+    "sum_from": 45,
+    "sum_to": 632.5,
+    "binary.pc": 0.3344,
+    "th.max": 14708,
+    "th.max.pc": 0.7592,
+    "RD": 57.02,
+    "RD.added": 21.74,
+    "pct_from": 0.89,
+    "pct_to": 12.5099,
+    "pct_binary_from": 2.3182,
+    "parent": "North America",
+    "n": 24.81,
+    "pct": 32.22,
+    "nn": 1.2987,
+    "color": "#8CAE8C",
+    "id": "United States (US)",
+    "value": 29
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

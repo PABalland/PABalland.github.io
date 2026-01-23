@@ -1,0 +1,316 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Australia (AU)",
+    "from": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 2,
+    "binary": 1,
+    "expected": 101.22,
+    "untapped": 100.22,
+    "links.rca": 0.01,
+    "sum_from": 29.5,
+    "sum_to": 22,
+    "binary.pc": 0.0039,
+    "th.max": 5994,
+    "th.max.pc": 0.3989,
+    "RD": 45.5,
+    "RD.added": 12.33,
+    "pct_from": 1.6819,
+    "pct_to": 1.2543,
+    "pct_binary_from": 0.7973,
+    "parent": "Oceania",
+    "n": 0.99,
+    "pct": 1.69,
+    "nn": 1.7071,
+    "color": "#6D9E6D",
+    "id": "Australia (AU)",
+    "value": 1
+  },
+  {
+    "to": "Canada (CA)",
+    "from": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 6,
+    "binary": 1,
+    "expected": 112.4,
+    "untapped": 111.4,
+    "links.rca": 0.01,
+    "sum_from": 29.5,
+    "sum_to": 65,
+    "binary.pc": 0.0039,
+    "th.max": 6656,
+    "th.max.pc": 0.4429,
+    "RD": 45.5,
+    "RD.added": 38.06,
+    "pct_from": 1.6819,
+    "pct_to": 3.7058,
+    "pct_binary_from": 0.2698,
+    "parent": "North America",
+    "n": 2.42,
+    "pct": 1.69,
+    "nn": 0.6983,
+    "color": "#C7B0B0",
+    "id": "Canada (CA)",
+    "value": 1
+  },
+  {
+    "to": "European Union (EU)",
+    "from": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 13,
+    "binary": 4,
+    "expected": 169.22,
+    "untapped": 161.22,
+    "links.rca": 0.05,
+    "sum_from": 29.5,
+    "sum_to": 157,
+    "binary.pc": 0.0315,
+    "th.max": 10020.5,
+    "th.max.pc": 0.6668,
+    "RD": 45.5,
+    "RD.added": 7.95,
+    "pct_from": 1.6819,
+    "pct_to": 8.951,
+    "pct_binary_from": 0.4469,
+    "parent": "Europe",
+    "n": 11.19,
+    "pct": 6.78,
+    "nn": 0.6059,
+    "color": "#C3A4A4",
+    "id": "European Union (EU)",
+    "value": 4
+  },
+  {
+    "to": "India (IN)",
+    "from": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 10,
+    "binary": 4,
+    "expected": 102.27,
+    "untapped": 94.27,
+    "links.rca": 0.08,
+    "sum_from": 29.5,
+    "sum_to": 47,
+    "binary.pc": 0.0315,
+    "th.max": 6056,
+    "th.max.pc": 0.403,
+    "RD": 45.5,
+    "RD.added": 23.12,
+    "pct_from": 1.6819,
+    "pct_to": 2.6796,
+    "pct_binary_from": 1.4928,
+    "parent": "Asia",
+    "n": 0.96,
+    "pct": 6.78,
+    "nn": 7.0625,
+    "color": "#116D11",
+    "id": "India (IN)",
+    "value": 4
+  },
+  {
+    "to": "Israel (IL)",
+    "from": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 2,
+    "binary": 2,
+    "expected": 102.19,
+    "untapped": 100.19,
+    "links.rca": 0.02,
+    "sum_from": 29.5,
+    "sum_to": 24,
+    "binary.pc": 0.0079,
+    "th.max": 6051.5,
+    "th.max.pc": 0.4027,
+    "RD": 45.5,
+    "RD.added": 27.44,
+    "pct_from": 1.6819,
+    "pct_to": 1.3683,
+    "pct_binary_from": 1.4617,
+    "parent": "Asia",
+    "n": 0.99,
+    "pct": 3.39,
+    "nn": 3.4242,
+    "color": "#398239",
+    "id": "Israel (IL)",
+    "value": 2
+  },
+  {
+    "to": "Singapore (SG)",
+    "from": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 10,
+    "binary": 5,
+    "expected": 98.12,
+    "untapped": 83.12,
+    "links.rca": 0.15,
+    "sum_from": 29.5,
+    "sum_to": 10.5,
+    "binary.pc": 0.0591,
+    "th.max": 5810,
+    "th.max.pc": 0.3866,
+    "RD": 45.5,
+    "RD.added": 19.5,
+    "pct_from": 1.6819,
+    "pct_to": 0.5986,
+    "pct_binary_from": 8.3524,
+    "parent": "Asia",
+    "n": 0.43,
+    "pct": 8.47,
+    "nn": 19.6977,
+    "color": "#006400",
+    "id": "Singapore (SG)",
+    "value": 5
+  },
+  {
+    "to": "South Korea (KR)",
+    "from": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 40,
+    "binary": 2,
+    "expected": 123.45,
+    "untapped": 121.45,
+    "links.rca": 0.02,
+    "sum_from": 29.5,
+    "sum_to": 8.5,
+    "binary.pc": 0.0079,
+    "th.max": 7310,
+    "th.max.pc": 0.4864,
+    "RD": 45.5,
+    "RD.added": 23.09,
+    "pct_from": 1.6819,
+    "pct_to": 0.4846,
+    "pct_binary_from": 4.1271,
+    "parent": "Asia",
+    "n": 4.62,
+    "pct": 3.39,
+    "nn": 0.7338,
+    "color": "#C9B5B5",
+    "id": "South Korea (KR)",
+    "value": 2
+  },
+  {
+    "to": "Thailand (TH)",
+    "from": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 18,
+    "binary": 1,
+    "expected": 95.47,
+    "untapped": 94.47,
+    "links.rca": 0.01,
+    "sum_from": 29.5,
+    "sum_to": 1,
+    "binary.pc": 0.0039,
+    "th.max": 5653,
+    "th.max.pc": 0.3762,
+    "RD": 45.5,
+    "RD.added": 2.59,
+    "pct_from": 1.6819,
+    "pct_to": 0.057,
+    "pct_binary_from": 17.54,
+    "parent": "Asia",
+    "n": 0.01,
+    "pct": 1.69,
+    "nn": 169,
+    "color": "darkgreen",
+    "id": "Thailand (TH)",
+    "value": 1
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 8,
+    "binary": 1,
+    "expected": 111.11,
+    "untapped": 110.11,
+    "links.rca": 0.01,
+    "sum_from": 29.5,
+    "sum_to": 52,
+    "binary.pc": 0.0039,
+    "th.max": 6579.5,
+    "th.max.pc": 0.4378,
+    "RD": 45.5,
+    "RD.added": 21.2,
+    "pct_from": 1.6819,
+    "pct_to": 2.9647,
+    "pct_binary_from": 0.3373,
+    "parent": "Europe",
+    "n": 2.85,
+    "pct": 1.69,
+    "nn": 0.593,
+    "color": "#C2A2A2",
+    "id": "United Kingdom (GB)",
+    "value": 1
+  },
+  {
+    "to": "United States (US)",
+    "from": "Japan (JP)",
+    "domain": "Quantum Technologies",
+    "full": 238,
+    "binary": 38,
+    "expected": 268.36,
+    "untapped": 78.36,
+    "links.rca": 0.71,
+    "sum_from": 29.5,
+    "sum_to": 287.5,
+    "binary.pc": 0.7487,
+    "th.max": 15891,
+    "th.max.pc": 1.0574,
+    "RD": 45.5,
+    "RD.added": 41.81,
+    "pct_from": 1.6819,
+    "pct_to": 16.3911,
+    "pct_binary_from": 2.3183,
+    "parent": "North America",
+    "n": 29.15,
+    "pct": 64.41,
+    "nn": 2.2096,
+    "color": "#579257",
+    "id": "United States (US)",
+    "value": 38
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>
