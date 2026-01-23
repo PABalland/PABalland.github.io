@@ -1,0 +1,258 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <!-- <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3plus@2"></script>
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+
+  var data =  [
+  {
+    "prio": "Japan (JP)",
+    "n": 0.01,
+    "parent": "Test",
+    "color": "#921515",
+    "rca": 0.01
+  },
+  {
+    "prio": "India (IN)",
+    "n": 0.07,
+    "parent": "Test",
+    "color": "#972525",
+    "rca": 0.03
+  },
+  {
+    "prio": "China (CN)",
+    "n": 0.44,
+    "parent": "Test",
+    "color": "#9D3434",
+    "rca": 0.06
+  },
+  {
+    "prio": "Mauritius (MU)",
+    "n": 0.59,
+    "parent": "Test",
+    "color": "#6F9E6F",
+    "rca": 1.68
+  },
+  {
+    "prio": "Israel (IL)",
+    "n": 0.67,
+    "parent": "Test",
+    "color": "#AE6767",
+    "rca": 0.24
+  },
+  {
+    "prio": "South Korea (KR)",
+    "n": 0.96,
+    "parent": "Test",
+    "color": "#BD9494",
+    "rca": 0.49
+  },
+  {
+    "prio": "Brazil (BR)",
+    "n": 0.99,
+    "parent": "Test",
+    "color": "#CAB9B9",
+    "rca": 0.77
+  },
+  {
+    "prio": "Canada (CA)",
+    "n": 1.02,
+    "parent": "Test",
+    "color": "#B27272",
+    "rca": 0.29
+  },
+  {
+    "prio": "Rest of the World",
+    "n": 1.16,
+    "parent": "Test",
+    "color": "lightgrey",
+    "rca": 1
+  },
+  {
+    "prio": "European Union (EU)",
+    "n": 2.48,
+    "parent": "Test",
+    "color": "#B57B7B",
+    "rca": 0.34
+  },
+  {
+    "prio": "United Kingdom (GB)",
+    "n": 3.73,
+    "parent": "Test",
+    "color": "#C9B7B7",
+    "rca": 0.75
+  },
+  {
+    "prio": "Singapore (SG)",
+    "n": 8.18,
+    "parent": "Test",
+    "color": "#4C8C4C",
+    "rca": 2.58
+  },
+  {
+    "prio": "United States (US)",
+    "n": 79.7,
+    "parent": "Test",
+    "color": "#629862",
+    "rca": 1.93
+  }
+] 
+  
+  ;
+  
+    // Calculate the maximum 'n' value dynamically
+  const maxN = Math.max(...data.map(d => d.n));
+  // Add a little padding (10%) to the max value for better visualization
+  const xAxisMax = Math.ceil(maxN * 1.1);
+
+  new d3plus.BarChart()
+    .data(data, function(d) {
+      const item = d;
+      item.sort((a, b) => (a.n - b.n));
+      return item;
+    })
+    .groupBy(["parent"])
+    .discrete("y")
+    .color(function(d) {return d.color})
+    .lineLabels(true)
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>Share:</td><td class='data'>" + d.n + "</td></tr>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.rca + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt;
+        // return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .y("prio")
+    .x("n")
+    .stacked(true)
+    .label(function(d){ 
+      return d.parent instanceof Array ? d.parent : `${d.n}`
+    })
+    .shapeConfig({
+      // label(d){
+      //   return d.id
+      // }, 
+      Bar: {
+        labelConfig: {
+          fontColor(d) {
+            return  d.parent === "ai" ? "#FFF" : "#000"
+          },
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds(d, i, s) {
+          const padding = 1;
+          console.log(s)
+          const width = this._discrete === "y" ? "width" : "height";
+          const height = this._discrete === "y" ? "height" : "width";
+
+          const other = this._discrete.charAt(0) === "x" ? "y" : "x";
+          const invert = other === "y";
+          const nonDiscrete = this._discrete.replace(this._discrete.charAt(0), other);
+          const range = this[`_${nonDiscrete}Axis`]._d3Scale.range();
+          const space = Math.abs(range[1] - range[0]);
+          const negative = this[`_${nonDiscrete}`](d, i) < 0;
+          // return {
+          //   [width]: s[width],
+          //   [height]: s[height],
+          //   x: invert ? -s.width / 2 : negative ? this._stacked ? padding - s.width : padding - s.width : -padding,
+          //   y: invert ? negative ? this._stacked ? padding : padding : -s.height + padding : -s.height / 2 + padding
+          // };
+          return {width: 100, height: s[height], x: s.width, y: -s.height / 2}
+        }
+      },
+    })
+    .xDomain([0, xAxisMax])
+    .yConfig({
+      title: "",
+      titleConfig: {
+        fontSize: function(d){ return 20}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16},
+          fontColor: "#000",
+          
+        }
+      }
+    })
+    .legend(false)
+    .xConfig({
+      title: "% of start-ups investment (Crunchbase)",
+      titleConfig: {
+        fontSize: function(d){ return 20}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16},
+          fontColor: "#000",
+        }
+      }
+    })
+    .legendConfig({
+      label(d) {
+        return d.parent
+      },
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>

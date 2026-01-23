@@ -1,0 +1,244 @@
+
+<!doctype html>
+<html>
+
+<head>
+
+  <meta charset="utf-8">
+  <!-- <script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/d3plus@2"></script>
+
+
+  <style>
+
+ 
+
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    .tooltip-table {
+      width: 100%;
+    }
+    
+    .tooltip-table .data {
+      text-align: right;
+    }
+    
+    .tooltip-footer {
+      opacity: 0.5;
+    }
+
+     tspan {
+    font-family: "Helvetica", "Arial", sans-serif;
+    font-size: 100px;
+    font-style: oblique;
+  }
+  </style>
+
+
+</head>
+
+<body></body>
+
+<script>
+
+  var data =  [
+  {
+    "prio": "Australia (AU)",
+    "n": 1.65,
+    "parent": "Test",
+    "color": "#CAB9B9",
+    "rca": 0.77
+  },
+  {
+    "prio": "South Korea (KR)",
+    "n": 2.79,
+    "parent": "Test",
+    "color": "#78A378",
+    "rca": 1.53
+  },
+  {
+    "prio": "Russia (RU)",
+    "n": 2.8,
+    "parent": "Test",
+    "color": "#9AB59A",
+    "rca": 1.18
+  },
+  {
+    "prio": "Japan (JP)",
+    "n": 2.88,
+    "parent": "Test",
+    "color": "#AFC0AF",
+    "rca": 1.07
+  },
+  {
+    "prio": "Canada (CA)",
+    "n": 3.31,
+    "parent": "Test",
+    "color": "#8AAC8A",
+    "rca": 1.32
+  },
+  {
+    "prio": "India (IN)",
+    "n": 4.48,
+    "parent": "Test",
+    "color": "#CDC3C3",
+    "rca": 0.85
+  },
+  {
+    "prio": "United Kingdom (GB)",
+    "n": 4.95,
+    "parent": "Test",
+    "color": "#AFC0AF",
+    "rca": 1.07
+  },
+  {
+    "prio": "United States (US)",
+    "n": 14.29,
+    "parent": "Test",
+    "color": "#CFC7C7",
+    "rca": 0.89
+  },
+  {
+    "prio": "Rest of the World",
+    "n": 16.15,
+    "parent": "Test",
+    "color": "lightgrey",
+    "rca": 1
+  },
+  {
+    "prio": "European Union (EU)",
+    "n": 17.74,
+    "parent": "Test",
+    "color": "#D3D2D2",
+    "rca": 0.99
+  },
+  {
+    "prio": "China (CN)",
+    "n": 28.96,
+    "parent": "Test",
+    "color": "#679A67",
+    "rca": 1.82
+  }
+] 
+  
+  ;
+  
+    // Calculate the maximum 'n' value dynamically
+  const maxN = Math.max(...data.map(d => d.n));
+  // Add a little padding (10%) to the max value for better visualization
+  const xAxisMax = Math.ceil(maxN * 1.1);
+
+  new d3plus.BarChart()
+    .data(data, function(d) {
+      const item = d;
+      item.sort((a, b) => (a.n - b.n));
+      return item;
+    })
+    .groupBy(["parent"])
+    .discrete("y")
+    .color(function(d) {return d.color})
+    .lineLabels(true)
+    .tooltipConfig({
+      body: function(d) {
+        var table = "<table class='tooltip-table'>";
+        table += "<tr><td class='title'>Share:</td><td class='data'>" + d.n + "</td></tr>";
+        table += "<tr><td class='title'>RCA:</td><td class='data'>" + d.rca + "</td></tr>";
+        table += "</table>";
+        return table;
+      },
+      title: function(d) {
+        var txt = d.id;
+        return txt;
+        // return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();;
+      }
+    })
+    .y("prio")
+    .x("n")
+    .stacked(true)
+    .label(function(d){ 
+      return d.parent instanceof Array ? d.parent : `${d.n}`
+    })
+    .shapeConfig({
+      // label(d){
+      //   return d.id
+      // }, 
+      Bar: {
+        labelConfig: {
+          fontColor(d) {
+            return  d.parent === "ai" ? "#FFF" : "#000"
+          },
+          fontSize: 15,
+          textAnchor: "start",
+          verticalAlign: "middle"
+        },
+        labelBounds(d, i, s) {
+          const padding = 1;
+          console.log(s)
+          const width = this._discrete === "y" ? "width" : "height";
+          const height = this._discrete === "y" ? "height" : "width";
+
+          const other = this._discrete.charAt(0) === "x" ? "y" : "x";
+          const invert = other === "y";
+          const nonDiscrete = this._discrete.replace(this._discrete.charAt(0), other);
+          const range = this[`_${nonDiscrete}Axis`]._d3Scale.range();
+          const space = Math.abs(range[1] - range[0]);
+          const negative = this[`_${nonDiscrete}`](d, i) < 0;
+          // return {
+          //   [width]: s[width],
+          //   [height]: s[height],
+          //   x: invert ? -s.width / 2 : negative ? this._stacked ? padding - s.width : padding - s.width : -padding,
+          //   y: invert ? negative ? this._stacked ? padding : padding : -s.height + padding : -s.height / 2 + padding
+          // };
+          return {width: 100, height: s[height], x: s.width, y: -s.height / 2}
+        }
+      },
+    })
+    .xDomain([0, xAxisMax])
+    .yConfig({
+      title: "",
+      titleConfig: {
+        fontSize: function(d){ return 20}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16},
+          fontColor: "#000",
+          
+        }
+      }
+    })
+    .legend(false)
+    .xConfig({
+      title: "% of scientific publications (OpenAlex)",
+      titleConfig: {
+        fontSize: function(d){ return 20}
+      },
+      shapeConfig: {
+        labelConfig: {
+          fontSize: function(d){ return 16},
+          fontColor: "#000",
+        }
+      }
+    })
+    .legendConfig({
+      label(d) {
+        return d.parent
+      },
+      shapeConfig: {
+        width: 24,
+        height: 24,
+        labelConfig: {
+          fontSize: function(d){ return 22}
+        }
+      }
+    })
+    .downloadButton(true)
+    .downloadConfig({type: "png"})
+    .render();
+
+</script>
+
+</html>
