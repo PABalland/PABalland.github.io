@@ -1,0 +1,604 @@
+<!doctype html>
+<html>
+
+  <head>
+
+    <meta charset="utf-8">
+    <title>Forced Network</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+    <style>
+
+      html, body {
+        margin: 0;
+        height: 100%;
+        font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+        background: #f5f7fa;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      #legend-container {
+        flex: 0 0 5vh;
+        max-height: 5vh;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(8px, 2vh, 16px) clamp(16px, 4vw, 32px);
+        background: rgba(255, 255, 255, 0.96);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+        order: 2;
+      }
+
+      .custom-legend {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: clamp(8px, 1.5vw, 16px);
+        width: 100%;
+        max-height: 100%;
+        overflow: auto;
+        scrollbar-width: thin;
+      }
+
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        color: #1b1d21;
+        font-size: clamp(12px, 1.3vw, 16px);
+        cursor: default;
+        white-space: nowrap;
+      }
+
+      .legend-item.dim {
+        opacity: 0.35;
+      }
+
+      .legend-square {
+        width: clamp(12px, 1.2vw, 16px);
+        height: clamp(12px, 1.2vw, 16px);
+        border-radius: 4px;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12) inset;
+      }
+
+      .legend-label {
+        pointer-events: none;
+      }
+
+      svg.network {
+        flex: 1 1 auto;
+        width: 100%;
+        height: 100%;
+        display: block;
+        cursor: move;
+        background: #ffffff;
+        order: 1;
+      }
+
+      .link {
+        stroke: rgba(140, 150, 170, 0.45);
+      }
+
+      .link.highlighted {
+        stroke: rgba(80, 90, 110, 0.9);
+        stroke-width: 6px;
+      }
+
+      .link.dimmed {
+        opacity: 0.2;
+      }
+
+      .node.dimmed {
+        opacity: 0.25;
+      }
+
+      .node.highlighted circle {
+        stroke-width: 3px;
+      }
+
+      .node.highlighted text {
+        font-weight: 700;
+      }
+
+      .node circle {
+        stroke: #ffffff;
+        stroke-width: 2px;
+      }
+
+      .node text {
+        font-weight: 400;
+        text-anchor: middle;
+        dominant-baseline: central;
+        pointer-events: none;
+        font-family: "Helvetica Neue", Arial, sans-serif;
+      }
+
+    </style>
+
+  </head>
+
+  <body>
+
+    <div id="legend-container">
+      <div class="custom-legend" id="legend"></div>
+    </div>
+
+    <svg class="network"></svg>
+
+    <script>
+      var nodes =  [{"id":"Advanced Manufacturing","id2":0,"x":0.1292,"y":-0.9899,"color":"#669999","parent":"Advanced Industry & Materials","size":1.5},{"id":"Advanced Materials","id2":1,"x":0.1143,"y":-2.6085,"color":"#669999","parent":"Advanced Industry & Materials","size":1.5},{"id":"Advanced Therapy Medicinal Products (ATMP)","id2":2,"x":-1.12,"y":4.2799,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"Artificial Intelligence","id2":3,"x":-1.9235,"y":-2.5814,"color":"#365a94","parent":"Digital & AI","size":1.5},{"id":"Autonomous Robots","id2":4,"x":0.1061,"y":-1.6153,"color":"#669999","parent":"Advanced Industry & Materials","size":1.5},{"id":"Bioinformatics","id2":17,"x":-0.3932,"y":5.1635,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"Biomanufacturing","id2":5,"x":-1.6809,"y":4.4347,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"Biotechnology","id2":6,"x":-1.3156,"y":4.6338,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"Carbon Capture & Storage","id2":7,"x":1.4683,"y":-3.9496,"color":"#8cab79","parent":"Energy & Climate","size":1.5},{"id":"Cloud and Edge Computing","id2":8,"x":-3.1141,"y":-4.1718,"color":"#365a94","parent":"Digital & AI","size":1.5},{"id":"Cybersecurity","id2":9,"x":-2.9972,"y":-2.8705,"color":"#e28f26","parent":"Security & Space","size":1.5},{"id":"Defence Technologies","id2":10,"x":2.6438,"y":-0.8219,"color":"#e28f26","parent":"Security & Space","size":1.5},{"id":"Drones","id2":11,"x":1.89,"y":-1.2036,"color":"#e28f26","parent":"Security & Space","size":1.5},{"id":"Food Technology","id2":35,"x":-2.2268,"y":5.1836,"color":"#669999","parent":"Advanced Industry & Materials","size":1.5},{"id":"Generative AI","id2":19,"x":-3.3638,"y":-3.5092,"color":"#365a94","parent":"Digital & AI","size":1.5},{"id":"Genomics & Gene Editing","id2":12,"x":-0.7619,"y":4.327,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"High-Performance Computing (HPC)","id2":13,"x":-2.0411,"y":-3.5224,"color":"#365a94","parent":"Digital & AI","size":1.5},{"id":"Immunotherapy","id2":14,"x":-1.282,"y":3.9453,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"Internet of Things (IOT)","id2":31,"x":-4.6229,"y":-2.6333,"color":"#365a94","parent":"Digital & AI","size":1.5},{"id":"Medical Devices","id2":15,"x":-1.1057,"y":1.3422,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"Microelectronics","id2":16,"x":-1.416,"y":-1.5058,"color":"#365a94","parent":"Digital & AI","size":1.5},{"id":"mRNA Technology","id2":27,"x":-1.8188,"y":4.0575,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"Nanotechnologies","id2":32,"x":-0.3726,"y":-1.8545,"color":"#669999","parent":"Advanced Industry & Materials","size":1.5},{"id":"Natural Language Processing","id2":25,"x":-2.4976,"y":-3.3539,"color":"#365a94","parent":"Digital & AI","size":1.5},{"id":"Nuclear Energy","id2":37,"x":-1.9528,"y":-0.2393,"color":"#8cab79","parent":"Energy & Climate","size":1.5},{"id":"Pharmaceuticals","id2":28,"x":-1.5977,"y":3.5693,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"Photonics","id2":22,"x":-0.9337,"y":-1.7245,"color":"#365a94","parent":"Digital & AI","size":1.5},{"id":"Precision Medicine","id2":26,"x":-0.8722,"y":3.612,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"Quantum computing","id2":34,"x":-2.5071,"y":-4.8449,"color":"#365a94","parent":"Digital & AI","size":1.5},{"id":"Regenerative Medicine","id2":30,"x":-1.1699,"y":2.8977,"color":"#800020","parent":"Health & Biotech","size":1.5},{"id":"Robotics","id2":23,"x":1.344,"y":-1.8598,"color":"#669999","parent":"Advanced Industry & Materials","size":1.5},{"id":"Semiconductors","id2":29,"x":-0.9272,"y":-2.7763,"color":"#365a94","parent":"Digital & AI","size":1.5},{"id":"Sensor Technologies","id2":24,"x":-0.4593,"y":-0.4583,"color":"#669999","parent":"Advanced Industry & Materials","size":1.5},{"id":"Smart Grids","id2":18,"x":-3.5417,"y":-1.7517,"color":"#8cab79","parent":"Energy & Climate","size":1.5},{"id":"Smart Materials","id2":20,"x":-0.7951,"y":-0.0996,"color":"#669999","parent":"Advanced Industry & Materials","size":1.5},{"id":"Space technologies","id2":21,"x":0.8164,"y":-0.9655,"color":"#e28f26","parent":"Security & Space","size":1.5},{"id":"Waste Management","id2":36,"x":0.9915,"y":-4.3311,"color":"#8cab79","parent":"Energy & Climate","size":1.5},{"id":"Wind Energy","id2":33,"x":-3.1128,"y":-1.0881,"color":"#8cab79","parent":"Energy & Climate","size":1.5}]  ;
+
+      var links =   [{"source":"Advanced Manufacturing","target":"Autonomous Robots","weight":15.11},{"source":"Advanced Materials","target":"Nanotechnologies","weight":12.05},{"source":"Advanced Materials","target":"Smart Materials","weight":23.44},{"source":"Advanced Materials","target":"Waste Management","weight":4.52},{"source":"Advanced Therapy Medicinal Products (ATMP)","target":"Genomics & Gene Editing","weight":19.3},{"source":"Advanced Therapy Medicinal Products (ATMP)","target":"mRNA Technology","weight":17.71},{"source":"Advanced Therapy Medicinal Products (ATMP)","target":"Regenerative Medicine","weight":15.7},{"source":"Artificial Intelligence","target":"Generative AI","weight":30.92},{"source":"Artificial Intelligence","target":"Natural Language Processing","weight":20},{"source":"Autonomous Robots","target":"Drones","weight":18.51},{"source":"Autonomous Robots","target":"Microelectronics","weight":9.89},{"source":"Autonomous Robots","target":"Robotics","weight":20.87},{"source":"Biomanufacturing","target":"Biotechnology","weight":22.6},{"source":"Biomanufacturing","target":"Food Technology","weight":8.78},{"source":"Biotechnology","target":"Genomics & Gene Editing","weight":22.15},{"source":"Carbon Capture & Storage","target":"Waste Management","weight":4.89},{"source":"Cloud and Edge Computing","target":"Cybersecurity","weight":18.33},{"source":"Cybersecurity","target":"Internet of Things (IOT)","weight":13.46},{"source":"Cybersecurity","target":"Microelectronics","weight":14.81},{"source":"Cybersecurity","target":"Natural Language Processing","weight":18.27},{"source":"Defence Technologies","target":"Space technologies","weight":4.98},{"source":"Drones","target":"Space technologies","weight":22.75},{"source":"Genomics & Gene Editing","target":"Precision Medicine","weight":18.99},{"source":"High-Performance Computing (HPC)","target":"Quantum computing","weight":9.58},{"source":"High-Performance Computing (HPC)","target":"Semiconductors","weight":14.81},{"source":"Immunotherapy","target":"mRNA Technology","weight":17.14},{"source":"Immunotherapy","target":"Pharmaceuticals","weight":17.43},{"source":"Medical Devices","target":"Regenerative Medicine","weight":11.89},{"source":"Medical Devices","target":"Sensor Technologies","weight":20.05},{"source":"Medical Devices","target":"Smart Materials","weight":21.51},{"source":"Microelectronics","target":"Nuclear Energy","weight":1.5},{"source":"Microelectronics","target":"Photonics","weight":21.16},{"source":"Microelectronics","target":"Smart Materials","weight":19.03},{"source":"Bioinformatics","target":"Precision Medicine","weight":13.5},{"source":"Microelectronics","target":"Semiconductors","weight":17.06},{"source":"Microelectronics","target":"Smart Grids","weight":13.29},{"source":"Smart Grids","target":"Wind Energy","weight":9.62},{"source":"Generative AI","target":"Artificial Intelligence","weight":30.92},{"source":"Smart Materials","target":"Advanced Materials","weight":23.44},{"source":"Space technologies","target":"Drones","weight":22.75},{"source":"Biotechnology","target":"Biomanufacturing","weight":22.6},{"source":"Genomics & Gene Editing","target":"Biotechnology","weight":22.15},{"source":"Smart Materials","target":"Medical Devices","weight":21.51},{"source":"Photonics","target":"Microelectronics","weight":21.16},{"source":"Robotics","target":"Autonomous Robots","weight":20.87},{"source":"Sensor Technologies","target":"Medical Devices","weight":20.05},{"source":"Natural Language Processing","target":"Artificial Intelligence","weight":20},{"source":"Genomics & Gene Editing","target":"Advanced Therapy Medicinal Products (ATMP)","weight":19.3},{"source":"Genomics & Gene Editing","target":"Biomanufacturing","weight":19.04},{"source":"Biomanufacturing","target":"Genomics & Gene Editing","weight":19.04},{"source":"Smart Materials","target":"Microelectronics","weight":19.03},{"source":"Precision Medicine","target":"Genomics & Gene Editing","weight":18.99},{"source":"Smart Materials","target":"Sensor Technologies","weight":18.82},{"source":"Sensor Technologies","target":"Smart Materials","weight":18.82},{"source":"Drones","target":"Autonomous Robots","weight":18.51},{"source":"Cybersecurity","target":"Cloud and Edge Computing","weight":18.33},{"source":"Natural Language Processing","target":"Cybersecurity","weight":18.27},{"source":"Space technologies","target":"Autonomous Robots","weight":18.09},{"source":"Autonomous Robots","target":"Space technologies","weight":18.09},{"source":"mRNA Technology","target":"Advanced Therapy Medicinal Products (ATMP)","weight":17.71},{"source":"mRNA Technology","target":"Genomics & Gene Editing","weight":17.63},{"source":"Genomics & Gene Editing","target":"mRNA Technology","weight":17.63},{"source":"Biotechnology","target":"Advanced Therapy Medicinal Products (ATMP)","weight":17.5},{"source":"Advanced Therapy Medicinal Products (ATMP)","target":"Biotechnology","weight":17.5},{"source":"Microelectronics","target":"Advanced Materials","weight":17.48},{"source":"Advanced Materials","target":"Microelectronics","weight":17.48},{"source":"Pharmaceuticals","target":"Immunotherapy","weight":17.43},{"source":"Biomanufacturing","target":"Advanced Therapy Medicinal Products (ATMP)","weight":17.22},{"source":"Advanced Therapy Medicinal Products (ATMP)","target":"Biomanufacturing","weight":17.22},{"source":"mRNA Technology","target":"Immunotherapy","weight":17.14},{"source":"Semiconductors","target":"Microelectronics","weight":17.06},{"source":"Precision Medicine","target":"Biotechnology","weight":16.39},{"source":"Biotechnology","target":"Precision Medicine","weight":16.39},{"source":"mRNA Technology","target":"Biomanufacturing","weight":16.2},{"source":"Biomanufacturing","target":"mRNA Technology","weight":16.2},{"source":"Regenerative Medicine","target":"Advanced Therapy Medicinal Products (ATMP)","weight":15.7},{"source":"Precision Medicine","target":"Advanced Therapy Medicinal Products (ATMP)","weight":15.31},{"source":"Sensor Technologies","target":"Microelectronics","weight":15.31},{"source":"Advanced Therapy Medicinal Products (ATMP)","target":"Precision Medicine","weight":15.31},{"source":"Microelectronics","target":"Sensor Technologies","weight":15.31},{"source":"mRNA Technology","target":"Biotechnology","weight":15.26},{"source":"Biotechnology","target":"mRNA Technology","weight":15.26},{"source":"Pharmaceuticals","target":"Biomanufacturing","weight":15.24},{"source":"Biomanufacturing","target":"Pharmaceuticals","weight":15.24},{"source":"Immunotherapy","target":"Biomanufacturing","weight":15.12},{"source":"Biomanufacturing","target":"Immunotherapy","weight":15.12},{"source":"Autonomous Robots","target":"Advanced Manufacturing","weight":15.11},{"source":"Semiconductors","target":"Photonics","weight":15.11},{"source":"Photonics","target":"Semiconductors","weight":15.11},{"source":"Microelectronics","target":"Cybersecurity","weight":14.81},{"source":"Semiconductors","target":"High-Performance Computing (HPC)","weight":14.81},{"source":"High-Performance Computing (HPC)","target":"Cloud and Edge Computing","weight":14.71},{"source":"Cloud and Edge Computing","target":"High-Performance Computing (HPC)","weight":14.71},{"source":"Precision Medicine","target":"mRNA Technology","weight":14.71},{"source":"mRNA Technology","target":"Precision Medicine","weight":14.71},{"source":"Precision Medicine","target":"Pharmaceuticals","weight":14.62},{"source":"Pharmaceuticals","target":"Precision Medicine","weight":14.62},{"source":"Pharmaceuticals","target":"Biotechnology","weight":14.59},{"source":"Biotechnology","target":"Pharmaceuticals","weight":14.59},{"source":"Pharmaceuticals","target":"Genomics & Gene Editing","weight":14.33},{"source":"Genomics & Gene Editing","target":"Pharmaceuticals","weight":14.33},{"source":"Immunotherapy","target":"Advanced Therapy Medicinal Products (ATMP)","weight":13.69},{"source":"Advanced Therapy Medicinal Products (ATMP)","target":"Immunotherapy","weight":13.69},{"source":"Pharmaceuticals","target":"mRNA Technology","weight":13.69},{"source":"mRNA Technology","target":"Pharmaceuticals","weight":13.69},{"source":"Precision Medicine","target":"Bioinformatics","weight":13.5},{"source":"Internet of Things (IOT)","target":"Cybersecurity","weight":13.46},{"source":"Immunotherapy","target":"Genomics & Gene Editing","weight":13.29},{"source":"Genomics & Gene Editing","target":"Immunotherapy","weight":13.29},{"source":"Smart Grids","target":"Microelectronics","weight":13.29},{"source":"Pharmaceuticals","target":"Advanced Therapy Medicinal Products (ATMP)","weight":13.27},{"source":"Advanced Therapy Medicinal Products (ATMP)","target":"Pharmaceuticals","weight":13.27},{"source":"Immunotherapy","target":"Biotechnology","weight":13.13},{"source":"Biotechnology","target":"Immunotherapy","weight":13.13},{"source":"Precision Medicine","target":"Biomanufacturing","weight":13.07},{"source":"Biomanufacturing","target":"Precision Medicine","weight":13.07},{"source":"Robotics","target":"Advanced Manufacturing","weight":12.48},{"source":"Advanced Manufacturing","target":"Robotics","weight":12.48},{"source":"Genomics & Gene Editing","target":"Bioinformatics","weight":12.4},{"source":"Bioinformatics","target":"Genomics & Gene Editing","weight":12.4},{"source":"Precision Medicine","target":"Immunotherapy","weight":12.28},{"source":"Immunotherapy","target":"Precision Medicine","weight":12.28},{"source":"Cybersecurity","target":"Artificial Intelligence","weight":12.21},{"source":"Artificial Intelligence","target":"Cybersecurity","weight":12.21},{"source":"Nanotechnologies","target":"Advanced Materials","weight":12.05},{"source":"Natural Language Processing","target":"Microelectronics","weight":12},{"source":"Microelectronics","target":"Natural Language Processing","weight":12},{"source":"Regenerative Medicine","target":"Medical Devices","weight":11.89},{"source":"Regenerative Medicine","target":"Biomanufacturing","weight":11.72},{"source":"Biomanufacturing","target":"Regenerative Medicine","weight":11.72},{"source":"Regenerative Medicine","target":"Biotechnology","weight":11.57},{"source":"Biotechnology","target":"Regenerative Medicine","weight":11.57},{"source":"Regenerative Medicine","target":"Genomics & Gene Editing","weight":11.15},{"source":"Genomics & Gene Editing","target":"Regenerative Medicine","weight":11.15},{"source":"Regenerative Medicine","target":"mRNA Technology","weight":10.84},{"source":"mRNA Technology","target":"Regenerative Medicine","weight":10.84},{"source":"Microelectronics","target":"High-Performance Computing (HPC)","weight":10.76},{"source":"High-Performance Computing (HPC)","target":"Microelectronics","weight":10.76},{"source":"Generative AI","target":"Cybersecurity","weight":10.56},{"source":"Cybersecurity","target":"Generative AI","weight":10.56},{"source":"Natural Language Processing","target":"Generative AI","weight":10.36},{"source":"Generative AI","target":"Natural Language Processing","weight":10.36},{"source":"Microelectronics","target":"Autonomous Robots","weight":9.89},{"source":"Pharmaceuticals","target":"Medical Devices","weight":9.89},{"source":"Medical Devices","target":"Pharmaceuticals","weight":9.89},{"source":"Regenerative Medicine","target":"Immunotherapy","weight":9.78},{"source":"Immunotherapy","target":"Regenerative Medicine","weight":9.78},{"source":"Regenerative Medicine","target":"Pharmaceuticals","weight":9.76},{"source":"Pharmaceuticals","target":"Regenerative Medicine","weight":9.76},{"source":"Biotechnology","target":"Bioinformatics","weight":9.62},{"source":"Bioinformatics","target":"Biotechnology","weight":9.62},{"source":"Wind Energy","target":"Smart Grids","weight":9.62},{"source":"Quantum computing","target":"High-Performance Computing (HPC)","weight":9.58},{"source":"High-Performance Computing (HPC)","target":"Cybersecurity","weight":9.46},{"source":"Cybersecurity","target":"High-Performance Computing (HPC)","weight":9.46},{"source":"Microelectronics","target":"Advanced Manufacturing","weight":9.29},{"source":"Advanced Manufacturing","target":"Microelectronics","weight":9.29},{"source":"Smart Materials","target":"Advanced Manufacturing","weight":9.28},{"source":"Advanced Manufacturing","target":"Smart Materials","weight":9.28},{"source":"Natural Language Processing","target":"Cloud and Edge Computing","weight":9.23},{"source":"Cloud and Edge Computing","target":"Natural Language Processing","weight":9.23},{"source":"Regenerative Medicine","target":"Precision Medicine","weight":9.08},{"source":"Precision Medicine","target":"Regenerative Medicine","weight":9.08},{"source":"Natural Language Processing","target":"High-Performance Computing (HPC)","weight":8.96},{"source":"High-Performance Computing (HPC)","target":"Natural Language Processing","weight":8.96},{"source":"Autonomous Robots","target":"Artificial Intelligence","weight":8.91},{"source":"Artificial Intelligence","target":"Autonomous Robots","weight":8.91},{"source":"Precision Medicine","target":"Medical Devices","weight":8.87},{"source":"Medical Devices","target":"Precision Medicine","weight":8.87},{"source":"Smart Materials","target":"Regenerative Medicine","weight":8.8},{"source":"Regenerative Medicine","target":"Smart Materials","weight":8.8},{"source":"Food Technology","target":"Biomanufacturing","weight":8.78},{"source":"Space technologies","target":"Microelectronics","weight":8.57},{"source":"Microelectronics","target":"Space technologies","weight":8.57},{"source":"Pharmaceuticals","target":"Food Technology","weight":8.15},{"source":"Food Technology","target":"Pharmaceuticals","weight":8.15},{"source":"Microelectronics","target":"Artificial Intelligence","weight":8.13},{"source":"Artificial Intelligence","target":"Microelectronics","weight":8.13},{"source":"Food Technology","target":"Biotechnology","weight":7.99},{"source":"Biotechnology","target":"Food Technology","weight":7.99},{"source":"Sensor Technologies","target":"Photonics","weight":7.98},{"source":"Photonics","target":"Sensor Technologies","weight":7.98},{"source":"Semiconductors","target":"Advanced Materials","weight":7.95},{"source":"Smart Materials","target":"Nanotechnologies","weight":7.95},{"source":"Advanced Materials","target":"Semiconductors","weight":7.95},{"source":"Nanotechnologies","target":"Smart Materials","weight":7.95},{"source":"Microelectronics","target":"Medical Devices","weight":7.76},{"source":"Medical Devices","target":"Microelectronics","weight":7.76},{"source":"Space technologies","target":"Sensor Technologies","weight":7.72},{"source":"Sensor Technologies","target":"Space technologies","weight":7.72},{"source":"Sensor Technologies","target":"Autonomous Robots","weight":7.71},{"source":"Autonomous Robots","target":"Sensor Technologies","weight":7.71},{"source":"Semiconductors","target":"Nanotechnologies","weight":7.54},{"source":"Nanotechnologies","target":"Semiconductors","weight":7.54},{"source":"Waste Management","target":"Carbon Capture & Storage","weight":4.89},{"source":"Carbon Capture & Storage","target":"Advanced Materials","weight":3.27},{"source":"Advanced Materials","target":"Carbon Capture & Storage","weight":3.27},{"source":"Space technologies","target":"Defence Technologies","weight":4.98},{"source":"Drones","target":"Defence Technologies","weight":3.1},{"source":"Defence Technologies","target":"Drones","weight":3.1},{"source":"Smart Grids","target":"Internet of Things (IOT)","weight":7.32},{"source":"Internet of Things (IOT)","target":"Smart Grids","weight":7.32},{"source":"Nuclear Energy","target":"Microelectronics","weight":1.5},{"source":"Smart Materials","target":"Nuclear Energy","weight":0.76},{"source":"Nuclear Energy","target":"Smart Materials","weight":0.76},{"source":"Quantum computing","target":"Natural Language Processing","weight":7.19},{"source":"Natural Language Processing","target":"Quantum computing","weight":7.19},{"source":"Waste Management","target":"Advanced Materials","weight":4.52},{"source":"Wind Energy","target":"Microelectronics","weight":4.21},{"source":"Microelectronics","target":"Wind Energy","weight":4.21}]  ;
+
+      var svg = d3.select("svg.network");
+      var svgNode = svg.node();
+      var width = (svgNode && svgNode.clientWidth) || window.innerWidth;
+      var height = (svgNode && svgNode.clientHeight) || Math.round(window.innerHeight * 0.9);
+      var nodeRadius = 48;
+      var HOR_PADDING = nodeRadius * 2;
+      var padding = nodeRadius * 2;
+
+      var extentX = d3.extent(nodes, function(d) { return d.x; });
+      var extentY = d3.extent(nodes, function(d) { return d.y; });
+
+      var availableWidth = Math.max(width - padding * 2, padding);
+      var availableHeight = Math.max(height - padding * 2, padding);
+
+      var baseLeft = padding;
+      var baseRight = padding + availableWidth;
+
+      var minXBound = baseLeft + HOR_PADDING + nodeRadius;
+      var maxXBound = baseRight - HOR_PADDING - nodeRadius;
+
+      if (maxXBound <= minXBound) {
+        var midpoint = (baseLeft + baseRight) / 2;
+        minXBound = midpoint - 1;
+        maxXBound = midpoint + 1;
+      }
+
+      var horizontalBounds = {
+        min: minXBound,
+        max: maxXBound
+      };
+
+      var scaleX = d3.scaleLinear()
+        .domain(extentX)
+        .range([horizontalBounds.min, horizontalBounds.max]);
+
+      var scaleY = d3.scaleLinear()
+        .domain(extentY)
+        .range([padding, padding + availableHeight]);
+
+      function clampX(value) {
+        return Math.max(horizontalBounds.min, Math.min(horizontalBounds.max, value));
+      }
+
+      nodes.forEach(function(node) {
+        var targetX = clampX(scaleX(node.x));
+        var targetY = scaleY(node.y);
+        node.originalX = targetX;
+        node.originalY = targetY;
+        node.x = targetX;
+        node.y = targetY;
+      });
+
+      svg
+        .attr("viewBox", [0, 0, width, height])
+        .attr("preserveAspectRatio", "xMidYMid meet");
+
+      var container = svg.append("g");
+
+      var zoomBehavior = d3.zoom()
+        .scaleExtent([0.6, 3])
+        .on("zoom", function(event) {
+          container.attr("transform", event.transform);
+        });
+
+      svg.call(zoomBehavior);
+
+      var nodeById = new Map(nodes.map(function(node) {
+        return [node.id, node];
+      }));
+
+      var linkData = links.map(function(link) {
+        return {
+          source: nodeById.get(link.source),
+          target: nodeById.get(link.target),
+          weight: link.weight
+        };
+      }).filter(function(link) {
+        return link.source && link.target;
+      });
+
+      var linkExtent = linkData.length ? d3.extent(linkData, function(d) { return d.weight || 1; }) : [1, 1];
+      if (linkExtent[0] === linkExtent[1]) {
+        linkExtent[1] = linkExtent[0] + 1;
+      }
+
+      var linkWidth = d3.scaleSqrt()
+        .domain(linkExtent)
+        .range([0.6, 4]);
+
+      var link = container.append("g")
+        .attr("stroke-linecap", "round")
+        .selectAll("line")
+        .data(linkData)
+        .join("line")
+        .attr("class", "link")
+        .attr("stroke-width", function(d) { return linkWidth(d.weight || 1); });
+
+      var adjacency = new Map();
+
+      linkData.forEach(function(link) {
+        var sourceId = link.source.id;
+        var targetId = link.target.id;
+
+        if (!adjacency.has(sourceId)) {
+          adjacency.set(sourceId, new Set());
+        }
+
+        if (!adjacency.has(targetId)) {
+          adjacency.set(targetId, new Set());
+        }
+
+        adjacency.get(sourceId).add(targetId);
+        adjacency.get(targetId).add(sourceId);
+      });
+
+      var node = container.append("g")
+        .selectAll("g")
+        .data(nodes)
+        .join("g")
+        .attr("class", "node")
+        .call(d3.drag()
+          .on("start", dragstarted)
+          .on("drag", dragged)
+          .on("end", dragended))
+        .on("mouseenter", highlightConnected)
+        .on("mouseleave", resetHighlight);
+
+      node.append("circle")
+        .attr("r", nodeRadius)
+        .attr("fill", function(d) { return d.color; });
+
+      node.append("text")
+        .attr("class", "node-label")
+        .attr("fill", function(d) {
+          return getContrastingTextColor(d.color);
+        })
+        .style("fill", function(d) {
+          return getContrastingTextColor(d.color);
+        })
+        .call(wrapText, nodeRadius);
+
+      node.append("title")
+        .text(function(d) {
+          return d.id + (d.parent ? " (" + d.parent + ")" : "");
+        });
+
+      renderLegend();
+
+      var simulation = d3.forceSimulation(nodes)
+        .alpha(0.9)
+        .alphaDecay(0.09)
+        .force("collide", d3.forceCollide(nodeRadius + 8).strength(0.95).iterations(4))
+        .force("x", d3.forceX(function(d) { return d.originalX; }).strength(1))
+        .force("y", d3.forceY(function(d) { return d.originalY; }).strength(1))
+        .on("tick", ticked);
+
+      function ticked() {
+        nodes.forEach(function(d) {
+          d.x = clampX(d.x);
+          if (d.fx != null) {
+            d.fx = clampX(d.fx);
+          }
+        });
+
+        link
+          .attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; });
+
+        node.attr("transform", function(d) {
+          return "translate(" + d.x + "," + d.y + ")";
+        });
+      }
+
+      function dragstarted(event, d) {
+        if (!event.active) {
+          simulation.alphaTarget(0.3).restart();
+        }
+        d.fx = clampX(d.x);
+        d.fy = d.y;
+      }
+
+      function dragged(event, d) {
+        var clampedX = clampX(event.x);
+        d.fx = clampedX;
+        d.fy = event.y;
+        d.x = clampedX;
+        d.y = event.y;
+      }
+
+      function dragended(event, d) {
+        if (!event.active) {
+          simulation.alphaTarget(0);
+        }
+        d.fx = null;
+        d.fy = null;
+      }
+
+      function darkenColor(hexColor, factor) {
+        factor = factor || 0.5;
+        var hex = hexColor.trim().replace("#", "");
+        if (hex.length === 3) {
+          hex = hex.split("").map(function(ch) { return ch + ch; }).join("");
+        }
+
+        var r = parseInt(hex.slice(0, 2), 16);
+        var g = parseInt(hex.slice(2, 4), 16);
+        var b = parseInt(hex.slice(4, 6), 16);
+
+        r = Math.round(r * factor);
+        g = Math.round(g * factor);
+        b = Math.round(b * factor);
+
+        return "#" + [r, g, b].map(function(val) {
+          var hexVal = val.toString(16);
+          return hexVal.length === 1 ? "0" + hexVal : hexVal;
+        }).join("");
+      }
+
+      function highlightConnected(event, nodeDatum) {
+        var neighbors = adjacency.get(nodeDatum.id) || new Set();
+        var activeIds = new Set(neighbors);
+        activeIds.add(nodeDatum.id);
+
+        node.each(function(d) {
+          var isActive = activeIds.has(d.id);
+          var nodeElement = d3.select(this);
+          nodeElement
+            .classed("highlighted", isActive)
+            .classed("dimmed", !isActive);
+
+          if (isActive) {
+            var darkerColor = darkenColor(d.color, 0.6);
+            nodeElement.select("circle").style("stroke", darkerColor);
+          }
+        });
+
+        link.each(function(l) {
+          var isActive = l.source.id === nodeDatum.id || l.target.id === nodeDatum.id;
+          d3.select(this)
+            .classed("highlighted", isActive)
+            .classed("dimmed", !isActive);
+        });
+      }
+
+      function resetHighlight() {
+        node.classed("highlighted", false)
+          .classed("dimmed", false)
+          .select("circle").style("stroke", null);
+        link.classed("highlighted", false)
+          .classed("dimmed", false);
+      }
+
+      function renderLegend() {
+        var legend = d3.select("#legend");
+        if (legend.empty()) {
+          return;
+        }
+
+        legend.attr("role", "list");
+
+        var parentColorMap = new Map();
+        nodes.forEach(function(node) {
+          var parentName = node.parent || "Other";
+          if (!parentColorMap.has(parentName)) {
+            parentColorMap.set(parentName, node.color || "#6c6f7d");
+          }
+        });
+
+        var legendData = Array.from(parentColorMap, function(entry) {
+          return { parent: entry[0], color: entry[1] };
+        });
+
+        var legendItems = legend.selectAll(".legend-item")
+          .data(legendData, function(d) { return d.parent; });
+
+        legendItems.exit().remove();
+
+        var legendEnter = legendItems.enter()
+          .append("div")
+          .attr("class", "legend-item")
+          .attr("role", "listitem");
+
+        legendEnter.append("span")
+          .attr("class", "legend-square");
+
+        legendEnter.append("span")
+          .attr("class", "legend-label");
+
+        legendItems = legendEnter.merge(legendItems);
+
+        legendItems.select(".legend-square")
+          .style("background-color", function(d) { return d.color; });
+
+        legendItems.select(".legend-label")
+          .text(function(d) { return d.parent; });
+      }
+
+      function isColorDark(hexColor) {
+        if (!hexColor) {
+          return false;
+        }
+
+        var hex = hexColor.trim().replace("#", "");
+        if (hex.length === 3) {
+          hex = hex.split("").map(function(ch) { return ch + ch; }).join("");
+        }
+
+        if (hex.length !== 6) {
+          return false;
+        }
+
+        var r = parseInt(hex.slice(0, 2), 16) / 255;
+        var g = parseInt(hex.slice(2, 4), 16) / 255;
+        var b = parseInt(hex.slice(4, 6), 16) / 255;
+
+        var convert = function(channel) {
+          return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+        };
+
+        var lum = 0.2126 * convert(r) + 0.7152 * convert(g) + 0.0722 * convert(b);
+        return lum < 0.55;
+      }
+
+      function getContrastingTextColor(hexColor) {
+        return isColorDark(hexColor) ? "#ffffff" : "#1b1d21";
+      }
+
+      function wrapText(selection, radius) {
+        var diameter = radius * 2;
+        var maxWidth = diameter * 0.85;
+        var maxHeight = diameter * 0.85;
+        var lineHeightMultiplier = 1.15;
+        var minFontSize = 8;
+
+        selection.each(function(d) {
+          var text = d3.select(this);
+          var label = (d.id || "").trim();
+
+          text.selectAll("tspan").remove();
+          text.text("");
+
+          if (!label) {
+            return;
+          }
+
+          var words = label.split(/\s+/).filter(function(word) { return word.length; });
+          if (!words.length) {
+            text.append("tspan")
+              .attr("x", 0)
+              .attr("y", 0)
+              .text(label);
+            return;
+          }
+
+          var maxFontSize = Math.min(16, radius * 0.45);
+          var startingFontSize = Math.max(Math.round(maxFontSize), minFontSize);
+          var bestFit = null;
+
+          for (var fontSize = startingFontSize; fontSize >= minFontSize; fontSize -= 1) {
+            var layout = layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth);
+            bestFit = layout;
+            var totalHeight = layout.lines.length * layout.lineHeight;
+
+            if (layout.maxLineWidth <= maxWidth && totalHeight <= maxHeight) {
+              break;
+            }
+          }
+
+          if (!bestFit) {
+            bestFit = {
+              lines: [label],
+              fontSize: minFontSize,
+              lineHeight: Math.round(minFontSize * lineHeightMultiplier)
+            };
+          }
+
+          text.style("font-size", bestFit.fontSize + "px");
+          text.selectAll("tspan").remove();
+
+          var offset = (bestFit.lines.length - 1) * bestFit.lineHeight / 2;
+
+          bestFit.lines.forEach(function(line, index) {
+            text.append("tspan")
+              .attr("x", 0)
+              .attr("y", -offset + index * bestFit.lineHeight)
+              .text(line);
+          });
+        });
+
+        function layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth) {
+          text.style("font-size", fontSize + "px");
+          text.selectAll("tspan").remove();
+
+          var lines = [];
+          var currentLine = [];
+          var maxLineWidth = 0;
+
+          words.forEach(function(word) {
+            currentLine.push(word);
+            var tester = text.append("tspan")
+              .attr("x", 0)
+              .attr("y", 0)
+              .text(currentLine.join(" "));
+            var lineLength = tester.node().getComputedTextLength();
+            tester.remove();
+
+            if (lineLength > maxWidth && currentLine.length > 1) {
+              currentLine.pop();
+              var finalized = currentLine.join(" ");
+              var measureFinal = text.append("tspan")
+                .attr("x", 0)
+                .attr("y", 0)
+                .text(finalized);
+              var finalLength = measureFinal.node().getComputedTextLength();
+              measureFinal.remove();
+
+              lines.push(finalized);
+              maxLineWidth = Math.max(maxLineWidth, finalLength);
+
+              currentLine = [word];
+              var measureWord = text.append("tspan")
+                .attr("x", 0)
+                .attr("y", 0)
+                .text(word);
+              var wordLength = measureWord.node().getComputedTextLength();
+              measureWord.remove();
+              maxLineWidth = Math.max(maxLineWidth, wordLength);
+            } else {
+              maxLineWidth = Math.max(maxLineWidth, lineLength);
+            }
+          });
+
+          if (currentLine.length) {
+            var finalLine = currentLine.join(" ");
+            var finalTester = text.append("tspan")
+              .attr("x", 0)
+              .attr("y", 0)
+              .text(finalLine);
+            var finalLineLength = finalTester.node().getComputedTextLength();
+            finalTester.remove();
+
+            lines.push(finalLine);
+            maxLineWidth = Math.max(maxLineWidth, finalLineLength);
+          }
+
+          var lineHeight = Math.max(Math.round(fontSize * lineHeightMultiplier), Math.ceil(fontSize));
+
+          return {
+            lines: lines,
+            fontSize: fontSize,
+            lineHeight: lineHeight,
+            maxLineWidth: maxLineWidth
+          };
+        }
+      }
+
+    </script>
+
+  </body>
+
+</html>
