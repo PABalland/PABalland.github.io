@@ -1,0 +1,1196 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;position:relative;}
+#chart{position:absolute;top:0;left:0;right:0;bottom:clamp(110px,14vh,160px);} 
+.custom-legend{position:fixed;bottom:5px;left:50%;transform:translateX(-50%);display:flex;justify-content:space-between;align-items:center;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;column-gap:clamp(8px, 2vw, 16px);row-gap:clamp(6px, 1.2vh, 10px);background:rgba(255,255,255,0.88);padding:clamp(6px, 1.4vh, 10px) clamp(10px, 1.6vw, 16px);border-radius:clamp(4px, 1vw, 8px);box-shadow:0 6px 24px rgba(0,0,0,0.12), 0 1px 0 rgba(255,255,255,0.5) inset;border:1px solid rgba(0,0,0,0.06);font-family:Arial, sans-serif;font-size:clamp(9px, 1vw, 13px);z-index:1000;max-width:96vw;white-space:nowrap;}
+.legend-square{width:18px;height:18px;min-width:18px;min-height:18px;max-width:18px;max-height:18px;flex:0 0 18px;border-radius:0;display:inline-block;line-height:0;box-sizing:border-box;position:relative;box-shadow:0 0 0 1px rgba(0,0,0,0.15) inset;}
+.custom-legend.overlapped{opacity:0.15;}
+.custom-legend.overlapped:hover{opacity:1;}
+.legend-item{display:flex;align-items:center;gap:8px;cursor:pointer;transition:opacity 0.3s ease;position:relative;line-height:1;}
+.legend-item.inactive{opacity:0.3;}
+.legend-item:hover{opacity:1;}
+.legend-item.active .legend-square::after{content:"✓";position:absolute;top:50%;left:50%;transform:translate(-50%,-55%);font-size:clamp(10px,1.6vw,14px);color:#ffffff;text-shadow:0 0 2px rgba(0,0,0,0.35);}
+.legend-item.inactive .legend-square::before{content:"";position:absolute;left:2px;right:2px;top:50%;height:2px;background:rgba(255,255,255,0.9);transform:rotate(-45deg);}
+.legend-item{flex:0 0 auto;}
+.legend-item span{white-space:nowrap;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label.dimmed {
+  opacity: 0.35 !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="controls-section">
+    <div class="custom-legend" id="legend"></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(a,b,pad=0){
+  return !((a.x + a.width + pad) < (b.x - pad) || (b.x + b.width + pad) < (a.x - pad) || (a.y + a.height + pad) < (b.y - pad) || (b.y + b.height + pad) < (a.y - pad));
+}
+function bboxOfCircle(cx,cy,r){ return {x:cx - r, y:cy - r, width:r*2, height:r*2}; }
+
+function getPositionOptions(cx,cy,r,p=6){
+  const dy=10;
+  const dx=6;
+  return [
+    {name:'right',x:cx+r+p,y:cy+3,anchor:'start'},
+    {name:'right-up',x:cx+r+p+dx,y:cy-dy,anchor:'start'},
+    {name:'right-down',x:cx+r+p+dx,y:cy+dy,anchor:'start'},
+    {name:'left',x:cx-r-p,y:cy+3,anchor:'end'},
+    {name:'left-up',x:cx-r-p-dx,y:cy-dy,anchor:'end'},
+    {name:'left-down',x:cx-r-p-dx,y:cy+dy,anchor:'end'},
+    {name:'above',x:cx,y:cy-r-p,anchor:'middle'},
+    {name:'below',x:cx,y:cy+r+p+10,anchor:'middle'}
+  ];
+}
+
+
+function getSVGBounds(svg){
+  const vb = svg.viewBox && svg.viewBox.baseVal;
+  if(vb && vb.width && vb.height){ return {x:vb.x, y:vb.y, width:vb.width, height:vb.height}; }
+  const w = parseFloat(svg.getAttribute('width')) || svg.clientWidth || 0;
+  const h = parseFloat(svg.getAttribute('height')) || svg.clientHeight || 0;
+  return {x:0, y:0, width:w, height:h};
+}
+
+
+function outsideBounds(tb, bounds, pad=2){
+  return tb.x < bounds.x + pad || tb.y < bounds.y + pad || (tb.x + tb.width) > (bounds.x + bounds.width - pad) || (tb.y + tb.height) > (bounds.y + bounds.height - pad);
+}
+
+
+function detectAxesBounds(svg, base){
+  const lines = svg.querySelectorAll('line');
+  let leftX = null;
+  let bottomY = null;
+  const minTall = Math.max(40, base.height * 0.3);
+  const minWide = Math.max(40, base.width * 0.3);
+  lines.forEach(l=>{
+    const x1 = parseFloat(l.getAttribute('x1'));
+    const x2 = parseFloat(l.getAttribute('x2'));
+    const y1 = parseFloat(l.getAttribute('y1'));
+    const y2 = parseFloat(l.getAttribute('y2'));
+    if([x1,x2,y1,y2].some(v=>isNaN(v))) return;
+    if(Math.abs(x1 - x2) < 0.5 && Math.abs(y2 - y1) >= minTall){
+      leftX = leftX === null ? x1 : Math.min(leftX, x1);
+    }
+    if(Math.abs(y1 - y2) < 0.5 && Math.abs(x2 - x1) >= minWide){
+      bottomY = bottomY === null ? Math.max(y1, y2) : Math.max(bottomY, y1, y2);
+    }
+  });
+  const pad = 6;
+  const bounds = {x:base.x, y:base.y, width:base.width, height:base.height};
+  if(leftX !== null){
+    bounds.x = Math.max(bounds.x, leftX + pad);
+    bounds.width = base.width - (bounds.x - base.x);
+  }
+  if(bottomY !== null){
+    const newH = Math.max(0, (bottomY - base.y) - pad);
+    bounds.height = Math.min(bounds.height, newH);
+  }
+  return bounds;
+}
+
+function getPlotBounds(svg){
+  const base = getSVGBounds(svg);
+  return detectAxesBounds(svg, base);
+}
+
+function hasCollision(textElement, allCircles, placedBoxes, bounds){
+  try{
+    const tb=textElement.getBBox();
+    if(bounds && outsideBounds(tb,bounds,2)) return true;
+    for(const c of allCircles){
+      const r=parseFloat(c.circle.getAttribute('r'))||7.5;
+      const cb=bboxOfCircle(c.coords.x,c.coords.y,r);
+      if(rectanglesOverlap(tb,cb,2)) return true;
+    }
+    if(placedBoxes && placedBoxes.length){
+      for(const b of placedBoxes){ if(rectanglesOverlap(tb,b,2)) return true; }
+    }
+    return false;
+  }catch(e){ return false; }
+}
+
+function findBestPosition(textElement,cx,cy,r,allCircles,fullText,placedBoxes,bounds){
+  const positions=getPositionOptions(cx,cy,r);
+  textElement.textContent=fullText;
+  for(const pos of positions){
+    textElement.setAttribute('x',pos.x);
+    textElement.setAttribute('y',pos.y);
+    textElement.setAttribute('text-anchor',pos.anchor);
+    if(!hasCollision(textElement,allCircles,placedBoxes,bounds)){
+      return {...pos,text:fullText,hasCollision:false};
+    }
+  }
+  const truncated=truncateText(fullText,20);
+  textElement.textContent=truncated;
+  for(const pos of positions){
+    textElement.setAttribute('x',pos.x);
+    textElement.setAttribute('y',pos.y);
+    textElement.setAttribute('text-anchor',pos.anchor);
+    if(!hasCollision(textElement,allCircles,placedBoxes,bounds)){
+      return {...pos,text:truncated,hasCollision:true};
+    }
+  }
+  const fallback=positions[0];
+  return {...fallback,text:truncated,hasCollision:true};
+}
+
+function getBoundData(element) {
+  if (element.__data__) {
+    return element.__data__;
+  }
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data= 
+
+ [
+  {
+    "domain": "Advanced Manufacturing",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 19.32,
+    "reldens.op": 29.98,
+    "y": 61,
+    "reldens.reg": 31.32,
+    "parent": "Advanced Industry & Materials",
+    "color": "#669999",
+    "rank.reg": 18,
+    "rank.op": 12,
+    "rank.cb": 12,
+    "rank": 42,
+    "rank.rs": 25.39,
+    "id": "Advanced Manufacturing",
+    "x": 25.39,
+    "value": 1
+  },
+  {
+    "domain": "Advanced Materials",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 18.59,
+    "reldens.op": 46.31,
+    "y": 61.88,
+    "reldens.reg": 53.75,
+    "parent": "Advanced Industry & Materials",
+    "color": "#669999",
+    "rank.reg": 25,
+    "rank.op": 20,
+    "rank.cb": 11,
+    "rank": 56,
+    "rank.rs": 39.9,
+    "id": "Advanced Materials",
+    "x": 39.9,
+    "value": 1
+  },
+  {
+    "domain": "Advanced Therapy Medicinal Products (ATMP)",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 66.37,
+    "reldens.op": 82.53,
+    "y": 64.79,
+    "reldens.reg": 91.88,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 37,
+    "rank.op": 34,
+    "rank.cb": 36,
+    "rank": 107,
+    "rank.rs": 92.75,
+    "id": "Advanced Therapy Medicinal Products (ATMP)",
+    "x": 92.75,
+    "value": 1
+  },
+  {
+    "domain": "Artificial Intelligence",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 24.73,
+    "reldens.op": 38.93,
+    "y": 76.09,
+    "reldens.reg": 12.19,
+    "parent": "Digital & AI",
+    "color": "#365a94",
+    "rank.reg": 8,
+    "rank.op": 14,
+    "rank.cb": 20,
+    "rank": 42,
+    "rank.rs": 25.39,
+    "id": "Artificial Intelligence",
+    "x": 25.39,
+    "value": 1
+  },
+  {
+    "domain": "Autonomous Robots",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 19.74,
+    "reldens.op": 24.29,
+    "y": 68.39,
+    "reldens.reg": 12.85,
+    "parent": "Advanced Industry & Materials",
+    "color": "#669999",
+    "rank.reg": 10,
+    "rank.op": 7,
+    "rank.cb": 13,
+    "rank": 30,
+    "rank.rs": 12.95,
+    "id": "Autonomous Robots",
+    "x": 12.95,
+    "value": 1
+  },
+  {
+    "domain": "Bioinformatics",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 34.38,
+    "reldens.op": 77.19,
+    "y": 71.15,
+    "reldens.reg": 76.89,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 32,
+    "rank.op": 32,
+    "rank.cb": 27,
+    "rank": 91,
+    "rank.rs": 76.17,
+    "id": "Bioinformatics",
+    "x": 76.17,
+    "value": 1
+  },
+  {
+    "domain": "Biomanufacturing",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 75.96,
+    "reldens.op": 75.98,
+    "y": 62.49,
+    "reldens.reg": 88.67,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 34,
+    "rank.op": 30,
+    "rank.cb": 37,
+    "rank": 101,
+    "rank.rs": 86.53,
+    "id": "Biomanufacturing",
+    "x": 86.53,
+    "value": 1
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 49.58,
+    "reldens.op": 82.97,
+    "y": 62.73,
+    "reldens.reg": 84.71,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 33,
+    "rank.op": 35,
+    "rank.cb": 32,
+    "rank": 100,
+    "rank.rs": 85.49,
+    "id": "Biotechnology",
+    "x": 85.49,
+    "value": 1
+  },
+  {
+    "domain": "Carbon Capture & Storage",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 11.27,
+    "reldens.op": 43.98,
+    "y": 52.8,
+    "reldens.reg": 55.35,
+    "parent": "Energy & Climate",
+    "color": "#8cab79",
+    "rank.reg": 26,
+    "rank.op": 18,
+    "rank.cb": 1,
+    "rank": 45,
+    "rank.rs": 28.5,
+    "id": "Carbon Capture & Storage",
+    "x": 28.5,
+    "value": 1
+  },
+  {
+    "domain": "Cloud and Edge Computing",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 20.24,
+    "reldens.op": 12.32,
+    "y": 74.04,
+    "reldens.reg": 6,
+    "parent": "Digital & AI",
+    "color": "#365a94",
+    "rank.reg": 1,
+    "rank.op": 3,
+    "rank.cb": 14.5,
+    "rank": 18.5,
+    "rank.rs": 1.04,
+    "id": "Cloud and Edge Computing",
+    "x": 1.04,
+    "value": 1
+  },
+  {
+    "domain": "Cybersecurity",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 45.44,
+    "reldens.op": 20.92,
+    "y": 76.37,
+    "reldens.reg": 8.81,
+    "parent": "Security & Space",
+    "color": "#e28f26",
+    "rank.reg": 4,
+    "rank.op": 5,
+    "rank.cb": 30,
+    "rank": 39,
+    "rank.rs": 22.28,
+    "id": "Cybersecurity",
+    "x": 22.28,
+    "value": 1
+  },
+  {
+    "domain": "Defence Technologies",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 20.24,
+    "reldens.op": 9.76,
+    "y": 40.3,
+    "reldens.reg": 7.34,
+    "parent": "Security & Space",
+    "color": "#e28f26",
+    "rank.reg": 2,
+    "rank.op": 1,
+    "rank.cb": 14.5,
+    "rank": 17.5,
+    "rank.rs": 0,
+    "id": "Defence Technologies",
+    "x": 0,
+    "value": 1
+  },
+  {
+    "domain": "Drones",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 25.36,
+    "reldens.op": 9.86,
+    "y": 65.97,
+    "reldens.reg": 13.94,
+    "parent": "Security & Space",
+    "color": "#e28f26",
+    "rank.reg": 11,
+    "rank.op": 2,
+    "rank.cb": 22,
+    "rank": 35,
+    "rank.rs": 18.13,
+    "id": "Drones",
+    "x": 18.13,
+    "value": 1
+  },
+  {
+    "domain": "Food Technology",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 38.65,
+    "reldens.op": 76.91,
+    "y": 54.02,
+    "reldens.reg": 75.96,
+    "parent": "Advanced Industry & Materials",
+    "color": "#669999",
+    "rank.reg": 31,
+    "rank.op": 31,
+    "rank.cb": 28,
+    "rank": 90,
+    "rank.rs": 75.13,
+    "id": "Food Technology",
+    "x": 75.13,
+    "value": 1
+  },
+  {
+    "domain": "Generative AI",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 26.82,
+    "reldens.op": 51.74,
+    "y": 73.1,
+    "reldens.reg": 11.62,
+    "parent": "Digital & AI",
+    "color": "#365a94",
+    "rank.reg": 7,
+    "rank.op": 22,
+    "rank.cb": 24,
+    "rank": 53,
+    "rank.rs": 36.79,
+    "id": "Generative AI",
+    "x": 36.79,
+    "value": 1
+  },
+  {
+    "domain": "Genomics & Gene Editing",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 43.04,
+    "reldens.op": 83.22,
+    "y": 63.83,
+    "reldens.reg": 89.68,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 35,
+    "rank.op": 36,
+    "rank.cb": 29,
+    "rank": 100,
+    "rank.rs": 85.49,
+    "id": "Genomics & Gene Editing",
+    "x": 85.49,
+    "value": 1
+  },
+  {
+    "domain": "High-Performance Computing (HPC)",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 15.93,
+    "reldens.op": 27.92,
+    "y": 70.93,
+    "reldens.reg": 19.44,
+    "parent": "Digital & AI",
+    "color": "#365a94",
+    "rank.reg": 15,
+    "rank.op": 11,
+    "rank.cb": 5,
+    "rank": 31,
+    "rank.rs": 13.99,
+    "id": "High-Performance Computing (HPC)",
+    "x": 13.99,
+    "value": 1
+  },
+  {
+    "domain": "Immunotherapy",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 62.88,
+    "reldens.op": 74.61,
+    "y": 62.72,
+    "reldens.reg": 90.67,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 36,
+    "rank.op": 28,
+    "rank.cb": 34,
+    "rank": 98,
+    "rank.rs": 83.42,
+    "id": "Immunotherapy",
+    "x": 83.42,
+    "value": 1
+  },
+  {
+    "domain": "Internet of Things (IOT)",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 22,
+    "reldens.op": 21.47,
+    "y": 76.38,
+    "reldens.reg": 12.41,
+    "parent": "Digital & AI",
+    "color": "#365a94",
+    "rank.reg": 9,
+    "rank.op": 6,
+    "rank.cb": 17,
+    "rank": 32,
+    "rank.rs": 15.03,
+    "id": "Internet of Things (IOT)",
+    "x": 15.03,
+    "value": 1
+  },
+  {
+    "domain": "Medical Devices",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 33.86,
+    "reldens.op": 60.75,
+    "y": 57.68,
+    "reldens.reg": 33.58,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 21,
+    "rank.op": 24,
+    "rank.cb": 26,
+    "rank": 71,
+    "rank.rs": 55.44,
+    "id": "Medical Devices",
+    "x": 55.44,
+    "value": 1
+  },
+  {
+    "domain": "Microelectronics",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 22.67,
+    "reldens.op": 49.84,
+    "y": 69.9,
+    "reldens.reg": 29.17,
+    "parent": "Digital & AI",
+    "color": "#365a94",
+    "rank.reg": 17,
+    "rank.op": 21,
+    "rank.cb": 19,
+    "rank": 57,
+    "rank.rs": 40.93,
+    "id": "Microelectronics",
+    "x": 40.93,
+    "value": 1
+  },
+  {
+    "domain": "mRNA Technology",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 76.16,
+    "reldens.op": 86.43,
+    "y": 67.09,
+    "reldens.reg": 95.67,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 38,
+    "rank.op": 38,
+    "rank.cb": 38,
+    "rank": 114,
+    "rank.rs": 100,
+    "id": "mRNA Technology",
+    "x": 100,
+    "value": 1
+  },
+  {
+    "domain": "Nanotechnologies",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 16.22,
+    "reldens.op": 61.68,
+    "y": 60.84,
+    "reldens.reg": 60.72,
+    "parent": "Advanced Industry & Materials",
+    "color": "#669999",
+    "rank.reg": 27,
+    "rank.op": 26,
+    "rank.cb": 6,
+    "rank": 59,
+    "rank.rs": 43.01,
+    "id": "Nanotechnologies",
+    "x": 43.01,
+    "value": 1
+  },
+  {
+    "domain": "Natural Language Processing",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 26.16,
+    "reldens.op": 26.85,
+    "y": 75.44,
+    "reldens.reg": 10.72,
+    "parent": "Digital & AI",
+    "color": "#365a94",
+    "rank.reg": 6,
+    "rank.op": 10,
+    "rank.cb": 23,
+    "rank": 39,
+    "rank.rs": 22.28,
+    "id": "Natural Language Processing",
+    "x": 22.28,
+    "value": 1
+  },
+  {
+    "domain": "Nuclear Energy",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 16.86,
+    "reldens.op": 39.46,
+    "y": 53.83,
+    "reldens.reg": 40.08,
+    "parent": "Energy & Climate",
+    "color": "#8cab79",
+    "rank.reg": 22,
+    "rank.op": 16,
+    "rank.cb": 8,
+    "rank": 46,
+    "rank.rs": 29.53,
+    "id": "Nuclear Energy",
+    "x": 29.53,
+    "value": 1
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 64.55,
+    "reldens.op": 74.74,
+    "y": 57.98,
+    "reldens.reg": 74.74,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 29,
+    "rank.op": 29,
+    "rank.cb": 35,
+    "rank": 93,
+    "rank.rs": 78.24,
+    "id": "Pharmaceuticals",
+    "x": 78.24,
+    "value": 1
+  },
+  {
+    "domain": "Photonics",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 14.78,
+    "reldens.op": 44,
+    "y": 71.29,
+    "reldens.reg": 31.61,
+    "parent": "Digital & AI",
+    "color": "#365a94",
+    "rank.reg": 19,
+    "rank.op": 19,
+    "rank.cb": 4,
+    "rank": 42,
+    "rank.rs": 25.39,
+    "id": "Photonics",
+    "x": 25.39,
+    "value": 1
+  },
+  {
+    "domain": "Precision Medicine",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 54.91,
+    "reldens.op": 83.97,
+    "y": 65.67,
+    "reldens.reg": 73.59,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 28,
+    "rank.op": 37,
+    "rank.cb": 33,
+    "rank": 98,
+    "rank.rs": 83.42,
+    "id": "Precision Medicine",
+    "x": 83.42,
+    "value": 1
+  },
+  {
+    "domain": "Quantum computing",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 16.89,
+    "reldens.op": 12.63,
+    "y": 71.3,
+    "reldens.reg": 14.36,
+    "parent": "Digital & AI",
+    "color": "#365a94",
+    "rank.reg": 12,
+    "rank.op": 4,
+    "rank.cb": 9,
+    "rank": 25,
+    "rank.rs": 7.77,
+    "id": "Quantum computing",
+    "x": 7.77,
+    "value": 1
+  },
+  {
+    "domain": "Regenerative Medicine",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 13.9,
+    "reldens.op": 77.31,
+    "y": 58.91,
+    "reldens.reg": 75.11,
+    "parent": "Health & Biotech",
+    "color": "#800020",
+    "rank.reg": 30,
+    "rank.op": 33,
+    "rank.cb": 3,
+    "rank": 66,
+    "rank.rs": 50.26,
+    "id": "Regenerative Medicine",
+    "x": 50.26,
+    "value": 1
+  },
+  {
+    "domain": "Robotics",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 22.43,
+    "reldens.op": 24.36,
+    "y": 61.73,
+    "reldens.reg": 16.46,
+    "parent": "Advanced Industry & Materials",
+    "color": "#669999",
+    "rank.reg": 13,
+    "rank.op": 8,
+    "rank.cb": 18,
+    "rank": 39,
+    "rank.rs": 22.28,
+    "id": "Robotics",
+    "x": 22.28,
+    "value": 1
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 32.14,
+    "reldens.op": 61.34,
+    "y": 73.83,
+    "reldens.reg": 32.81,
+    "parent": "Digital & AI",
+    "color": "#365a94",
+    "rank.reg": 20,
+    "rank.op": 25,
+    "rank.cb": 25,
+    "rank": 70,
+    "rank.rs": 54.4,
+    "id": "Semiconductors",
+    "x": 54.4,
+    "value": 1
+  },
+  {
+    "domain": "Sensor Technologies",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 20.53,
+    "reldens.op": 55.55,
+    "y": 62.66,
+    "reldens.reg": 23.44,
+    "parent": "Advanced Industry & Materials",
+    "color": "#669999",
+    "rank.reg": 16,
+    "rank.op": 23,
+    "rank.cb": 16,
+    "rank": 55,
+    "rank.rs": 38.86,
+    "id": "Sensor Technologies",
+    "x": 38.86,
+    "value": 1
+  },
+  {
+    "domain": "Smart Grids",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 45.63,
+    "reldens.op": 39.21,
+    "y": 68.91,
+    "reldens.reg": 8.96,
+    "parent": "Energy & Climate",
+    "color": "#8cab79",
+    "rank.reg": 5,
+    "rank.op": 15,
+    "rank.cb": 31,
+    "rank": 51,
+    "rank.rs": 34.72,
+    "id": "Smart Grids",
+    "x": 34.72,
+    "value": 1
+  },
+  {
+    "domain": "Smart Materials",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 16.38,
+    "reldens.op": 42.79,
+    "y": 59.57,
+    "reldens.reg": 43.13,
+    "parent": "Advanced Industry & Materials",
+    "color": "#669999",
+    "rank.reg": 23,
+    "rank.op": 17,
+    "rank.cb": 7,
+    "rank": 47,
+    "rank.rs": 30.57,
+    "id": "Smart Materials",
+    "x": 30.57,
+    "value": 1
+  },
+  {
+    "domain": "Space technologies",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 12.44,
+    "reldens.op": 36.11,
+    "y": 72.69,
+    "reldens.reg": 8.48,
+    "parent": "Security & Space",
+    "color": "#e28f26",
+    "rank.reg": 3,
+    "rank.op": 13,
+    "rank.cb": 2,
+    "rank": 18,
+    "rank.rs": 0.52,
+    "id": "Space technologies",
+    "x": 0.52,
+    "value": 1
+  },
+  {
+    "domain": "Waste Management",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 17.71,
+    "reldens.op": 65.7,
+    "y": 50.11,
+    "reldens.reg": 52.47,
+    "parent": "Energy & Climate",
+    "color": "#8cab79",
+    "rank.reg": 24,
+    "rank.op": 27,
+    "rank.cb": 10,
+    "rank": 61,
+    "rank.rs": 45.08,
+    "id": "Waste Management",
+    "x": 45.08,
+    "value": 1
+  },
+  {
+    "domain": "Wind Energy",
+    "geo": "Flanders (BE2)",
+    "reldens.cb": 25.09,
+    "reldens.op": 25.49,
+    "y": 46.66,
+    "reldens.reg": 16.81,
+    "parent": "Energy & Climate",
+    "color": "#8cab79",
+    "rank.reg": 14,
+    "rank.op": 9,
+    "rank.cb": 21,
+    "rank": 44,
+    "rank.rs": 27.46,
+    "id": "Wind Energy",
+    "x": 27.46,
+    "value": 1
+  }
+]  ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,110];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+const parents = Array.from(new Set(data.map(d=>d.parent)));
+const parentColors = {};
+parents.forEach(p=>{ const c = (data.find(d=>d.parent===p)||{}).color || "#666666"; parentColors[p]=c; });
+let activeParents = new Set(parents);
+function renderLegend(){
+  const legend = document.getElementById('legend');
+  if(!legend) return;
+  legend.innerHTML = '';
+  parents.forEach(p=>{
+    const item = document.createElement('div');
+    item.className = 'legend-item active';
+    item.setAttribute('data-group', p);
+    item.setAttribute('role','button');
+    item.setAttribute('tabindex','0');
+    item.setAttribute('aria-pressed','true');
+    const square = document.createElement('div');
+    square.className = 'legend-square';
+    square.style.backgroundColor = parentColors[p];
+    const label = document.createElement('span');
+    label.textContent = p;
+    item.appendChild(square);
+    item.appendChild(label);
+    item.addEventListener('click', ()=>toggleGroup(p,item));
+    item.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); toggleGroup(p,item); } });
+    legend.appendChild(item);
+  });
+}
+function adjustLayoutForLegend(){
+  const chart=document.getElementById('chart');
+  const legend=document.getElementById('legend');
+  if(!chart||!legend)return;
+  const h=Math.ceil(legend.getBoundingClientRect().height);
+  chart.style.bottom=(h+5)+'px';
+}
+function toggleGroup(group,item){
+  if(activeParents.has(group)){
+    activeParents.delete(group);
+    item.classList.remove('active');
+    item.classList.add('inactive');
+    item.setAttribute('aria-pressed','false');
+  } else {
+    activeParents.add(group);
+    item.classList.add('active');
+    item.classList.remove('inactive');
+    item.setAttribute('aria-pressed','true');
+  }
+  updateVisualization();
+}
+function updateVisualization(){
+  const filtered = data.filter(d=>activeParents.has(d.parent));
+  plot.data(filtered).render();
+  setTimeout(adjustLayoutForLegend,0);
+  setTimeout(()=>{
+    document.querySelectorAll('text.custom-label').forEach(el=>el.remove());
+    customLabels = [];
+    hoveringElements = new Set();
+    initializeCustomLabels();
+    adjustLayoutForLegend();
+  },400);
+}
+renderLegend();
+adjustLayoutForLegend();
+window.addEventListener('resize',adjustLayoutForLegend);
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+var plot = new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy("id")
+  .tooltip(false)
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"Technological Complexity",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Composite Relatedness Density",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  if(!window.__labelsUpdaterStarted){ startPositionUpdater(); window.__labelsUpdaterStarted = true; }
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      const svgEl = document.querySelector('#chart svg');
+      svgEl.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+
+        customLabels.forEach(l=>{
+          if(l.circle!==circle){
+            l.text.classList.add('dimmed');
+            l.circle.style.opacity='0.35';
+          } else {
+            l.text.classList.remove('dimmed');
+            l.circle.style.opacity='1';
+          }
+        });
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+
+        customLabels.forEach(l=>{
+          l.text.classList.remove('dimmed');
+          l.circle.style.opacity='';
+        });
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+
+  const bounds = getPlotBounds(svg);
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  const labelsOrdered=[...customLabels].map(ld=>{
+    const cp=circlePositions.find(cp=>cp.circle===ld.circle);
+    return {ld,cp};
+  }).filter(d=>d.cp).sort((a,b)=>a.cp.coords.y-b.cp.coords.y || a.cp.coords.x-b.cp.coords.x);
+  const placedBoxes=[];
+  labelsOrdered.forEach(({ld,cp})=>{
+    const {circle,text,fullText}=ld;
+    const r = parseFloat(circle.getAttribute('r')) || 7.5;
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    const pos = findBestPosition(text, cp.coords.x, cp.coords.y, r, circlePositions, fullText, placedBoxes, bounds);
+    text.setAttribute('x', pos.x);
+    text.setAttribute('y', pos.y);
+    text.setAttribute('text-anchor', pos.anchor);
+    text.textContent = pos.text;
+    ld.defaultText = pos.text;
+    const bb = text.getBBox();
+    if(!pos.hasCollision){
+      text.classList.remove('collision');
+      text.setAttribute('opacity','1');
+      placedBoxes.push({x:bb.x,y:bb.y,width:bb.width,height:bb.height});
+    } else {
+      text.classList.add('collision');
+      text.setAttribute('opacity','0.35');
+    }
+  });
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+</body>
+</html>

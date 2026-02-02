@@ -1,0 +1,751 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
+.box{width:14px;height:14px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(rect1, rect2) {
+  return !(rect1.x + rect1.width < rect2.x || 
+           rect2.x + rect2.width < rect1.x || 
+           rect1.y + rect1.height < rect2.y || 
+           rect2.y + rect2.height < rect1.y);
+}
+
+function getPositionOptions(centerX, centerY, radius, padding = 5) {
+  return [
+    { name: 'right', x: centerX + radius + padding, y: centerY + 3, anchor: 'start' },
+    { name: 'left', x: centerX - radius - padding, y: centerY + 3, anchor: 'end' },
+    { name: 'below', x: centerX, y: centerY + radius + padding + 10, anchor: 'middle' },
+    { name: 'above', x: centerX, y: centerY - radius - padding, anchor: 'middle' }
+  ];
+}
+
+function hasCollision(textElement, allCircles) {
+  try {
+    const textBBox = textElement.getBBox();
+    
+    for (const circleData of allCircles) {
+      const r = parseFloat(circleData.circle.getAttribute('r')) || 7.5;
+      const circleBBox = {
+        x: circleData.coords.x - r,
+        y: circleData.coords.y - r,
+        width: r * 2,
+        height: r * 2
+      };
+      
+      if (rectanglesOverlap(textBBox, circleBBox)) {
+        return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+function findBestPosition(textElement, centerX, centerY, radius, allCircles, fullText) {
+  const positions = getPositionOptions(centerX, centerY, radius);
+  let hasCollisionWithFull = false;
+  
+  textElement.textContent = fullText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: fullText, hasCollision: false };
+    }
+  }
+  
+  hasCollisionWithFull = true;
+  
+  const truncatedText = truncateText(fullText, 20);
+  textElement.textContent = truncatedText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: truncatedText, hasCollision: hasCollisionWithFull };
+    }
+  }
+  
+  return { ...positions[0], text: truncatedText, hasCollision: true };
+}
+
+// Function to get data bound to DOM element
+function getBoundData(element) {
+  // Try to get data from d3plus binding
+  if (element.__data__) {
+    return element.__data__;
+  }
+  
+  // Try to get data from parent elements
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  // Prefer the bound data directly from D3
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  // No fallback by position to avoid mismatches
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data=
+ [
+  {
+    "id": "Advanced Manufacturing",
+    "x": 31.32,
+    "y": 61,
+    "rca": 0.85,
+    "color": "#CDC3C3",
+    "value": 0.5,
+    "rca_pub": 0.85
+  },
+  {
+    "id": "Advanced Materials",
+    "x": 53.75,
+    "y": 61.88,
+    "rca": 1.09,
+    "color": "#AABEAA",
+    "value": 0.5,
+    "rca_pub": 1.09
+  },
+  {
+    "id": "Advanced Therapy Medicinal Products (ATMP)",
+    "x": 91.88,
+    "y": 64.79,
+    "rca": 1.13,
+    "color": "#A2B9A2",
+    "value": 0.5,
+    "rca_pub": 1.13
+  },
+  {
+    "id": "Artificial Intelligence",
+    "x": 12.19,
+    "y": 76.09,
+    "rca": 0.92,
+    "color": "#D0CACA",
+    "value": 0.5,
+    "rca_pub": 0.92
+  },
+  {
+    "id": "Autonomous Robots",
+    "x": 12.85,
+    "y": 68.39,
+    "rca": 0.77,
+    "color": "#CAB9B9",
+    "value": 0.5,
+    "rca_pub": 0.77
+  },
+  {
+    "id": "Bioinformatics",
+    "x": 76.89,
+    "y": 71.15,
+    "rca": 1.1,
+    "color": "#A8BCA8",
+    "value": 0.5,
+    "rca_pub": 1.1
+  },
+  {
+    "id": "Biomanufacturing",
+    "x": 88.67,
+    "y": 62.49,
+    "rca": 1.25,
+    "color": "#91B091",
+    "value": 0.5,
+    "rca_pub": 1.25
+  },
+  {
+    "id": "Biotechnology",
+    "x": 84.71,
+    "y": 62.73,
+    "rca": 1.14,
+    "color": "#A1B9A1",
+    "value": 0.5,
+    "rca_pub": 1.14
+  },
+  {
+    "id": "Carbon Capture & Storage",
+    "x": 55.35,
+    "y": 52.8,
+    "rca": 1.05,
+    "color": "#B4C3B4",
+    "value": 0.5,
+    "rca_pub": 1.05
+  },
+  {
+    "id": "Cloud and Edge Computing",
+    "x": 6,
+    "y": 74.04,
+    "rca": 0.67,
+    "color": "#C6ADAD",
+    "value": 0.5,
+    "rca_pub": 0.67
+  },
+  {
+    "id": "Cybersecurity",
+    "x": 8.81,
+    "y": 76.37,
+    "rca": 0.9,
+    "color": "#CFC8C8",
+    "value": 0.5,
+    "rca_pub": 0.9
+  },
+  {
+    "id": "Defence Technologies",
+    "x": 7.34,
+    "y": 40.3,
+    "rca": 0.72,
+    "color": "#C8B3B3",
+    "value": 0.5,
+    "rca_pub": 0.72
+  },
+  {
+    "id": "Drones",
+    "x": 13.94,
+    "y": 65.97,
+    "rca": 0.77,
+    "color": "#CAB9B9",
+    "value": 0.5,
+    "rca_pub": 0.77
+  },
+  {
+    "id": "Food Technology",
+    "x": 75.96,
+    "y": 54.02,
+    "rca": 1.33,
+    "color": "#89AC89",
+    "value": 0.5,
+    "rca_pub": 1.33
+  },
+  {
+    "id": "Generative AI",
+    "x": 11.62,
+    "y": 73.1,
+    "rca": 1.11,
+    "color": "#A6BBA6",
+    "value": 0.5,
+    "rca_pub": 1.11
+  },
+  {
+    "id": "Genomics & Gene Editing",
+    "x": 89.68,
+    "y": 63.83,
+    "rca": 1.12,
+    "color": "#A4BAA4",
+    "value": 0.5,
+    "rca_pub": 1.12
+  },
+  {
+    "id": "High-Performance Computing (HPC)",
+    "x": 19.44,
+    "y": 70.93,
+    "rca": 0.96,
+    "color": "#D2CFCF",
+    "value": 0.5,
+    "rca_pub": 0.96
+  },
+  {
+    "id": "Immunotherapy",
+    "x": 90.67,
+    "y": 62.72,
+    "rca": 1.08,
+    "color": "#ACBFAC",
+    "value": 0.5,
+    "rca_pub": 1.08
+  },
+  {
+    "id": "Internet of Things (IOT)",
+    "x": 12.41,
+    "y": 76.38,
+    "rca": 0.75,
+    "color": "#C9B7B7",
+    "value": 0.5,
+    "rca_pub": 0.75
+  },
+  {
+    "id": "Medical Devices",
+    "x": 33.58,
+    "y": 57.68,
+    "rca": 1.19,
+    "color": "#99B499",
+    "value": 0.5,
+    "rca_pub": 1.19
+  },
+  {
+    "id": "Microelectronics",
+    "x": 29.17,
+    "y": 69.9,
+    "rca": 1.65,
+    "color": "#719F71",
+    "value": 0.5,
+    "rca_pub": 1.65
+  },
+  {
+    "id": "mRNA Technology",
+    "x": 95.67,
+    "y": 67.09,
+    "rca": 1.02,
+    "color": "#BFC9BF",
+    "value": 0.5,
+    "rca_pub": 1.02
+  },
+  {
+    "id": "Nanotechnologies",
+    "x": 60.72,
+    "y": 60.84,
+    "rca": 0.96,
+    "color": "#D2CFCF",
+    "value": 0.5,
+    "rca_pub": 0.96
+  },
+  {
+    "id": "Natural Language Processing",
+    "x": 10.72,
+    "y": 75.44,
+    "rca": 1.12,
+    "color": "#A4BAA4",
+    "value": 0.5,
+    "rca_pub": 1.12
+  },
+  {
+    "id": "Nuclear Energy",
+    "x": 40.08,
+    "y": 53.83,
+    "rca": 0.93,
+    "color": "#D0CBCB",
+    "value": 0.5,
+    "rca_pub": 0.93
+  },
+  {
+    "id": "Pharmaceuticals",
+    "x": 74.74,
+    "y": 57.98,
+    "rca": 1.15,
+    "color": "#9FB89F",
+    "value": 0.5,
+    "rca_pub": 1.15
+  },
+  {
+    "id": "Photonics",
+    "x": 31.61,
+    "y": 71.29,
+    "rca": 0.99,
+    "color": "#D3D2D2",
+    "value": 0.5,
+    "rca_pub": 0.99
+  },
+  {
+    "id": "Precision Medicine",
+    "x": 73.59,
+    "y": 65.67,
+    "rca": 1.03,
+    "color": "#BBC6BB",
+    "value": 0.5,
+    "rca_pub": 1.03
+  },
+  {
+    "id": "Quantum computing",
+    "x": 14.36,
+    "y": 71.3,
+    "rca": 0.36,
+    "color": "#B67F7F",
+    "value": 0.5,
+    "rca_pub": 0.36
+  },
+  {
+    "id": "Regenerative Medicine",
+    "x": 75.11,
+    "y": 58.91,
+    "rca": 1.09,
+    "color": "#AABEAA",
+    "value": 0.5,
+    "rca_pub": 1.09
+  },
+  {
+    "id": "Robotics",
+    "x": 16.46,
+    "y": 61.73,
+    "rca": 0.9,
+    "color": "#CFC8C8",
+    "value": 0.5,
+    "rca_pub": 0.9
+  },
+  {
+    "id": "Semiconductors",
+    "x": 32.81,
+    "y": 73.83,
+    "rca": 2.15,
+    "color": "#599359",
+    "value": 0.5,
+    "rca_pub": 2.15
+  },
+  {
+    "id": "Sensor Technologies",
+    "x": 23.44,
+    "y": 62.66,
+    "rca": 0.99,
+    "color": "#D3D2D2",
+    "value": 0.5,
+    "rca_pub": 0.99
+  },
+  {
+    "id": "Smart Grids",
+    "x": 8.96,
+    "y": 68.91,
+    "rca": 1.04,
+    "color": "#B7C5B7",
+    "value": 0.5,
+    "rca_pub": 1.04
+  },
+  {
+    "id": "Smart Materials",
+    "x": 43.13,
+    "y": 59.57,
+    "rca": 0.91,
+    "color": "#D0C9C9",
+    "value": 0.5,
+    "rca_pub": 0.91
+  },
+  {
+    "id": "Space technologies",
+    "x": 8.48,
+    "y": 72.69,
+    "rca": 0.84,
+    "color": "#CDC1C1",
+    "value": 0.5,
+    "rca_pub": 0.84
+  },
+  {
+    "id": "Waste Management",
+    "x": 52.47,
+    "y": 50.11,
+    "rca": 1.16,
+    "color": "#9DB79D",
+    "value": 0.5,
+    "rca_pub": 1.16
+  },
+  {
+    "id": "Wind Energy",
+    "x": 16.81,
+    "y": 46.66,
+    "rca": 1.26,
+    "color": "#90B090",
+    "value": 0.5,
+    "rca_pub": 1.26
+  }
+] ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,100];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+    body:d=>`<table class='tooltip-table'>
+      <tr><td class='title'>Relatedness Density:</td><td class='data'>${d.x}</td></tr>
+      <tr><td class='title'>Complexity:</td><td class='data'>${d.y}</td></tr>
+      <tr><td class='title'>RCA:</td><td class='data'>${d.rca}</td></tr>
+      <tr><td class='title'>ID:</td><td class='data'>${d.id}</td></tr>
+    </table>`,
+     title:d=>d.id
+  })
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"Technological Complexity",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Technological Relatedness Density",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  startPositionUpdater();
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      svg.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+        
+        // Show in console for debugging
+        console.log('Hovering over:', matchingData.id);
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  customLabels.forEach((labelData) => {
+    const {circle, text, fullText} = labelData;
+    
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    
+    if (circle && text) {
+      const circleData = circlePositions.find(cp => cp.circle === circle);
+      if (circleData) {
+        const r = parseFloat(circle.getAttribute('r')) || 7.5;
+        const bestPosition = findBestPosition(
+          text, 
+          circleData.coords.x, 
+          circleData.coords.y, 
+          r,
+          circlePositions,
+          fullText
+        );
+        
+        text.setAttribute('x', bestPosition.x);
+        text.setAttribute('y', bestPosition.y);
+        text.setAttribute('text-anchor', bestPosition.anchor);
+        text.textContent = bestPosition.text;
+        labelData.defaultText = bestPosition.text;
+        
+        if (bestPosition.hasCollision) {
+          text.classList.add('collision');
+          text.setAttribute('opacity', '0.3');
+        } else {
+          text.classList.remove('collision');
+          text.setAttribute('opacity', '1');
+        }
+      }
+    }
+  });
+  
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
+</div>
+</body>
+</html>
