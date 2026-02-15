@@ -1,0 +1,646 @@
+<!doctype html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <title>Forced Network</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #legend-container {
+            flex: 0 0 auto;
+            max-height: 12%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(4px, 1.2vh, 12px) clamp(8px, 3vw, 32px);
+            background: rgba(255, 255, 255, 0.96);
+            order: 2;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .custom-legend {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(6px, 1.5vw, 16px);
+            width: 100%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: clamp(4px, 0.5vw, 8px);
+            font-weight: 600;
+            color: #1b1d21;
+            font-size: clamp(10px, 1.3vw, 16px);
+            cursor: default;
+            white-space: nowrap;
+        }
+
+        .legend-item.dim {
+            opacity: 0.35;
+        }
+
+        .legend-square {
+            width: clamp(10px, 1.2vw, 16px);
+            height: clamp(10px, 1.2vw, 16px);
+            flex-shrink: 0;
+        }
+
+        .legend-label {
+            pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            #legend-container {
+                padding: 4px 8px;
+                max-height: 18%;
+            }
+
+            .custom-legend {
+                gap: 4px 8px;
+            }
+
+            .legend-item {
+                font-size: 10px;
+                gap: 3px;
+            }
+
+            .legend-square {
+                width: 8px;
+                height: 8px;
+            }
+        }
+
+        svg.network {
+            flex: 1 1 auto;
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: move;
+            background: #ffffff;
+            order: 1;
+        }
+
+        .link {
+            stroke: rgba(140, 150, 170, 0.45);
+        }
+
+        .link.highlighted {
+            stroke: rgba(80, 90, 110, 0.9);
+            stroke-width: 6px;
+        }
+
+        .link.dimmed {
+            opacity: 0.2;
+        }
+
+        .node.dimmed {
+            opacity: 0.25;
+        }
+
+        .node.highlighted circle {
+            stroke-width: 3px;
+        }
+
+        .node.highlighted text {
+            font-weight: 700;
+        }
+
+        .node circle {
+            stroke: #ffffff;
+            stroke-width: 2px;
+        }
+
+        .node text {
+            font-weight: 400;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="legend-container">
+        <div class="custom-legend" id="legend"></div>
+    </div>
+
+    <svg class="network"></svg>
+
+    <script>
+
+        var nodes = [{ "id": "Advanced Biologics & Cell Therapies", "id2": 0, "x": -1.6059, "y": 1.4467, "color": "#e28f26", "parent": "Therapeutics & Pharma", "size": 1.5 }, { "id": "Air and Water Quality Sensors", "id2": 1, "x": -3.9129, "y": 1.0636, "color": "#800020", "parent": "Health Systems & Environment", "size": 1.5 }, { "id": "AMR Solutions", "id2": 2, "x": -3.838, "y": -0.305, "color": "#e28f26", "parent": "Therapeutics & Pharma", "size": 1.5 }, { "id": "Artificial Intelligence", "id2": 3, "x": -2.2856, "y": -0.1857, "color": "#365a94", "parent": "Data & Digital Technologies", "size": 1.5 }, { "id": "Autonomous Tractors and Drones", "id2": 4, "x": -4.8729, "y": -1.4537, "color": "#c2785c", "parent": "AgriTech & Supply Chain", "size": 1.5 }, { "id": "Biosensors and Wearables", "id2": 15, "x": 0.9855, "y": -0.0918, "color": "#669999", "parent": "Diagnostics & Devices", "size": 1.5 }, { "id": "Blockchain", "id2": 7, "x": -2.1095, "y": -1.3526, "color": "#365a94", "parent": "Data & Digital Technologies", "size": 1.5 }, { "id": "Breeding", "id2": 5, "x": -0.953, "y": 4.0851, "color": "#8cab79", "parent": "Agricultural Biotechnology", "size": 1.5 }, { "id": "Climate-smart technologies", "id2": 6, "x": -2.6266, "y": 4.2281, "color": "#c2785c", "parent": "AgriTech & Supply Chain", "size": 1.5 }, { "id": "Data Analytics", "id2": 8, "x": -2.5096, "y": 0.1046, "color": "#365a94", "parent": "Data & Digital Technologies", "size": 1.5 }, { "id": "Digital Therapeutics", "id2": 9, "x": 0.095, "y": -0.4835, "color": "#365a94", "parent": "Data & Digital Technologies", "size": 1.5 }, { "id": "DNA Technology - Genetically modified organisms (GMOs)", "id2": 26, "x": -0.1979, "y": 0.9084, "color": "#8cab79", "parent": "Agricultural Biotechnology", "size": 1.5 }, { "id": "Electronic Health Records", "id2": 10, "x": -0.0088, "y": -1.4027, "color": "#365a94", "parent": "Data & Digital Technologies", "size": 1.5 }, { "id": "Fertilisers and Pesticides", "id2": 11, "x": -1.4208, "y": 3.3813, "color": "#8cab79", "parent": "Agricultural Biotechnology", "size": 1.5 }, { "id": "Geographic Information Systems (GIS) and Remote Sensing", "id2": 28, "x": -4.0234, "y": -1.5869, "color": "#365a94", "parent": "Data & Digital Technologies", "size": 1.5 }, { "id": "Imaging Technology", "id2": 12, "x": -0.9838, "y": 0.3532, "color": "#669999", "parent": "Diagnostics & Devices", "size": 1.5 }, { "id": "Infectious Diseases Tests", "id2": 13, "x": -1.5427, "y": 0.3284, "color": "#669999", "parent": "Diagnostics & Devices", "size": 1.5 }, { "id": "Internet Of Things (IOT)", "id2": 29, "x": -3.6494, "y": 0.2804, "color": "#c2785c", "parent": "AgriTech & Supply Chain", "size": 1.5 }, { "id": "Livestock technologies", "id2": 20, "x": -1.4398, "y": 4.3513, "color": "#8cab79", "parent": "Agricultural Biotechnology", "size": 1.5 }, { "id": "Nanotechnologies", "id2": 32, "x": -3.1094, "y": 2.0646, "color": "#800020", "parent": "Health Systems & Environment", "size": 1.5 }, { "id": "Natural Language Processing", "id2": 27, "x": -2.6701, "y": -1.5224, "color": "#365a94", "parent": "Data & Digital Technologies", "size": 1.5 }, { "id": "Plant Tissue Culture", "id2": 21, "x": -1.7473, "y": 3.5638, "color": "#8cab79", "parent": "Agricultural Biotechnology", "size": 1.5 }, { "id": "Precision agriculture", "id2": 23, "x": -1.9143, "y": 2.7814, "color": "#8cab79", "parent": "Agricultural Biotechnology", "size": 1.5 }, { "id": "Prosthetics", "id2": 14, "x": 0.6514, "y": -0.9899, "color": "#669999", "parent": "Diagnostics & Devices", "size": 1.5 }, { "id": "Rehab Robotics", "id2": 16, "x": -0.6989, "y": -0.1178, "color": "#669999", "parent": "Diagnostics & Devices", "size": 1.5 }, { "id": "Robots", "id2": 22, "x": -3.71, "y": -0.9769, "color": "#c2785c", "parent": "AgriTech & Supply Chain", "size": 1.5 }, { "id": "Supply Chain Management", "id2": 31, "x": -3.2465, "y": -0.7489, "color": "#800020", "parent": "Health Systems & Environment", "size": 1.5 }, { "id": "Surgical Devices", "id2": 19, "x": -0.553, "y": 0.0762, "color": "#669999", "parent": "Diagnostics & Devices", "size": 1.5 }, { "id": "Telemedicine", "id2": 30, "x": 0.3773, "y": 0.1169, "color": "#365a94", "parent": "Data & Digital Technologies", "size": 1.5 }, { "id": "Vaccines", "id2": 24, "x": -0.5527, "y": 1.1384, "color": "#e28f26", "parent": "Therapeutics & Pharma", "size": 1.5 }, { "id": "Vector Control", "id2": 17, "x": -3.62, "y": 1.7151, "color": "#800020", "parent": "Health Systems & Environment", "size": 1.5 }, { "id": "Water And Sanitation Hygiene Technologies", "id2": 18, "x": -3.907, "y": 4.254, "color": "#800020", "parent": "Health Systems & Environment", "size": 1.5 }, { "id": "Water management", "id2": 25, "x": -3.7023, "y": 5.3269, "color": "#c2785c", "parent": "AgriTech & Supply Chain", "size": 1.5 }];
+
+        var links = [{ "source": "Advanced Biologics & Cell Therapies", "target": "Nanotechnologies", "weight": 1.89 }, { "source": "Advanced Biologics & Cell Therapies", "target": "Plant Tissue Culture", "weight": 3.3 }, { "source": "Advanced Biologics & Cell Therapies", "target": "Surgical Devices", "weight": 16.32 }, { "source": "Advanced Biologics & Cell Therapies", "target": "Vaccines", "weight": 17.14 }, { "source": "Air and Water Quality Sensors", "target": "Internet Of Things (IOT)", "weight": 2.69 }, { "source": "AMR Solutions", "target": "Artificial Intelligence", "weight": 5.3 }, { "source": "AMR Solutions", "target": "Robots", "weight": 29.18 }, { "source": "Artificial Intelligence", "target": "Data Analytics", "weight": 32.66 }, { "source": "Autonomous Tractors and Drones", "target": "Robots", "weight": 4.57 }, { "source": "Breeding", "target": "Livestock technologies", "weight": 31.87 }, { "source": "Breeding", "target": "Precision agriculture", "weight": 3.42 }, { "source": "Climate-smart technologies", "target": "Fertilisers and Pesticides", "weight": 3.48 }, { "source": "Climate-smart technologies", "target": "Water And Sanitation Hygiene Technologies", "weight": 7.13 }, { "source": "Blockchain", "target": "Data Analytics", "weight": 3.03 }, { "source": "Data Analytics", "target": "Geographic Information Systems (GIS) and Remote Sensing", "weight": 4.16 }, { "source": "Data Analytics", "target": "Internet Of Things (IOT)", "weight": 4.01 }, { "source": "Data Analytics", "target": "Natural Language Processing", "weight": 5.2 }, { "source": "Data Analytics", "target": "Supply Chain Management", "weight": 2.71 }, { "source": "Data Analytics", "target": "Surgical Devices", "weight": 5.16 }, { "source": "Digital Therapeutics", "target": "Rehab Robotics", "weight": 5.65 }, { "source": "Advanced Biologics & Cell Therapies", "target": "DNA Technology - Genetically modified organisms (GMOs)", "weight": 7.72 }, { "source": "Electronic Health Records", "target": "Rehab Robotics", "weight": 3.53 }, { "source": "Fertilisers and Pesticides", "target": "Plant Tissue Culture", "weight": 31.21 }, { "source": "Fertilisers and Pesticides", "target": "Precision agriculture", "weight": 19.57 }, { "source": "Imaging Technology", "target": "Surgical Devices", "weight": 22.67 }, { "source": "Infectious Diseases Tests", "target": "Surgical Devices", "weight": 9.62 }, { "source": "Prosthetics", "target": "Rehab Robotics", "weight": 2.43 }, { "source": "Biosensors and Wearables", "target": "Rehab Robotics", "weight": 2.47 }, { "source": "Rehab Robotics", "target": "Surgical Devices", "weight": 35.97 }, { "source": "Rehab Robotics", "target": "Telemedicine", "weight": 3.55 }, { "source": "Vector Control", "target": "Water And Sanitation Hygiene Technologies", "weight": 0 }, { "source": "Water And Sanitation Hygiene Technologies", "target": "Water management", "weight": 9.18 }, { "source": "Surgical Devices", "target": "Rehab Robotics", "weight": 35.97 }, { "source": "Data Analytics", "target": "Artificial Intelligence", "weight": 32.66 }, { "source": "Livestock technologies", "target": "Breeding", "weight": 31.87 }, { "source": "Plant Tissue Culture", "target": "Fertilisers and Pesticides", "weight": 31.21 }, { "source": "Robots", "target": "AMR Solutions", "weight": 29.18 }, { "source": "Surgical Devices", "target": "Imaging Technology", "weight": 22.67 }, { "source": "Precision agriculture", "target": "Fertilisers and Pesticides", "weight": 19.57 }, { "source": "Rehab Robotics", "target": "Imaging Technology", "weight": 18.22 }, { "source": "Imaging Technology", "target": "Rehab Robotics", "weight": 18.22 }, { "source": "Precision agriculture", "target": "Plant Tissue Culture", "weight": 18.03 }, { "source": "Plant Tissue Culture", "target": "Precision agriculture", "weight": 18.03 }, { "source": "Vaccines", "target": "Advanced Biologics & Cell Therapies", "weight": 17.14 }, { "source": "Surgical Devices", "target": "Advanced Biologics & Cell Therapies", "weight": 16.32 }, { "source": "Rehab Robotics", "target": "Advanced Biologics & Cell Therapies", "weight": 13.73 }, { "source": "Advanced Biologics & Cell Therapies", "target": "Rehab Robotics", "weight": 13.73 }, { "source": "Imaging Technology", "target": "Advanced Biologics & Cell Therapies", "weight": 12.5 }, { "source": "Advanced Biologics & Cell Therapies", "target": "Imaging Technology", "weight": 12.5 }, { "source": "Surgical Devices", "target": "Infectious Diseases Tests", "weight": 9.62 }, { "source": "Rehab Robotics", "target": "Infectious Diseases Tests", "weight": 9.41 }, { "source": "Infectious Diseases Tests", "target": "Rehab Robotics", "weight": 9.41 }, { "source": "Water management", "target": "Water And Sanitation Hygiene Technologies", "weight": 9.18 }, { "source": "Vaccines", "target": "Surgical Devices", "weight": 8.8 }, { "source": "Surgical Devices", "target": "Vaccines", "weight": 8.8 }, { "source": "DNA Technology - Genetically modified organisms (GMOs)", "target": "Advanced Biologics & Cell Therapies", "weight": 7.72 }, { "source": "Vaccines", "target": "Rehab Robotics", "weight": 7.69 }, { "source": "Rehab Robotics", "target": "Vaccines", "weight": 7.69 }, { "source": "Water And Sanitation Hygiene Technologies", "target": "Climate-smart technologies", "weight": 7.13 }, { "source": "Vaccines", "target": "Imaging Technology", "weight": 6.18 }, { "source": "Imaging Technology", "target": "Vaccines", "weight": 6.18 }, { "source": "Infectious Diseases Tests", "target": "Imaging Technology", "weight": 6.1 }, { "source": "Imaging Technology", "target": "Infectious Diseases Tests", "weight": 6.1 }, { "source": "Rehab Robotics", "target": "Digital Therapeutics", "weight": 5.65 }, { "source": "Infectious Diseases Tests", "target": "Advanced Biologics & Cell Therapies", "weight": 5.53 }, { "source": "Advanced Biologics & Cell Therapies", "target": "Infectious Diseases Tests", "weight": 5.53 }, { "source": "Surgical Devices", "target": "Digital Therapeutics", "weight": 5.45 }, { "source": "Digital Therapeutics", "target": "Surgical Devices", "weight": 5.45 }, { "source": "Artificial Intelligence", "target": "AMR Solutions", "weight": 5.3 }, { "source": "Natural Language Processing", "target": "Data Analytics", "weight": 5.2 }, { "source": "Surgical Devices", "target": "Data Analytics", "weight": 5.16 }, { "source": "Natural Language Processing", "target": "Artificial Intelligence", "weight": 5.15 }, { "source": "Artificial Intelligence", "target": "Natural Language Processing", "weight": 5.15 }, { "source": "Data Analytics", "target": "AMR Solutions", "weight": 5.12 }, { "source": "AMR Solutions", "target": "Data Analytics", "weight": 5.12 }, { "source": "Robots", "target": "Artificial Intelligence", "weight": 4.95 }, { "source": "Artificial Intelligence", "target": "Robots", "weight": 4.95 }, { "source": "Rehab Robotics", "target": "Data Analytics", "weight": 4.94 }, { "source": "Data Analytics", "target": "Rehab Robotics", "weight": 4.94 }, { "source": "Robots", "target": "Data Analytics", "weight": 4.68 }, { "source": "Data Analytics", "target": "Robots", "weight": 4.68 }, { "source": "Robots", "target": "Autonomous Tractors and Drones", "weight": 4.57 }, { "source": "Surgical Devices", "target": "Artificial Intelligence", "weight": 4.52 }, { "source": "Artificial Intelligence", "target": "Surgical Devices", "weight": 4.52 }, { "source": "Autonomous Tractors and Drones", "target": "AMR Solutions", "weight": 4.43 }, { "source": "Rehab Robotics", "target": "Artificial Intelligence", "weight": 4.43 }, { "source": "AMR Solutions", "target": "Autonomous Tractors and Drones", "weight": 4.43 }, { "source": "Artificial Intelligence", "target": "Rehab Robotics", "weight": 4.43 }, { "source": "Geographic Information Systems (GIS) and Remote Sensing", "target": "Data Analytics", "weight": 4.16 }, { "source": "Geographic Information Systems (GIS) and Remote Sensing", "target": "Autonomous Tractors and Drones", "weight": 4.02 }, { "source": "Autonomous Tractors and Drones", "target": "Geographic Information Systems (GIS) and Remote Sensing", "weight": 4.02 }, { "source": "Internet Of Things (IOT)", "target": "Data Analytics", "weight": 4.01 }, { "source": "Water management", "target": "Climate-smart technologies", "weight": 3.7 }, { "source": "Climate-smart technologies", "target": "Water management", "weight": 3.7 }, { "source": "Telemedicine", "target": "Rehab Robotics", "weight": 3.55 }, { "source": "Rehab Robotics", "target": "Electronic Health Records", "weight": 3.53 }, { "source": "Telemedicine", "target": "Surgical Devices", "weight": 3.5 }, { "source": "Surgical Devices", "target": "Telemedicine", "weight": 3.5 }, { "source": "Surgical Devices", "target": "Electronic Health Records", "weight": 3.49 }, { "source": "Electronic Health Records", "target": "Surgical Devices", "weight": 3.49 }, { "source": "Fertilisers and Pesticides", "target": "Climate-smart technologies", "weight": 3.48 }, { "source": "Precision agriculture", "target": "Breeding", "weight": 3.42 }, { "source": "Precision agriculture", "target": "Livestock technologies", "weight": 3.42 }, { "source": "Livestock technologies", "target": "Precision agriculture", "weight": 3.42 }, { "source": "Data Analytics", "target": "Advanced Biologics & Cell Therapies", "weight": 3.37 }, { "source": "Advanced Biologics & Cell Therapies", "target": "Data Analytics", "weight": 3.37 }, { "source": "Plant Tissue Culture", "target": "Advanced Biologics & Cell Therapies", "weight": 3.3 }, { "source": "Fertilisers and Pesticides", "target": "Breeding", "weight": 3.29 }, { "source": "Breeding", "target": "Fertilisers and Pesticides", "weight": 3.29 }, { "source": "Livestock technologies", "target": "Fertilisers and Pesticides", "weight": 3.29 }, { "source": "Fertilisers and Pesticides", "target": "Livestock technologies", "weight": 3.29 }, { "source": "Internet Of Things (IOT)", "target": "Artificial Intelligence", "weight": 3.28 }, { "source": "Artificial Intelligence", "target": "Internet Of Things (IOT)", "weight": 3.28 }, { "source": "Fertilisers and Pesticides", "target": "Advanced Biologics & Cell Therapies", "weight": 3.22 }, { "source": "Advanced Biologics & Cell Therapies", "target": "Fertilisers and Pesticides", "weight": 3.22 }, { "source": "Plant Tissue Culture", "target": "Climate-smart technologies", "weight": 3.16 }, { "source": "Climate-smart technologies", "target": "Plant Tissue Culture", "weight": 3.16 }, { "source": "Precision agriculture", "target": "Climate-smart technologies", "weight": 3.12 }, { "source": "Climate-smart technologies", "target": "Precision agriculture", "weight": 3.12 }, { "source": "Data Analytics", "target": "Blockchain", "weight": 3.03 }, { "source": "Vaccines", "target": "DNA Technology - Genetically modified organisms (GMOs)", "weight": 3.03 }, { "source": "DNA Technology - Genetically modified organisms (GMOs)", "target": "Vaccines", "weight": 3.03 }, { "source": "Surgical Devices", "target": "DNA Technology - Genetically modified organisms (GMOs)", "weight": 2.88 }, { "source": "DNA Technology - Genetically modified organisms (GMOs)", "target": "Surgical Devices", "weight": 2.88 }, { "source": "Telemedicine", "target": "Digital Therapeutics", "weight": 2.77 }, { "source": "Digital Therapeutics", "target": "Telemedicine", "weight": 2.77 }, { "source": "Supply Chain Management", "target": "Data Analytics", "weight": 2.71 }, { "source": "Internet Of Things (IOT)", "target": "Air and Water Quality Sensors", "weight": 2.69 }, { "source": "Imaging Technology", "target": "Digital Therapeutics", "weight": 2.62 }, { "source": "Digital Therapeutics", "target": "Imaging Technology", "weight": 2.62 }, { "source": "Precision agriculture", "target": "Advanced Biologics & Cell Therapies", "weight": 2.59 }, { "source": "Advanced Biologics & Cell Therapies", "target": "Precision agriculture", "weight": 2.59 }, { "source": "Supply Chain Management", "target": "AMR Solutions", "weight": 2.56 }, { "source": "AMR Solutions", "target": "Supply Chain Management", "weight": 2.56 }, { "source": "Blockchain", "target": "Artificial Intelligence", "weight": 2.53 }, { "source": "Artificial Intelligence", "target": "Blockchain", "weight": 2.53 }, { "source": "Imaging Technology", "target": "Data Analytics", "weight": 2.49 }, { "source": "Data Analytics", "target": "Imaging Technology", "weight": 2.49 }, { "source": "Rehab Robotics", "target": "Biosensors and Wearables", "weight": 2.47 }, { "source": "Rehab Robotics", "target": "Prosthetics", "weight": 2.43 }, { "source": "Surgical Devices", "target": "Biosensors and Wearables", "weight": 2.36 }, { "source": "Biosensors and Wearables", "target": "Surgical Devices", "weight": 2.36 }, { "source": "Internet Of Things (IOT)", "target": "AMR Solutions", "weight": 2.3 }, { "source": "AMR Solutions", "target": "Internet Of Things (IOT)", "weight": 2.3 }, { "source": "Artificial Intelligence", "target": "Advanced Biologics & Cell Therapies", "weight": 2.29 }, { "source": "Advanced Biologics & Cell Therapies", "target": "Artificial Intelligence", "weight": 2.29 }, { "source": "Supply Chain Management", "target": "Artificial Intelligence", "weight": 2.27 }, { "source": "Artificial Intelligence", "target": "Supply Chain Management", "weight": 2.27 }, { "source": "Rehab Robotics", "target": "DNA Technology - Genetically modified organisms (GMOs)", "weight": 2.22 }, { "source": "DNA Technology - Genetically modified organisms (GMOs)", "target": "Rehab Robotics", "weight": 2.22 }, { "source": "Telemedicine", "target": "Imaging Technology", "weight": 2.2 }, { "source": "Imaging Technology", "target": "Telemedicine", "weight": 2.2 }, { "source": "Infectious Diseases Tests", "target": "Data Analytics", "weight": 2.16 }, { "source": "Data Analytics", "target": "Infectious Diseases Tests", "weight": 2.16 }, { "source": "Plant Tissue Culture", "target": "Breeding", "weight": 2.15 }, { "source": "Plant Tissue Culture", "target": "Livestock technologies", "weight": 2.15 }, { "source": "Breeding", "target": "Plant Tissue Culture", "weight": 2.15 }, { "source": "Livestock technologies", "target": "Plant Tissue Culture", "weight": 2.15 }, { "source": "Imaging Technology", "target": "Artificial Intelligence", "weight": 2.13 }, { "source": "Artificial Intelligence", "target": "Imaging Technology", "weight": 2.13 }, { "source": "Supply Chain Management", "target": "Robots", "weight": 2.12 }, { "source": "Robots", "target": "Supply Chain Management", "weight": 2.12 }, { "source": "Imaging Technology", "target": "DNA Technology - Genetically modified organisms (GMOs)", "weight": 2.1 }, { "source": "DNA Technology - Genetically modified organisms (GMOs)", "target": "Imaging Technology", "weight": 2.1 }, { "source": "Precision agriculture", "target": "Data Analytics", "weight": 2.08 }, { "source": "Data Analytics", "target": "Precision agriculture", "weight": 2.08 }, { "source": "Infectious Diseases Tests", "target": "Artificial Intelligence", "weight": 2.06 }, { "source": "Data Analytics", "target": "Air and Water Quality Sensors", "weight": 1.92 }, { "source": "Air and Water Quality Sensors", "target": "Data Analytics", "weight": 1.92 }, { "source": "Nanotechnologies", "target": "Advanced Biologics & Cell Therapies", "weight": 1.89 }, { "source": "Nanotechnologies", "target": "Air and Water Quality Sensors", "weight": 1.48 }, { "source": "Air and Water Quality Sensors", "target": "Nanotechnologies", "weight": 1.48 }, { "source": "Surgical Devices", "target": "Prosthetics", "weight": 1.92 }, { "source": "Prosthetics", "target": "Surgical Devices", "weight": 1.92 }, { "source": "Vector Control", "target": "Advanced Biologics & Cell Therapies", "weight": 0 }, { "source": "Vector Control", "target": "Air and Water Quality Sensors", "weight": 0 }, { "source": "Vector Control", "target": "AMR Solutions", "weight": 0 }, { "source": "Vector Control", "target": "Artificial Intelligence", "weight": 0 }];
+
+        var svg = d3.select("svg.network");
+        var svgNode = svg.node();
+        var REFERENCE_WIDTH = 1100;
+        var BASE_RADIUS = 46;
+
+        var extentX = d3.extent(nodes, function (d) { return d.x; });
+        var extentY = d3.extent(nodes, function (d) { return d.y; });
+
+        nodes.forEach(function (node) {
+            node.dataX = node.x;
+            node.dataY = node.y;
+        });
+
+        var width, height, nodeRadius, horizontalBounds;
+
+        function recalcLayout() {
+            width = (svgNode && svgNode.clientWidth) || window.innerWidth;
+            height = (svgNode && svgNode.clientHeight) || Math.round(window.innerHeight * 0.9);
+            nodeRadius = Math.max(20, Math.min(BASE_RADIUS, Math.round(BASE_RADIUS * (width / REFERENCE_WIDTH))));
+            var padding = nodeRadius * 2;
+            var horPadding = Math.max(10, nodeRadius * 0.25);
+
+            var availableWidth = Math.max(width - padding * 2, padding);
+            var availableHeight = Math.max(height - padding * 2, padding);
+
+            var baseLeft = padding;
+            var baseRight = padding + availableWidth;
+
+            var minXBound = baseLeft + horPadding + nodeRadius;
+            var maxXBound = baseRight - horPadding - nodeRadius;
+
+            if (maxXBound <= minXBound) {
+                var midpoint = (baseLeft + baseRight) / 2;
+                minXBound = midpoint - 1;
+                maxXBound = midpoint + 1;
+            }
+
+            horizontalBounds = { min: minXBound, max: maxXBound };
+
+            var scaleX = d3.scaleLinear().domain(extentX).range([horizontalBounds.min, horizontalBounds.max]);
+            var scaleY = d3.scaleLinear().domain(extentY).range([padding, padding + availableHeight]);
+
+            nodes.forEach(function (node) {
+                var targetX = clampX(scaleX(node.dataX));
+                var targetY = scaleY(node.dataY);
+                node.originalX = targetX;
+                node.originalY = targetY;
+            });
+
+            svg.attr("viewBox", [0, 0, width, height]).attr("preserveAspectRatio", "xMidYMid meet");
+        }
+
+        function clampX(value) {
+            return Math.max(horizontalBounds.min, Math.min(horizontalBounds.max, value));
+        }
+
+        recalcLayout();
+
+        nodes.forEach(function (node) {
+            node.x = node.originalX;
+            node.y = node.originalY;
+        });
+
+        var container = svg.append("g");
+
+        var zoomBehavior = d3.zoom()
+            .scaleExtent([0.6, 3])
+            .on("zoom", function (event) {
+                container.attr("transform", event.transform);
+            });
+
+        svg.call(zoomBehavior);
+
+        var nodeById = new Map(nodes.map(function (node) {
+            return [node.id, node];
+        }));
+
+        var linkData = links.map(function (link) {
+            return {
+                source: nodeById.get(link.source),
+                target: nodeById.get(link.target),
+                weight: link.weight
+            };
+        }).filter(function (link) {
+            return link.source && link.target;
+        });
+
+        var linkExtent = linkData.length ? d3.extent(linkData, function (d) { return d.weight || 1; }) : [1, 1];
+        if (linkExtent[0] === linkExtent[1]) {
+            linkExtent[1] = linkExtent[0] + 1;
+        }
+
+        var linkWidth = d3.scaleSqrt()
+            .domain(linkExtent)
+            .range([0.6, 4]);
+
+        var link = container.append("g")
+            .attr("stroke-linecap", "round")
+            .selectAll("line")
+            .data(linkData)
+            .join("line")
+            .attr("class", "link")
+            .attr("stroke-width", function (d) { return linkWidth(d.weight || 1); });
+
+        var adjacency = new Map();
+
+        linkData.forEach(function (link) {
+            var sourceId = link.source.id;
+            var targetId = link.target.id;
+
+            if (!adjacency.has(sourceId)) {
+                adjacency.set(sourceId, new Set());
+            }
+
+            if (!adjacency.has(targetId)) {
+                adjacency.set(targetId, new Set());
+            }
+
+            adjacency.get(sourceId).add(targetId);
+            adjacency.get(targetId).add(sourceId);
+        });
+
+        var node = container.append("g")
+            .selectAll("g")
+            .data(nodes)
+            .join("g")
+            .attr("class", "node")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended))
+            .on("mouseenter", highlightConnected)
+            .on("mouseleave", resetHighlight);
+
+        node.append("circle")
+            .attr("r", nodeRadius)
+            .attr("fill", function (d) { return d.color; });
+
+        node.append("text")
+            .attr("class", "node-label")
+            .attr("fill", function (d) {
+                return getContrastingTextColor(d.color);
+            })
+            .style("fill", function (d) {
+                return getContrastingTextColor(d.color);
+            })
+            .call(wrapText, nodeRadius);
+
+        node.append("title")
+            .text(function (d) {
+                return d.id + (d.parent ? " (" + d.parent + ")" : "");
+            });
+
+        renderLegend();
+
+        var simulation = d3.forceSimulation(nodes)
+            .alpha(0.9)
+            .alphaDecay(0.09)
+            .force("collide", d3.forceCollide(nodeRadius + 8).strength(0.95).iterations(4))
+            .force("x", d3.forceX(function (d) { return d.originalX; }).strength(1))
+            .force("y", d3.forceY(function (d) { return d.originalY; }).strength(1))
+            .on("tick", ticked);
+
+        var resizeTimer;
+        window.addEventListener("resize", function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                recalcLayout();
+
+                node.select("circle").attr("r", nodeRadius);
+                node.select("text").call(wrapText, nodeRadius);
+
+                simulation
+                    .force("collide", d3.forceCollide(nodeRadius + 8).strength(0.95).iterations(4))
+                    .force("x", d3.forceX(function (d) { return d.originalX; }).strength(1))
+                    .force("y", d3.forceY(function (d) { return d.originalY; }).strength(1))
+                    .alpha(0.8)
+                    .restart();
+            }, 150);
+        });
+
+        function ticked() {
+            nodes.forEach(function (d) {
+                d.x = clampX(d.x);
+                if (d.fx != null) {
+                    d.fx = clampX(d.fx);
+                }
+            });
+
+            link
+                .attr("x1", function (d) { return d.source.x; })
+                .attr("y1", function (d) { return d.source.y; })
+                .attr("x2", function (d) { return d.target.x; })
+                .attr("y2", function (d) { return d.target.y; });
+
+            node.attr("transform", function (d) {
+                return "translate(" + d.x + "," + d.y + ")";
+            });
+        }
+
+        function dragstarted(event, d) {
+            if (!event.active) {
+                simulation.alphaTarget(0.3).restart();
+            }
+            d.fx = clampX(d.x);
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            var clampedX = clampX(event.x);
+            d.fx = clampedX;
+            d.fy = event.y;
+            d.x = clampedX;
+            d.y = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) {
+                simulation.alphaTarget(0);
+            }
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function darkenColor(hexColor, factor) {
+            factor = factor || 0.5;
+            var hex = hexColor.trim().replace("#", "");
+            if (hex.length === 3) {
+                hex = hex.split("").map(function (ch) { return ch + ch; }).join("");
+            }
+
+            var r = parseInt(hex.slice(0, 2), 16);
+            var g = parseInt(hex.slice(2, 4), 16);
+            var b = parseInt(hex.slice(4, 6), 16);
+
+            r = Math.round(r * factor);
+            g = Math.round(g * factor);
+            b = Math.round(b * factor);
+
+            return "#" + [r, g, b].map(function (val) {
+                var hexVal = val.toString(16);
+                return hexVal.length === 1 ? "0" + hexVal : hexVal;
+            }).join("");
+        }
+
+        function highlightConnected(event, nodeDatum) {
+            var neighbors = adjacency.get(nodeDatum.id) || new Set();
+            var activeIds = new Set(neighbors);
+            activeIds.add(nodeDatum.id);
+
+            node.each(function (d) {
+                var isActive = activeIds.has(d.id);
+                var nodeElement = d3.select(this);
+                nodeElement
+                    .classed("highlighted", isActive)
+                    .classed("dimmed", !isActive);
+
+                if (isActive) {
+                    var darkerColor = darkenColor(d.color, 0.6);
+                    nodeElement.select("circle").style("stroke", darkerColor);
+                }
+            });
+
+            link.each(function (l) {
+                var isActive = l.source.id === nodeDatum.id || l.target.id === nodeDatum.id;
+                d3.select(this)
+                    .classed("highlighted", isActive)
+                    .classed("dimmed", !isActive);
+            });
+        }
+
+        function resetHighlight() {
+            node.classed("highlighted", false)
+                .classed("dimmed", false)
+                .select("circle").style("stroke", null);
+            link.classed("highlighted", false)
+                .classed("dimmed", false);
+        }
+
+        function renderLegend() {
+            var legend = d3.select("#legend");
+            if (legend.empty()) {
+                return;
+            }
+
+            legend.attr("role", "list");
+
+            var parentColorMap = new Map();
+            nodes.forEach(function (node) {
+                var parentName = node.parent || "Other";
+                if (!parentColorMap.has(parentName)) {
+                    parentColorMap.set(parentName, node.color || "#6c6f7d");
+                }
+            });
+
+            var legendData = Array.from(parentColorMap, function (entry) {
+                return { parent: entry[0], color: entry[1] };
+            });
+
+            var legendItems = legend.selectAll(".legend-item")
+                .data(legendData, function (d) { return d.parent; });
+
+            legendItems.exit().remove();
+
+            var legendEnter = legendItems.enter()
+                .append("div")
+                .attr("class", "legend-item")
+                .attr("role", "listitem");
+
+            legendEnter.append("span")
+                .attr("class", "legend-square");
+
+            legendEnter.append("span")
+                .attr("class", "legend-label");
+
+            legendItems = legendEnter.merge(legendItems);
+
+            legendItems.select(".legend-square")
+                .style("background-color", function (d) { return d.color; });
+
+            legendItems.select(".legend-label")
+                .text(function (d) { return d.parent; });
+        }
+
+        function isColorDark(hexColor) {
+            if (!hexColor) {
+                return false;
+            }
+
+            var hex = hexColor.trim().replace("#", "");
+            if (hex.length === 3) {
+                hex = hex.split("").map(function (ch) { return ch + ch; }).join("");
+            }
+
+            if (hex.length !== 6) {
+                return false;
+            }
+
+            var r = parseInt(hex.slice(0, 2), 16) / 255;
+            var g = parseInt(hex.slice(2, 4), 16) / 255;
+            var b = parseInt(hex.slice(4, 6), 16) / 255;
+
+            var convert = function (channel) {
+                return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+            };
+
+            var lum = 0.2126 * convert(r) + 0.7152 * convert(g) + 0.0722 * convert(b);
+            return lum < 0.55;
+        }
+
+        function getContrastingTextColor(hexColor) {
+            return isColorDark(hexColor) ? "#ffffff" : "#1b1d21";
+        }
+
+        function wrapText(selection, radius) {
+            var diameter = radius * 2;
+            var maxWidth = diameter * 0.85;
+            var maxHeight = diameter * 0.85;
+            var lineHeightMultiplier = 1.15;
+            var minFontSize = 4;
+
+            selection.each(function (d) {
+                var text = d3.select(this);
+                var label = (d.id || "").trim();
+
+                text.selectAll("tspan").remove();
+                text.text("");
+
+                if (!label) {
+                    return;
+                }
+
+                var words = label.split(/\s+/).filter(function (word) { return word.length; });
+                if (!words.length) {
+                    text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(label);
+                    return;
+                }
+
+                var maxFontSize = Math.min(13, radius * 0.45);
+                var startingFontSize = Math.max(Math.round(maxFontSize), minFontSize);
+                var bestFit = null;
+
+                for (var fontSize = startingFontSize; fontSize >= minFontSize; fontSize -= 1) {
+                    var layout = layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth);
+                    bestFit = layout;
+                    var totalHeight = layout.lines.length * layout.lineHeight;
+
+                    if (layout.maxLineWidth <= maxWidth && totalHeight <= maxHeight) {
+                        break;
+                    }
+                }
+
+                if (!bestFit) {
+                    bestFit = {
+                        lines: [label],
+                        fontSize: minFontSize,
+                        lineHeight: Math.round(minFontSize * lineHeightMultiplier)
+                    };
+                }
+
+                text.style("font-size", bestFit.fontSize + "px");
+                text.selectAll("tspan").remove();
+
+                var offset = (bestFit.lines.length - 1) * bestFit.lineHeight / 2;
+
+                bestFit.lines.forEach(function (line, index) {
+                    text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", -offset + index * bestFit.lineHeight)
+                        .text(line);
+                });
+            });
+
+            function layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth) {
+                text.style("font-size", fontSize + "px");
+                text.selectAll("tspan").remove();
+
+                var lines = [];
+                var currentLine = [];
+                var maxLineWidth = 0;
+
+                words.forEach(function (word) {
+                    currentLine.push(word);
+                    var tester = text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(currentLine.join(" "));
+                    var lineLength = tester.node().getComputedTextLength();
+                    tester.remove();
+
+                    if (lineLength > maxWidth && currentLine.length > 1) {
+                        currentLine.pop();
+                        var finalized = currentLine.join(" ");
+                        var measureFinal = text.append("tspan")
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .text(finalized);
+                        var finalLength = measureFinal.node().getComputedTextLength();
+                        measureFinal.remove();
+
+                        lines.push(finalized);
+                        maxLineWidth = Math.max(maxLineWidth, finalLength);
+
+                        currentLine = [word];
+                        var measureWord = text.append("tspan")
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .text(word);
+                        var wordLength = measureWord.node().getComputedTextLength();
+                        measureWord.remove();
+                        maxLineWidth = Math.max(maxLineWidth, wordLength);
+                    } else {
+                        maxLineWidth = Math.max(maxLineWidth, lineLength);
+                    }
+                });
+
+                if (currentLine.length) {
+                    var finalLine = currentLine.join(" ");
+                    var finalTester = text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(finalLine);
+                    var finalLineLength = finalTester.node().getComputedTextLength();
+                    finalTester.remove();
+
+                    lines.push(finalLine);
+                    maxLineWidth = Math.max(maxLineWidth, finalLineLength);
+                }
+
+                var lineHeight = Math.max(Math.round(fontSize * lineHeightMultiplier), Math.ceil(fontSize));
+
+                return {
+                    lines: lines,
+                    fontSize: fontSize,
+                    lineHeight: lineHeight,
+                    maxLineWidth: maxLineWidth
+                };
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
