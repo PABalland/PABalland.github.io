@@ -1,0 +1,772 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
+.box{width:14px;height:14px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Investment Index &gt; median</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Investment Index &lt; median</span></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(rect1, rect2) {
+  return !(rect1.x + rect1.width < rect2.x || 
+           rect2.x + rect2.width < rect1.x || 
+           rect1.y + rect1.height < rect2.y || 
+           rect2.y + rect2.height < rect1.y);
+}
+
+function getPositionOptions(centerX, centerY, radius, padding = 5) {
+  return [
+    { name: 'right', x: centerX + radius + padding, y: centerY + 3, anchor: 'start' },
+    { name: 'left', x: centerX - radius - padding, y: centerY + 3, anchor: 'end' },
+    { name: 'below', x: centerX, y: centerY + radius + padding + 10, anchor: 'middle' },
+    { name: 'above', x: centerX, y: centerY - radius - padding, anchor: 'middle' }
+  ];
+}
+
+function hasCollision(textElement, allCircles) {
+  try {
+    const textBBox = textElement.getBBox();
+    
+    for (const circleData of allCircles) {
+      const r = parseFloat(circleData.circle.getAttribute('r')) || 7.5;
+      const circleBBox = {
+        x: circleData.coords.x - r,
+        y: circleData.coords.y - r,
+        width: r * 2,
+        height: r * 2
+      };
+      
+      if (rectanglesOverlap(textBBox, circleBBox)) {
+        return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+function findBestPosition(textElement, centerX, centerY, radius, allCircles, fullText) {
+  const positions = getPositionOptions(centerX, centerY, radius);
+  let hasCollisionWithFull = false;
+  
+  textElement.textContent = fullText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: fullText, hasCollision: false };
+    }
+  }
+  
+  hasCollisionWithFull = true;
+  
+  const truncatedText = truncateText(fullText, 20);
+  textElement.textContent = truncatedText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: truncatedText, hasCollision: hasCollisionWithFull };
+    }
+  }
+  
+  return { ...positions[0], text: truncatedText, hasCollision: true };
+}
+
+// Function to get data bound to DOM element
+function getBoundData(element) {
+  // Try to get data from d3plus binding
+  if (element.__data__) {
+    return element.__data__;
+  }
+  
+  // Try to get data from parent elements
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  // Prefer the bound data directly from D3
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  // No fallback by position to avoid mismatches
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data=  [
+  {
+    "domain": "Advanced Biologics & Cell Therapies",
+    "regpat": 31.9,
+    "openalex": 81.63,
+    "crunchbase": 99.29,
+    "color": "#AEC0AE",
+    "id": "Advanced Biologics & Cell Therapies",
+    "x": 31.9,
+    "y": 81.63,
+    "value": 1
+  },
+  {
+    "domain": "Air and Water Quality Sensors",
+    "regpat": 75,
+    "openalex": 48.07,
+    "crunchbase": 94.67,
+    "color": "#BEC8BE",
+    "id": "Air and Water Quality Sensors",
+    "x": 75,
+    "y": 48.07,
+    "value": 1
+  },
+  {
+    "domain": "AMR Solutions",
+    "regpat": 93.1,
+    "openalex": 84.81,
+    "crunchbase": 89.34,
+    "color": "#D2CFCF",
+    "id": "AMR Solutions",
+    "x": 93.1,
+    "y": 84.81,
+    "value": 1
+  },
+  {
+    "domain": "Artificial Intelligence",
+    "regpat": 33.62,
+    "openalex": 87.53,
+    "crunchbase": 86.5,
+    "color": "#D1CCCC",
+    "id": "Artificial Intelligence",
+    "x": 33.62,
+    "y": 87.53,
+    "value": 1
+  },
+  {
+    "domain": "Autonomous Tractors and Drones",
+    "regpat": 86.64,
+    "openalex": 38.55,
+    "crunchbase": 90.76,
+    "color": "#D2D1D1",
+    "id": "Autonomous Tractors and Drones",
+    "x": 86.64,
+    "y": 38.55,
+    "value": 1
+  },
+  {
+    "domain": "Biosensors and Wearables",
+    "regpat": 31.03,
+    "openalex": 89.34,
+    "crunchbase": 91.12,
+    "color": "#D2D1D1",
+    "id": "Biosensors and Wearables",
+    "x": 31.03,
+    "y": 89.34,
+    "value": 1
+  },
+  {
+    "domain": "Blockchain",
+    "regpat": 0,
+    "openalex": 50.79,
+    "crunchbase": 11.37,
+    "color": "#A44A4A",
+    "id": "Blockchain",
+    "x": 0,
+    "y": 50.79,
+    "value": 1
+  },
+  {
+    "domain": "Breeding",
+    "regpat": 68.1,
+    "openalex": 17.69,
+    "crunchbase": 86.32,
+    "color": "#D1CCCC",
+    "id": "Breeding",
+    "x": 68.1,
+    "y": 17.69,
+    "value": 1
+  },
+  {
+    "domain": "Climate-smart technologies",
+    "regpat": 62.5,
+    "openalex": 47.85,
+    "crunchbase": 86.15,
+    "color": "#D0CCCC",
+    "id": "Climate-smart technologies",
+    "x": 62.5,
+    "y": 47.85,
+    "value": 1
+  },
+  {
+    "domain": "Data Analytics",
+    "regpat": 38.36,
+    "openalex": 80.73,
+    "crunchbase": 86.5,
+    "color": "#D1CCCC",
+    "id": "Data Analytics",
+    "x": 38.36,
+    "y": 80.73,
+    "value": 1
+  },
+  {
+    "domain": "Digital Therapeutics",
+    "regpat": 30.17,
+    "openalex": 49.21,
+    "crunchbase": 96.8,
+    "color": "#B6C3B6",
+    "id": "Digital Therapeutics",
+    "x": 30.17,
+    "y": 49.21,
+    "value": 1
+  },
+  {
+    "domain": "DNA Technology - Genetically modified organisms (GMOs)",
+    "regpat": 37.93,
+    "openalex": 47.62,
+    "crunchbase": 99.64,
+    "color": "#ADBFAD",
+    "id": "DNA Technology - Genetically modified organisms (GMOs)",
+    "x": 37.93,
+    "y": 47.62,
+    "value": 1
+  },
+  {
+    "domain": "Electronic Health Records",
+    "regpat": 45.69,
+    "openalex": 63.95,
+    "crunchbase": 93.96,
+    "color": "#C2CAC2",
+    "id": "Electronic Health Records",
+    "x": 45.69,
+    "y": 63.95,
+    "value": 1
+  },
+  {
+    "domain": "Fertilisers and Pesticides",
+    "regpat": 58.62,
+    "openalex": 8.84,
+    "crunchbase": 97.16,
+    "color": "#B4C3B4",
+    "id": "Fertilisers and Pesticides",
+    "x": 58.62,
+    "y": 8.84,
+    "value": 1
+  },
+  {
+    "domain": "Geographic Information Systems (GIS) and Remote Sensing",
+    "regpat": 82.76,
+    "openalex": 91.16,
+    "crunchbase": 94.67,
+    "color": "#BEC8BE",
+    "id": "Geographic Information Systems (GIS) and Remote Sensing",
+    "x": 82.76,
+    "y": 91.16,
+    "value": 1
+  },
+  {
+    "domain": "Imaging Technology",
+    "regpat": 46.98,
+    "openalex": 96.15,
+    "crunchbase": 95.38,
+    "color": "#BBC6BB",
+    "id": "Imaging Technology",
+    "x": 46.98,
+    "y": 96.15,
+    "value": 1
+  },
+  {
+    "domain": "Infectious Diseases Tests",
+    "regpat": 42.67,
+    "openalex": 12.93,
+    "crunchbase": 97.51,
+    "color": "#B3C2B3",
+    "id": "Infectious Diseases Tests",
+    "x": 42.67,
+    "y": 12.93,
+    "value": 1
+  },
+  {
+    "domain": "Internet Of Things (IOT)",
+    "regpat": 70.69,
+    "openalex": 65.76,
+    "crunchbase": 86.5,
+    "color": "#D1CCCC",
+    "id": "Internet Of Things (IOT)",
+    "x": 70.69,
+    "y": 65.76,
+    "value": 1
+  },
+  {
+    "domain": "Livestock technologies",
+    "regpat": 73.71,
+    "openalex": 8.16,
+    "crunchbase": 86.32,
+    "color": "#D1CCCC",
+    "id": "Livestock technologies",
+    "x": 73.71,
+    "y": 8.16,
+    "value": 1
+  },
+  {
+    "domain": "Nanotechnologies",
+    "regpat": 53.02,
+    "openalex": 64.85,
+    "crunchbase": 94.32,
+    "color": "#C0C9C0",
+    "id": "Nanotechnologies",
+    "x": 53.02,
+    "y": 64.85,
+    "value": 1
+  },
+  {
+    "domain": "Natural Language Processing",
+    "regpat": 29.31,
+    "openalex": 83.67,
+    "crunchbase": 23.27,
+    "color": "#AF6A6A",
+    "id": "Natural Language Processing",
+    "x": 29.31,
+    "y": 83.67,
+    "value": 1
+  },
+  {
+    "domain": "Plant Tissue Culture",
+    "regpat": 45.69,
+    "openalex": 17.01,
+    "crunchbase": 96.45,
+    "color": "#B7C4B7",
+    "id": "Plant Tissue Culture",
+    "x": 45.69,
+    "y": 17.01,
+    "value": 1
+  },
+  {
+    "domain": "Precision agriculture",
+    "regpat": 76.29,
+    "openalex": 22.68,
+    "crunchbase": 93.96,
+    "color": "#C2CAC2",
+    "id": "Precision agriculture",
+    "x": 76.29,
+    "y": 22.68,
+    "value": 1
+  },
+  {
+    "domain": "Prosthetics",
+    "regpat": 20.69,
+    "openalex": 100,
+    "crunchbase": 97.16,
+    "color": "#B4C3B4",
+    "id": "Prosthetics",
+    "x": 20.69,
+    "y": 100,
+    "value": 1
+  },
+  {
+    "domain": "Rehab Robotics",
+    "regpat": 36.21,
+    "openalex": 81.41,
+    "crunchbase": 96.09,
+    "color": "#B8C5B8",
+    "id": "Rehab Robotics",
+    "x": 36.21,
+    "y": 81.41,
+    "value": 1
+  },
+  {
+    "domain": "Robots",
+    "regpat": 100,
+    "openalex": 84.35,
+    "crunchbase": 88.28,
+    "color": "#D1CECE",
+    "id": "Robots",
+    "x": 100,
+    "y": 84.35,
+    "value": 1
+  },
+  {
+    "domain": "Supply Chain Management",
+    "regpat": 53.45,
+    "openalex": 94.78,
+    "crunchbase": 0,
+    "color": "darkred",
+    "id": "Supply Chain Management",
+    "x": 53.45,
+    "y": 94.78,
+    "value": 1
+  },
+  {
+    "domain": "Surgical Devices",
+    "regpat": 36.21,
+    "openalex": 62.36,
+    "crunchbase": 98.22,
+    "color": "#B1C1B1",
+    "id": "Surgical Devices",
+    "x": 36.21,
+    "y": 62.36,
+    "value": 1
+  },
+  {
+    "domain": "Telemedicine",
+    "regpat": 61.21,
+    "openalex": 40.82,
+    "crunchbase": 89.17,
+    "color": "#D2CFCF",
+    "id": "Telemedicine",
+    "x": 61.21,
+    "y": 40.82,
+    "value": 1
+  },
+  {
+    "domain": "Vaccines",
+    "regpat": 21.55,
+    "openalex": 35.83,
+    "crunchbase": 100,
+    "color": "#ACBFAC",
+    "id": "Vaccines",
+    "x": 21.55,
+    "y": 35.83,
+    "value": 1
+  },
+  {
+    "domain": "Vector Control",
+    "regpat": 49.14,
+    "openalex": 4.54,
+    "crunchbase": 45.29,
+    "color": "#BD9494",
+    "id": "Vector Control",
+    "x": 49.14,
+    "y": 4.54,
+    "value": 1
+  },
+  {
+    "domain": "Water And Sanitation Hygiene Technologies",
+    "regpat": 58.62,
+    "openalex": 0,
+    "crunchbase": 88.63,
+    "color": "#D1CECE",
+    "id": "Water And Sanitation Hygiene Technologies",
+    "x": 58.62,
+    "y": 0,
+    "value": 1
+  },
+  {
+    "domain": "Water management",
+    "regpat": 56.9,
+    "openalex": 10.43,
+    "crunchbase": 88.99,
+    "color": "#D2CFCF",
+    "id": "Water management",
+    "x": 56.9,
+    "y": 10.43,
+    "value": 1
+  }
+] ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,110];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+    body:d=>`<table class='tooltip-table'>
+      <tr><td class='title'>Investment Index:</td><td class='data'>${d.crunchbase}</td></tr>
+      <tr><td class='title'>Technology Index:</td><td class='data'>${d.regpat}</td></tr>
+      <tr><td class='title'>Scientific Index:</td><td class='data'>${d.openalex}</td></tr>
+      <tr><td class='title'>ID:</td><td class='data'>${d.id}</td></tr>
+    </table>`,
+    title:d=>d.id
+  })
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"Scientific Index",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Technological Index",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  startPositionUpdater();
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      svg.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+        
+        // Show in console for debugging
+        console.log('Hovering over:', matchingData.id);
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  customLabels.forEach((labelData) => {
+    const {circle, text, fullText} = labelData;
+    
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    
+    if (circle && text) {
+      const circleData = circlePositions.find(cp => cp.circle === circle);
+      if (circleData) {
+        const r = parseFloat(circle.getAttribute('r')) || 7.5;
+        const bestPosition = findBestPosition(
+          text, 
+          circleData.coords.x, 
+          circleData.coords.y, 
+          r,
+          circlePositions,
+          fullText
+        );
+        
+        text.setAttribute('x', bestPosition.x);
+        text.setAttribute('y', bestPosition.y);
+        text.setAttribute('text-anchor', bestPosition.anchor);
+        text.textContent = bestPosition.text;
+        labelData.defaultText = bestPosition.text;
+        
+        if (bestPosition.hasCollision) {
+          text.classList.add('collision');
+          text.setAttribute('opacity', '0.3');
+        } else {
+          text.classList.remove('collision');
+          text.setAttribute('opacity', '1');
+        }
+      }
+    }
+  });
+  
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
+  Color indicates Investment index. 
+</div>
+</body>
+</html>

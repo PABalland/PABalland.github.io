@@ -1,0 +1,2027 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
+.box{width:14px;height:14px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Growth &gt; median</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Growth &lt; median</span></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(rect1, rect2) {
+  return !(rect1.x + rect1.width < rect2.x || 
+           rect2.x + rect2.width < rect1.x || 
+           rect1.y + rect1.height < rect2.y || 
+           rect2.y + rect2.height < rect1.y);
+}
+
+function getPositionOptions(centerX, centerY, radius, padding = 5) {
+  return [
+    { name: 'right', x: centerX + radius + padding, y: centerY + 3, anchor: 'start' },
+    { name: 'left', x: centerX - radius - padding, y: centerY + 3, anchor: 'end' },
+    { name: 'below', x: centerX, y: centerY + radius + padding + 10, anchor: 'middle' },
+    { name: 'above', x: centerX, y: centerY - radius - padding, anchor: 'middle' }
+  ];
+}
+
+function hasCollision(textElement, allCircles) {
+  try {
+    const textBBox = textElement.getBBox();
+    
+    for (const circleData of allCircles) {
+      const r = parseFloat(circleData.circle.getAttribute('r')) || 7.5;
+      const circleBBox = {
+        x: circleData.coords.x - r,
+        y: circleData.coords.y - r,
+        width: r * 2,
+        height: r * 2
+      };
+      
+      if (rectanglesOverlap(textBBox, circleBBox)) {
+        return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+function findBestPosition(textElement, centerX, centerY, radius, allCircles, fullText) {
+  const positions = getPositionOptions(centerX, centerY, radius);
+  let hasCollisionWithFull = false;
+  
+  textElement.textContent = fullText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: fullText, hasCollision: false };
+    }
+  }
+  
+  hasCollisionWithFull = true;
+  
+  const truncatedText = truncateText(fullText, 20);
+  textElement.textContent = truncatedText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: truncatedText, hasCollision: hasCollisionWithFull };
+    }
+  }
+  
+  return { ...positions[0], text: truncatedText, hasCollision: true };
+}
+
+// Function to get data bound to DOM element
+function getBoundData(element) {
+  // Try to get data from d3plus binding
+  if (element.__data__) {
+    return element.__data__;
+  }
+  
+  // Try to get data from parent elements
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  // Prefer the bound data directly from D3
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  // No fallback by position to avoid mismatches
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data=
+ [
+  {
+    "domain": "Advanced Biologics & Cell Therapies",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 59089,
+    "rca.x": 0.97,
+    "share.x": 26.98,
+    "share_d.x": 0.3569,
+    "reldens.x": 37.89,
+    "comp_TCI.x": 46.97,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 111.07,
+    "parent.x": "Europe",
+    "color.x": "#D2D0D0",
+    "id.x": "European Union + (EU)",
+    "value.x": 59089,
+    "rank_count.x": 2,
+    "rank_rca.x": 11,
+    "rank_pc.x": 8,
+    "rank_share.x": 2,
+    "rank_reldens.x": 26,
+    "count.y": 60938,
+    "rca.y": 1.11,
+    "share.y": 25.26,
+    "share_d.y": 0.3529,
+    "reldens.y": 74.75,
+    "comp_TCI.y": 45.17,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 114.55,
+    "parent.y": "Europe",
+    "color.y": "#A6BBA6",
+    "id.y": "European Union + (EU)",
+    "value.y": 60938,
+    "rank_count.y": 2,
+    "rank_rca.y": 11,
+    "rank_pc.y": 9,
+    "rank_share.y": 2,
+    "rank_reldens.y": 5,
+    "color": "#659965",
+    "id": "Advanced Biologics & Cell Therapies",
+    "x": 26.98,
+    "y": 25.26,
+    "delta": -6.38,
+    "value": 1
+  },
+  {
+    "domain": "Air and Water Quality Sensors",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 40015,
+    "rca.x": 0.7,
+    "share.x": 19.62,
+    "share_d.x": 0.3345,
+    "reldens.x": 21.23,
+    "comp_TCI.x": 74.06,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 75.22,
+    "parent.x": "Europe",
+    "color.x": "#C7B1B1",
+    "id.x": "European Union + (EU)",
+    "value.x": 40015,
+    "rank_count.x": 2,
+    "rank_rca.x": 65,
+    "rank_pc.x": 10,
+    "rank_share.x": 2,
+    "rank_reldens.x": 76,
+    "count.y": 40594,
+    "rca.y": 0.72,
+    "share.y": 16.51,
+    "share_d.y": 0.3622,
+    "reldens.y": 23.22,
+    "comp_TCI.y": 66.37,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 76.31,
+    "parent.y": "Europe",
+    "color.y": "#C8B3B3",
+    "id.y": "European Union + (EU)",
+    "value.y": 40594,
+    "rank_count.y": 2,
+    "rank_rca.y": 58.5,
+    "rank_pc.y": 10,
+    "rank_share.y": 2,
+    "rank_reldens.y": 73,
+    "color": "#96B396",
+    "id": "Air and Water Quality Sensors",
+    "x": 19.62,
+    "y": 16.51,
+    "delta": -15.85,
+    "value": 1
+  },
+  {
+    "domain": "AMR Solutions",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 8195,
+    "rca.x": 0.86,
+    "share.x": 23.99,
+    "share_d.x": 0.056,
+    "reldens.x": 61.56,
+    "comp_TCI.x": 58.35,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 15.4,
+    "parent.x": "Europe",
+    "color.x": "#CEC4C4",
+    "id.x": "European Union + (EU)",
+    "value.x": 8195,
+    "rank_count.x": 1,
+    "rank_rca.x": 48,
+    "rank_pc.x": 5,
+    "rank_share.x": 1,
+    "rank_reldens.x": 26,
+    "count.y": 7478,
+    "rca.y": 0.84,
+    "share.y": 19.2,
+    "share_d.y": 0.0574,
+    "reldens.y": 62.91,
+    "comp_TCI.y": 54.11,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 14.06,
+    "parent.y": "Europe",
+    "color.y": "#CDC1C1",
+    "id.y": "European Union + (EU)",
+    "value.y": 7478,
+    "rank_count.y": 2,
+    "rank_rca.y": 48,
+    "rank_pc.y": 9,
+    "rank_share.y": 2,
+    "rank_reldens.y": 29,
+    "color": "#D0CBCB",
+    "id": "AMR Solutions",
+    "x": 23.99,
+    "y": 19.2,
+    "delta": -19.97,
+    "value": 1
+  },
+  {
+    "domain": "Artificial Intelligence",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 258107,
+    "rca.x": 0.98,
+    "share.x": 27.15,
+    "share_d.x": 1.5492,
+    "reldens.x": 51.78,
+    "comp_TCI.x": 68.47,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 485.17,
+    "parent.x": "Europe",
+    "color.x": "#D2D1D1",
+    "id.x": "European Union + (EU)",
+    "value.x": 258107,
+    "rank_count.x": 1,
+    "rank_rca.x": 43.5,
+    "rank_pc.x": 9,
+    "rank_share.x": 1,
+    "rank_reldens.x": 19,
+    "count.y": 269955,
+    "rca.y": 0.94,
+    "share.y": 21.44,
+    "share_d.y": 1.8459,
+    "reldens.y": 49.8,
+    "comp_TCI.y": 74.81,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 507.44,
+    "parent.y": "Europe",
+    "color.y": "#D1CDCD",
+    "id.y": "European Union + (EU)",
+    "value.y": 269955,
+    "rank_count.y": 1,
+    "rank_rca.y": 40.5,
+    "rank_pc.y": 11,
+    "rank_share.y": 1,
+    "rank_reldens.y": 20,
+    "color": "#CDC3C3",
+    "id": "Artificial Intelligence",
+    "x": 27.15,
+    "y": 21.44,
+    "delta": -21.03,
+    "value": 1
+  },
+  {
+    "domain": "Autonomous Tractors and Drones",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 3339,
+    "rca.x": 0.77,
+    "share.x": 21.38,
+    "share_d.x": 0.0254,
+    "reldens.x": 8.06,
+    "comp_TCI.x": 55.1,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 6.28,
+    "parent.x": "Europe",
+    "color.x": "#CAB9B9",
+    "id.x": "European Union + (EU)",
+    "value.x": 3339,
+    "rank_count.x": 1,
+    "rank_rca.x": 66,
+    "rank_pc.x": 8,
+    "rank_share.x": 1,
+    "rank_reldens.x": 129,
+    "count.y": 5871,
+    "rca.y": 0.69,
+    "share.y": 15.67,
+    "share_d.y": 0.0551,
+    "reldens.y": 7.69,
+    "comp_TCI.y": 64.48,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 11.04,
+    "parent.y": "Europe",
+    "color.y": "#C7AFAF",
+    "id.y": "European Union + (EU)",
+    "value.y": 5871,
+    "rank_count.y": 2,
+    "rank_rca.y": 55.5,
+    "rank_pc.y": 11,
+    "rank_share.y": 2,
+    "rank_reldens.y": 116,
+    "color": "#BC8F8F",
+    "id": "Autonomous Tractors and Drones",
+    "x": 21.38,
+    "y": 15.67,
+    "delta": -26.71,
+    "value": 1
+  },
+  {
+    "domain": "Biosensors and Wearables",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 7585,
+    "rca.x": 1.02,
+    "share.x": 28.8,
+    "share_d.x": 0.0437,
+    "reldens.x": 53.99,
+    "comp_TCI.x": 53.99,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 14.26,
+    "parent.x": "Europe",
+    "color.x": "#BFC9BF",
+    "id.x": "European Union + (EU)",
+    "value.x": 7585,
+    "rank_count.x": 1,
+    "rank_rca.x": 30.5,
+    "rank_pc.x": 10,
+    "rank_share.x": 1,
+    "rank_reldens.x": 6,
+    "count.y": 7928,
+    "rca.y": 1.01,
+    "share.y": 23.22,
+    "share_d.y": 0.0506,
+    "reldens.y": 56.81,
+    "comp_TCI.y": 51.81,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 14.9,
+    "parent.y": "Europe",
+    "color.y": "#C5CCC5",
+    "id.y": "European Union + (EU)",
+    "value.y": 7928,
+    "rank_count.y": 1,
+    "rank_rca.y": 35.5,
+    "rank_pc.y": 12,
+    "rank_share.y": 1,
+    "rank_reldens.y": 10,
+    "color": "#D2CFCF",
+    "id": "Biosensors and Wearables",
+    "x": 28.8,
+    "y": 23.22,
+    "delta": -19.38,
+    "value": 1
+  },
+  {
+    "domain": "Blockchain",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 9089,
+    "rca.x": 0.6,
+    "share.x": 16.68,
+    "share_d.x": 0.0885,
+    "reldens.x": 26.23,
+    "comp_TCI.x": 61.65,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 17.08,
+    "parent.x": "Europe",
+    "color.x": "#C3A3A3",
+    "id.x": "European Union + (EU)",
+    "value.x": 9089,
+    "rank_count.x": 2,
+    "rank_rca.x": 46.5,
+    "rank_pc.x": 13,
+    "rank_share.x": 2,
+    "rank_reldens.x": 85,
+    "count.y": 18203,
+    "rca.y": 0.55,
+    "share.y": 12.42,
+    "share_d.y": 0.2144,
+    "reldens.y": 16.41,
+    "comp_TCI.y": 54.75,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 34.22,
+    "parent.y": "Europe",
+    "color.y": "#C09C9C",
+    "id.y": "European Union + (EU)",
+    "value.y": 18203,
+    "rank_count.y": 2,
+    "rank_rca.y": 63.5,
+    "rank_pc.y": 18,
+    "rank_share.y": 2,
+    "rank_reldens.y": 102,
+    "color": "#C09B9B",
+    "id": "Blockchain",
+    "x": 16.68,
+    "y": 12.42,
+    "delta": -25.54,
+    "value": 1
+  },
+  {
+    "domain": "Breeding",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 20312,
+    "rca.x": 0.82,
+    "share.x": 22.59,
+    "share_d.x": 0.1456,
+    "reldens.x": 20.88,
+    "comp_TCI.x": 19.91,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 38.18,
+    "parent.x": "Europe",
+    "color.x": "#CCBFBF",
+    "id.x": "European Union + (EU)",
+    "value.x": 20312,
+    "rank_count.x": 1,
+    "rank_rca.x": 87.5,
+    "rank_pc.x": 9,
+    "rank_share.x": 1,
+    "rank_reldens.x": 119,
+    "count.y": 18291,
+    "rca.y": 0.78,
+    "share.y": 17.66,
+    "share_d.y": 0.1508,
+    "reldens.y": 32.66,
+    "comp_TCI.y": 15.58,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 34.38,
+    "parent.y": "Europe",
+    "color.y": "#CBBABA",
+    "id.y": "European Union + (EU)",
+    "value.y": 18291,
+    "rank_count.y": 1,
+    "rank_rca.y": 80,
+    "rank_pc.y": 13,
+    "rank_share.y": 1,
+    "rank_reldens.y": 101,
+    "color": "#CBBCBC",
+    "id": "Breeding",
+    "x": 22.59,
+    "y": 17.66,
+    "delta": -21.82,
+    "value": 1
+  },
+  {
+    "domain": "Climate-smart technologies",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 26626,
+    "rca.x": 1.25,
+    "share.x": 34.38,
+    "share_d.x": 0.1251,
+    "reldens.x": 32.29,
+    "comp_TCI.x": 12.25,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 50.05,
+    "parent.x": "Europe",
+    "color.x": "#91B091",
+    "id.x": "European Union + (EU)",
+    "value.x": 26626,
+    "rank_count.x": 1,
+    "rank_rca.x": 33.5,
+    "rank_pc.x": 3,
+    "rank_share.x": 1,
+    "rank_reldens.x": 112,
+    "count.y": 16118,
+    "rca.y": 1.1,
+    "share.y": 24.74,
+    "share_d.y": 0.0947,
+    "reldens.y": 34.76,
+    "comp_TCI.y": 6.74,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 30.3,
+    "parent.y": "Europe",
+    "color.y": "#A8BCA8",
+    "id.y": "European Union + (EU)",
+    "value.y": 16118,
+    "rank_count.y": 2,
+    "rank_rca.y": 43,
+    "rank_pc.y": 7,
+    "rank_share.y": 2,
+    "rank_reldens.y": 101,
+    "color": "#B78080",
+    "id": "Climate-smart technologies",
+    "x": 34.38,
+    "y": 24.74,
+    "delta": -28.04,
+    "value": 1
+  },
+  {
+    "domain": "Data Analytics",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 63714,
+    "rca.x": 0.99,
+    "share.x": 27.5,
+    "share_d.x": 0.3775,
+    "reldens.x": 41.8,
+    "comp_TCI.x": 59.01,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 119.76,
+    "parent.x": "Europe",
+    "color.x": "#D3D2D2",
+    "id.x": "European Union + (EU)",
+    "value.x": 63714,
+    "rank_count.x": 1,
+    "rank_rca.x": 33,
+    "rank_pc.x": 8,
+    "rank_share.x": 1,
+    "rank_reldens.x": 49,
+    "count.y": 56995,
+    "rca.y": 0.94,
+    "share.y": 21.25,
+    "share_d.y": 0.3921,
+    "reldens.y": 32.88,
+    "comp_TCI.y": 50.24,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 107.13,
+    "parent.y": "Europe",
+    "color.y": "#D1CDCD",
+    "id.y": "European Union + (EU)",
+    "value.y": 56995,
+    "rank_count.y": 1,
+    "rank_rca.y": 32,
+    "rank_pc.y": 10,
+    "rank_share.y": 1,
+    "rank_reldens.y": 70,
+    "color": "#C9B5B5",
+    "id": "Data Analytics",
+    "x": 27.5,
+    "y": 21.25,
+    "delta": -22.73,
+    "value": 1
+  },
+  {
+    "domain": "Digital Therapeutics",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 8287,
+    "rca.x": 1.03,
+    "share.x": 28.59,
+    "share_d.x": 0.0473,
+    "reldens.x": 69.86,
+    "comp_TCI.x": 12.55,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 15.58,
+    "parent.x": "Europe",
+    "color.x": "#BBC6BB",
+    "id.x": "European Union + (EU)",
+    "value.x": 8287,
+    "rank_count.x": 2,
+    "rank_rca.x": 66,
+    "rank_pc.x": 8,
+    "rank_share.x": 2,
+    "rank_reldens.x": 21,
+    "count.y": 10901,
+    "rca.y": 1.17,
+    "share.y": 26.51,
+    "share_d.y": 0.0602,
+    "reldens.y": 79.61,
+    "comp_TCI.y": 16.38,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 20.49,
+    "parent.y": "Europe",
+    "color.y": "#9CB69C",
+    "id.y": "European Union + (EU)",
+    "value.y": 10901,
+    "rank_count.y": 1,
+    "rank_rca.y": 62.5,
+    "rank_pc.y": 8,
+    "rank_share.y": 1,
+    "rank_reldens.y": 20,
+    "color": "#689B68",
+    "id": "Digital Therapeutics",
+    "x": 28.59,
+    "y": 26.51,
+    "delta": -7.28,
+    "value": 1
+  },
+  {
+    "domain": "DNA Technology - Genetically modified organisms (GMOs)",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 119977,
+    "rca.x": 0.98,
+    "share.x": 27.05,
+    "share_d.x": 0.7209,
+    "reldens.x": 20.1,
+    "comp_TCI.x": 20.4,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 225.52,
+    "parent.x": "Europe",
+    "color.x": "#D2D1D1",
+    "id.x": "European Union + (EU)",
+    "value.x": 119977,
+    "rank_count.x": 2,
+    "rank_rca.x": 15,
+    "rank_pc.x": 8,
+    "rank_share.x": 2,
+    "rank_reldens.x": 120,
+    "count.y": 119050,
+    "rca.y": 1.06,
+    "share.y": 24.08,
+    "share_d.y": 0.7219,
+    "reldens.y": 40.46,
+    "comp_TCI.y": 27.31,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 223.78,
+    "parent.y": "Europe",
+    "color.y": "#B1C1B1",
+    "id.y": "European Union + (EU)",
+    "value.y": 119050,
+    "rank_count.y": 2,
+    "rank_rca.y": 16,
+    "rank_pc.y": 8,
+    "rank_share.y": 2,
+    "rank_reldens.y": 41,
+    "color": "#77A377",
+    "id": "DNA Technology - Genetically modified organisms (GMOs)",
+    "x": 27.05,
+    "y": 24.08,
+    "delta": -10.98,
+    "value": 1
+  },
+  {
+    "domain": "Electronic Health Records",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 36194,
+    "rca.x": 1.62,
+    "share.x": 44.93,
+    "share_d.x": 0.131,
+    "reldens.x": 47.92,
+    "comp_TCI.x": 5.72,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 68.03,
+    "parent.x": "Europe",
+    "color.x": "#72A072",
+    "id.x": "European Union + (EU)",
+    "value.x": 36194,
+    "rank_count.x": 1,
+    "rank_rca.x": 26,
+    "rank_pc.x": 3,
+    "rank_share.x": 1,
+    "rank_reldens.x": 70,
+    "count.y": 32177,
+    "rca.y": 1.32,
+    "share.y": 29.96,
+    "share_d.y": 0.1573,
+    "reldens.y": 45.04,
+    "comp_TCI.y": 9.92,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 60.48,
+    "parent.y": "Europe",
+    "color.y": "#8AAC8A",
+    "id.y": "European Union + (EU)",
+    "value.y": 32177,
+    "rank_count.y": 1,
+    "rank_rca.y": 26.5,
+    "rank_pc.y": 8,
+    "rank_share.y": 1,
+    "rank_reldens.y": 72,
+    "color": "darkred",
+    "id": "Electronic Health Records",
+    "x": 44.93,
+    "y": 29.96,
+    "delta": -33.32,
+    "value": 1
+  },
+  {
+    "domain": "Fertilisers and Pesticides",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 617,
+    "rca.x": 0.2,
+    "share.x": 5.47,
+    "share_d.x": 0.0182,
+    "reldens.x": 1.91,
+    "comp_TCI.x": 22.31,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 1.16,
+    "parent.x": "Europe",
+    "color.x": "#AB5E5E",
+    "id.x": "European Union + (EU)",
+    "value.x": 617,
+    "rank_count.x": 5,
+    "rank_rca.x": 80.5,
+    "rank_pc.x": 26,
+    "rank_share.x": 5,
+    "rank_reldens.x": 129,
+    "count.y": 667,
+    "rca.y": 0.23,
+    "share.y": 5.16,
+    "share_d.y": 0.0188,
+    "reldens.y": 2.7,
+    "comp_TCI.y": 21.45,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 1.25,
+    "parent.y": "Europe",
+    "color.y": "#AE6565",
+    "id.y": "European Union + (EU)",
+    "value.y": 667,
+    "rank_count.y": 3,
+    "rank_rca.y": 96.5,
+    "rank_pc.y": 29,
+    "rank_share.y": 3,
+    "rank_reldens.y": 122,
+    "color": "#639863",
+    "id": "Fertilisers and Pesticides",
+    "x": 5.47,
+    "y": 5.16,
+    "delta": -5.67,
+    "value": 1
+  },
+  {
+    "domain": "Geographic Information Systems (GIS) and Remote Sensing",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 27516,
+    "rca.x": 1.11,
+    "share.x": 30.75,
+    "share_d.x": 0.1457,
+    "reldens.x": 61.31,
+    "comp_TCI.x": 35.61,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 51.72,
+    "parent.x": "Europe",
+    "color.x": "#A6BBA6",
+    "id.x": "European Union + (EU)",
+    "value.x": 27516,
+    "rank_count.x": 1,
+    "rank_rca.x": 44,
+    "rank_pc.x": 6,
+    "rank_share.x": 1,
+    "rank_reldens.x": 11,
+    "count.y": 25920,
+    "rca.y": 1.08,
+    "share.y": 24.43,
+    "share_d.y": 0.1551,
+    "reldens.y": 64.67,
+    "comp_TCI.y": 31.59,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 48.72,
+    "parent.y": "Europe",
+    "color.y": "#ACBFAC",
+    "id.y": "European Union + (EU)",
+    "value.y": 25920,
+    "rank_count.y": 2,
+    "rank_rca.y": 34,
+    "rank_pc.y": 6,
+    "rank_share.y": 2,
+    "rank_reldens.y": 9,
+    "color": "#CFC6C6",
+    "id": "Geographic Information Systems (GIS) and Remote Sensing",
+    "x": 30.75,
+    "y": 24.43,
+    "delta": -20.55,
+    "value": 1
+  },
+  {
+    "domain": "Imaging Technology",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 83767,
+    "rca.x": 0.97,
+    "share.x": 27.15,
+    "share_d.x": 0.5044,
+    "reldens.x": 45.97,
+    "comp_TCI.x": 69.4,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 157.46,
+    "parent.x": "Europe",
+    "color.x": "#D2D0D0",
+    "id.x": "European Union + (EU)",
+    "value.x": 83767,
+    "rank_count.x": 1,
+    "rank_rca.x": 19,
+    "rank_pc.x": 8,
+    "rank_share.x": 1,
+    "rank_reldens.x": 16,
+    "count.y": 84436,
+    "rca.y": 0.97,
+    "share.y": 22.21,
+    "share_d.y": 0.5583,
+    "reldens.y": 55.12,
+    "comp_TCI.y": 73.03,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 158.72,
+    "parent.y": "Europe",
+    "color.y": "#D2D0D0",
+    "id.y": "European Union + (EU)",
+    "value.y": 84436,
+    "rank_count.y": 2,
+    "rank_rca.y": 21,
+    "rank_pc.y": 9,
+    "rank_share.y": 2,
+    "rank_reldens.y": 11,
+    "color": "#B5C3B5",
+    "id": "Imaging Technology",
+    "x": 27.15,
+    "y": 22.21,
+    "delta": -18.2,
+    "value": 1
+  },
+  {
+    "domain": "Infectious Diseases Tests",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 70772,
+    "rca.x": 0.89,
+    "share.x": 24.78,
+    "share_d.x": 0.4663,
+    "reldens.x": 33.04,
+    "comp_TCI.x": 12.07,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 133.03,
+    "parent.x": "Europe",
+    "color.x": "#CFC7C7",
+    "id.x": "European Union + (EU)",
+    "value.x": 70772,
+    "rank_count.x": 1,
+    "rank_rca.x": 106,
+    "rank_pc.x": 8,
+    "rank_share.x": 1,
+    "rank_reldens.x": 105,
+    "count.y": 76668,
+    "rca.y": 0.97,
+    "share.y": 21.98,
+    "share_d.y": 0.5117,
+    "reldens.y": 48.68,
+    "comp_TCI.y": 13.39,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 144.11,
+    "parent.y": "Europe",
+    "color.y": "#D2D0D0",
+    "id.y": "European Union + (EU)",
+    "value.y": 76668,
+    "rank_count.y": 1,
+    "rank_rca.y": 96,
+    "rank_pc.y": 9,
+    "rank_share.y": 1,
+    "rank_reldens.y": 75,
+    "color": "#79A479",
+    "id": "Infectious Diseases Tests",
+    "x": 24.78,
+    "y": 21.98,
+    "delta": -11.3,
+    "value": 1
+  },
+  {
+    "domain": "Internet Of Things (IOT)",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 19699,
+    "rca.x": 0.69,
+    "share.x": 19.36,
+    "share_d.x": 0.1671,
+    "reldens.x": 20.7,
+    "comp_TCI.x": 54.69,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 37.03,
+    "parent.x": "Europe",
+    "color.x": "#C7AFAF",
+    "id.x": "European Union + (EU)",
+    "value.x": 19699,
+    "rank_count.x": 1,
+    "rank_rca.x": 58,
+    "rank_pc.x": 16,
+    "rank_share.x": 1,
+    "rank_reldens.x": 85,
+    "count.y": 22163,
+    "rca.y": 0.62,
+    "share.y": 14.07,
+    "share_d.y": 0.2317,
+    "reldens.y": 18.03,
+    "comp_TCI.y": 52.7,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 41.66,
+    "parent.y": "Europe",
+    "color.y": "#C4A6A6",
+    "id.y": "European Union + (EU)",
+    "value.y": 22163,
+    "rank_count.y": 3,
+    "rank_rca.y": 69.5,
+    "rank_pc.y": 21,
+    "rank_share.y": 3,
+    "rank_reldens.y": 88,
+    "color": "#B98888",
+    "id": "Internet Of Things (IOT)",
+    "x": 19.36,
+    "y": 14.07,
+    "delta": -27.32,
+    "value": 1
+  },
+  {
+    "domain": "Livestock technologies",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 19331,
+    "rca.x": 0.59,
+    "share.x": 16.25,
+    "share_d.x": 0.1927,
+    "reldens.x": 8.16,
+    "comp_TCI.x": 29.42,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 36.34,
+    "parent.x": "Europe",
+    "color.x": "#C2A2A2",
+    "id.x": "European Union + (EU)",
+    "value.x": 19331,
+    "rank_count.x": 1,
+    "rank_rca.x": 96,
+    "rank_pc.x": 10,
+    "rank_share.x": 1,
+    "rank_reldens.x": 130,
+    "count.y": 21119,
+    "rca.y": 0.53,
+    "share.y": 11.92,
+    "share_d.y": 0.258,
+    "reldens.y": 14.41,
+    "comp_TCI.y": 28.73,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 39.7,
+    "parent.y": "Europe",
+    "color.y": "#BF9A9A",
+    "id.y": "European Union + (EU)",
+    "value.y": 21119,
+    "rank_count.y": 3,
+    "rank_rca.y": 106.5,
+    "rank_pc.y": 17,
+    "rank_share.y": 3,
+    "rank_reldens.y": 122,
+    "color": "#BC8F8F",
+    "id": "Livestock technologies",
+    "x": 16.25,
+    "y": 11.92,
+    "delta": -26.65,
+    "value": 1
+  },
+  {
+    "domain": "Nanotechnologies",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 144548,
+    "rca.x": 0.72,
+    "share.x": 20.06,
+    "share_d.x": 1.1807,
+    "reldens.x": 16.47,
+    "comp_TCI.x": 88.93,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 271.71,
+    "parent.x": "Europe",
+    "color.x": "#C8B3B3",
+    "id.x": "European Union + (EU)",
+    "value.x": 144548,
+    "rank_count.x": 2,
+    "rank_rca.x": 52,
+    "rank_pc.x": 12,
+    "rank_share.x": 2,
+    "rank_reldens.x": 53,
+    "count.y": 122688,
+    "rca.y": 0.68,
+    "share.y": 15.46,
+    "share_d.y": 1.1668,
+    "reldens.y": 18.6,
+    "comp_TCI.y": 90.05,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 230.62,
+    "parent.y": "Europe",
+    "color.y": "#C6AEAE",
+    "id.y": "European Union + (EU)",
+    "value.y": 122688,
+    "rank_count.y": 2,
+    "rank_rca.y": 53.5,
+    "rank_pc.y": 12,
+    "rank_share.y": 2,
+    "rank_reldens.y": 53,
+    "color": "#C8B3B3",
+    "id": "Nanotechnologies",
+    "x": 20.06,
+    "y": 15.46,
+    "delta": -22.93,
+    "value": 1
+  },
+  {
+    "domain": "Natural Language Processing",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 23190,
+    "rca.x": 1.32,
+    "share.x": 36.7,
+    "share_d.x": 0.1029,
+    "reldens.x": 32.85,
+    "comp_TCI.x": 61.25,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 43.59,
+    "parent.x": "Europe",
+    "color.x": "#8AAC8A",
+    "id.x": "European Union + (EU)",
+    "value.x": 23190,
+    "rank_count.x": 1,
+    "rank_rca.x": 25.5,
+    "rank_pc.x": 5,
+    "rank_share.x": 1,
+    "rank_reldens.x": 42,
+    "count.y": 19052,
+    "rca.y": 1.18,
+    "share.y": 26.97,
+    "share_d.y": 0.1037,
+    "reldens.y": 30.15,
+    "comp_TCI.y": 63,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 35.81,
+    "parent.y": "Europe",
+    "color.y": "#9AB59A",
+    "id.y": "European Union + (EU)",
+    "value.y": 19052,
+    "rank_count.y": 1,
+    "rank_rca.y": 24,
+    "rank_pc.y": 8,
+    "rank_share.y": 1,
+    "rank_reldens.y": 35,
+    "color": "#BC9191",
+    "id": "Natural Language Processing",
+    "x": 36.7,
+    "y": 26.97,
+    "delta": -26.51,
+    "value": 1
+  },
+  {
+    "domain": "Plant Tissue Culture",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 12636,
+    "rca.x": 0.61,
+    "share.x": 16.78,
+    "share_d.x": 0.1219,
+    "reldens.x": 5.4,
+    "comp_TCI.x": 25.22,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 23.75,
+    "parent.x": "Europe",
+    "color.x": "#C3A5A5",
+    "id.x": "European Union + (EU)",
+    "value.x": 12636,
+    "rank_count.x": 3,
+    "rank_rca.x": 86,
+    "rank_pc.x": 5,
+    "rank_share.x": 3,
+    "rank_reldens.x": 129,
+    "count.y": 8634,
+    "rca.y": 0.52,
+    "share.y": 11.85,
+    "share_d.y": 0.106,
+    "reldens.y": 18.07,
+    "comp_TCI.y": 19,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 16.23,
+    "parent.y": "Europe",
+    "color.y": "#BF9898",
+    "id.y": "European Union + (EU)",
+    "value.y": 8634,
+    "rank_count.y": 3,
+    "rank_rca.y": 96.5,
+    "rank_pc.y": 15,
+    "rank_share.y": 3,
+    "rank_reldens.y": 123,
+    "color": "#B16E6E",
+    "id": "Plant Tissue Culture",
+    "x": 16.78,
+    "y": 11.85,
+    "delta": -29.38,
+    "value": 1
+  },
+  {
+    "domain": "Precision agriculture",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 11486,
+    "rca.x": 0.84,
+    "share.x": 23.24,
+    "share_d.x": 0.0803,
+    "reldens.x": 29.16,
+    "comp_TCI.x": 30.18,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 21.59,
+    "parent.x": "Europe",
+    "color.x": "#CDC1C1",
+    "id.x": "European Union + (EU)",
+    "value.x": 11486,
+    "rank_count.x": 1,
+    "rank_rca.x": 84.5,
+    "rank_pc.x": 7,
+    "rank_share.x": 1,
+    "rank_reldens.x": 111,
+    "count.y": 15347,
+    "rca.y": 0.7,
+    "share.y": 15.9,
+    "share_d.y": 0.1408,
+    "reldens.y": 33.55,
+    "comp_TCI.y": 33.64,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 28.85,
+    "parent.y": "Europe",
+    "color.y": "#C7B1B1",
+    "id.y": "European Union + (EU)",
+    "value.y": 15347,
+    "rank_count.y": 2,
+    "rank_rca.y": 88,
+    "rank_pc.y": 12,
+    "rank_share.y": 2,
+    "rank_reldens.y": 104,
+    "color": "#A44949",
+    "id": "Precision agriculture",
+    "x": 23.24,
+    "y": 15.9,
+    "delta": -31.58,
+    "value": 1
+  },
+  {
+    "domain": "Prosthetics",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 29092,
+    "rca.x": 1.01,
+    "share.x": 28.2,
+    "share_d.x": 0.1685,
+    "reldens.x": 60.63,
+    "comp_TCI.x": 63.2,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 54.68,
+    "parent.x": "Europe",
+    "color.x": "#C5CCC5",
+    "id.x": "European Union + (EU)",
+    "value.x": 29092,
+    "rank_count.x": 1,
+    "rank_rca.x": 14.5,
+    "rank_pc.x": 10,
+    "rank_share.x": 1,
+    "rank_reldens.x": 7,
+    "count.y": 27055,
+    "rca.y": 1.13,
+    "share.y": 25.83,
+    "share_d.y": 0.1537,
+    "reldens.y": 63.93,
+    "comp_TCI.y": 60.2,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 50.86,
+    "parent.y": "Europe",
+    "color.y": "#A2B9A2",
+    "id.y": "European Union + (EU)",
+    "value.y": 27055,
+    "rank_count.y": 1,
+    "rank_rca.y": 11,
+    "rank_pc.y": 9,
+    "rank_share.y": 1,
+    "rank_reldens.y": 7,
+    "color": "#6C9D6C",
+    "id": "Prosthetics",
+    "x": 28.2,
+    "y": 25.83,
+    "delta": -8.4,
+    "value": 1
+  },
+  {
+    "domain": "Rehab Robotics",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 19701,
+    "rca.x": 1,
+    "share.x": 27.89,
+    "share_d.x": 0.1155,
+    "reldens.x": 70.33,
+    "comp_TCI.x": 27.73,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 37.03,
+    "parent.x": "Europe",
+    "color.x": "lightgrey",
+    "id.x": "European Union + (EU)",
+    "value.x": 19701,
+    "rank_count.x": 1,
+    "rank_rca.x": 32.5,
+    "rank_pc.x": 10,
+    "rank_share.x": 1,
+    "rank_reldens.x": 6,
+    "count.y": 20552,
+    "rca.y": 1.1,
+    "share.y": 25.14,
+    "share_d.y": 0.1201,
+    "reldens.y": 72.12,
+    "comp_TCI.y": 29.37,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 38.63,
+    "parent.y": "Europe",
+    "color.y": "#A8BCA8",
+    "id.y": "European Union + (EU)",
+    "value.y": 20552,
+    "rank_count.y": 1,
+    "rank_rca.y": 26,
+    "rank_pc.y": 10,
+    "rank_share.y": 1,
+    "rank_reldens.y": 5,
+    "color": "#72A072",
+    "id": "Rehab Robotics",
+    "x": 27.89,
+    "y": 25.14,
+    "delta": -9.86,
+    "value": 1
+  },
+  {
+    "domain": "Robots",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 109411,
+    "rca.x": 0.97,
+    "share.x": 27.05,
+    "share_d.x": 0.6602,
+    "reldens.x": 38.78,
+    "comp_TCI.x": 94.1,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 205.66,
+    "parent.x": "Europe",
+    "color.x": "#D2D0D0",
+    "id.x": "European Union + (EU)",
+    "value.x": 109411,
+    "rank_count.x": 1,
+    "rank_rca.x": 27.5,
+    "rank_pc.x": 7,
+    "rank_share.x": 1,
+    "rank_reldens.x": 37,
+    "count.y": 96865,
+    "rca.y": 0.98,
+    "share.y": 22.19,
+    "share_d.y": 0.6398,
+    "reldens.y": 40.52,
+    "comp_TCI.y": 86.84,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 182.08,
+    "parent.y": "Europe",
+    "color.y": "#D2D1D1",
+    "id.y": "European Union + (EU)",
+    "value.y": 96865,
+    "rank_count.y": 2,
+    "rank_rca.y": 20,
+    "rank_pc.y": 6,
+    "rank_share.y": 2,
+    "rank_reldens.y": 32,
+    "color": "#B1C1B1",
+    "id": "Robots",
+    "x": 27.05,
+    "y": 22.19,
+    "delta": -17.97,
+    "value": 1
+  },
+  {
+    "domain": "Supply Chain Management",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 42020,
+    "rca.x": 1.2,
+    "share.x": 33.5,
+    "share_d.x": 0.2054,
+    "reldens.x": 53.79,
+    "comp_TCI.x": 61.99,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 78.99,
+    "parent.x": "Europe",
+    "color.x": "#98B498",
+    "id.x": "European Union + (EU)",
+    "value.x": 42020,
+    "rank_count.x": 1,
+    "rank_rca.x": 27,
+    "rank_pc.x": 4,
+    "rank_share.x": 1,
+    "rank_reldens.x": 27,
+    "count.y": 38006,
+    "rca.y": 1.2,
+    "share.y": 27.35,
+    "share_d.y": 0.2043,
+    "reldens.y": 48.22,
+    "comp_TCI.y": 61.79,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 71.44,
+    "parent.y": "Europe",
+    "color.y": "#98B498",
+    "id.y": "European Union + (EU)",
+    "value.y": 38006,
+    "rank_count.y": 1,
+    "rank_rca.y": 32,
+    "rank_pc.y": 5,
+    "rank_share.y": 1,
+    "rank_reldens.y": 36,
+    "color": "#B9C5B9",
+    "id": "Supply Chain Management",
+    "x": 33.5,
+    "y": 27.35,
+    "delta": -18.36,
+    "value": 1
+  },
+  {
+    "domain": "Surgical Devices",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 78940,
+    "rca.x": 0.99,
+    "share.x": 27.42,
+    "share_d.x": 0.4693,
+    "reldens.x": 42.3,
+    "comp_TCI.x": 13.37,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 148.38,
+    "parent.x": "Europe",
+    "color.x": "#D3D2D2",
+    "id.x": "European Union + (EU)",
+    "value.x": 78940,
+    "rank_count.x": 2,
+    "rank_rca.x": 41,
+    "rank_pc.x": 8,
+    "rank_share.x": 2,
+    "rank_reldens.x": 31,
+    "count.y": 82976,
+    "rca.y": 1.11,
+    "share.y": 25.27,
+    "share_d.y": 0.4811,
+    "reldens.y": 58.27,
+    "comp_TCI.y": 15.75,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 155.97,
+    "parent.y": "Europe",
+    "color.y": "#A6BBA6",
+    "id.y": "European Union + (EU)",
+    "value.y": 82976,
+    "rank_count.y": 1,
+    "rank_rca.y": 34,
+    "rank_pc.y": 10,
+    "rank_share.y": 1,
+    "rank_reldens.y": 14,
+    "color": "#6A9C6A",
+    "id": "Surgical Devices",
+    "x": 27.42,
+    "y": 25.27,
+    "delta": -7.84,
+    "value": 1
+  },
+  {
+    "domain": "Telemedicine",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 2223,
+    "rca.x": 1.02,
+    "share.x": 28.42,
+    "share_d.x": 0.0127,
+    "reldens.x": 61.86,
+    "comp_TCI.x": 11.92,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 4.18,
+    "parent.x": "Europe",
+    "color.x": "#BFC9BF",
+    "id.x": "European Union + (EU)",
+    "value.x": 2223,
+    "rank_count.x": 2,
+    "rank_rca.x": 39.5,
+    "rank_pc.x": 7,
+    "rank_share.x": 2,
+    "rank_reldens.x": 53,
+    "count.y": 7668,
+    "rca.y": 1.19,
+    "share.y": 26.98,
+    "share_d.y": 0.0414,
+    "reldens.y": 84.49,
+    "comp_TCI.y": 16.81,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 14.41,
+    "parent.y": "Europe",
+    "color.y": "#99B499",
+    "id.y": "European Union + (EU)",
+    "value.y": 7668,
+    "rank_count.y": 2,
+    "rank_rca.y": 39,
+    "rank_pc.y": 9,
+    "rank_share.y": 2,
+    "rank_reldens.y": 8,
+    "color": "#619761",
+    "id": "Telemedicine",
+    "x": 28.42,
+    "y": 26.98,
+    "delta": -5.07,
+    "value": 1
+  },
+  {
+    "domain": "Vaccines",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 34752,
+    "rca.x": 0.97,
+    "share.x": 27.03,
+    "share_d.x": 0.2098,
+    "reldens.x": 30.93,
+    "comp_TCI.x": 7.44,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 65.32,
+    "parent.x": "Europe",
+    "color.x": "#D2D0D0",
+    "id.x": "European Union + (EU)",
+    "value.x": 34752,
+    "rank_count.x": 2,
+    "rank_rca.x": 69,
+    "rank_pc.x": 9,
+    "rank_share.x": 2,
+    "rank_reldens.x": 91,
+    "count.y": 38978,
+    "rca.y": 1.09,
+    "share.y": 24.87,
+    "share_d.y": 0.2297,
+    "reldens.y": 65.92,
+    "comp_TCI.y": 12.38,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 73.27,
+    "parent.y": "Europe",
+    "color.y": "#AABEAA",
+    "id.y": "European Union + (EU)",
+    "value.y": 38978,
+    "rank_count.y": 1,
+    "rank_rca.y": 70,
+    "rank_pc.y": 9,
+    "rank_share.y": 1,
+    "rank_reldens.y": 16,
+    "color": "#6B9C6B",
+    "id": "Vaccines",
+    "x": 27.03,
+    "y": 24.87,
+    "delta": -7.99,
+    "value": 1
+  },
+  {
+    "domain": "Vector Control",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 66881,
+    "rca.x": 0.83,
+    "share.x": 23.13,
+    "share_d.x": 0.4711,
+    "reldens.x": 19.53,
+    "comp_TCI.x": 8.13,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 125.72,
+    "parent.x": "Europe",
+    "color.x": "#CDC0C0",
+    "id.x": "European Union + (EU)",
+    "value.x": 66881,
+    "rank_count.x": 1,
+    "rank_rca.x": 106,
+    "rank_pc.x": 10,
+    "rank_share.x": 1,
+    "rank_reldens.x": 122,
+    "count.y": 65057,
+    "rca.y": 0.92,
+    "share.y": 20.8,
+    "share_d.y": 0.4574,
+    "reldens.y": 58.38,
+    "comp_TCI.y": 8.7,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 122.29,
+    "parent.y": "Europe",
+    "color.y": "#D0CACA",
+    "id.y": "European Union + (EU)",
+    "value.y": 65057,
+    "rank_count.y": 1,
+    "rank_rca.y": 104,
+    "rank_pc.y": 8,
+    "rank_share.y": 1,
+    "rank_reldens.y": 81,
+    "color": "#73A173",
+    "id": "Vector Control",
+    "x": 23.13,
+    "y": 20.8,
+    "delta": -10.07,
+    "value": 1
+  },
+  {
+    "domain": "Water And Sanitation Hygiene Technologies",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 52036,
+    "rca.x": 0.79,
+    "share.x": 21.8,
+    "share_d.x": 0.3877,
+    "reldens.x": 22.12,
+    "comp_TCI.x": 15.59,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 97.81,
+    "parent.x": "Europe",
+    "color.x": "#CBBCBC",
+    "id.x": "European Union + (EU)",
+    "value.x": 52036,
+    "rank_count.x": 1,
+    "rank_rca.x": 114,
+    "rank_pc.x": 10,
+    "rank_share.x": 1,
+    "rank_reldens.x": 126,
+    "count.y": 46558,
+    "rca.y": 0.71,
+    "share.y": 16.03,
+    "share_d.y": 0.4245,
+    "reldens.y": 25.31,
+    "comp_TCI.y": 14.3,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 87.52,
+    "parent.y": "Europe",
+    "color.y": "#C8B2B2",
+    "id.y": "European Union + (EU)",
+    "value.y": 46558,
+    "rank_count.y": 1,
+    "rank_rca.y": 118,
+    "rank_pc.y": 13,
+    "rank_share.y": 1,
+    "rank_reldens.y": 123,
+    "color": "#BD9191",
+    "id": "Water And Sanitation Hygiene Technologies",
+    "x": 21.8,
+    "y": 16.03,
+    "delta": -26.47,
+    "value": 1
+  },
+  {
+    "domain": "Water management",
+    "geo": "European Union + (EU)",
+    "data": "openalex",
+    "count.x": 43316,
+    "rca.x": 0.87,
+    "share.x": 24.13,
+    "share_d.x": 0.291,
+    "reldens.x": 23.79,
+    "comp_TCI.x": 22.29,
+    "population.x": 531.9949,
+    "parent2.x": "Europe",
+    "parent3.x": "EU",
+    "pc.x": 81.42,
+    "parent.x": "Europe",
+    "color.x": "#CEC5C5",
+    "id.x": "European Union + (EU)",
+    "value.x": 43316,
+    "rank_count.x": 1,
+    "rank_rca.x": 105,
+    "rank_pc.x": 6,
+    "rank_share.x": 1,
+    "rank_reldens.x": 121,
+    "count.y": 39990,
+    "rca.y": 0.87,
+    "share.y": 19.73,
+    "share_d.y": 0.2953,
+    "reldens.y": 27.21,
+    "comp_TCI.y": 16.17,
+    "population.y": 531.9949,
+    "parent2.y": "Europe",
+    "parent3.y": "EU",
+    "pc.y": 75.17,
+    "parent.y": "Europe",
+    "color.y": "#CEC5C5",
+    "id.y": "European Union + (EU)",
+    "value.y": 39990,
+    "rank_count.y": 1,
+    "rank_rca.y": 108,
+    "rank_pc.y": 9,
+    "rank_share.y": 1,
+    "rank_reldens.y": 117,
+    "color": "#B6C4B6",
+    "id": "Water management",
+    "x": 24.13,
+    "y": 19.73,
+    "delta": -18.23,
+    "value": 1
+  }
+] ;
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,2.3];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+    body:d=>`<table class='tooltip-table'>
+      <tr><td class='title'>t-1:</td><td class='data'>${d.x}</td></tr>
+      <tr><td class='title'>t:</td><td class='data'>${d.y}</td></tr>
+      <tr><td class='title'>Growth/Decline (%):</td><td class='data'>${d.delta}</td></tr>
+      <tr><td class='title'>ID:</td><td class='data'>${d.id}</td></tr>
+    </table>`,
+    title:d=>d.id
+  })
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"Current Period (t)",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+    title:"Previous Period (t-1)",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  startPositionUpdater();
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      svg.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+        
+        // Show in console for debugging
+        console.log('Hovering over:', matchingData.id);
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  customLabels.forEach((labelData) => {
+    const {circle, text, fullText} = labelData;
+    
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    
+    if (circle && text) {
+      const circleData = circlePositions.find(cp => cp.circle === circle);
+      if (circleData) {
+        const r = parseFloat(circle.getAttribute('r')) || 7.5;
+        const bestPosition = findBestPosition(
+          text, 
+          circleData.coords.x, 
+          circleData.coords.y, 
+          r,
+          circlePositions,
+          fullText
+        );
+        
+        text.setAttribute('x', bestPosition.x);
+        text.setAttribute('y', bestPosition.y);
+        text.setAttribute('text-anchor', bestPosition.anchor);
+        text.textContent = bestPosition.text;
+        labelData.defaultText = bestPosition.text;
+        
+        if (bestPosition.hasCollision) {
+          text.classList.add('collision');
+          text.setAttribute('opacity', '0.3');
+        } else {
+          text.classList.remove('collision');
+          text.setAttribute('opacity', '1');
+        }
+      }
+    }
+  });
+  
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
+  Color represents growth or decline between periods. Green does not necessarily indicate positive growth. 
+</div>
+</body>
+</html>
