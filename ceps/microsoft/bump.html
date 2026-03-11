@@ -1,0 +1,906 @@
+<!doctype html>
+  <html>
+  
+  <head>
+  <meta charset="utf-8">
+    <title>Bump Chart</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+      <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #ffffff;
+          color: #111;
+          font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Helvetica, Arial, sans-serif;
+        height: 100vh;
+      }
+    
+    .viz-grid {
+      display: grid;
+      grid-template-rows: 16fr 1fr 2fr 1fr;
+      grid-template-columns: 1fr 1fr;
+      height: 100vh;
+      width: 100vw;
+      box-sizing: border-box;
+      padding-bottom: 0.1rem;
+    }
+    
+    #container1 {
+    grid-row: 1;
+    grid-column: 1 / span 2;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+    column-gap: 0;
+    }
+
+#container1 .chart-wrapper {
+flex: 1 1 auto;
+display: flex;
+min-width: 0;
+height: 100%;
+margin-left: 0;
+}
+
+#container1 .chart-wrapper-inner {
+flex: 1 1 auto;
+display: flex;
+min-width: 0;
+height: 100%;
+}
+
+#container5 {
+grid-row: 2;
+grid-column: 1 / span 2;
+display: flex;
+align-items: center;
+justify-content: flex-end;
+padding: 0 20px;
+overflow: hidden;
+}
+
+#container2 {
+grid-row: 3;
+grid-column: 1 / span 2;
+display: flex;
+align-items: center;
+justify-content: center;
+overflow: hidden;
+font-size: clamp(8px, 1.6vw, 16px);
+}
+
+#container3 {
+grid-row: 4;
+grid-column: 1;
+display: flex;
+align-items: center;
+justify-content: flex-start;
+padding: 0 20px;
+overflow: hidden;
+min-width: 0;
+}
+
+#container4 {
+grid-row: 4;
+grid-column: 2;
+display: flex;
+align-items: center;
+justify-content: flex-end;
+padding: 0 20px;
+overflow: hidden;
+min-width: 0;
+gap: clamp(4px, 1vw, 8px);
+}
+
+#container4 a {
+height: 100%;
+display: flex;
+align-items: center;
+flex-shrink: 0;
+min-width: 0;
+}
+
+#viz {
+position: relative;
+width: 100%;
+height: 100%;
+min-width: 0;
+min-height: 0;
+display: flex;
+flex-direction: column;
+padding: clamp(4px, 0.5vw, 8px) clamp(4px, 1vw, 12px) 0 clamp(4px, 1vw, 12px);
+box-sizing: border-box;
+}
+
+.chart-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+#chart {
+display: block;
+width: 100%;
+height: 100%;
+}
+
+#tooltip {
+position: absolute;
+background: #fff;
+  border: 1px solid #eee;
+border-radius: 2px;
+padding: 6px 8px;
+font-size: 12px;
+pointer-events: none;
+opacity: 0;
+box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+transition: opacity 0.1s ease;
+z-index: 9999;
+font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+color: #444;
+  }
+
+.custom-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(6px, 1vw, 14px);
+  background: rgba(255, 255, 255, 1);
+  padding: clamp(4px, 1vh, 10px) clamp(10px, 2vw, 16px);
+  border-radius: clamp(6px, 1vw, 12px);
+  max-width: 100%;
+  max-height: 100%;
+  font-size: clamp(0.625rem, 1.4vw, 1rem);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 1vw, 8px);
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  font-weight: 600;
+  color: #333;
+    font-size: inherit;
+  padding: 2px 6px;
+}
+
+.legend-item.dim {
+  opacity: 0.35;
+}
+
+.legend-item:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.5);
+  outline-offset: 2px;
+}
+
+.legend-square {
+  width: clamp(8px, 0.9vw, 12px);
+  height: clamp(8px, 0.9vw, 12px);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.series-label {
+  font-size: clamp(13.5px, 1.8vw, 24px);
+  font-weight: 400;
+  fill: #111;
+    pointer-events: auto;
+  cursor: pointer;
+}
+
+.series-line {
+  fill: none;
+  stroke-width: var(--lineWidth, 3.4);
+  opacity: 0.9;
+  transition: opacity 0.2s ease, stroke-width 0.2s ease;
+  cursor: pointer;
+}
+
+.series-point {
+  stroke: #fff;
+    stroke-width: 1.5;
+  cursor: pointer;
+  transition: r 0.2s ease;
+}
+
+.series.dim .series-line,
+.series.dim .series-point,
+.series.dim .series-label {
+  opacity: 0.15;
+}
+
+.series.highlighted .series-line {
+  stroke-width: calc(var(--lineWidth, 3.4) * 1.3);
+  opacity: 1;
+  filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.2));
+}
+
+.source-text {
+  font-size: clamp(8px, 1.6vw, 16px);
+  font-weight: 600;
+  color: #333;
+    white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-style: normal;
+}
+
+.source-text a {
+  color: #2756d3;
+    text-decoration: underline;
+  cursor: pointer;
+  font-style: normal;
+}
+
+.source-text a:visited {
+  color: #2756d3;
+}
+
+.logo {
+  height: 100%;
+  width: auto;
+  max-height: 100%;
+  max-width: clamp(80px, 15vw, 200px);
+  pointer-events: auto;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.footnote-text {
+  font-size: clamp(10px, 1.6vw, 16px);
+  font-style: italic;
+  color: #333;
+    text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.axis path,
+.axis line {
+  stroke: #cfd2d7;
+}
+
+.tick text {
+  font-size: clamp(12px, 1.6vw, 20px);
+  font-weight: 600;
+}
+
+.axis--y text {
+  font-style: italic;
+}
+
+@media (max-height: 500px) {
+  .viz-grid {
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
+    padding-bottom: 0;
+  }
+  
+  #container1 {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+#container2,
+#container3,
+#container4,
+#container5 {
+display: none !important;
+}
+
+#viz {
+padding-top: 0 !important;
+padding-bottom: 0 !important;
+}
+
+.axis--y,
+.axis--x {
+  display: none;
+}
+
+.grid-lines {
+  display: none;
+}
+}
+</style>
+  </head>
+  
+  <body>
+  <div class="viz-grid">
+    <div id="container1">
+      <div class="chart-wrapper">
+        <div class="chart-wrapper-inner">
+          <div id="viz">
+            <div class="chart-body">
+              <svg id="chart" role="img" aria-label="Ranking bump chart"></svg>
+                <div id="tooltip"></div>
+                  </div>
+                  </div>
+                  </div>
+                  </div>
+                  </div>
+                  <div id="container5"><div class="footnote-text"></div></div>
+                    <div id="container2"><div id="legend" class="custom-legend"></div></div>
+                      <div id="container3"><div class="source-text"></div></div>
+                        <div id="container4"></div>
+                          </div>
+                          
+                          <script>
+                          const originalData = [
+                            { "id": "Accommodation & Food", "value": 4.22, "color": "green", "level": "cb", "name": "Accommodation & Food" },
+                            { "id": "Admin & Support Services", "value": 20.97, "color": "green", "level": "cb", "name": "Admin & Support Services" },
+                            { "id": "Agriculture & Fishing", "value": 7.09, "color": "green", "level": "cb", "name": "Agriculture & Fishing" },
+                            { "id": "Arts, Sports & Recreation", "value": 7.78, "color": "green", "level": "cb", "name": "Arts, Sports & Recreation" },
+                            { "id": "Construction", "value": 14.73, "color": "green", "level": "cb", "name": "Construction" },
+                            { "id": "Education", "value": 16.18, "color": "green", "level": "cb", "name": "Education" },
+                            { "id": "Electricity & Gas Supply", "value": 9.29, "color": "green", "level": "cb", "name": "Electricity & Gas Supply" },
+                            { "id": "Financial & Insurance", "value": 11.63, "color": "green", "level": "cb", "name": "Financial & Insurance" },
+                            { "id": "Health & Social Work", "value": 13.71, "color": "green", "level": "cb", "name": "Health & Social Work" },
+                            { "id": "Manufacturing", "value": 8.41, "color": "green", "level": "cb", "name": "Manufacturing" },
+                            { "id": "Mining & Quarrying", "value": 8.91, "color": "green", "level": "cb", "name": "Mining & Quarrying" },
+                            { "id": "Professional & Scientific", "value": 13.74, "color": "green", "level": "cb", "name": "Professional & Scientific" },
+                            { "id": "Public Admin & Defence", "value": 25.19, "color": "green", "level": "cb", "name": "Public Admin & Defence" },
+                            { "id": "Publishing & Broadcasting", "value": 16.55, "color": "green", "level": "cb", "name": "Publishing & Broadcasting" },
+                            { "id": "Real Estate", "value": 9.48, "color": "green", "level": "cb", "name": "Real Estate" },
+                            { "id": "Telecom & IT", "value": 27.73, "color": "green", "level": "cb", "name": "Telecom & IT" },
+                            { "id": "Transportation & Storage", "value": 11.1, "color": "green", "level": "cb", "name": "Transportation & Storage" },
+                            { "id": "Water & Waste", "value": 7.07, "color": "green", "level": "cb", "name": "Water & Waste" },
+                            { "id": "Wholesale & Retail Trade", "value": 8.93, "color": "green", "level": "cb", "name": "Wholesale & Retail Trade" },
+                            { "id": "Accommodation & Food", "value": 8.42, "color": "#4e79a7", "level": "pat", "name": "Accommodation & Food" },
+                            { "id": "Admin & Support Services", "value": 28.03, "color": "#4e79a7", "level": "pat", "name": "Admin & Support Services" },
+                            { "id": "Agriculture & Fishing", "value": 3.3, "color": "#4e79a7", "level": "pat", "name": "Agriculture & Fishing" },
+                            { "id": "Arts, Sports & Recreation", "value": 9, "color": "#4e79a7", "level": "pat", "name": "Arts, Sports & Recreation" },
+                            { "id": "Construction", "value": 1.14, "color": "#4e79a7", "level": "pat", "name": "Construction" },
+                            { "id": "Education", "value": 21.19, "color": "#4e79a7", "level": "pat", "name": "Education" },
+                            { "id": "Electricity & Gas Supply", "value": 3.52, "color": "#4e79a7", "level": "pat", "name": "Electricity & Gas Supply" },
+                            { "id": "Financial & Insurance", "value": 31.6, "color": "#4e79a7", "level": "pat", "name": "Financial & Insurance" },
+                            { "id": "Health & Social Work", "value": 19.03, "color": "#4e79a7", "level": "pat", "name": "Health & Social Work" },
+                            { "id": "Manufacturing", "value": 6.97, "color": "#4e79a7", "level": "pat", "name": "Manufacturing" },
+                            { "id": "Mining & Quarrying", "value": 7.86, "color": "#4e79a7", "level": "pat", "name": "Mining & Quarrying" },
+                            { "id": "Professional & Scientific", "value": 19.78, "color": "#4e79a7", "level": "pat", "name": "Professional & Scientific" },
+                            { "id": "Public Admin & Defence", "value": 28.97, "color": "#4e79a7", "level": "pat", "name": "Public Admin & Defence" },
+                            { "id": "Publishing & Broadcasting", "value": 16.82, "color": "#4e79a7", "level": "pat", "name": "Publishing & Broadcasting" },
+                            { "id": "Real Estate", "value": 15.51, "color": "#4e79a7", "level": "pat", "name": "Real Estate" },
+                            { "id": "Telecom & IT", "value": 35.96, "color": "#4e79a7", "level": "pat", "name": "Telecom & IT" },
+                            { "id": "Transportation & Storage", "value": 7.21, "color": "#4e79a7", "level": "pat", "name": "Transportation & Storage" },
+                            { "id": "Water & Waste", "value": 3.76, "color": "#4e79a7", "level": "pat", "name": "Water & Waste" },
+                            { "id": "Wholesale & Retail Trade", "value": 11.9, "color": "#4e79a7", "level": "pat", "name": "Wholesale & Retail Trade" },
+                            { "id": "Accommodation & Food", "value": 0.29, "color": "#4e79a7", "level": "pub", "name": "Accommodation & Food" },
+                            { "id": "Admin & Support Services", "value": 4.57, "color": "#4e79a7", "level": "pub", "name": "Admin & Support Services" },
+                            { "id": "Agriculture & Fishing", "value": 0.3, "color": "#4e79a7", "level": "pub", "name": "Agriculture & Fishing" },
+                            { "id": "Arts, Sports & Recreation", "value": 0.94, "color": "#4e79a7", "level": "pub", "name": "Arts, Sports & Recreation" },
+                            { "id": "Construction", "value": 1.79, "color": "#4e79a7", "level": "pub", "name": "Construction" },
+                            { "id": "Education", "value": 25.2, "color": "#4e79a7", "level": "pub", "name": "Education" },
+                            { "id": "Electricity & Gas Supply", "value": 3.26, "color": "#4e79a7", "level": "pub", "name": "Electricity & Gas Supply" },
+                            { "id": "Financial & Insurance", "value": 4.1, "color": "#4e79a7", "level": "pub", "name": "Financial & Insurance" },
+                            { "id": "Health & Social Work", "value": 1.27, "color": "#4e79a7", "level": "pub", "name": "Health & Social Work" },
+                            { "id": "Manufacturing", "value": 3.89, "color": "#4e79a7", "level": "pub", "name": "Manufacturing" },
+                            { "id": "Mining & Quarrying", "value": 9.12, "color": "#4e79a7", "level": "pub", "name": "Mining & Quarrying" },
+                            { "id": "Professional & Scientific", "value": 2.88, "color": "#4e79a7", "level": "pub", "name": "Professional & Scientific" },
+                            { "id": "Public Admin & Defence", "value": 1.72, "color": "#4e79a7", "level": "pub", "name": "Public Admin & Defence" },
+                            { "id": "Publishing & Broadcasting", "value": 5.96, "color": "#4e79a7", "level": "pub", "name": "Publishing & Broadcasting" },
+                            { "id": "Real Estate", "value": 1.37, "color": "#4e79a7", "level": "pub", "name": "Real Estate" },
+                            { "id": "Telecom & IT", "value": 36.44, "color": "#4e79a7", "level": "pub", "name": "Telecom & IT" },
+                            { "id": "Transportation & Storage", "value": 1.93, "color": "#4e79a7", "level": "pub", "name": "Transportation & Storage" },
+                            { "id": "Water & Waste", "value": 2.12, "color": "#4e79a7", "level": "pub", "name": "Water & Waste" },
+                            { "id": "Wholesale & Retail Trade", "value": 0.38, "color": "#4e79a7", "level": "pub", "name": "Wholesale & Retail Trade" },
+                            { "id": "Accommodation & Food", "value": 18, "color": "#4e79a7", "level": "Ranking", "name": "Accommodation & Food" },
+                            { "id": "Admin & Support Services", "value": 3, "color": "#4e79a7", "level": "Ranking", "name": "Admin & Support Services" },
+                            { "id": "Agriculture & Fishing", "value": 19, "color": "#4e79a7", "level": "Ranking", "name": "Agriculture & Fishing" },
+                            { "id": "Arts, Sports & Recreation", "value": 16, "color": "#4e79a7", "level": "Ranking", "name": "Arts, Sports & Recreation" },
+                            { "id": "Construction", "value": 13, "color": "#4e79a7", "level": "Ranking", "name": "Construction" },
+                            { "id": "Education", "value": 2, "color": "#4e79a7", "level": "Ranking", "name": "Education" },
+                            { "id": "Electricity & Gas Supply", "value": 14, "color": "#4e79a7", "level": "Ranking", "name": "Electricity & Gas Supply" },
+                            { "id": "Financial & Insurance", "value": 5, "color": "#4e79a7", "level": "Ranking", "name": "Financial & Insurance" },
+                            { "id": "Health & Social Work", "value": 8, "color": "#4e79a7", "level": "Ranking", "name": "Health & Social Work" },
+                            { "id": "Manufacturing", "value": 12, "color": "#4e79a7", "level": "Ranking", "name": "Manufacturing" },
+                            { "id": "Mining & Quarrying", "value": 9, "color": "#4e79a7", "level": "Ranking", "name": "Mining & Quarrying" },
+                            { "id": "Professional & Scientific", "value": 7, "color": "#4e79a7", "level": "Ranking", "name": "Professional & Scientific" },
+                            { "id": "Public Admin & Defence", "value": 6, "color": "#4e79a7", "level": "Ranking", "name": "Public Admin & Defence" },
+                            { "id": "Publishing & Broadcasting", "value": 4, "color": "#4e79a7", "level": "Ranking", "name": "Publishing & Broadcasting" },
+                            { "id": "Real Estate", "value": 10, "color": "#4e79a7", "level": "Ranking", "name": "Real Estate" },
+                            { "id": "Telecom & IT", "value": 1, "color": "#4e79a7", "level": "Ranking", "name": "Telecom & IT" },
+                            { "id": "Transportation & Storage", "value": 11, "color": "#4e79a7", "level": "Ranking", "name": "Transportation & Storage" },
+                            { "id": "Water & Waste", "value": 17, "color": "#4e79a7", "level": "Ranking", "name": "Water & Waste" },
+                            { "id": "Wholesale & Retail Trade", "value": 15, "color": "#4e79a7", "level": "Ranking", "name": "Wholesale & Retail Trade" }
+                          ];
+                          
+                          const SHOW_LEGEND = 0;
+                          const BUMP_CURVE = "curved";
+                          const BUMP_SHOW_LABELS = "right";
+                          const BUMP_SHOW_RANK_NUMBERS = "none";
+                          const SHOW_TOOLTIP = 1;
+                          const PALETTE_MODE = "none";
+                          const SOURCE_NAME = "Crunchbase, Regpat, Openalex";
+                          const SOURCE_HREF = "";
+                          const LOGO_OPTION = "aiw";
+                          const FOOTNOTE_TEXT = "";
+                          
+                          const SHOW_CONTAINER_2 = SHOW_LEGEND ? 1 : 0;
+                          const SHOW_CONTAINER_3 = SOURCE_NAME ? 1 : 0;
+                          const SHOW_CONTAINER_4 = 0;
+                          const SHOW_CONTAINER_5 = FOOTNOTE_TEXT ? 1 : 0;
+                          
+                          if (SHOW_CONTAINER_3) {
+                            const c3 = document.getElementById('container3');
+                            let html = 'Source: ';
+                            if (SOURCE_HREF) html += `<a href="${SOURCE_HREF}" target="_blank" rel="noopener">${SOURCE_NAME}</a>`;
+                            else html += SOURCE_NAME;
+                            c3.querySelector('.source-text').innerHTML = html;
+                          }
+                          
+                          if (SHOW_CONTAINER_5) {
+                            document.getElementById('container5').querySelector('.footnote-text').innerText = FOOTNOTE_TEXT;
+                          }
+                          
+                          (function applyContainerVisibility() {
+                            const vizGrid = document.querySelector('.viz-grid');
+                            const container1 = document.getElementById('container1');
+                            const container2 = document.getElementById('container2');
+                            const container3 = document.getElementById('container3');
+                            const container4 = document.getElementById('container4');
+                            const container5 = document.getElementById('container5');
+                            
+                            if (!SHOW_CONTAINER_2) container2.style.display = 'none';
+                            if (!SHOW_CONTAINER_3) container3.style.display = 'none';
+                            if (!SHOW_CONTAINER_4) container4.style.display = 'none';
+                            if (!SHOW_CONTAINER_5) container5.style.display = 'none';
+                            
+                            const row2Visible = SHOW_CONTAINER_5 === 1;
+                            const row3Visible = SHOW_CONTAINER_2 === 1;
+                            const row4Visible = (SHOW_CONTAINER_3 === 1) || (SHOW_CONTAINER_4 === 1);
+                            
+                            let gridRows = [];
+                            let currentRow = 1;
+                            const container1Height = 20 - (row2Visible ? 1 : 0) - (row3Visible ? 2 : 0) - (row4Visible ? 1 : 0);
+                            gridRows.push(`${container1Height}fr`);
+                            if (row2Visible) { gridRows.push('1fr'); currentRow++; container5.style.gridRow = currentRow.toString(); }
+                            if (row3Visible) { gridRows.push('2fr'); currentRow++; container2.style.gridRow = currentRow.toString(); }
+                            if (row4Visible) {
+                              gridRows.push('1fr'); currentRow++;
+                              if (SHOW_CONTAINER_3) container3.style.gridRow = currentRow.toString();
+                              if (SHOW_CONTAINER_4) container4.style.gridRow = currentRow.toString();
+                            }
+                            vizGrid.style.gridTemplateRows = gridRows.join(' ');
+                            container1.style.gridRow = '1';
+                            if (row4Visible) {
+                              if (SHOW_CONTAINER_3 && !SHOW_CONTAINER_4) container3.style.gridColumn = '1 / span 2';
+                              else if (!SHOW_CONTAINER_3 && SHOW_CONTAINER_4) container4.style.gridColumn = '1 / span 2';
+                            }
+                          })();
+                          
+                          const svg = d3.select('#chart');
+                          const tooltip = d3.select('#tooltip');
+                          const legendContainer = d3.select('#legend');
+                          const vizContainer = document.getElementById('viz');
+                          
+                          let preparedData = null;
+                          let selectedLabel = null;
+                          let selectedParent = null;
+                          let parentIndexMap = new Map();
+                          
+                          function getQueryParams() {
+                            const params = new URLSearchParams(window.location.search);
+                            const ignoreParam = params.get('ignore');
+                            const ignoreList = ignoreParam ? ignoreParam.split(',').map(s => s.trim()).filter(Boolean) : [];
+                            return { parent: params.get('parent'), ignore: ignoreList };
+                          }
+                          
+                          function updateURL(params = {}) {
+                            const url = new URL(window.location);
+                            if (params.parent !== undefined) {
+                              if (params.parent !== null && params.parent !== '') url.searchParams.set('parent', params.parent);
+                              else url.searchParams.delete('parent');
+                            }
+                            window.history.replaceState({}, '', url);
+                          }
+                          
+                          function getParentIndex(parentName) {
+                            return Array.from(parentIndexMap.entries()).find(([key, value]) => value === parentName)?.[0] ?? null;
+                          }
+                          function getParentByIndex(index) { return parentIndexMap.get(parseInt(index)) ?? null; }
+                          function sanitizeColumn(value) {
+                            if (value === undefined || value === null) return null;
+                            const trimmed = String(value).trim();
+                            return trimmed || null;
+                          }
+                          function getCurrentLimit() { return Infinity; }
+                          function updateVizDensityClass() {
+                            if (!vizContainer) return;
+                            vizContainer.classList.remove('density-top10', 'density-top25', 'density-top50');
+                          }
+                          
+                          function buildColorPalette() {
+                            if (PALETTE_MODE === 'aiw') return ['#2756d3'];
+                            if (PALETTE_MODE === 'ceps') return ['#207164'];
+                            const paletteSources = [d3.schemeTableau10, d3.schemeSet3, d3.schemeSet2, d3.schemeSet1, d3.schemePaired, d3.schemeAccent, d3.schemeCategory10];
+                            const merged = [];
+                            paletteSources.forEach(source => {
+                              if (!Array.isArray(source)) return;
+                              if (source.every(item => typeof item === 'string')) merged.push(...source);
+                              else source.forEach(entry => { if (Array.isArray(entry)) merged.push(...entry); });
+                            });
+                            if (!merged.length) merged.push('#2756d3', '#22c55e', '#f97316', '#eab308', '#a855f7', '#0ea5e9');
+                            return merged;
+                          }
+                          
+                          function prepareBumpData(rows, limit = Infinity) {
+                            const parsed = rows.map(row => {
+                              const levelRaw = sanitizeColumn(row.level);
+                              const id = sanitizeColumn(row.id);
+                              const name = sanitizeColumn(row.name);
+                              const parent = sanitizeColumn(row.parent);
+                              const value = (row.count || row.value) ? +(row.count || row.value) : NaN;
+                              const color = sanitizeColumn(row.color);
+                              let levelValue = levelRaw;
+                              if (levelRaw && !isNaN(levelRaw) && !isNaN(parseFloat(levelRaw))) levelValue = +levelRaw;
+                              const displayName = name || id;
+                              return { level: levelRaw, levelValue: levelValue !== null ? levelValue : null, id, label: displayName, parent, value: Number.isFinite(value) ? value : null, color };
+                            }).filter(d => d.level && d.id && d.levelValue !== null && Number.isFinite(d.value));
+                            
+                            if (!parsed.length) return null;
+                            
+                            const levelValues = Array.from(new Set(parsed.map(d => d.levelValue))).sort((a, b) => {
+                              const aNum = typeof a === 'number', bNum = typeof b === 'number';
+                              if (aNum && bNum) return a - b;
+                              if (!aNum && !bNum) return String(a).localeCompare(String(b));
+                              return aNum ? -1 : 1;
+                            });
+                            const levelLabelMap = new Map();
+                            parsed.forEach(row => { if (levelLabelMap.has(row.levelValue)) return; levelLabelMap.set(row.levelValue, row.level); });
+                            
+                            const labelColorCandidates = new Map();
+                            const labelParentMap = new Map();
+                            const labelLevelMap = new Map();
+                            
+                            parsed.forEach(row => {
+                              if (!row.id) return;
+                              if (!labelColorCandidates.has(row.id) && row.color) labelColorCandidates.set(row.id, row.color);
+                              if (row.parent && !labelParentMap.has(row.id)) labelParentMap.set(row.id, row.parent);
+                              if (!labelLevelMap.has(row.id)) labelLevelMap.set(row.id, new Map());
+                              const levelMap = labelLevelMap.get(row.id);
+                              levelMap.set(row.levelValue, { val: (levelMap.get(row.levelValue)?.val || 0) + row.value, display: row.label });
+                            });
+                            
+                            const keyList = Array.from(labelLevelMap.keys());
+                            const latestLevel = d3.max(levelValues);
+                            const labelMetrics = keyList.map((id) => {
+                              const levelMap = labelLevelMap.get(id);
+                              const latestEntry = levelMap.get(latestLevel);
+                              const latestValue = latestEntry ? latestEntry.val : 0;
+                              const total = Array.from(levelMap.values()).reduce((sum, v) => sum + v.val, 0);
+                              const randomEntry = levelMap.values().next().value;
+                              const display = randomEntry ? randomEntry.display : id;
+                              return { id, label: display, latestValue, total };
+                            });
+                            
+                            labelMetrics.sort((a, b) => {
+                              if (b.latestValue === a.latestValue) { if (b.total === a.total) return a.label.localeCompare(b.label); return b.total - a.total; }
+                              return b.latestValue - a.latestValue;
+                            });
+                            
+                            const limitCount = Number.isFinite(limit) ? limit : labelMetrics.length;
+                            const topList = labelMetrics.slice(0, limitCount);
+                            let palette = buildColorPalette();
+                            let colorScale;
+                            if (PALETTE_MODE === 'aiw' || PALETTE_MODE === 'ceps') { const baseC = palette[0]; colorScale = () => baseC; }
+                            else { colorScale = d3.scaleOrdinal().domain(topList.map(d => d.id)).range(palette); }
+                            
+                            const rankingByLevel = new Map();
+                            levelValues.forEach(levelValue => {
+                              const ranking = topList.map(d => {
+                                const entry = labelLevelMap.get(d.id)?.get(levelValue);
+                                const val = entry ? entry.val : 0;
+                                return { id: d.id, label: d.label, value: val };
+                              }).sort((a, b) => {
+                                if (b.value === a.value) return a.label.localeCompare(b.label);
+                                if (levelLabelMap.get(levelValue) === 'Ranking') return a.value - b.value;
+                                return b.value - a.value;
+                              });
+                              ranking.forEach((entry, index) => { entry.rank = index + 1; });
+                              rankingByLevel.set(levelValue, new Map(ranking.map(entry => [entry.id, entry.rank])));
+                            });
+                            
+                            const series = topList.map(item => {
+                              const id = item.id;
+                              const displayName = item.label;
+                              const color = labelColorCandidates.get(id) || colorScale(id);
+                              const parentName = labelParentMap.get(id) || null;
+                              const values = levelValues.map(levelValue => ({
+                                id, label: displayName, parent: parentName,
+                                yearValue: levelValue, year: levelLabelMap.get(levelValue) || String(levelValue),
+                                value: (labelLevelMap.get(id)?.get(levelValue)?.val) || 0,
+                                rank: rankingByLevel.get(levelValue)?.get(id) ?? topList.length
+                              }));
+                              return { id, label: displayName, parent: parentName, color, values };
+                            });
+                            
+                            return { series, years: levelValues, yearLabels: levelValues.map(levelValue => levelLabelMap.get(levelValue) || String(levelValue)), maxRank: topList.length };
+                          }
+                          
+                          function buildLegend(series) {
+                            legendContainer.selectAll('*').remove();
+                            if (!SHOW_LEGEND) return;
+                            const groups = d3.group(series, d => d.parent || 'Uncategorized');
+                            const entries = Array.from(groups.entries()).map(([parent, groupSeries]) => ({ parent, color: groupSeries[0]?.color || '#94a3b8', labels: groupSeries.map(s => s.id) }));
+                            parentIndexMap.clear();
+                            entries.forEach((entry, index) => { parentIndexMap.set(index, entry.parent); });
+                            const legendItems = legendContainer.selectAll('.legend-item').data(entries, d => d.parent);
+                            const legendEnter = legendItems.enter().append('div').attr('class', 'legend-item').attr('tabindex', 0)
+                            .on('mouseenter', (_, d) => handleLegendHover(d.parent)).on('mouseleave', handleLegendMouseLeave)
+                            .on('focus', (_, d) => handleLegendHover(d.parent)).on('blur', handleLegendMouseLeave)
+                            .on('click', (event, d) => { event.preventDefault(); toggleParentSelection(d.parent); })
+                            .on('keydown', (event, d) => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); toggleParentSelection(d.parent); });
+                            legendEnter.append('div').attr('class', 'legend-square').style('background', d => d.color);
+                            legendEnter.append('div').text(d => d.parent);
+                            legendItems.exit().remove();
+                          }
+                          
+                          function drawChart(data) {
+                            if (!data || !data.series.length) { svg.selectAll('*').remove(); return; }
+                            
+                            const containerWidth = vizContainer ? vizContainer.clientWidth : 800;
+                            const containerHeight = vizContainer ? vizContainer.clientHeight : 520;
+                            const width = containerWidth || 800;
+                            const height = containerHeight > 0 ? containerHeight : 520;
+                            const isSmallHeight = window.innerHeight < 500;
+                            
+                            let margin;
+                            if (isSmallHeight) {
+                              margin = { top: 8, right: 8, bottom: 8, left: 8 };
+                            } else {
+                              margin = { top: 10, right: 16, bottom: 36, left: 56 };
+                              margin.left = 16;
+                              margin.right = 280;
+                            }
+                            
+                            svg.attr('viewBox', `0 0 ${width} ${height}`).attr('width', width).attr('height', height);
+                            svg.selectAll('*').remove();
+                            
+                            // Build alphabetical left-label rank order
+                            const leftLabelRanks = new Map();
+                            const sortedForLeft = [...data.series].sort((a, b) => a.label.localeCompare(b.label));
+                            sortedForLeft.forEach((s, index) => { leftLabelRanks.set(s.id, index + 1); });
+                            
+                            // xScale over actual data columns only — no dummy column
+                            const xScale = d3.scalePoint()
+                            .domain(data.yearLabels)
+                            .range([margin.left, width - margin.right])
+                            .padding(0.5);
+                            
+                            const yScale = d3.scaleLinear()
+                            .domain([data.maxRank + 0.5, 0.5])
+                            .range([height - margin.bottom, margin.top]);
+                            
+                            const curveType = BUMP_CURVE === 'straight' ? d3.curveLinear : d3.curveMonotoneX;
+                            
+                            const lineGenerator = d3.line()
+                            .x(d => xScale(d.year))
+                            .y(d => yScale(d.rank))
+                            .curve(curveType);
+                            
+                            const xAxisLabelMap = { 'cb': 'Investments', 'pat': 'Patents', 'pub': 'Publications', 'Ranking': 'Ranking' };
+                            
+                            // X axis
+                            svg.append('g').attr('class', 'axis axis--x')
+                            .attr('transform', `translate(0,${height - margin.bottom})`)
+                            .call(d3.axisBottom(xScale).tickFormat(d => xAxisLabelMap[d] || d))
+                            .selectAll('text')
+                            .style('font-weight', 700)
+                            .style('font-size', d => d === 'Ranking' ? 'clamp(16px, 2.2vw, 26px)' : 'clamp(12px, 1.6vw, 18px)');
+                            
+                            // Grid lines
+                            svg.append('g').attr('class', 'grid-lines').selectAll('line')
+                            .data(d3.range(1, data.maxRank + 1)).enter().append('line')
+                            .attr('x1', margin.left).attr('x2', width - margin.right)
+                            .attr('y1', d => yScale(d)).attr('y2', d => yScale(d))
+                            .attr('stroke', 'rgba(15, 23, 42, 0.08)').attr('stroke-dasharray', '4,4');
+                            
+                            const seriesGroup = svg.append('g').attr('class', 'series-group')
+                            .selectAll('.series').data(data.series, d => d.id).enter()
+                            .append('g').attr('class', 'series').attr('data-id', d => d.id);
+                            
+                            // Lines — only over real data columns
+                            seriesGroup.append('path').attr('class', 'series-line')
+                            .attr('stroke', d => d.color)
+                            .attr('d', d => lineGenerator(d.values))
+                            .style('--lineWidth', '3.4px')
+                            .on('mouseenter', (_, d) => handleLabelHover(d.id))
+                            .on('mouseleave', handleLabelMouseLeave)
+                            .on('click', (event, d) => { event.stopPropagation(); toggleLabelSelection(d.id); });
+                            
+                            // Points — only real data columns
+                            const points = seriesGroup.selectAll('.point-group')
+                            .data(d => d.values.map(v => ({ ...v, color: d.color, id: d.id }))).enter()
+                            .append('g').attr('class', 'point-group')
+                            .attr('transform', d => `translate(${xScale(d.year)}, ${yScale(d.rank)})`);
+                            
+                            const nodeRadius = Math.max(10, Math.min(18, Math.min(width / 50, height / 25)));
+                            const nodeFontSize = Math.max(6, Math.min(10, Math.min(width / 100, height / 50)));
+                            
+                            points.append('circle').attr('class', 'series-point')
+                            .attr('r', nodeRadius).attr('fill', d => d.color);
+                            
+                            points.append('text').attr('class', 'node-value')
+                            .attr('text-anchor', 'middle').attr('dy', '0.35em').attr('fill', '#fff')
+                            .style('font-size', d => d.year === 'Ranking' ? `${nodeFontSize * 1.5}px` : `${nodeFontSize}px`)
+                            .style('font-weight', 'bold').style('pointer-events', 'none')
+                            .text(d => d.year === 'Ranking' ? Math.round(d.value) : `${d.value.toFixed(1)}%`);
+                            
+                            points.on('mouseenter', (event, d) => {
+                              if (!SHOW_TOOLTIP) return;
+                              handleLabelHover(d.id);
+                              tooltip.transition().duration(200).style('opacity', .9);
+                              const levelDisplayName = xAxisLabelMap[d.year] || d.year;
+                              tooltip.html(`<strong>${d.label}</strong><br/>${levelDisplayName}: ${d.year === 'Ranking' ? Math.round(d.value) : d.value.toFixed(1) + '%'}`);
+                              moveTooltip(event);
+                            }).on('mousemove', (event) => { if (!SHOW_TOOLTIP) return; moveTooltip(event); })
+                            .on('mouseleave', () => { if (!SHOW_TOOLTIP) return; tooltip.transition().duration(500).style('opacity', 0); handleLabelMouseLeave(); })
+                            .on('click', (event, d) => { event.stopPropagation(); toggleLabelSelection(d.id); });
+                            
+                            // Left labels — positioned at left margin, sorted alphabetically, y by leftLabelRanks
+                            const labelPadding = 8;
+                            const firstX = xScale(data.yearLabels[0]) - labelPadding;
+                            const lastX = xScale(data.yearLabels[data.yearLabels.length - 1]) + 28;
+                            const leftLabelWidth = margin.left - 20;
+                            const rightLabelWidth = margin.right - 8;
+                            
+                            function wrapText(selection, maxWidth) {
+                              selection.each(function (d) {
+                                const text = d3.select(this);
+                                const words = d.label.split(/\s+/).reverse();
+                                const lineHeight = 1.1;
+                                const x = text.attr('x');
+                                let currentLine = [];
+                                let lines = [];
+                                let tspan = text.text(null).append('tspan').attr('x', x).attr('dy', '0em');
+                                let word;
+                                while (word = words.pop()) {
+                                  currentLine.push(word);
+                                  tspan.text(currentLine.join(' '));
+                                  if (tspan.node().getComputedTextLength() > maxWidth && currentLine.length > 1) {
+                                    currentLine.pop(); lines.push(currentLine.join(' ')); currentLine = [word];
+                                    tspan = text.append('tspan').attr('x', x).attr('dy', '0em').text(word);
+                                  }
+                                }
+                                lines.push(currentLine.join(' '));
+                                // Re-render properly centered
+                                text.text(null);
+                                const totalLines = lines.length;
+                                const startDy = -((totalLines - 1) / 2) * lineHeight;
+                                lines.forEach((lineText, i) => {
+                                  text.append('tspan').attr('x', x)
+                                  .attr('dy', i === 0 ? `${startDy}em` : `${lineHeight}em`)
+                                  .text(lineText);
+                                });
+                              });
+                            }
+                            
+                            if (BUMP_SHOW_LABELS === 'left' || BUMP_SHOW_LABELS === 'both') {
+                              const startLabels = seriesGroup.append('text')
+                              .attr('class', 'series-label series-label-start')
+                              .attr('x', firstX)
+                              .attr('y', d => yScale(leftLabelRanks.get(d.id)))
+                              .attr('text-anchor', 'end')
+                              .attr('fill', d => d.color);
+                              startLabels.call(wrapText, leftLabelWidth);
+                              attachLabelInteractions(startLabels);
+                            }
+                            
+                            if (BUMP_SHOW_LABELS === 'right' || BUMP_SHOW_LABELS === 'both') {
+                              const endLabels = seriesGroup.append('text')
+                              .attr('class', 'series-label series-label-end')
+                              .attr('x', lastX)
+                              .attr('y', d => yScale(d.values[d.values.length - 1].rank))
+                              .attr('text-anchor', 'start')
+                              .attr('fill', d => d.color);
+                              endLabels.call(wrapText, rightLabelWidth);
+                              attachLabelInteractions(endLabels);
+                            }
+                            
+                            function attachLabelInteractions(selection) {
+                              selection.attr('role', 'button').attr('tabindex', 0).attr('data-id', d => d.id)
+                              .style('pointer-events', 'auto').style('cursor', 'pointer')
+                              .on('mouseenter', (_, d) => handleLabelHover(d.id)).on('mouseleave', handleLabelMouseLeave)
+                              .on('click', (event, d) => { event.stopPropagation(); toggleLabelSelection(d.id); })
+                              .on('keydown', (event, d) => { if (event.key !== 'Enter' && event.key !== ' ') return; event.preventDefault(); toggleLabelSelection(d.id); });
+                            }
+                            
+                            applyCurrentHighlight();
+                          }
+                          
+                          function moveTooltip(event) {
+                            const tooltipNode = tooltip.node();
+                            if (!tooltipNode) return;
+                            const { pageX, pageY } = event;
+                            const tooltipWidth = tooltipNode.offsetWidth || 160;
+                            const offset = 16;
+                            const left = (pageX + tooltipWidth + offset > window.innerWidth) ? pageX - tooltipWidth - offset : pageX + offset;
+                            tooltip.style('left', `${left}px`).style('top', `${pageY - 24}px`);
+                          }
+                          
+                          function highlightSeries(id) {
+                            const seriesSelection = svg.selectAll('.series');
+                            if (!id) { seriesSelection.classed('highlighted', false).classed('dim', false); legendContainer.selectAll('.legend-item').classed('dim', false); return; }
+                            seriesSelection.classed('highlighted', d => d.id === id).classed('dim', d => d.id !== id);
+                            legendContainer.selectAll('.legend-item').classed('dim', d => d.labels && !d.labels.includes(id));
+                          }
+                          
+                          function applyCurrentHighlight() {
+                            if (selectedLabel) { highlightSeries(selectedLabel); return; }
+                            if (selectedParent) { highlightParentSeries(selectedParent); return; }
+                            highlightSeries(null);
+                          }
+                          
+                          function toggleLabelSelection(id) {
+                            if (!id) return;
+                            if (selectedLabel === id) { selectedLabel = null; applyCurrentHighlight(); }
+                            else { selectedLabel = id; selectedParent = null; highlightSeries(id); }
+                          }
+                          
+                          function handleLabelHover(id) {
+                            if (!id) return;
+                            if ((selectedLabel && selectedLabel !== id) || selectedParent) return;
+                            highlightSeries(id);
+                          }
+                          
+                          function handleLabelMouseLeave() { applyCurrentHighlight(); }
+                          
+                          function highlightParentSeries(parentName) {
+                            const seriesSelection = svg.selectAll('.series');
+                            seriesSelection.classed('highlighted', d => (d.parent || 'Uncategorized') === parentName).classed('dim', d => (d.parent || 'Uncategorized') !== parentName);
+                            legendContainer.selectAll('.legend-item').classed('dim', d => d.parent !== parentName);
+                          }
+                          
+                          function toggleParentSelection(parentName) {
+                            if (!parentName) return;
+                            if (selectedParent === parentName) { selectedParent = null; updateURL({ parent: null }); }
+                            else { selectedParent = parentName; selectedLabel = null; const parentIndex = getParentIndex(parentName); updateURL({ parent: parentIndex !== null ? String(parentIndex) : null }); }
+                            applyCurrentHighlight();
+                          }
+                          
+                          function handleLegendHover(parentName) { if (!parentName || selectedLabel || selectedParent) return; highlightParentSeries(parentName); }
+                          function handleLegendMouseLeave() { applyCurrentHighlight(); }
+                          
+                          function loadData() {
+                            selectedLabel = null; selectedParent = null;
+                            const queryParams = getQueryParams();
+                            const ignoreSet = new Set(queryParams.ignore.map(s => s.toLowerCase()));
+                            let rawRows = originalData || [];
+                            if (ignoreSet.size > 0) rawRows = rawRows.filter(row => {
+                              const id = (row.id || '').toLowerCase();
+                              const name = (row.name || '').toLowerCase();
+                              return !ignoreSet.has(id) && !ignoreSet.has(name);
+                            });
+                            updateVisualization(rawRows);
+                            if (queryParams.parent !== null && queryParams.parent !== '') {
+                              const parentName = getParentByIndex(queryParams.parent);
+                              if (parentName) { selectedParent = parentName; applyCurrentHighlight(); }
+                            }
+                          }
+                          
+                          function updateVisualization(rawRows) {
+                            if (!rawRows.length) { svg.selectAll('*').remove(); legendContainer.text('No data available'); return; }
+                            preparedData = prepareBumpData(rawRows, getCurrentLimit());
+                            if (!preparedData || !preparedData.series.length) { svg.selectAll('*').remove(); legendContainer.text('No data available'); return; }
+                            if (selectedLabel && !preparedData.series.some(s => s.id === selectedLabel)) selectedLabel = null;
+                            if (selectedParent) {
+                              const hasParent = preparedData.series.some(s => (s.parent || 'Uncategorized') === selectedParent);
+                              if (!hasParent) selectedParent = null;
+                            }
+                            updateVizDensityClass();
+                            buildLegend(preparedData.series);
+                            drawChart(preparedData);
+                          }
+                          
+                          window.addEventListener('resize', () => { if (preparedData) drawChart(preparedData); });
+                          loadData();
+                          </script>
+                            </body>
+                            </html>
