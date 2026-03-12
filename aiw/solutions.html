@@ -242,42 +242,128 @@
           {
             text: "Identify which technologies your region is ready to lead in — and which to avoid",
             vizTitle: "Technology Readiness Radar", vizSub: "6 domains scored on complexity × relatedness",
+            method: "Economic complexity index · relatedness density · patent data · job postings",
             Viz: ({color}) => <RadarChart color={color} data={[82,67,91,45,73,58]} labels={["Adv Mfg","Green H2","AI","Quantum","Biotech","Robotics"]}/>
           },
           {
-            text: "Find the gaps in your ecosystem before competitors fill them",
-            vizTitle: "Ecosystem Gap Map", vizSub: "Bubble size = opportunity · colour = gap severity",
-            Viz: ({color}) => <svg viewBox="0 0 280 210" style={{width:"100%"}}>
-              {[{x:200,y:55,r:32,label:"Green H2"},{x:110,y:80,r:22,label:"Quantum"},{x:230,y:130,r:18,label:"BioMed"},{x:70,y:140,r:14,label:"Space"},{x:160,y:155,r:26,label:"AI Infra"},{x:70,y:65,r:12,label:"Robotics"}].map((b,i)=>(
-                <g key={i}>
-                  <circle cx={b.x} cy={b.y} r={b.r} fill={`rgba(${hex2rgb(color)},0.2)`} stroke={color} strokeWidth="1.5"/>
-                  <text x={b.x} y={b.y+1} textAnchor="middle" dominantBaseline="middle" fontSize="8" fontFamily="sans-serif" fill="rgba(240,237,232,0.85)">{b.label}</text>
-                </g>
-              ))}
-              <text x="140" y="200" textAnchor="middle" fontSize="8" fontFamily="sans-serif" fill="rgba(240,237,232,0.25)">→ Opportunity size</text>
+            text: "Map which technologies are smart bets vs moonshots vs divestments for your region",
+            vizTitle: "Strategic Investment Matrix", vizSub: "X = Feasibility (Relatedness Density) · Y = Economic Impact",
+            method: "Complexity economics · relatedness space · patent + trade data",
+            Viz: ({color}) => <svg viewBox="0 0 270 215" style={{width:"100%"}}>
+              <defs>
+                <linearGradient id="qbg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor={color} stopOpacity="0.06"/><stop offset="100%" stopColor={color} stopOpacity="0.01"/></linearGradient>
+              </defs>
+              {/* quadrant backgrounds */}
+              <rect x="22" y="10" width="109" height="92" fill={`rgba(${hex2rgb(color)},0.04)`} rx="2"/>
+              <rect x="133" y="10" width="129" height="92" fill={`rgba(${hex2rgb(color)},0.09)`} rx="2"/>
+              <rect x="22" y="104" width="109" height="100" fill={`rgba(${hex2rgb(color)},0.02)`} rx="2"/>
+              <rect x="133" y="104" width="129" height="100" fill={`rgba(${hex2rgb(color)},0.05)`} rx="2"/>
+              {/* axes */}
+              <line x1="22" y1="102" x2="262" y2="102" stroke="rgba(240,237,232,0.12)" strokeWidth="1" strokeDasharray="3,3"/>
+              <line x1="131" y1="10" x2="131" y2="204" stroke="rgba(240,237,232,0.12)" strokeWidth="1" strokeDasharray="3,3"/>
+              {/* quadrant labels */}
+              <text x="76" y="24" textAnchor="middle" fontSize="7.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.22)" fontStyle="italic">Moonshot</text>
+              <text x="197" y="24" textAnchor="middle" fontSize="7.5" fontFamily="sans-serif" fill={`rgba(${hex2rgb(color)},0.55)`} fontWeight="700" fontStyle="italic">Optimal</text>
+              <text x="76" y="198" textAnchor="middle" fontSize="7.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.18)" fontStyle="italic">Divest</text>
+              <text x="197" y="198" textAnchor="middle" fontSize="7.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.22)" fontStyle="italic">Slow Growth</text>
+              {/* axis labels */}
+              <text x="142" y="214" textAnchor="middle" fontSize="7" fontFamily="sans-serif" fill="rgba(240,237,232,0.28)">→ Feasibility</text>
+              <text x="8" y="102" textAnchor="middle" fontSize="7" fontFamily="sans-serif" fill="rgba(240,237,232,0.28)" transform="rotate(-90,8,102)">↑ Impact</text>
+              {/* bubbles: x 22–262, y 10–204, r proportional */}
+              {[
+                {cx:205,cy:42,r:24,label:"Green H2"},{cx:175,cy:68,r:18,label:"AI Infra"},
+                {cx:218,cy:78,r:14,label:"Robotics"},{cx:82,cy:38,r:20,label:"Quantum"},
+                {cx:58,cy:65,r:12,label:"Nuclear"},{cx:200,cy:145,r:16,label:"Adv Mfg"},
+                {cx:170,cy:168,r:12,label:"Biotech"},{cx:78,cy:148,r:9,label:"Space"},
+              ].map((b,i)=>{
+                const optimal=b.cx>131&&b.cy<102;
+                return <g key={i}>
+                  <circle cx={b.cx} cy={b.cy} r={b.r} fill={`rgba(${hex2rgb(color)},${optimal?0.28:0.1})`} stroke={color} strokeWidth={optimal?2:1} strokeOpacity={optimal?0.8:0.35}/>
+                  <text x={b.cx} y={b.cy+1} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fontFamily="sans-serif" fill={optimal?"rgba(240,237,232,0.95)":"rgba(240,237,232,0.5)"} fontWeight={optimal?600:400}>{b.label}</text>
+                </g>;
+              })}
             </svg>
           },
           {
-            text: "Pinpoint the best universities, companies and labs to partner with",
-            vizTitle: "Partner Network Graph", vizSub: "Line weight = relatedness score",
-            Viz: ({color}) => <NetworkGraph color={color}
-              nodes={[{x:130,y:105,r:16,label:"Region",center:true},{x:60,y:45,r:12,label:"TU Delft",sub:"Univ"},{x:200,y:45,r:12,label:"IMEC",sub:"Lab"},{x:50,y:150,r:10,label:"ASML",sub:"Corp"},{x:220,y:150,r:10,label:"Siemens",sub:"Corp"},{x:130,y:185,r:10,label:"VUB",sub:"Univ"}]}
-              edges={[[0,1],[0,2],[0,3],[0,4],[0,5],[1,2],[2,4]]}
-            />
+            text: "See every organization in your ecosystem — their size and relative tech advantage at a glance",
+            vizTitle: "Ecosystem Actor Map", vizSub: "Size = org scale · Colour intensity = tech advantage index",
+            method: "Relatedness density · patent RTA scores · employment data",
+            Viz: ({color}) => <svg viewBox="0 0 270 200" style={{width:"100%"}}>
+              {/* Treemap-style blocks, variable size, color intensity = RTA */}
+              {[
+                {x:4,y:4,w:90,h:52,label:"TU Delft",sub:"Univ · RTA 0.91",rta:0.91},
+                {x:98,y:4,w:74,h:52,label:"IMEC",sub:"Lab · RTA 0.84",rta:0.84},
+                {x:176,y:4,w:90,h:52,label:"ASML",sub:"Corp · RTA 0.96",rta:0.96},
+                {x:4,y:60,w:60,h:42,label:"Philips",sub:"Corp · 0.72",rta:0.72},
+                {x:68,y:60,w:78,h:42,label:"VUB",sub:"Univ · 0.65",rta:0.65},
+                {x:150,y:60,w:56,h:42,label:"FraunhFr",sub:"Lab · 0.78",rta:0.78},
+                {x:210,y:60,w:56,h:42,label:"Siemens",sub:"Corp · 0.68",rta:0.68},
+                {x:4,y:106,w:50,h:36,label:"Startup A",sub:"0.55",rta:0.55},
+                {x:58,y:106,w:50,h:36,label:"Startup B",sub:"0.48",rta:0.48},
+                {x:112,y:106,w:80,h:36,label:"NXP Semi",sub:"Corp · 0.82",rta:0.82},
+                {x:196,y:106,w:70,h:36,label:"TNO",sub:"Lab · 0.77",rta:0.77},
+                {x:4,y:146,w:262,h:50,label:"Regional Cluster Average — RTA 0.74",sub:"",rta:0.25},
+              ].map((t,i)=>(
+                <g key={i}>
+                  <rect x={t.x} y={t.y} width={t.w} height={t.h} rx="3" fill={`rgba(${hex2rgb(color)},${t.rta*0.55+0.04})`} stroke={`rgba(${hex2rgb(color)},0.3)`} strokeWidth="1"/>
+                  <text x={t.x+t.w/2} y={t.y+t.h/2-(t.sub?5:0)} textAnchor="middle" dominantBaseline="middle" fontSize={t.w>70?9:7.5} fontFamily="sans-serif" fill="rgba(240,237,232,0.9)" fontWeight="600">{t.label}</text>
+                  {t.sub&&<text x={t.x+t.w/2} y={t.y+t.h/2+8} textAnchor="middle" fontSize="6.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.4)">{t.sub}</text>}
+                </g>
+              ))}
+            </svg>
           },
           {
-            text: "See exactly how your region ranks against peers across Europe",
-            vizTitle: "Peer Region Benchmarking", vizSub: "Complexity Index Score — your region highlighted",
-            Viz: ({color}) => <HBarChart color={color} highlight="Your Region" bars={[{label:"Munich",v:91},{label:"Stockholm",v:87},{label:"Amsterdam",v:84},{label:"Your Region",v:79},{label:"Vienna",v:74},{label:"Brussels",v:68},{label:"Warsaw",v:61},{label:"Lisbon",v:54}]}/>
+            text: "Explore international collaboration — where you're complementary, and where new partnerships could emerge",
+            vizTitle: "Cross-Border Collaboration Map", vizSub: "Solid = active link · Dashed = high potential, untapped",
+            method: "Co-patent networks · trade complementarity · research co-authorship · relatedness overlap",
+            Viz: ({color}) => <svg viewBox="0 0 270 210" style={{width:"100%"}}>
+              <defs><marker id="garrA" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill={color}/></marker>
+              <marker id="garrB" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill={`rgba(${hex2rgb(color)},0.4)`}/></marker></defs>
+              {/* existing links - solid */}
+              {[[0,1,3],[0,2,2],[1,3,1.5],[2,4,1.5],[0,5,2.5]].map(([a,b,w],i)=>{
+                const nds=[{x:135,y:95},{x:55,y:40},{x:215,y:40},{x:40,y:155},{x:230,y:155},{x:135,y:175}];
+                const n1=nds[a],n2=nds[b];
+                return<line key={i} x1={n1.x} y1={n1.y} x2={n2.x} y2={n2.y} stroke={color} strokeWidth={w} strokeOpacity="0.45" markerEnd="url(#garrA)"/>;
+              })}
+              {/* potential links - dashed */}
+              {[[1,4],[3,2],[5,1]].map(([a,b],i)=>{
+                const nds=[{x:135,y:95},{x:55,y:40},{x:215,y:40},{x:40,y:155},{x:230,y:155},{x:135,y:175}];
+                const n1=nds[a],n2=nds[b];
+                return<line key={i} x1={n1.x} y1={n1.y} x2={n2.x} y2={n2.y} stroke={`rgba(${hex2rgb(color)},0.35)`} strokeWidth="1.5" strokeDasharray="5,3" markerEnd="url(#garrB)"/>;
+              })}
+              {/* nodes */}
+              {[{x:135,y:95,r:18,label:"YOUR\nREGION",main:true},{x:55,y:40,r:13,label:"Finland"},{x:215,y:40,r:13,label:"Austria"},{x:40,y:155,r:11,label:"Portugal"},{x:230,y:155,r:11,label:"Poland"},{x:135,y:175,r:12,label:"Belgium"}].map((n,i)=>(
+                <g key={i}>
+                  <circle cx={n.x} cy={n.y} r={n.r} fill={n.main?color:`rgba(${hex2rgb(color)},0.12)`} stroke={color} strokeWidth={n.main?0:1.5}/>
+                  <text x={n.x} y={n.y+1} textAnchor="middle" dominantBaseline="middle" fontSize={n.main?7:8} fontFamily="sans-serif" fill={n.main?"#0A0A0F":"rgba(240,237,232,0.85)"} fontWeight="600">{n.label}</text>
+                </g>
+              ))}
+              <text x="6" y="207" fontSize="6.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.3)">— active  - - potential</text>
+            </svg>
           },
           {
-            text: "Build the evidence base to justify EU funding applications",
-            vizTitle: "Funding Alignment Flow", vizSub: "Data sources mapped to EU instruments",
-            Viz: ({color}) => <FlowChart color={color} flows={[
-              {x:8,y:25,w:65,h:24,label:"Patents",ax:118,ay:38},{x:8,y:60,w:65,h:24,label:"Research",ax:118,ay:90},{x:8,y:95,w:65,h:24,label:"Job Data",ax:118,ay:120},{x:8,y:130,w:65,h:24,label:"Trade",ax:118,ay:148},
-              {x:118,y:55,w:75,h:70,label:"AIW Lab Score",ax:240,ay:80},
-              {x:240,y:35,w:52,h:26,label:"Horizon EU"},{x:240,y:68,w:52,h:26,label:"Cohesion"},{x:240,y:101,w:52,h:26,label:"InvestEU"},
-            ]}/>
+            text: "Know which strategic technologies your region is dangerously dependent on China or the US for",
+            vizTitle: "Strategic Technology Dependency", vizSub: "Risk score by technology × origin (red = critical exposure)",
+            method: "Trade flow analysis · patent origin · supply chain mapping · import concentration index",
+            Viz: ({color}) => {
+              const techs=["Semiconductors","Battery Tech","Quantum","Rare Earth","AI Chips","Solar PV","Robotics"];
+              const origins=["China","US","Both","Other"];
+              const data=[[95,30,60,10],[20,85,40,25],[15,70,35,20],[98,5,10,12],[25,90,55,8],[88,15,30,18],[45,60,50,22]];
+              const riskColor=(v)=>v>75?`rgba(220,38,38,${v/100*0.85+0.1})`:v>45?`rgba(${hex2rgb(color)},${v/100*0.7+0.1})`:`rgba(${hex2rgb(color)},${v/100*0.35+0.05})`;
+              return(
+                <div style={{display:"grid",gridTemplateColumns:"80px repeat(4,1fr)",gap:2}}>
+                  <div/>
+                  {origins.map(o=><div key={o} style={{fontSize:7,fontFamily:"sans-serif",color:"rgba(240,237,232,0.4)",textAlign:"center",paddingBottom:2}}>{o}</div>)}
+                  {techs.map((t,i)=>[
+                    <div key={t} style={{fontSize:7.5,fontFamily:"sans-serif",color:"rgba(240,237,232,0.55)",display:"flex",alignItems:"center",paddingRight:3}}>{t}</div>,
+                    ...data[i].map((v,j)=>(
+                      <div key={j} style={{height:22,borderRadius:2,background:riskColor(v),display:"flex",alignItems:"center",justifyContent:"center",fontSize:7.5,fontFamily:"sans-serif",color:v>55?"rgba(240,237,232,0.95)":"rgba(240,237,232,0.5)",fontWeight:600}}>{v}</div>
+                    ))
+                  ])}
+                  <div style={{gridColumn:"1/-1",marginTop:4,fontSize:6.5,fontFamily:"sans-serif",color:"rgba(240,237,232,0.25)"}}>■ red = critical dependency (&gt;75)</div>
+                </div>
+              );
+            }
           },
         ],
       },
@@ -290,11 +376,13 @@
           {
             text: "Know which research areas you genuinely lead globally — and where you're weak",
             vizTitle: "Research Domain Heatmap", vizSub: "Score per domain × metric (0–100)",
+            method: "Research output metrics · citation impact · collaboration data · funding records",
             Viz: ({color}) => <HeatGrid color={color} rows={["AI/ML","Biotech","Clean Energy","Materials","Quantum"]} cols={["Output","Impact","Collab","Funding"]} data={[[88,72,65,80],[91,85,77,90],[45,38,52,40],[67,71,60,55],[34,28,42,30]]}/>
           },
           {
             text: "Benchmark your portfolio against MIT, TU Munich, KU Leuven and any peer",
             vizTitle: "Global Peer Scatter", vizSub: "Relatedness density vs technological complexity",
+            method: "Economic complexity index · relatedness density · publication & patent data",
             Viz: ({color}) => <ScatterPlot color={color} xLabel="Relatedness Density" yLabel="Tech Complexity" highlight="Your Univ"
               points={[{x:0.9,y:0.92,label:"MIT"},{x:0.85,y:0.88,label:"ETH"},{x:0.78,y:0.82,label:"TU Munich"},{x:0.72,y:0.74,label:"KU Leuven"},{x:0.65,y:0.79,label:"Your Univ"},{x:0.55,y:0.65,label:"UCL"},{x:0.48,y:0.58,label:"UvA"},{x:0.38,y:0.45,label:"ULB"}]}
             />
@@ -302,25 +390,47 @@
           {
             text: "Map where your patents are heading and which industries should be licensing them",
             vizTitle: "Patent Trajectory", vizSub: "Patent filings by domain 2015–2025",
+            method: "EPO/WIPO patent filings · IPC classification · forward citation analysis",
             Viz: ({color}) => <AreaChart color={color} years={["2015","2017","2019","2021","2023","2025"]} series={[[8,14,22,35,52,71]]}/>
           },
           {
             text: "Track every spinout and alumni startup and measure their collective impact",
             vizTitle: "Spinout Ecosystem", vizSub: "Total raised (€M) by sector",
+            method: "Alumni company tracking · funding data · LinkedIn + Crunchbase integration",
             Viz: ({color}) => <TreeMap color={color} tiles={[{label:"Deep Tech",value:"€420M",size:80,wide:true},{label:"BioMed",value:"€310M",size:65},{label:"CleanTech",value:"€280M",size:60},{label:"AI/SaaS",value:"€190M",size:45,wide:true},{label:"Fintech",value:"€95M",size:30},{label:"Space",value:"€44M",size:20}]}/>
           },
           {
-            text: "Find the industry partners and funding streams your research is missing",
-            vizTitle: "Funding Gap Analysis", vizSub: "Current vs potential by source",
-            Viz: ({color}) => <svg viewBox="0 0 280 190" style={{width:"100%"}}>
-              {[{label:"EU Grants",cur:40,pot:80},{label:"Industry",cur:20,pot:85},{label:"National",cur:35,pot:60},{label:"VC/Angel",cur:5,pot:60},{label:"Philanthropy",cur:8,pot:38}].map((d,i)=>(
+            text: "Discover which companies are filing patents in your research areas but not partnering with you yet",
+            vizTitle: "Industry–Academia Gap Network", vizSub: "Grey = potential · coloured = active collaboration",
+            method: "Patent co-classification · research topic overlap · co-authorship & licensing records",
+            Viz: ({color}) => <svg viewBox="0 0 270 205" style={{width:"100%"}}>
+              <defs>
+                <marker id="uarrA" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill={color}/></marker>
+                <marker id="uarrB" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill="rgba(240,237,232,0.2)"/></marker>
+              </defs>
+              {/* active links */}
+              {[[0,1],[0,2],[0,3]].map(([a,b],i)=>{
+                const nds=[{x:135,y:95},{x:55,y:50},{x:215,y:50},{x:40,y:155},{x:215,y:155},{x:135,y:170},{x:75,y:110},{x:185,y:115}];
+                return<line key={i} x1={nds[a].x} y1={nds[a].y} x2={nds[b].x} y2={nds[b].y} stroke={color} strokeWidth="2" strokeOpacity="0.5" markerEnd="url(#uarrA)"/>;
+              })}
+              {/* potential links - companies NOT yet partnering */}
+              {[[0,4],[0,5],[0,6],[0,7]].map(([a,b],i)=>{
+                const nds=[{x:135,y:95},{x:55,y:50},{x:215,y:50},{x:40,y:155},{x:215,y:155},{x:135,y:170},{x:75,y:110},{x:185,y:115}];
+                return<line key={i} x1={nds[a].x} y1={nds[a].y} x2={nds[b].x} y2={nds[b].y} stroke="rgba(240,237,232,0.15)" strokeWidth="1.5" strokeDasharray="4,3" markerEnd="url(#uarrB)"/>;
+              })}
+              {/* nodes */}
+              {[
+                {x:135,y:95,r:17,label:"YOUR UNIV",main:true},
+                {x:55,y:50,r:12,label:"BASF",partner:true},{x:215,y:50,r:12,label:"Siemens",partner:true},{x:40,y:155,r:11,label:"Bosch",partner:true},
+                {x:215,y:155,r:11,label:"SAP",gap:true,sub:"gap"},{x:135,y:170,r:10,label:"Zeiss",gap:true,sub:"gap"},{x:75,y:110,r:10,label:"Bayer",gap:true,sub:"gap"},{x:185,y:115,r:10,label:"Merck",gap:true,sub:"gap"},
+              ].map((n,i)=>(
                 <g key={i}>
-                  <rect x={30+i*46} y={40} width={32} height={(d.pot/100)*120} rx="2" fill={`rgba(${hex2rgb(color)},0.15)`} stroke={`rgba(${hex2rgb(color)},0.3)`} strokeWidth="1"/>
-                  <rect x={30+i*46} y={40+(d.pot-d.cur)/100*120} width={32} height={(d.cur/100)*120} rx="2" fill={color}/>
-                  <text x={46+i*46} y={175} textAnchor="middle" fontSize="7" fontFamily="sans-serif" fill="rgba(240,237,232,0.4)">{d.label}</text>
+                  <circle cx={n.x} cy={n.y} r={n.r} fill={n.main?color:n.partner?`rgba(${hex2rgb(color)},0.18)`:`rgba(240,237,232,0.05)`} stroke={n.main?color:n.partner?color:"rgba(240,237,232,0.25)"} strokeWidth={n.main?0:1.5} strokeDasharray={n.gap?"3,2":"none"}/>
+                  <text x={n.x} y={n.y+(n.sub?-4:1)} textAnchor="middle" dominantBaseline="middle" fontSize="7" fontFamily="sans-serif" fill={n.main?"#0A0A0F":"rgba(240,237,232,0.8)"} fontWeight="600">{n.label}</text>
+                  {n.sub&&<text x={n.x} y={n.y+8} textAnchor="middle" fontSize="6" fontFamily="sans-serif" fill={`rgba(${hex2rgb(color)},0.7)`}>untapped</text>}
                 </g>
               ))}
-              <text x="140" y="20" textAnchor="middle" fontSize="8" fontFamily="sans-serif" fill="rgba(240,237,232,0.3)">■ Current  □ Potential</text>
+              <text x="4" y="203" fontSize="6.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.28)">— active partner  - - patent overlap, no collab yet</text>
             </svg>
           },
         ],
@@ -334,11 +444,13 @@
           {
             text: "Pick the right city for your next R&D lab based on talent, relatedness and ecosystem depth",
             vizTitle: "R&D Site Scoring", vizSub: "Cities ranked by composite ecosystem fit",
+            method: "Job posting density · patent clusters · talent relatedness · cost-of-living index",
             Viz: ({color}) => <DotPlot color={color} items={[{label:"Munich",v:96},{label:"Zürich",v:91},{label:"Stockholm",v:88},{label:"Amsterdam",v:84},{label:"Berlin",v:79},{label:"Warsaw",v:63},{label:"Lisbon",v:58},{label:"Tallinn",v:51}]}/>
           },
           {
             text: "See who your real technology competitors are — including the ones you haven't heard of yet",
             vizTitle: "Competitor Landscape", vizSub: "Technology scope × market position",
+            method: "Patent landscape · job posting signals · funding data · product classification",
             Viz: ({color}) => <MatrixScatter color={color}
               quadrants={[{x:68,y:48,label:"Emerging"},{x:198,y:48,label:"Leaders"},{x:68,y:165,label:"Niche"},{x:198,y:165,label:"Incumbents"}]}
               points={[{x:210,y:42,label:"Corp A"},{x:185,y:62,label:"Corp B"},{x:225,y:80,label:"Corp C"},{x:75,y:38,label:"Startup X"},{x:92,y:58,label:"Startup Y"},{x:130,y:100,label:"YOU",you:true},{x:200,y:155,label:"Legacy D"},{x:225,y:168,label:"Legacy E"}]}
@@ -347,6 +459,7 @@
           {
             text: "Identify acquisition targets and partnership candidates before your rivals do",
             vizTitle: "M&A Target Matrix", vizSub: "Ecosystem fit vs strategic value",
+            method: "Relatedness scoring · patent overlap · ecosystem fit index · growth signals",
             Viz: ({color}) => <ScatterPlot color={color} xLabel="Ecosystem Fit" yLabel="Strategic Value" highlight="Prime Target"
               points={[{x:0.88,y:0.85,label:"Prime Target"},{x:0.75,y:0.72,label:"Target B"},{x:0.65,y:0.88,label:"Target C"},{x:0.55,y:0.6,label:"Target D"},{x:0.42,y:0.78,label:"Target E"},{x:0.35,y:0.4,label:"Target F"},{x:0.8,y:0.45,label:"Target G"}]}
             />
@@ -354,6 +467,7 @@
           {
             text: "Understand which adjacent technologies you should move into next",
             vizTitle: "Technology Adjacency Map", vizSub: "Arc width = relatedness strength",
+            method: "Co-classification relatedness · citation networks · technology proximity index",
             Viz: ({color}) => <svg viewBox="0 0 280 170" style={{width:"100%"}}>
               {[
                 [0,1,3],[0,2,2.5],[0,3,2],[0,4,1.5],[0,5,1],[1,2,1],[2,4,1.5]
@@ -371,9 +485,28 @@
             </svg>
           },
           {
-            text: "Know exactly where to hire the specialists your roadmap needs",
-            vizTitle: "Talent Concentration Heatmap", vizSub: "Specialist postings per city × skill (0–100)",
-            Viz: ({color}) => <HeatGrid color={color} rows={["Munich","Berlin","Stockholm","Amsterdam","Warsaw"]} cols={["AI Eng","Quantum","BioInfo","Materials"]} data={[[85,72,40,68],[78,55,32,45],[88,60,50,52],[74,48,38,61],[52,35,28,40]]}/>
+            text: "Map which critical technology inputs in your value chain are dangerously concentrated in single geographies",
+            vizTitle: "Supply Chain Technology Risk", vizSub: "Concentration index by input × geography (red = critical)",
+            method: "Trade flow data · import concentration (HHI) · patent origin · critical material mapping",
+            Viz: ({color}) => {
+              const inputs=["Rare Earth","Chip Fab","Battery Cells","Laser Optics","Sensors","Magnets"];
+              const geos=["China","Taiwan","Korea","EU","US"];
+              const data=[[96,5,3,4,2],[8,88,12,10,15],[82,10,72,8,6],[30,25,20,55,40],[60,30,35,25,30],[94,4,6,10,5]];
+              const rColor=(v)=>v>75?`rgba(220,38,38,${v/100*0.85+0.1})`:v>45?`rgba(${hex2rgb(color)},${v/100*0.65+0.1})`:`rgba(${hex2rgb(color)},${v/100*0.3+0.05})`;
+              return(
+                <div style={{display:"grid",gridTemplateColumns:"70px repeat(5,1fr)",gap:2}}>
+                  <div/>
+                  {geos.map(g=><div key={g} style={{fontSize:7,fontFamily:"sans-serif",color:"rgba(240,237,232,0.4)",textAlign:"center",paddingBottom:2}}>{g}</div>)}
+                  {inputs.map((inp,i)=>[
+                    <div key={inp} style={{fontSize:7.5,fontFamily:"sans-serif",color:"rgba(240,237,232,0.55)",display:"flex",alignItems:"center",paddingRight:3}}>{inp}</div>,
+                    ...data[i].map((v,j)=>(
+                      <div key={j} style={{height:24,borderRadius:2,background:rColor(v),display:"flex",alignItems:"center",justifyContent:"center",fontSize:7.5,fontFamily:"sans-serif",color:v>55?"rgba(240,237,232,0.95)":"rgba(240,237,232,0.5)",fontWeight:600}}>{v}</div>
+                    ))
+                  ])}
+                  <div style={{gridColumn:"1/-1",marginTop:4,fontSize:6.5,fontFamily:"sans-serif",color:"rgba(240,237,232,0.25)"}}>■ red = high concentration risk (&gt;75)</div>
+                </div>
+              );
+            }
           },
         ],
       },
@@ -386,28 +519,58 @@
           {
             text: "Spot which cities and clusters are quietly producing the next generation of deep tech startups",
             vizTitle: "Cluster Momentum Ranking", vizSub: "Complexity growth index — top rising clusters",
+            method: "Complexity growth rate · patent velocity · startup density · job creation index",
             Viz: ({color}) => <DotPlot color={color} items={[{label:"Helsinki Deep Tech",v:94},{label:"Tallinn AI",v:89},{label:"Kraków Quantum",v:83},{label:"Ghent BioTech",v:79},{label:"Tampere Robotics",v:74},{label:"Wrocław SaaS",v:68},{label:"Porto CleanTech",v:61},{label:"Riga Fintech",v:55}]}/>
           },
           {
             text: "Score any ecosystem's momentum before the rest of the market wakes up",
             vizTitle: "Complexity Trajectory", vizSub: "Technological Complexity Index 2018–2025",
+            method: "Economic Complexity Index (ECI) · patent filing trends · export basket analysis",
             Viz: ({color}) => <AreaChart color={color} years={["2018","2019","2020","2021","2022","2023","2024","2025"]} series={[[42,47,51,58,64,71,79,88]]}/>
           },
           {
             text: "Understand whether a founding team's background fits the ecosystem they're building in",
             vizTitle: "Founder–Ecosystem Fit Radar", vizSub: "Team background vs 6 ecosystem dimensions",
+            method: "Founder background analysis · ecosystem relatedness · network proximity scoring",
             Viz: ({color}) => <RadarChart color={color} data={[88,72,65,91,58,77]} labels={["Domain","Network","Patents","Research","Industry","Policy"]}/>
           },
           {
-            text: "Benchmark any portfolio company against its global peer group",
-            vizTitle: "Portfolio Peer Scatter", vizSub: "Complexity score vs growth rate",
-            Viz: ({color}) => <ScatterPlot color={color} xLabel="Complexity Score" yLabel="Growth Rate" highlight="Portfolio Co."
-              points={[{x:0.82,y:0.88,label:"Peer A"},{x:0.75,y:0.7,label:"Peer B"},{x:0.68,y:0.82,label:"Peer C"},{x:0.71,y:0.6,label:"Portfolio Co."},{x:0.55,y:0.75,label:"Peer D"},{x:0.45,y:0.52,label:"Peer E"},{x:0.88,y:0.45,label:"Peer F"}]}
-            />
+            text: "Know if a company is riding a technology wave early — or arriving at the peak",
+            vizTitle: "Technology Lifecycle Position", vizSub: "Patent filing velocity + job growth + complexity score → wave position",
+            method: "Patent filing trajectory · job posting growth · complexity index change · S-curve fitting",
+            Viz: ({color}) => {
+              const W=220,H=120,px=30,py=15;
+              const sig=x=>1/(1+Math.exp(-8*(x-0.5)));
+              const pts=Array.from({length:60},(_,i)=>{const x=i/59;return`${px+x*W},${py+H-(sig(x)*H)}`;}).join(" L ");
+              const companies=[{pos:0.18,label:"Portfolio A",note:"Early"},{pos:0.42,label:"Portfolio B",note:"Optimal"},{pos:0.65,label:"Rival X",note:"Growth"},{pos:0.82,label:"Rival Y",note:"Late"}];
+              return(
+                <svg viewBox={`0 0 ${W+px*2} ${H+py*2+30}`} style={{width:"100%"}}>
+                  <defs><linearGradient id="vcsg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stopColor={color} stopOpacity="0.04"/><stop offset="50%" stopColor={color} stopOpacity="0.18"/><stop offset="100%" stopColor={color} stopOpacity="0.05"/></linearGradient></defs>
+                  <path d={`M${px},${py+H} L${pts} L${px+W},${py} L${px+W},${py+H} Z`} fill="url(#vcsg)"/>
+                  <path d={`M${pts}`} fill="none" stroke={`rgba(${hex2rgb(color)},0.35)`} strokeWidth="2"/>
+                  {/* shaded optimal zone */}
+                  <rect x={px+0.3*W} y={py} width={0.25*W} height={H} fill={`rgba(${hex2rgb(color)},0.07)`} rx="2"/>
+                  <text x={px+0.425*W} y={py+8} textAnchor="middle" fontSize="6.5" fontFamily="sans-serif" fill={`rgba(${hex2rgb(color)},0.5)`}>Optimal zone</text>
+                  {companies.map((c,i)=>{
+                    const mx=px+c.pos*W,my=py+H-(sig(c.pos)*H);
+                    const isOwn=c.label.includes("Portfolio");
+                    return<g key={i}>
+                      <line x1={mx} y1={my} x2={mx} y2={py+H} stroke={`rgba(${hex2rgb(color)},0.2)`} strokeWidth="1" strokeDasharray="3,2"/>
+                      <circle cx={mx} cy={my} r={isOwn?6:4} fill={isOwn?color:`rgba(${hex2rgb(color)},0.3)`} stroke={color} strokeWidth={isOwn?2:1}/>
+                      <text x={mx} y={my-12} textAnchor="middle" fontSize={isOwn?8:7} fontFamily="sans-serif" fill={isOwn?"rgba(240,237,232,0.95)":"rgba(240,237,232,0.45)"} fontWeight={isOwn?700:400}>{c.label}</text>
+                    </g>;
+                  })}
+                  {["Emerging","Early Growth","Rapid Growth","Peak","Mature"].map((s,i)=>(
+                    <text key={i} x={px+(i/4)*W} y={py+H+14} textAnchor="middle" fontSize="6.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.25)">{s}</text>
+                  ))}
+                </svg>
+              );
+            }
           },
           {
             text: "Track complexity signals across 200+ ecosystems in real time",
             vizTitle: "Live Signal Index", vizSub: "Patents · Jobs · Research · Trade — quarterly",
+            method: "Real-time patent feeds · job postings API · research preprints · trade statistics",
             Viz: ({color}) => <svg viewBox="0 0 280 190" style={{width:"100%"}}>
               {[{q:"Q1'24",vals:[22,18,14,12]},{q:"Q2'24",vals:[28,22,16,15]},{q:"Q3'24",vals:[35,26,20,18]},{q:"Q4'24",vals:[42,31,24,22]},{q:"Q1'25",vals:[51,38,29,27]},{q:"Q2'25",vals:[61,44,34,32]}].map((d,i)=>{
                 const total=d.vals.reduce((a,b)=>a+b,0);
@@ -437,29 +600,58 @@
           {
             text: "Find out which ecosystem gives your startup the best shot — before you relocate",
             vizTitle: "Ecosystem Fit Ranking", vizSub: "Fit score for your technology profile",
+            method: "Relatedness density · talent availability · patent ecosystem · investor activity",
             Viz: ({color}) => <HBarChart color={color} highlight="Berlin" bars={[{label:"Berlin",v:93},{label:"Amsterdam",v:88},{label:"Stockholm",v:85},{label:"Helsinki",v:80},{label:"Tallinn",v:74},{label:"Lisbon",v:68},{label:"Warsaw",v:60},{label:"Riga",v:52}]}/>
           },
           {
             text: "Get matched to investors whose thesis actually fits your technology",
             vizTitle: "Investor Thesis Match", vizSub: "Bubble size = check size · opacity = thesis fit",
+            method: "Investor portfolio analysis · patent domain classification · stage & sector matching",
             Viz: ({color}) => <BubbleCloud color={color} bubbles={[{x:75,y:65,r:26,match:96,label:"a16z"},{x:160,y:48,match:88,r:20,label:"Sequoia"},{x:230,y:68,r:24,match:84,label:"Index"},{x:48,y:140,r:17,match:71,label:"EQT"},{x:135,y:135,r:19,match:79,label:"Atomico"},{x:215,y:145,r:14,match:65,label:"Balderton"},{x:95,y:180,r:12,match:58,label:"Point9"},{x:190,y:182,r:15,match:61,label:"HV Cap"}]}/>
           },
           {
-            text: "See every competitor and adjacent player on a single map",
-            vizTitle: "Competitive Landscape 2×2", vizSub: "Technology scope × market traction",
-            Viz: ({color}) => <MatrixScatter color={color}
-              quadrants={[{x:68,y:46,label:"Explorers"},{x:198,y:46,label:"Challengers"},{x:68,y:165,label:"Niches"},{x:198,y:165,label:"Dominants"}]}
-              points={[{x:218,y:52,label:"Rival A"},{x:190,y:72,label:"Rival B"},{x:78,y:48,label:"Rival C"},{x:130,y:100,label:"YOU",you:true},{x:210,y:158,label:"Corp X"},{x:232,y:172,label:"Corp Y"},{x:88,y:162,label:"Startup Z"}]}
-            />
+            text: "Find the patent white spaces in your sector — technology areas no one has claimed yet",
+            vizTitle: "Patent White Space Map", vizSub: "Dark = crowded · Light/empty = unclaimed territory",
+            method: "Patent classification density · claim gap analysis · technology frontier mapping",
+            Viz: ({color}) => <svg viewBox="0 0 270 200" style={{width:"100%"}}>
+              {/* 6x5 grid of tech cells */}
+              {(() => {
+                const cols=["AI/ML","Materials","Sensors","Photonics","Bio","Energy"];
+                const rows=["Layer 5","Layer 4","Layer 3","Layer 2","Layer 1"];
+                // density 0=empty(white space) to 100=crowded
+                const density=[
+                  [85,72,60,30,45,88],[78,65,20,15,80,70],[55,40,8,5,72,60],
+                  [30,18,3,2,50,42],[12,8,0,0,25,20]
+                ];
+                const ws=(v)=>v===0?`rgba(${hex2rgb(color)},0.85)`:v<10?`rgba(${hex2rgb(color)},0.55)`:v<30?`rgba(${hex2rgb(color)},0.2)`:`rgba(240,237,232,${v/100*0.12+0.02})`;
+                const cellW=34,cellH=28,offX=18,offY=10;
+                return(<g>
+                  {cols.map((c,j)=><text key={j} x={offX+j*cellW+cellW/2} y={offY-2} textAnchor="middle" fontSize="6.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.35)">{c}</text>)}
+                  {rows.map((r,i)=>[
+                    <text key={r} x={14} y={offY+i*cellH+cellH/2+4} textAnchor="end" fontSize="6.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.3)">{r}</text>,
+                    ...density[i].map((v,j)=>(
+                      <g key={j}>
+                        <rect x={offX+j*cellW+1} y={offY+i*cellH+1} width={cellW-2} height={cellH-2} rx="2" fill={ws(v)} stroke={v<10?color:"rgba(240,237,232,0.06)"} strokeWidth={v<10?1.5:0.5}/>
+                        {v===0&&<text x={offX+j*cellW+cellW/2} y={offY+i*cellH+cellH/2+1} textAnchor="middle" dominantBaseline="middle" fontSize="8" fontFamily="sans-serif" fill="rgba(10,10,15,0.9)" fontWeight="700">★</text>}
+                        {v>0&&v<10&&<text x={offX+j*cellW+cellW/2} y={offY+i*cellH+cellH/2+1} textAnchor="middle" dominantBaseline="middle" fontSize="7" fontFamily="sans-serif" fill="rgba(240,237,232,0.9)" fontWeight="600">→</text>}
+                      </g>
+                    ))
+                  ])}
+                  <text x={offX} y={190} fontSize="6.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.28)">★ = unclaimed white space  → = emerging gap  ■ = crowded</text>
+                </g>);
+              })()}
+            </svg>
           },
           {
             text: "Know where the talent you need is concentrated globally",
             vizTitle: "Talent Pool Heatmap", vizSub: "Specialist job posting density (0–100)",
+            method: "Job posting density · LinkedIn workforce data · skill taxonomy mapping",
             Viz: ({color}) => <HeatGrid color={color} rows={["Berlin","Amsterdam","Stockholm","Helsinki","Tallinn"]} cols={["ML Eng","Dev Ops","Quant","Design"]} data={[[88,75,52,70],[80,68,44,78],[85,62,60,65],[70,55,65,50],[55,60,48,40]]}/>
           },
           {
             text: "Understand whether your market timing is early, optimal, or late",
             vizTitle: "Market Timing S-Curve", vizSub: "Your technology on the adoption curve",
+            method: "Patent filing velocity · technology adoption curves · complexity emergence signals",
             Viz: ({color}) => <SCurve color={color} markerPos={0.42} stages={[{x:0.08,label:"Early"},{x:0.42,label:"Optimal"},{x:0.72,label:"Growth"},{x:0.92,label:"Mature"}]}/>
           },
         ],
@@ -572,6 +764,14 @@
 
                 {/* The visualization */}
                 <bullet.Viz color={seg.color} />
+
+                {/* Method line */}
+                {bullet.method && (
+                  <div style={{ marginTop: 10, padding: "5px 8px", background: "rgba(255,255,255,0.025)", borderRadius: 5, borderLeft: `2px solid rgba(${hex2rgb(seg.color)},0.3)` }}>
+                    <span style={{ fontSize: 8.5, fontFamily: "monospace", color: "rgba(240,237,232,0.28)", letterSpacing: "0.02em" }}>method: </span>
+                    <span style={{ fontSize: 8.5, fontFamily: "monospace", color: `rgba(${hex2rgb(seg.color)},0.55)` }}>{bullet.method}</span>
+                  </div>
+                )}
 
                 {/* Nav dots */}
                 <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 16 }}>
