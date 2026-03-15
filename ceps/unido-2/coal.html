@@ -1,0 +1,536 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Export RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Export RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Albania",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 32242,
+    "export_share": 0.0648,
+    "import_share": 0.2063,
+    "deviation": 0.1414,
+    "parent": "Europe",
+    "rca": 3.1811,
+    "color": "#3D843D",
+    "id": "Albania",
+    "value": 32242
+  },
+  {
+    "to": "Armenia",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 47099,
+    "export_share": 0.0648,
+    "import_share": 1.6365,
+    "deviation": 1.5717,
+    "parent": "Asia",
+    "rca": 25.2378,
+    "color": "#006400",
+    "id": "Armenia",
+    "value": 47099
+  },
+  {
+    "to": "Austria",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 14327,
+    "export_share": 0.0648,
+    "import_share": 0.0012,
+    "deviation": -0.0636,
+    "parent": "Europe",
+    "rca": 0.0186,
+    "color": "#951D1D",
+    "id": "Austria",
+    "value": 14327
+  },
+  {
+    "to": "Azerbaijan",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 2246,
+    "export_share": 0.0648,
+    "import_share": 0.0157,
+    "deviation": -0.0491,
+    "parent": "Asia",
+    "rca": 0.2427,
+    "color": "#AE6868",
+    "id": "Azerbaijan",
+    "value": 2246
+  },
+  {
+    "to": "Belgium",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 11617257,
+    "export_share": 0.0648,
+    "import_share": 0.2415,
+    "deviation": 0.1766,
+    "parent": "Europe",
+    "rca": 3.7239,
+    "color": "#347F34",
+    "id": "Belgium",
+    "value": 11617257
+  },
+  {
+    "to": "Bosnia and Herzegovina",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 9485,
+    "export_share": 0.0648,
+    "import_share": 0.0099,
+    "deviation": -0.055,
+    "parent": "Europe",
+    "rca": 0.152,
+    "color": "#A75252",
+    "id": "Bosnia and Herzegovina",
+    "value": 9485
+  },
+  {
+    "to": "Bulgaria",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 42796,
+    "export_share": 0.0648,
+    "import_share": 0.0237,
+    "deviation": -0.0412,
+    "parent": "Europe",
+    "rca": 0.365,
+    "color": "#B67F7F",
+    "id": "Bulgaria",
+    "value": 42796
+  },
+  {
+    "to": "China",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 10528723,
+    "export_share": 0.0648,
+    "import_share": 0.0231,
+    "deviation": -0.0417,
+    "parent": "Asia",
+    "rca": 0.3562,
+    "color": "#B67E7E",
+    "id": "China",
+    "value": 10528723
+  },
+  {
+    "to": "Czechia",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 20216406,
+    "export_share": 0.0648,
+    "import_share": 2.7069,
+    "deviation": 2.6421,
+    "parent": "Europe",
+    "rca": 41.7457,
+    "color": "#006400",
+    "id": "Czechia",
+    "value": 20216406
+  },
+  {
+    "to": "Denmark",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 1031411,
+    "export_share": 0.0648,
+    "import_share": 0.275,
+    "deviation": 0.2101,
+    "parent": "Europe",
+    "rca": 4.2404,
+    "color": "#2C7B2C",
+    "id": "Denmark",
+    "value": 1031411
+  },
+  {
+    "to": "Estonia",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 159473,
+    "export_share": 0.0648,
+    "import_share": 0.1663,
+    "deviation": 0.1015,
+    "parent": "Europe",
+    "rca": 2.5649,
+    "color": "#4C8C4C",
+    "id": "Estonia",
+    "value": 159473
+  },
+  {
+    "to": "Finland",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 3426,
+    "export_share": 0.0648,
+    "import_share": 0.0009,
+    "deviation": -0.0639,
+    "parent": "Europe",
+    "rca": 0.0141,
+    "color": "#941919",
+    "id": "Finland",
+    "value": 3426
+  },
+  {
+    "to": "Georgia",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 123210,
+    "export_share": 0.0648,
+    "import_share": 0.1568,
+    "deviation": 0.092,
+    "parent": "Asia",
+    "rca": 2.4188,
+    "color": "#508E50",
+    "id": "Georgia",
+    "value": 123210
+  },
+  {
+    "to": "Germany",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 145613,
+    "export_share": 0.0648,
+    "import_share": 0.0039,
+    "deviation": -0.061,
+    "parent": "Europe",
+    "rca": 0.0599,
+    "color": "#9D3434",
+    "id": "Germany",
+    "value": 145613
+  },
+  {
+    "to": "Hungary",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 35470,
+    "export_share": 0.0648,
+    "import_share": 0.0186,
+    "deviation": -0.0462,
+    "parent": "Europe",
+    "rca": 0.2875,
+    "color": "#B27171",
+    "id": "Hungary",
+    "value": 35470
+  },
+  {
+    "to": "India",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 31405239,
+    "export_share": 0.0648,
+    "import_share": 0.1051,
+    "deviation": 0.0402,
+    "parent": "Asia",
+    "rca": 1.6206,
+    "color": "#72A072",
+    "id": "India",
+    "value": 31405239
+  },
+  {
+    "to": "Indonesia",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 5096814,
+    "export_share": 0.0648,
+    "import_share": 0.1324,
+    "deviation": 0.0676,
+    "parent": "Asia",
+    "rca": 2.0418,
+    "color": "#5E955E",
+    "id": "Indonesia",
+    "value": 5096814
+  },
+  {
+    "to": "Israel",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 1415,
+    "export_share": 0.0648,
+    "import_share": 0.0005,
+    "deviation": -0.0643,
+    "parent": "Asia",
+    "rca": 0.0085,
+    "color": "#921313",
+    "id": "Israel",
+    "value": 1415
+  },
+  {
+    "to": "Italy",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 5657158,
+    "export_share": 0.0648,
+    "import_share": 0.5686,
+    "deviation": 0.5038,
+    "parent": "Europe",
+    "rca": 8.7689,
+    "color": "#066706",
+    "id": "Italy",
+    "value": 5657158
+  },
+  {
+    "to": "Kazakhstan",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 1689149,
+    "export_share": 0.0648,
+    "import_share": 0.4593,
+    "deviation": 0.3944,
+    "parent": "Asia",
+    "rca": 7.0829,
+    "color": "#106D10",
+    "id": "Kazakhstan",
+    "value": 1689149
+  },
+  {
+    "to": "Latvia",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 55446,
+    "export_share": 0.0648,
+    "import_share": 0.0626,
+    "deviation": -0.0022,
+    "parent": "Europe",
+    "rca": 0.9661,
+    "color": "#D2CFCF",
+    "id": "Latvia",
+    "value": 55446
+  },
+  {
+    "to": "Lithuania",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 10124,
+    "export_share": 0.0648,
+    "import_share": 0.01,
+    "deviation": -0.0548,
+    "parent": "Europe",
+    "rca": 0.1543,
+    "color": "#A75353",
+    "id": "Lithuania",
+    "value": 10124
+  },
+  {
+    "to": "Moldova",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 446882,
+    "export_share": 0.0648,
+    "import_share": 3.5179,
+    "deviation": 3.4531,
+    "parent": "Europe",
+    "rca": 54.2523,
+    "color": "#006400",
+    "id": "Moldova",
+    "value": 446882
+  },
+  {
+    "to": "Montenegro",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 1131471,
+    "export_share": 0.0648,
+    "import_share": 38.6636,
+    "deviation": 38.5988,
+    "parent": "Europe",
+    "rca": 596.2609,
+    "color": "darkgreen",
+    "id": "Montenegro",
+    "value": 1131471
+  },
+  {
+    "to": "Poland",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 7752067,
+    "export_share": 0.0648,
+    "import_share": 0.5266,
+    "deviation": 0.4617,
+    "parent": "Europe",
+    "rca": 8.1207,
+    "color": "#0A690A",
+    "id": "Poland",
+    "value": 7752067
+  },
+  {
+    "to": "Romania",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 2633113,
+    "export_share": 0.0648,
+    "import_share": 1.0226,
+    "deviation": 0.9577,
+    "parent": "Europe",
+    "rca": 15.77,
+    "color": "#006400",
+    "id": "Romania",
+    "value": 2633113
+  },
+  {
+    "to": "Saudi Arabia",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 3597,
+    "export_share": 0.0648,
+    "import_share": 0.0008,
+    "deviation": -0.0641,
+    "parent": "Asia",
+    "rca": 0.0121,
+    "color": "#931717",
+    "id": "Saudi Arabia",
+    "value": 3597
+  },
+  {
+    "to": "Serbia",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 132872,
+    "export_share": 0.0648,
+    "import_share": 0.0361,
+    "deviation": -0.0288,
+    "parent": "Europe",
+    "rca": 0.5564,
+    "color": "#C19D9D",
+    "id": "Serbia",
+    "value": 132872
+  },
+  {
+    "to": "Slovakia",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 8768077,
+    "export_share": 0.0648,
+    "import_share": 1.905,
+    "deviation": 1.8402,
+    "parent": "Europe",
+    "rca": 29.3786,
+    "color": "#006400",
+    "id": "Slovakia",
+    "value": 8768077
+  },
+  {
+    "to": "South Korea",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 1031,
+    "export_share": 0.0648,
+    "import_share": 7.3472e-06,
+    "deviation": -0.0648,
+    "parent": "Asia",
+    "rca": 0.0001,
+    "color": "#8C0202",
+    "id": "South Korea",
+    "value": 1031
+  },
+  {
+    "to": "Spain",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 3784616,
+    "export_share": 0.0648,
+    "import_share": 0.1825,
+    "deviation": 0.1176,
+    "parent": "Europe",
+    "rca": 2.8138,
+    "color": "#468946",
+    "id": "Spain",
+    "value": 3784616
+  },
+  {
+    "to": "Sweden",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 14845990,
+    "export_share": 0.0648,
+    "import_share": 1.7154,
+    "deviation": 1.6505,
+    "parent": "Europe",
+    "rca": 26.4538,
+    "color": "#006400",
+    "id": "Sweden",
+    "value": 14845990
+  },
+  {
+    "to": "The Netherlands",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 2882,
+    "export_share": 0.0648,
+    "import_share": 0,
+    "deviation": -0.0648,
+    "parent": "Europe",
+    "rca": 0.0004,
+    "color": "#8C0404",
+    "id": "The Netherlands",
+    "value": 2882
+  },
+  {
+    "to": "Turkiye",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 1553435,
+    "export_share": 0.0648,
+    "import_share": 0.0313,
+    "deviation": -0.0336,
+    "parent": "Asia",
+    "rca": 0.482,
+    "color": "#BD9292",
+    "id": "Turkiye",
+    "value": 1553435
+  },
+  {
+    "to": "Uzbekistan",
+    "from": "Ukraine",
+    "domain": "Coal",
+    "count": 503225,
+    "export_share": 0.0648,
+    "import_share": 0.1866,
+    "deviation": 0.1217,
+    "parent": "Asia",
+    "rca": 2.8773,
+    "color": "#448844",
+    "id": "Uzbekistan",
+    "value": 503225
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

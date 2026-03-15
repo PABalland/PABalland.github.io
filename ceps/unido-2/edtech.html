@@ -1,0 +1,620 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Export RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Export RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Austria",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 52097,
+    "export_share": 0.0215,
+    "import_share": 0.0207,
+    "deviation": -0.0008,
+    "parent": "Europe",
+    "rca": 0.9616,
+    "color": "#D2CFCF",
+    "id": "Austria",
+    "value": 52097
+  },
+  {
+    "to": "Azerbaijan",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 19236,
+    "export_share": 0.0215,
+    "import_share": 0.106,
+    "deviation": 0.0844,
+    "parent": "Asia",
+    "rca": 4.9172,
+    "color": "#247724",
+    "id": "Azerbaijan",
+    "value": 19236
+  },
+  {
+    "to": "Belgium",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 2409413,
+    "export_share": 0.0215,
+    "import_share": 0.6286,
+    "deviation": 0.607,
+    "parent": "Europe",
+    "rca": 29.1724,
+    "color": "#006400",
+    "id": "Belgium",
+    "value": 2409413
+  },
+  {
+    "to": "Brunei",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 12,
+    "export_share": 0.0215,
+    "import_share": 0.0004,
+    "deviation": -0.0212,
+    "parent": "Asia",
+    "rca": 0.0167,
+    "color": "#941B1B",
+    "id": "Brunei",
+    "value": 12
+  },
+  {
+    "to": "Bulgaria",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 17374,
+    "export_share": 0.0215,
+    "import_share": 0.0309,
+    "deviation": 0.0094,
+    "parent": "Europe",
+    "rca": 1.4342,
+    "color": "#7FA77F",
+    "id": "Bulgaria",
+    "value": 17374
+  },
+  {
+    "to": "Canada",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 11712,
+    "export_share": 0.0215,
+    "import_share": 0.0009,
+    "deviation": -0.0206,
+    "parent": "North America",
+    "rca": 0.0418,
+    "color": "#9A2B2B",
+    "id": "Canada",
+    "value": 11712
+  },
+  {
+    "to": "Croatia",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 856,
+    "export_share": 0.0215,
+    "import_share": 0.0017,
+    "deviation": -0.0198,
+    "parent": "Europe",
+    "rca": 0.0792,
+    "color": "#9F3B3B",
+    "id": "Croatia",
+    "value": 856
+  },
+  {
+    "to": "Cyprus",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 767,
+    "export_share": 0.0215,
+    "import_share": 0.0027,
+    "deviation": -0.0188,
+    "parent": "Europe",
+    "rca": 0.1263,
+    "color": "#A54B4B",
+    "id": "Cyprus",
+    "value": 767
+  },
+  {
+    "to": "Czechia",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 63303,
+    "export_share": 0.0215,
+    "import_share": 0.0122,
+    "deviation": -0.0093,
+    "parent": "Europe",
+    "rca": 0.5682,
+    "color": "#C19F9F",
+    "id": "Czechia",
+    "value": 63303
+  },
+  {
+    "to": "Denmark",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 5015,
+    "export_share": 0.0215,
+    "import_share": 0.0014,
+    "deviation": -0.0202,
+    "parent": "Europe",
+    "rca": 0.0638,
+    "color": "#9D3535",
+    "id": "Denmark",
+    "value": 5015
+  },
+  {
+    "to": "El Salvador",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 1331,
+    "export_share": 0.0215,
+    "import_share": 0.007,
+    "deviation": -0.0145,
+    "parent": "North America",
+    "rca": 0.3269,
+    "color": "#B47979",
+    "id": "El Salvador",
+    "value": 1331
+  },
+  {
+    "to": "Estonia",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 14928,
+    "export_share": 0.0215,
+    "import_share": 0.0247,
+    "deviation": 0.0032,
+    "parent": "Europe",
+    "rca": 1.1478,
+    "color": "#9FB89F",
+    "id": "Estonia",
+    "value": 14928
+  },
+  {
+    "to": "Georgia",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 28240,
+    "export_share": 0.0215,
+    "import_share": 0.1435,
+    "deviation": 0.122,
+    "parent": "Asia",
+    "rca": 6.6601,
+    "color": "#146E14",
+    "id": "Georgia",
+    "value": 28240
+  },
+  {
+    "to": "Germany",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 35725,
+    "export_share": 0.0215,
+    "import_share": 0.0015,
+    "deviation": -0.0201,
+    "parent": "Europe",
+    "rca": 0.0685,
+    "color": "#9E3737",
+    "id": "Germany",
+    "value": 35725
+  },
+  {
+    "to": "Guatemala",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 83566,
+    "export_share": 0.0215,
+    "import_share": 0.144,
+    "deviation": 0.1224,
+    "parent": "North America",
+    "rca": 6.6813,
+    "color": "#136E13",
+    "id": "Guatemala",
+    "value": 83566
+  },
+  {
+    "to": "Hong Kong",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 19133,
+    "export_share": 0.0215,
+    "import_share": 0.0015,
+    "deviation": -0.0201,
+    "parent": "Asia",
+    "rca": 0.0679,
+    "color": "#9E3737",
+    "id": "Hong Kong",
+    "value": 19133
+  },
+  {
+    "to": "Hungary",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 1655768,
+    "export_share": 0.0215,
+    "import_share": 0.6303,
+    "deviation": 0.6087,
+    "parent": "Europe",
+    "rca": 29.2503,
+    "color": "#006400",
+    "id": "Hungary",
+    "value": 1655768
+  },
+  {
+    "to": "Ireland",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 1534,
+    "export_share": 0.0215,
+    "import_share": 0.0017,
+    "deviation": -0.0199,
+    "parent": "Europe",
+    "rca": 0.077,
+    "color": "#9F3B3B",
+    "id": "Ireland",
+    "value": 1534
+  },
+  {
+    "to": "Israel",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 20524,
+    "export_share": 0.0215,
+    "import_share": 0.0215,
+    "deviation": -0.0001,
+    "parent": "Asia",
+    "rca": 0.9961,
+    "color": "#D3D3D3",
+    "id": "Israel",
+    "value": 20524
+  },
+  {
+    "to": "Italy",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 16910,
+    "export_share": 0.0215,
+    "import_share": 0.0021,
+    "deviation": -0.0195,
+    "parent": "Europe",
+    "rca": 0.0972,
+    "color": "#A14242",
+    "id": "Italy",
+    "value": 16910
+  },
+  {
+    "to": "Japan",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 660534,
+    "export_share": 0.0215,
+    "import_share": 0.0561,
+    "deviation": 0.0345,
+    "parent": "Asia",
+    "rca": 2.6023,
+    "color": "#4B8B4B",
+    "id": "Japan",
+    "value": 660534
+  },
+  {
+    "to": "Latvia",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 840,
+    "export_share": 0.0215,
+    "import_share": 0.0018,
+    "deviation": -0.0197,
+    "parent": "Europe",
+    "rca": 0.0839,
+    "color": "#A03D3D",
+    "id": "Latvia",
+    "value": 840
+  },
+  {
+    "to": "Lithuania",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 42232,
+    "export_share": 0.0215,
+    "import_share": 0.0452,
+    "deviation": 0.0237,
+    "parent": "Europe",
+    "rca": 2.0991,
+    "color": "#5B945B",
+    "id": "Lithuania",
+    "value": 42232
+  },
+  {
+    "to": "Malaysia",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 53670,
+    "export_share": 0.0215,
+    "import_share": 0.0079,
+    "deviation": -0.0137,
+    "parent": "Asia",
+    "rca": 0.3654,
+    "color": "#B78080",
+    "id": "Malaysia",
+    "value": 53670
+  },
+  {
+    "to": "Moldova",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 468054,
+    "export_share": 0.0215,
+    "import_share": 4.8067,
+    "deviation": 4.7851,
+    "parent": "Europe",
+    "rca": 223.0775,
+    "color": "darkgreen",
+    "id": "Moldova",
+    "value": 468054
+  },
+  {
+    "to": "Morocco",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 2352,
+    "export_share": 0.0215,
+    "import_share": 0.0052,
+    "deviation": -0.0163,
+    "parent": "Africa",
+    "rca": 0.2425,
+    "color": "#AE6868",
+    "id": "Morocco",
+    "value": 2352
+  },
+  {
+    "to": "Norway",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 1356,
+    "export_share": 0.0215,
+    "import_share": 0.0006,
+    "deviation": -0.021,
+    "parent": "Europe",
+    "rca": 0.027,
+    "color": "#972323",
+    "id": "Norway",
+    "value": 1356
+  },
+  {
+    "to": "Peru",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 7107,
+    "export_share": 0.0215,
+    "import_share": 0.0071,
+    "deviation": -0.0144,
+    "parent": "South America",
+    "rca": 0.3313,
+    "color": "#B47979",
+    "id": "Peru",
+    "value": 7107
+  },
+  {
+    "to": "Philippines",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 10788,
+    "export_share": 0.0215,
+    "import_share": 0.003,
+    "deviation": -0.0186,
+    "parent": "Asia",
+    "rca": 0.1381,
+    "color": "#A64E4E",
+    "id": "Philippines",
+    "value": 10788
+  },
+  {
+    "to": "Poland",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 1402990,
+    "export_share": 0.0215,
+    "import_share": 0.1856,
+    "deviation": 0.164,
+    "parent": "Europe",
+    "rca": 8.6121,
+    "color": "#076807",
+    "id": "Poland",
+    "value": 1402990
+  },
+  {
+    "to": "Romania",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 18319,
+    "export_share": 0.0215,
+    "import_share": 0.0098,
+    "deviation": -0.0117,
+    "parent": "Europe",
+    "rca": 0.4563,
+    "color": "#BC8F8F",
+    "id": "Romania",
+    "value": 18319
+  },
+  {
+    "to": "Singapore",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 177064,
+    "export_share": 0.0215,
+    "import_share": 0.0243,
+    "deviation": 0.0028,
+    "parent": "Asia",
+    "rca": 1.1294,
+    "color": "#A2B9A2",
+    "id": "Singapore",
+    "value": 177064
+  },
+  {
+    "to": "Slovakia",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 238464,
+    "export_share": 0.0215,
+    "import_share": 0.0733,
+    "deviation": 0.0518,
+    "parent": "Europe",
+    "rca": 3.4041,
+    "color": "#398239",
+    "id": "Slovakia",
+    "value": 238464
+  },
+  {
+    "to": "Slovenia",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 11246,
+    "export_share": 0.0215,
+    "import_share": 0.011,
+    "deviation": -0.0106,
+    "parent": "Europe",
+    "rca": 0.5092,
+    "color": "#BE9797",
+    "id": "Slovenia",
+    "value": 11246
+  },
+  {
+    "to": "Sri Lanka",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 7248,
+    "export_share": 0.0215,
+    "import_share": 0.0224,
+    "deviation": 0.0008,
+    "parent": "Asia",
+    "rca": 1.0373,
+    "color": "#B8C5B8",
+    "id": "Sri Lanka",
+    "value": 7248
+  },
+  {
+    "to": "Sweden",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 986,
+    "export_share": 0.0215,
+    "import_share": 0.0003,
+    "deviation": -0.0213,
+    "parent": "Europe",
+    "rca": 0.0119,
+    "color": "#931717",
+    "id": "Sweden",
+    "value": 986
+  },
+  {
+    "to": "Switzerland",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 550163,
+    "export_share": 0.0215,
+    "import_share": 0.161,
+    "deviation": 0.1395,
+    "parent": "Europe",
+    "rca": 7.4734,
+    "color": "#0E6B0E",
+    "id": "Switzerland",
+    "value": 550163
+  },
+  {
+    "to": "The Netherlands",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 301020,
+    "export_share": 0.0215,
+    "import_share": 0.0219,
+    "deviation": 0.0004,
+    "parent": "Europe",
+    "rca": 1.018,
+    "color": "#C0C9C0",
+    "id": "The Netherlands",
+    "value": 301020
+  },
+  {
+    "to": "United Arab Emirates",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 1150,
+    "export_share": 0.0215,
+    "import_share": 0.0001,
+    "deviation": -0.0214,
+    "parent": "Asia",
+    "rca": 0.0067,
+    "color": "#911111",
+    "id": "United Arab Emirates",
+    "value": 1150
+  },
+  {
+    "to": "United Kingdom",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 5810,
+    "export_share": 0.0215,
+    "import_share": 0.0005,
+    "deviation": -0.021,
+    "parent": "Europe",
+    "rca": 0.0235,
+    "color": "#962020",
+    "id": "United Kingdom",
+    "value": 5810
+  },
+  {
+    "to": "United States",
+    "from": "Ukraine",
+    "domain": "EdTech",
+    "count": 59705,
+    "export_share": 0.0215,
+    "import_share": 0.0007,
+    "deviation": -0.0208,
+    "parent": "North America",
+    "rca": 0.0326,
+    "color": "#982626",
+    "id": "United States",
+    "value": 59705
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

@@ -1,0 +1,480 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Export RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Export RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Albania",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 3092,
+    "export_share": 0.0127,
+    "import_share": 0.0196,
+    "deviation": 0.0069,
+    "parent": "Europe",
+    "rca": 1.5411,
+    "color": "#78A378",
+    "id": "Albania",
+    "value": 3092
+  },
+  {
+    "to": "Armenia",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 1114405,
+    "export_share": 0.0127,
+    "import_share": 5.9941,
+    "deviation": 5.9814,
+    "parent": "Asia",
+    "rca": 471.7466,
+    "color": "darkgreen",
+    "id": "Armenia",
+    "value": 1114405
+  },
+  {
+    "to": "Belgium",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 18812,
+    "export_share": 0.0127,
+    "import_share": 0.0109,
+    "deviation": -0.0018,
+    "parent": "Europe",
+    "rca": 0.8575,
+    "color": "#CEC3C3",
+    "id": "Belgium",
+    "value": 18812
+  },
+  {
+    "to": "Bulgaria",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 327921,
+    "export_share": 0.0127,
+    "import_share": 0.6001,
+    "deviation": 0.5874,
+    "parent": "Europe",
+    "rca": 47.2309,
+    "color": "#006400",
+    "id": "Bulgaria",
+    "value": 327921
+  },
+  {
+    "to": "Burkina Faso",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 44975,
+    "export_share": 0.0127,
+    "import_share": 0.2479,
+    "deviation": 0.2352,
+    "parent": "Africa",
+    "rca": 19.5107,
+    "color": "#006400",
+    "id": "Burkina Faso",
+    "value": 44975
+  },
+  {
+    "to": "Central African Republic",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 6767,
+    "export_share": 0.0127,
+    "import_share": 0.2324,
+    "deviation": 0.2197,
+    "parent": "Africa",
+    "rca": 18.2932,
+    "color": "#006400",
+    "id": "Central African Republic",
+    "value": 6767
+  },
+  {
+    "to": "Costa Rica",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 4721,
+    "export_share": 0.0127,
+    "import_share": 0.0283,
+    "deviation": 0.0156,
+    "parent": "North America",
+    "rca": 2.2287,
+    "color": "#579257",
+    "id": "Costa Rica",
+    "value": 4721
+  },
+  {
+    "to": "Egypt",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 103160,
+    "export_share": 0.0127,
+    "import_share": 0.0429,
+    "deviation": 0.0302,
+    "parent": "Africa",
+    "rca": 3.3736,
+    "color": "#3A823A",
+    "id": "Egypt",
+    "value": 103160
+  },
+  {
+    "to": "France",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 27492,
+    "export_share": 0.0127,
+    "import_share": 0.0059,
+    "deviation": -0.0068,
+    "parent": "Europe",
+    "rca": 0.4666,
+    "color": "#BC9090",
+    "id": "France",
+    "value": 27492
+  },
+  {
+    "to": "Georgia",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 35731,
+    "export_share": 0.0127,
+    "import_share": 0.1299,
+    "deviation": 0.1172,
+    "parent": "Asia",
+    "rca": 10.2248,
+    "color": "#006400",
+    "id": "Georgia",
+    "value": 35731
+  },
+  {
+    "to": "Germany",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 57381,
+    "export_share": 0.0127,
+    "import_share": 0.0048,
+    "deviation": -0.0079,
+    "parent": "Europe",
+    "rca": 0.3748,
+    "color": "#B78181",
+    "id": "Germany",
+    "value": 57381
+  },
+  {
+    "to": "Ghana",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 53145,
+    "export_share": 0.0127,
+    "import_share": 0.0764,
+    "deviation": 0.0637,
+    "parent": "Africa",
+    "rca": 6.0096,
+    "color": "#197119",
+    "id": "Ghana",
+    "value": 53145
+  },
+  {
+    "to": "Hungary",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 29381,
+    "export_share": 0.0127,
+    "import_share": 0.0816,
+    "deviation": 0.0689,
+    "parent": "Europe",
+    "rca": 6.4254,
+    "color": "#156F15",
+    "id": "Hungary",
+    "value": 29381
+  },
+  {
+    "to": "Ivory Coast",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 2796,
+    "export_share": 0.0127,
+    "import_share": 0.0038,
+    "deviation": -0.0089,
+    "parent": "Africa",
+    "rca": 0.3002,
+    "color": "#B27474",
+    "id": "Ivory Coast",
+    "value": 2796
+  },
+  {
+    "to": "Jordan",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 144209,
+    "export_share": 0.0127,
+    "import_share": 0.3533,
+    "deviation": 0.3406,
+    "parent": "Asia",
+    "rca": 27.8055,
+    "color": "#006400",
+    "id": "Jordan",
+    "value": 144209
+  },
+  {
+    "to": "Lebanon",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 80466,
+    "export_share": 0.0127,
+    "import_share": 0.208,
+    "deviation": 0.1953,
+    "parent": "Asia",
+    "rca": 16.3684,
+    "color": "#006400",
+    "id": "Lebanon",
+    "value": 80466
+  },
+  {
+    "to": "Lithuania",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 62832,
+    "export_share": 0.0127,
+    "import_share": 0.0592,
+    "deviation": 0.0464,
+    "parent": "Europe",
+    "rca": 4.6553,
+    "color": "#277827",
+    "id": "Lithuania",
+    "value": 62832
+  },
+  {
+    "to": "Madagascar",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 10633,
+    "export_share": 0.0127,
+    "import_share": 0.0569,
+    "deviation": 0.0442,
+    "parent": "Africa",
+    "rca": 4.4791,
+    "color": "#297929",
+    "id": "Madagascar",
+    "value": 10633
+  },
+  {
+    "to": "Moldova",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 48882,
+    "export_share": 0.0127,
+    "import_share": 0.3792,
+    "deviation": 0.3665,
+    "parent": "Europe",
+    "rca": 29.8468,
+    "color": "#006400",
+    "id": "Moldova",
+    "value": 48882
+  },
+  {
+    "to": "Pakistan",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 1721,
+    "export_share": 0.0127,
+    "import_share": 0.0024,
+    "deviation": -0.0103,
+    "parent": "Asia",
+    "rca": 0.1905,
+    "color": "#AA5C5C",
+    "id": "Pakistan",
+    "value": 1721
+  },
+  {
+    "to": "Poland",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 143485,
+    "export_share": 0.0127,
+    "import_share": 0.0465,
+    "deviation": 0.0338,
+    "parent": "Europe",
+    "rca": 3.6569,
+    "color": "#358035",
+    "id": "Poland",
+    "value": 143485
+  },
+  {
+    "to": "Portugal",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 1814,
+    "export_share": 0.0127,
+    "import_share": 0.0035,
+    "deviation": -0.0092,
+    "parent": "Europe",
+    "rca": 0.2761,
+    "color": "#B16F6F",
+    "id": "Portugal",
+    "value": 1814
+  },
+  {
+    "to": "Romania",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 145820,
+    "export_share": 0.0127,
+    "import_share": 0.1039,
+    "deviation": 0.0912,
+    "parent": "Europe",
+    "rca": 8.1757,
+    "color": "#096909",
+    "id": "Romania",
+    "value": 145820
+  },
+  {
+    "to": "Slovakia",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 219116,
+    "export_share": 0.0127,
+    "import_share": 0.5505,
+    "deviation": 0.5378,
+    "parent": "Europe",
+    "rca": 43.3264,
+    "color": "#006400",
+    "id": "Slovakia",
+    "value": 219116
+  },
+  {
+    "to": "South Korea",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 57781,
+    "export_share": 0.0127,
+    "import_share": 0.017,
+    "deviation": 0.0043,
+    "parent": "Asia",
+    "rca": 1.3407,
+    "color": "#88AB88",
+    "id": "South Korea",
+    "value": 57781
+  },
+  {
+    "to": "Spain",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 121460,
+    "export_share": 0.0127,
+    "import_share": 0.0242,
+    "deviation": 0.0115,
+    "parent": "Europe",
+    "rca": 1.9049,
+    "color": "#639863",
+    "id": "Spain",
+    "value": 121460
+  },
+  {
+    "to": "The Netherlands",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 2257,
+    "export_share": 0.0127,
+    "import_share": 0.0007,
+    "deviation": -0.012,
+    "parent": "Europe",
+    "rca": 0.0517,
+    "color": "#9B3030",
+    "id": "The Netherlands",
+    "value": 2257
+  },
+  {
+    "to": "Turkiye",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 115230,
+    "export_share": 0.0127,
+    "import_share": 0.0191,
+    "deviation": 0.0064,
+    "parent": "Asia",
+    "rca": 1.5007,
+    "color": "#7AA47A",
+    "id": "Turkiye",
+    "value": 115230
+  },
+  {
+    "to": "Uganda",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 856,
+    "export_share": 0.0127,
+    "import_share": 0.0066,
+    "deviation": -0.0061,
+    "parent": "Africa",
+    "rca": 0.5188,
+    "color": "#BF9898",
+    "id": "Uganda",
+    "value": 856
+  },
+  {
+    "to": "United Arab Emirates",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 13273,
+    "export_share": 0.0127,
+    "import_share": 0.0028,
+    "deviation": -0.0099,
+    "parent": "Asia",
+    "rca": 0.2189,
+    "color": "#AD6363",
+    "id": "United Arab Emirates",
+    "value": 13273
+  },
+  {
+    "to": "United States",
+    "from": "Ukraine",
+    "domain": "GreenTech",
+    "count": 1689,
+    "export_share": 0.0127,
+    "import_share": 0.0001,
+    "deviation": -0.0126,
+    "parent": "North America",
+    "rca": 0.0061,
+    "color": "#911010",
+    "id": "United States",
+    "value": 1689
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>
