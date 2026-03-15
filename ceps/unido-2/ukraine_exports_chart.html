@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ukraine Export Intelligence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #161616;
+    --border: rgba(255,255,255,0.07);
+    --border-active: rgba(255,255,255,0.18);
+    --text-primary: #e8e6df;
+    --text-secondary: #6b6960;
+    --text-muted: #3d3c38;
+    --green-strong: #4a9e4a;
+    --green-mid: #7db87d;
+    --red-soft: #a06060;
+    --accent: #c8b87a;
+    --font-sans: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    padding: 40px 32px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 36px;
+    border-bottom: 0.5px solid var(--border);
+    padding-bottom: 24px;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .header-left h1 {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .header-left p {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+
+  .header-left p span {
+    font-weight: 500;
+  }
+
+  .geo-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    border: 0.5px solid var(--border-active);
+    padding: 6px 14px;
+    border-radius: 2px;
+  }
+
+  /* ── DATA EDITOR ── */
+  .data-section {
+    margin-bottom: 28px;
+  }
+
+  .data-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 10px 16px;
+    border: 0.5px solid var(--border);
+    border-radius: 3px;
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-secondary);
+    transition: border-color 0.15s, color 0.15s;
+    width: 100%;
+    text-align: left;
+  }
+
+  .data-toggle:hover { border-color: var(--border-active); color: var(--text-primary); }
+
+  .toggle-arrow { transition: transform 0.2s; display: inline-block; }
+  .data-section.open .toggle-arrow { transform: rotate(90deg); }
+
+  .data-editor-wrap {
+    display: none;
+    margin-top: 2px;
+  }
+  .data-section.open .data-editor-wrap { display: block; }
+
+  .data-editor-inner {
+    border: 0.5px solid var(--border-active);
+    border-radius: 3px;
+    background: #0a0a0a;
+    padding: 0;
+    position: relative;
+  }
+
+  .data-editor-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 14px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .data-editor-toolbar span {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+  }
+
+  .btn-apply {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: #0f0f0f;
+    border: none;
+    padding: 5px 14px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.15s;
+  }
+  .btn-apply:hover { opacity: 0.85; }
+
+  #json-input {
+    width: 100%;
+    height: 220px;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: #9eb89e;
+    padding: 14px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .error-msg {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #c06060;
+    padding: 6px 14px 8px;
+    display: none;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 24px;
+    border-bottom: 0.5px solid var(--border);
+  }
+
+  .tab {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    border-bottom: 1.5px solid transparent;
+    margin-bottom: -0.5px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab:hover { color: var(--text-primary); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── LEGEND ── */
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+
+  /* ── CHART ── */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 620px;
+  }
+
+  /* ── NOTE ── */
+  .chart-note {
+    margin-top: 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+    letter-spacing: 0.03em;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  footer span {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Strategic Export Intelligence</h1>
+    <p>Industrial positioning at <span>global scale</span></p>
+  </div>
+  <div class="geo-badge" id="geo-label">Ukraine · 2024</div>
+</header>
+
+<!-- DATA EDITOR -->
+<div class="data-section" id="data-section">
+  <button class="data-toggle" onclick="toggleEditor()">
+    <span class="toggle-arrow">▶</span>
+    &nbsp;Paste your JSON data here to update the chart
+  </button>
+  <div class="data-editor-wrap">
+    <div class="data-editor-inner">
+      <div class="data-editor-toolbar">
+        <span>Array of objects · fields: geo, domain, count, rca, sum_p, share, color, id, value</span>
+        <button class="btn-apply" onclick="applyData()">Apply →</button>
+      </div>
+      <textarea id="json-input" spellcheck="false"></textarea>
+      <div class="error-msg" id="error-msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" onclick="switchChart('exports')">Total exports (USD)</button>
+  <button class="tab" onclick="switchChart('share')">Global market share (%)</button>
+  <button class="tab" onclick="switchChart('rca')">Revealed comparative advantage</button>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#4a9e4a"></div>RCA ≥ 1 — comparative advantage</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a06060"></div>RCA &lt; 1 — below global weight</div>
+</div>
+
+<!-- CHART -->
+<div class="chart-wrap">
+  <canvas id="myChart"></canvas>
+</div>
+<div class="chart-note" id="chart-note"></div>
+
+<footer>
+  <span>Source data via JSON input</span>
+  <span id="footer-geo">geo: Ukraine</span>
+</footer>
+
+<script>
+// ── DEFAULT DATA (same field names as source JSON) ──────────────────────────
+let DATA = [
+  {"geo":"Ukraine","domain":"Aerospace","count":35552574,"rca":0.18,"sum_p":92835930535,"share":0.0383,"color":"#AA5A5A","id":"Aerospace","value":35552574},
+  {"geo":"Ukraine","domain":"AgriTech","count":76129810,"rca":0.17,"sum_p":204170721985,"share":0.0373,"color":"#A95757","id":"AgriTech","value":76129810},
+  {"geo":"Ukraine","domain":"Automotive","count":285835808,"rca":0.17,"sum_p":790167110740,"share":0.0362,"color":"#A95757","id":"Automotive","value":285835808},
+  {"geo":"Ukraine","domain":"BioTech","count":3989228,"rca":0.03,"sum_p":57505208142,"share":0.0069,"color":"#972525","id":"BioTech","value":3989228},
+  {"geo":"Ukraine","domain":"Chemical Engineering","count":452512131,"rca":0.25,"sum_p":844891920707,"share":0.0536,"color":"#AF6A6A","id":"Chemical Engineering","value":452512131},
+  {"geo":"Ukraine","domain":"Coal","count":129483787,"rca":0.30,"sum_p":199686601701,"share":0.0648,"color":"#B27474","id":"Coal","value":129483787},
+  {"geo":"Ukraine","domain":"DefenseTech","count":121281313,"rca":0.46,"sum_p":123119839735,"share":0.0985,"color":"#BC8F8F","id":"DefenseTech","value":121281313},
+  {"geo":"Ukraine","domain":"EdTech","count":8478542,"rca":0.10,"sum_p":39348833015,"share":0.0215,"color":"#A24343","id":"EdTech","value":8478542},
+  {"geo":"Ukraine","domain":"Energy","count":309797302,"rca":0.06,"sum_p":2233137455153,"share":0.0139,"color":"#9D3434","id":"Energy","value":309797302},
+  {"geo":"Ukraine","domain":"GreenTech","count":3001303,"rca":0.06,"sum_p":23620813803,"share":0.0127,"color":"#9D3434","id":"GreenTech","value":3001303},
+  {"geo":"Ukraine","domain":"MedTech","count":50975502,"rca":0.06,"sum_p":368776947298,"share":0.0138,"color":"#9D3434","id":"MedTech","value":50975502},
+  {"geo":"Ukraine","domain":"Metallurgy","count":3284174014,"rca":3.10,"sum_p":492187941528,"share":0.6673,"color":"#3F853F","id":"Metallurgy","value":3284174014},
+  {"geo":"Ukraine","domain":"Mining","count":2885494339,"rca":3.31,"sum_p":404962686551,"share":0.7125,"color":"#3B833B","id":"Mining","value":2885494339},
+  {"geo":"Ukraine","domain":"Nuclear","count":0,"rca":0,"sum_p":417711959,"share":0,"color":"darkred","id":"Nuclear","value":0},
+  {"geo":"Ukraine","domain":"Railway","count":217271975,"rca":3.31,"sum_p":30475000874,"share":0.7130,"color":"#3B833B","id":"Railway","value":217271975},
+  {"geo":"Ukraine","domain":"Robotics","count":40210110,"rca":0.15,"sum_p":125863117929,"share":0.0319,"color":"#A75252","id":"Robotics","value":40210110},
+  {"geo":"Ukraine","domain":"Semiconductors","count":54667841,"rca":0.03,"sum_p":828571816893,"share":0.0066,"color":"#972525","id":"Semiconductors","value":54667841},
+  {"geo":"Ukraine","domain":"Shipbuilding","count":78554092,"rca":0.24,"sum_p":153949613192,"share":0.0510,"color":"#AE6767","id":"Shipbuilding","value":78554092},
+  {"geo":"Ukraine","domain":"Textiles","count":379517859,"rca":0.30,"sum_p":586886571345,"share":0.0647,"color":"#B27474","id":"Textiles","value":379517859},
+  {"geo":"Ukraine","domain":"Unmanned & Autonomous Systems","count":18657818,"rca":0.02,"sum_p":407568470632,"share":0.0046,"color":"#951E1E","id":"Unmanned & Autonomous Systems","value":18657818},
+  {"geo":"Ukraine","domain":"Wood Processing","count":424097626,"rca":3.32,"sum_p":59368611353,"share":0.7143,"color":"#3B833B","id":"Wood Processing","value":424097626}
+];
+
+// pre-fill the textarea
+document.getElementById('json-input').value = JSON.stringify(DATA, null, 2);
+
+// ── STATE ───────────────────────────────────────────────────────────────────
+let currentMode = 'exports';
+let chart;
+
+// ── EDITOR ──────────────────────────────────────────────────────────────────
+function toggleEditor() {
+  document.getElementById('data-section').classList.toggle('open');
+}
+
+function applyData() {
+  const raw = document.getElementById('json-input').value.trim();
+  const errEl = document.getElementById('error-msg');
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) throw new Error('Expected a JSON array [ ... ]');
+    if (!parsed[0].domain) throw new Error('Each object must have a "domain" field');
+    DATA = parsed;
+    errEl.style.display = 'none';
+    updateGeoLabel();
+    makeChart(currentMode);
+  } catch(e) {
+    errEl.textContent = '⚠ ' + e.message;
+    errEl.style.display = 'block';
+  }
+}
+
+function updateGeoLabel() {
+  const geo = DATA[0]?.geo || '';
+  document.getElementById('geo-label').textContent = geo + ' · 2024';
+  document.getElementById('footer-geo').textContent = 'geo: ' + geo;
+}
+
+// ── CHART ────────────────────────────────────────────────────────────────────
+function getColor(rca) {
+  return rca >= 1 ? '#4a9e4a' : '#a06060';
+}
+
+function buildData(mode) {
+  if (mode === 'exports') return [...DATA].sort((a,b) => b.count - a.count);
+  if (mode === 'share')   return [...DATA].sort((a,b) => b.share - a.share);
+  return [...DATA].sort((a,b) => b.rca - a.rca);
+}
+
+function makeChart(mode) {
+  const sorted = buildData(mode);
+  const labels = sorted.map(d => d.domain);
+  let values, tickFmt, tooltipFmt, noteText;
+
+  if (mode === 'exports') {
+    values = sorted.map(d => d.count);
+    tooltipFmt = v => '$' + (v >= 1e9 ? (v/1e9).toFixed(2)+'B' : (v/1e6).toFixed(1)+'M');
+    tickFmt    = v => v >= 1e9 ? '$'+(v/1e9).toFixed(1)+'B' : '$'+(v/1e6).toFixed(0)+'M';
+    noteText   = 'Total USD export value per sector · field: count';
+  } else if (mode === 'share') {
+    values = sorted.map(d => d.share);
+    tooltipFmt = v => v.toFixed(4) + '%';
+    tickFmt    = v => v.toFixed(2) + '%';
+    noteText   = "Share of global exports per sector (%) · field: share";
+  } else {
+    values = sorted.map(d => d.rca);
+    tooltipFmt = v => v.toFixed(2);
+    tickFmt    = v => v.toFixed(1);
+    noteText   = 'Revealed Comparative Advantage · RCA > 1 = specialisation · field: rca';
+  }
+
+  const colors = sorted.map(d => getColor(d.rca));
+
+  if (chart) chart.destroy();
+  chart = new Chart(document.getElementById('myChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        hoverBackgroundColor: colors.map(c => c + 'cc'),
+        borderRadius: 2,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#1a1a1a',
+          borderColor: 'rgba(255,255,255,0.1)',
+          borderWidth: 0.5,
+          titleColor: '#c8b87a',
+          bodyColor: '#e8e6df',
+          titleFont: { family: "'DM Mono', monospace", size: 11 },
+          bodyFont:  { family: "'DM Mono', monospace", size: 12 },
+          padding: 10,
+          callbacks: {
+            title: ctx => ctx[0].label,
+            label: ctx => '  ' + tooltipFmt(ctx.parsed.x)
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(255,255,255,0.04)' },
+          border: { color: 'rgba(255,255,255,0.07)' },
+          ticks: {
+            color: '#4a4a46',
+            font: { family: "'DM Mono', monospace", size: 10 },
+            callback: tickFmt
+          }
+        },
+        y: {
+          grid: { display: false },
+          border: { display: false },
+          ticks: {
+            color: '#7a7870',
+            font: { family: "'DM Mono', monospace", size: 11 }
+          }
+        }
+      }
+    }
+  });
+
+  document.getElementById('chart-note').textContent = noteText;
+}
+
+function switchChart(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', ['exports','share','rca'][i] === mode);
+  });
+  makeChart(mode);
+}
+
+// init
+makeChart('exports');
+</script>
+</body>
+</html>
