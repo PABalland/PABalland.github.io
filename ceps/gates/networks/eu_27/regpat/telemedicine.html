@@ -1,0 +1,343 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Australia (AU)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 53,
+    "binary": 8,
+    "expected": 8.47,
+    "untapped": -15.53,
+    "links.rca": 2.83,
+    "sum_from": 74,
+    "sum_to": 16.5,
+    "binary.pc": 1.3015,
+    "th.max": 1652.5,
+    "th.max.pc": 0.4595,
+    "RD": 19.57,
+    "RD.added": 67.76,
+    "pct_from": 9.3434,
+    "pct_to": 2.0833,
+    "pct_binary_from": 3.84,
+    "parent": "Oceania",
+    "n": 2.21,
+    "pct": 5.41,
+    "nn": 2.448,
+    "color": "#4F8E4F",
+    "id": "Australia (AU)",
+    "value": 8
+  },
+  {
+    "to": "Canada (CA)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 22,
+    "binary": 7,
+    "expected": 9.34,
+    "untapped": -18.66,
+    "links.rca": 3,
+    "sum_from": 74,
+    "sum_to": 37,
+    "binary.pc": 1.5184,
+    "th.max": 1821,
+    "th.max.pc": 0.5064,
+    "RD": 19.57,
+    "RD.added": 71.01,
+    "pct_from": 9.3434,
+    "pct_to": 4.6717,
+    "pct_binary_from": 1.4984,
+    "parent": "North America",
+    "n": 3.36,
+    "pct": 4.73,
+    "nn": 1.4077,
+    "color": "#82A882",
+    "id": "Canada (CA)",
+    "value": 7
+  },
+  {
+    "to": "Hong Kong (HK)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 8,
+    "binary": 1,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 74,
+    "sum_to": 2.5,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 19.57,
+    "RD.added": 40.11,
+    "pct_from": 9.3434,
+    "pct_to": 0.3157,
+    "pct_binary_from": 3.168,
+    "parent": "Asia",
+    "n": 0.19,
+    "pct": 0.68,
+    "nn": 3.5789,
+    "color": "#368036",
+    "id": "Hong Kong (HK)",
+    "value": 1
+  },
+  {
+    "to": "Iran (IR)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 10,
+    "binary": 2,
+    "expected": 7.23,
+    "untapped": 3.23,
+    "links.rca": 0.55,
+    "sum_from": 74,
+    "sum_to": 1,
+    "binary.pc": 0.2169,
+    "th.max": 1409.5,
+    "th.max.pc": 0.392,
+    "RD": 19.57,
+    "RD.added": 63.03,
+    "pct_from": 9.3434,
+    "pct_to": 0.1263,
+    "pct_binary_from": 15.84,
+    "parent": "Asia",
+    "n": 0.19,
+    "pct": 1.35,
+    "nn": 7.1053,
+    "color": "#106D10",
+    "id": "Iran (IR)",
+    "value": 2
+  },
+  {
+    "to": "Israel (IL)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 4,
+    "binary": 3,
+    "expected": 8.41,
+    "untapped": 2.41,
+    "links.rca": 0.71,
+    "sum_from": 74,
+    "sum_to": 12.5,
+    "binary.pc": 0.3254,
+    "th.max": 1640.5,
+    "th.max.pc": 0.4562,
+    "RD": 19.57,
+    "RD.added": 67.58,
+    "pct_from": 9.3434,
+    "pct_to": 1.5783,
+    "pct_binary_from": 1.9008,
+    "parent": "Asia",
+    "n": 2.36,
+    "pct": 2.03,
+    "nn": 0.8602,
+    "color": "#CEC4C4",
+    "id": "Israel (IL)",
+    "value": 3
+  },
+  {
+    "to": "Russia (RU)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 6,
+    "binary": 1,
+    "expected": 7.41,
+    "untapped": 6.41,
+    "links.rca": 0.13,
+    "sum_from": 74,
+    "sum_to": 6,
+    "binary.pc": 0.0542,
+    "th.max": 1444.5,
+    "th.max.pc": 0.4017,
+    "RD": 19.57,
+    "RD.added": 51.68,
+    "pct_from": 9.3434,
+    "pct_to": 0.7576,
+    "pct_binary_from": 1.32,
+    "parent": "Europe",
+    "n": 0.32,
+    "pct": 0.68,
+    "nn": 2.125,
+    "color": "#5A935A",
+    "id": "Russia (RU)",
+    "value": 1
+  },
+  {
+    "to": "Singapore (SG)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 2,
+    "binary": 1,
+    "expected": 7.58,
+    "untapped": 6.58,
+    "links.rca": 0.13,
+    "sum_from": 74,
+    "sum_to": 9,
+    "binary.pc": 0.0542,
+    "th.max": 1478,
+    "th.max.pc": 0.411,
+    "RD": 19.57,
+    "RD.added": 65.59,
+    "pct_from": 9.3434,
+    "pct_to": 1.1364,
+    "pct_binary_from": 0.88,
+    "parent": "Asia",
+    "n": 0.7,
+    "pct": 0.68,
+    "nn": 0.9714,
+    "color": "#D2D0D0",
+    "id": "Singapore (SG)",
+    "value": 1
+  },
+  {
+    "to": "South Africa (ZA)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 3,
+    "binary": 1,
+    "expected": 7.19,
+    "untapped": 6.19,
+    "links.rca": 0.14,
+    "sum_from": 74,
+    "sum_to": 1.5,
+    "binary.pc": 0.0542,
+    "th.max": 1403,
+    "th.max.pc": 0.3901,
+    "RD": 19.57,
+    "RD.added": 50.06,
+    "pct_from": 9.3434,
+    "pct_to": 0.1894,
+    "pct_binary_from": 5.28,
+    "parent": "Africa",
+    "n": 0.15,
+    "pct": 0.68,
+    "nn": 4.5333,
+    "color": "#287928",
+    "id": "South Africa (ZA)",
+    "value": 1
+  },
+  {
+    "to": "Switzerland (CH)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 43,
+    "binary": 4,
+    "expected": 7.81,
+    "untapped": -4.19,
+    "links.rca": 1.54,
+    "sum_from": 74,
+    "sum_to": 9,
+    "binary.pc": 0.6508,
+    "th.max": 1523,
+    "th.max.pc": 0.4235,
+    "RD": 19.57,
+    "RD.added": 49.95,
+    "pct_from": 9.3434,
+    "pct_to": 1.1364,
+    "pct_binary_from": 3.52,
+    "parent": "Europe",
+    "n": 1.08,
+    "pct": 2.7,
+    "nn": 2.5,
+    "color": "#4E8D4E",
+    "id": "Switzerland (CH)",
+    "value": 4
+  },
+  {
+    "to": "United Kingdom (GB)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 39,
+    "binary": 16,
+    "expected": 8.45,
+    "untapped": -71.55,
+    "links.rca": 9.47,
+    "sum_from": 74,
+    "sum_to": 28.5,
+    "binary.pc": 4.3384,
+    "th.max": 1648,
+    "th.max.pc": 0.4583,
+    "RD": 19.57,
+    "RD.added": 45.99,
+    "pct_from": 9.3434,
+    "pct_to": 3.5985,
+    "pct_binary_from": 4.4463,
+    "parent": "Europe",
+    "n": 2.66,
+    "pct": 10.81,
+    "nn": 4.0639,
+    "color": "#2E7C2E",
+    "id": "United Kingdom (GB)",
+    "value": 16
+  },
+  {
+    "to": "United States (US)",
+    "from": "European Union (EU)",
+    "domain": "Telemedicine",
+    "full": 655,
+    "binary": 104,
+    "expected": 30.59,
+    "untapped": -489.41,
+    "links.rca": 17,
+    "sum_from": 74,
+    "sum_to": 150.5,
+    "binary.pc": 28.1996,
+    "th.max": 5966,
+    "th.max.pc": 1.659,
+    "RD": 19.57,
+    "RD.added": 69.52,
+    "pct_from": 9.3434,
+    "pct_to": 19.0025,
+    "pct_binary_from": 5.473,
+    "parent": "North America",
+    "n": 47.88,
+    "pct": 70.27,
+    "nn": 1.4676,
+    "color": "#7DA67D",
+    "id": "United States (US)",
+    "value": 104
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>
