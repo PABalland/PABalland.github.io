@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Top Researchers</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f10;
+    --surface: #1a1a1d;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.15);
+    --text: #f0eeea;
+    --muted: #7a7875;
+    --faint: #3a3835;
+    --pub-color: #4e9af1;
+    --pat-color: #52d9a4;
+    --pub-bg: rgba(78,154,241,0.12);
+    --pat-bg: rgba(82,217,164,0.12);
+    --gold: #f5c842;
+    --silver: #b0b8c8;
+    --bronze: #c8865a;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 3rem 1.5rem;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 780px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem 2rem 1.5rem;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 1.75rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .title-block .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+
+  .title-block h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .title-block .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 6px;
+  }
+
+  .pill {
+    border: 1px solid var(--border);
+    background: transparent;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    color: var(--muted);
+    transition: all .18s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pill:hover { border-color: var(--border-hover); color: var(--text); }
+
+  .pill.active[data-mode="pubs"] {
+    background: var(--pub-bg);
+    border-color: var(--pub-color);
+    color: var(--pub-color);
+  }
+
+  .pill.active[data-mode="patents"] {
+    background: var(--pat-bg);
+    border-color: var(--pat-color);
+    color: var(--pat-color);
+  }
+
+  .pill-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+
+  .pill[data-mode="pubs"] .pill-dot { background: var(--pub-color); }
+  .pill[data-mode="patents"] .pill-dot { background: var(--pat-color); }
+
+  .col-headers {
+    display: grid;
+    grid-template-columns: 28px 1fr 110px 1fr 52px;
+    gap: 0 10px;
+    align-items: center;
+    padding: 0 0 8px;
+    border-bottom: 1px solid var(--faint);
+    margin-bottom: 4px;
+  }
+
+  .col-h {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .col-h.right { text-align: right; }
+
+  .row {
+    display: grid;
+    grid-template-columns: 28px 1fr 110px 1fr 52px;
+    gap: 0 10px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+    border-radius: 6px;
+  }
+
+  .row:hover { background: rgba(255,255,255,0.03); }
+  .row:last-child { border-bottom: none; }
+
+  .rank {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    text-align: right;
+    padding-right: 4px;
+  }
+
+  .medal { font-size: 16px; text-align: right; padding-right: 2px; }
+
+  .name-block .ind {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .geo-block {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .flag { font-size: 15px; flex-shrink: 0; }
+
+  .country {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bar-cell { display: flex; align-items: center; gap: 8px; }
+
+  .bar-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.45s cubic-bezier(.4,0,.2,1), background 0.3s;
+  }
+
+  .count-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: right;
+    min-width: 42px;
+  }
+
+  .footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--faint);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .leg { display: flex; align-items: center; gap: 5px; }
+  .leg-sq { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+  .field-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    border: 1px solid var(--faint);
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="header">
+    <div class="title-block">
+      <div class="eyebrow"></div>
+      <h1>Top 10 Researchers</h1>
+      <div class="subtitle">Ranked by output</div>
+    </div>
+    <div class="controls">
+      <button class="pill active" data-mode="pubs" onclick="setMode('pubs',this)">
+        <span class="pill-dot"></span>Publications
+      </button>
+      <button class="pill" data-mode="patents" onclick="setMode('patents',this)">
+        <span class="pill-dot"></span>Patents
+      </button>
+    </div>
+  </div>
+
+  <div class="col-headers">
+    <span class="col-h right">#</span>
+    <span class="col-h">Researcher</span>
+    <span class="col-h">Country</span>
+    <span class="col-h">Count</span>
+    <span class="col-h right">Total</span>
+  </div>
+
+  <div id="list"></div>
+
+  <div class="footer">
+    <div class="legend">
+      <div class="leg"><span class="leg-sq" style="background:var(--pub-color)"></span>Publications</div>
+      <div class="leg"><span class="leg-sq" style="background:var(--pat-color)"></span>Patents</div>
+    </div>
+    <div class="field-tag"></div>
+  </div>
+</div>
+
+<script>
+// ── Replace this array with your real data ──────────────────────────────────
+const data =  [
+  {
+    "ind": "Christopher Bennett",
+    "geo": "United Kingdom",
+    "patents": 0,
+    "pubs": 2641
+  },
+  {
+    "ind": "Katharine Sherratt",
+    "geo": "Italy",
+    "patents": 0,
+    "pubs": 2642
+  },
+  {
+    "ind": "LIU, Xin",
+    "geo": "China (CN)",
+    "patents": 111,
+    "pubs": 0
+  },
+  {
+    "ind": "LIU, Yang",
+    "geo": "China (CN)",
+    "patents": 107,
+    "pubs": 0
+  },
+  {
+    "ind": "Paul Piehowski",
+    "geo": "United States",
+    "patents": 0,
+    "pubs": 2775
+  },
+  {
+    "ind": "Sam Abbott",
+    "geo": "United States",
+    "patents": 0,
+    "pubs": 2642
+  },
+  {
+    "ind": "Sebastian Funk",
+    "geo": "Italy",
+    "patents": 0,
+    "pubs": 2643
+  },
+  {
+    "ind": "Tai‐Tu Lin",
+    "geo": "United States",
+    "patents": 0,
+    "pubs": 3489
+  },
+  {
+    "ind": "Tujin Shi",
+    "geo": "United States",
+    "patents": 0,
+    "pubs": 4698
+  },
+  {
+    "ind": "WANG, Jian",
+    "geo": "China (CN)",
+    "patents": 109,
+    "pubs": 0
+  },
+  {
+    "ind": "WANG, Jianzong",
+    "geo": "China (CN)",
+    "patents": 307,
+    "pubs": 0
+  },
+  {
+    "ind": "WANG, Jun",
+    "geo": "China (CN)",
+    "patents": 116,
+    "pubs": 0
+  },
+  {
+    "ind": "WANG, Wei",
+    "geo": "China (CN)",
+    "patents": 107,
+    "pubs": 0
+  },
+  {
+    "ind": "Weijun Qian",
+    "geo": "United States",
+    "patents": 0,
+    "pubs": 4699
+  },
+  {
+    "ind": "XIAO, Jing",
+    "geo": "China (CN)",
+    "patents": 118,
+    "pubs": 0
+  },
+  {
+    "ind": "XU, Liang",
+    "geo": "China (CN)",
+    "patents": 212,
+    "pubs": 0
+  },
+  {
+    "ind": "Ying Zhu",
+    "geo": "China",
+    "patents": 0,
+    "pubs": 2675
+  },
+  {
+    "ind": "Yinyin Ye",
+    "geo": "China",
+    "patents": 0,
+    "pubs": 3489
+  },
+  {
+    "ind": "YOO, Taesang",
+    "geo": "United States (US)",
+    "patents": 114,
+    "pubs": 0
+  },
+  {
+    "ind": "ZHANG, Wei",
+    "geo": "China (CN)",
+    "patents": 112,
+    "pubs": 0
+  }
+] ;
+// ────────────────────────────────────────────────────────────────────────────
+
+const FLAGS = {AUx:"🇦🇺" };
+const MEDALS = ["1","2","3"];
+const COLORS = { pubs: "var(--pub-color)", patents: "var(--pat-color)" };
+
+let mode = "pubs";
+
+function getCode(geo) { const m = geo.match(/\(([A-Z]{2})\)/); return m ? m[1] : ""; }
+function getFlag(geo) { return FLAGS[getCode(geo)] || ""; }
+function getCountry(geo) { return geo.replace(/\s*\([A-Z]+\)/, ""); }
+function getValue(d) { return mode === "pubs" ? d.pubs : d.patents; }
+
+function setMode(m, btn) {
+  mode = m;
+  document.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+
+function render() {
+  const sorted = [...data].sort((a, b) => getValue(b) - getValue(a)).slice(0, 10);
+  const maxVal = Math.max(...sorted.map(getValue));
+  const color = COLORS[mode];
+
+  document.getElementById("list").innerHTML = sorted.map((d, i) => {
+    const val = getValue(d);
+    const pct = Math.round((val / maxVal) * 100);
+    const rankCell = `<div class="rank">${i + 1}</div>`;
+
+    return `
+      <div class="row">
+        ${rankCell}
+        <div class="name-block">
+          <div class="ind" title="${d.ind}">${d.ind}</div>
+        </div>
+        <div class="geo-block">
+          <span class="flag">${getFlag(d.geo)}</span>
+          <span class="country">${getCountry(d.geo)}</span>
+        </div>
+        <div class="bar-cell">
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${pct}%;background:${color}"></div>
+          </div>
+        </div>
+        <div class="count-val">${val.toLocaleString()}</div>
+      </div>`;
+  }).join("");
+}
+
+render();
+</script>
+</body>
+</html>
+
