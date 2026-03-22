@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Environmental Impact Simulator — aiworld.eu</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060a0d;--s1:#0b1219;--s2:#0f1a24;--s3:#13202e;
+  --border:#1a2c3d;--border2:#243545;
+  --cyan:#00e5c3;--cyan-dim:rgba(0,229,195,.1);
+  --green:#22c55e;--green-dim:rgba(34,197,94,.1);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,.1);
+  --red:#ef4444;--red-dim:rgba(239,68,68,.1);
+  --blue:#60a5fa;--blue-dim:rgba(96,165,250,.1);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,.1);
+  --text:#ddeeff;--muted:#4d7a9a;--faint:#1a2c3d;
+  --mono:'Space Mono',monospace;--sans:'DM Sans',sans-serif;
+  --r:14px;--r2:8px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;font-size:15px;line-height:1.6}
+
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(0,229,195,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,195,.025) 1px,transparent 1px);
+  background-size:48px 48px;pointer-events:none;
+}
+body::after{
+  content:'';position:fixed;top:-20%;right:-10%;width:55%;height:55%;
+  background:radial-gradient(ellipse,rgba(0,229,195,.05) 0%,transparent 65%);
+  pointer-events:none;z-index:0;
+}
+
+.page{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:36px 24px 100px}
+
+nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:64px}
+.logo{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.08em}
+.logo em{color:var(--cyan);font-style:normal}
+.nav-pill{font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:var(--muted);border:1px solid var(--border2);padding:5px 14px;border-radius:20px}
+
+.hero{margin-bottom:56px}
+.eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--cyan);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';width:24px;height:1px;background:var(--cyan);display:block}
+h1{font-size:clamp(28px,5vw,52px);font-weight:600;line-height:1.08;margin-bottom:14px;letter-spacing:-.02em}
+h1 span{color:var(--cyan)}
+.tagline{font-size:15px;color:var(--muted);line-height:1.65;max-width:560px}
+
+/* SIMULATOR CARD */
+.sim-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:36px;margin-bottom:20px}
+
+.section-label{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* MODEL PICKER */
+.model-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;margin-bottom:32px}
+.model-btn{background:var(--s1);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;cursor:pointer;transition:all .15s;text-align:left;outline:none}
+.model-btn:hover{border-color:var(--border2);background:var(--s3)}
+.model-btn.active{border-color:var(--cyan);background:var(--cyan-dim)}
+.model-btn .mb-name{font-size:13px;font-weight:500;color:var(--text);display:block;margin-bottom:2px}
+.model-btn .mb-provider{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.06em}
+.model-btn .mb-size{font-family:var(--mono);font-size:9px;color:var(--cyan);letter-spacing:.04em;margin-top:4px;display:block}
+
+/* SLIDERS */
+.controls{display:flex;flex-direction:column;gap:24px;margin-bottom:32px}
+.ctrl{}
+.ctrl-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.ctrl-name{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--muted)}
+.ctrl-value{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--cyan)}
+input[type=range]{
+  width:100%;appearance:none;-webkit-appearance:none;
+  height:3px;border-radius:2px;background:var(--border2);outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  appearance:none;-webkit-appearance:none;
+  width:18px;height:18px;border-radius:50%;
+  background:var(--cyan);border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--cyan);cursor:pointer;transition:transform .12s;
+}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.2)}
+input[type=range]::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;
+  background:var(--cyan);border:2px solid var(--bg);cursor:pointer;
+}
+
+/* RESULTS */
+.results-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px}
+@media(max-width:580px){.results-grid{grid-template-columns:1fr}}
+.metric-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r2);padding:18px 16px}
+.metric-card.highlight{border-color:var(--cyan);background:var(--cyan-dim)}
+.mc-label{font-family:var(--mono);font-size:8px;letter-spacing:.16em;color:var(--muted);margin-bottom:8px}
+.mc-value{font-size:22px;font-weight:600;line-height:1;margin-bottom:4px}
+.mc-unit{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.06em}
+.mc-value.co2{color:var(--amber)}
+.mc-value.water{color:var(--blue)}
+.mc-value.energy{color:var(--green)}
+
+/* BAR for per-query */
+.bar-section{margin-bottom:28px}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.bar-label{font-size:12px;color:var(--muted);width:100px;flex-shrink:0}
+.bar-track{flex:1;height:6px;background:var(--faint);border-radius:3px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.bar-num{font-family:var(--mono);font-size:10px;color:var(--text);width:80px;text-align:right;flex-shrink:0}
+
+/* COMPARISON SECTION */
+.comparisons{margin-top:8px}
+.comp-title{font-size:18px;font-weight:600;margin-bottom:6px}
+.comp-subtitle{font-size:13px;color:var(--muted);margin-bottom:28px}
+
+.comp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.comp-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;transition:border-color .15s;cursor:default}
+.comp-card:hover{border-color:var(--border2)}
+.comp-card-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.comp-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.comp-card-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px}
+.comp-card-cat{font-family:var(--mono);font-size:8px;letter-spacing:.1em;color:var(--muted)}
+.comp-equiv{font-size:13px;color:var(--muted);line-height:1.5;border-top:1px solid var(--border);padding-top:10px}
+.comp-equiv strong{color:var(--text);font-weight:500}
+.comp-equiv .big{font-size:20px;font-weight:600;color:var(--cyan);display:block;margin-bottom:2px;font-family:var(--mono)}
+
+/* SCALE TOGGLE */
+.scale-row{display:flex;gap:8px;margin-bottom:28px;flex-wrap:wrap}
+.scale-btn{font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s}
+.scale-btn.active{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-dim)}
+.scale-btn:hover:not(.active){border-color:var(--border2);color:var(--text)}
+
+/* SCOPE label */
+.scope-note{font-size:12px;color:var(--muted);margin-top:20px;line-height:1.6;border-top:1px solid var(--border);padding-top:16px}
+.scope-note a{color:var(--cyan);text-decoration:none}
+
+footer{text-align:center;margin-top:64px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em;line-height:2}
+footer em{color:var(--cyan);font-style:normal}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <nav>
+    <div class="logo">AI<em>WORLD</em>.EU</div>
+    <div class="nav-pill">ENVIRONMENTAL SIMULATOR</div>
+  </nav>
+
+  <div class="hero">
+    <div class="eyebrow">IMPACT CALCULATOR</div>
+    <h1>Every AI query has<br/><span>a real-world cost</span></h1>
+    <p class="tagline">Simulate the CO₂, water, and energy footprint of AI inference — then compare it to everyday human activities to make it tangible.</p>
+  </div>
+
+  <!-- SIMULATOR -->
+  <div class="sim-card">
+    <div class="section-label">CHOOSE MODEL</div>
+
+    <div class="model-grid" id="modelGrid"></div>
+
+    <div class="section-label">USAGE PARAMETERS</div>
+
+    <div class="controls">
+      <div class="ctrl">
+        <div class="ctrl-top">
+          <span class="ctrl-name">REQUESTS PER DAY</span>
+          <span class="ctrl-value" id="reqVal">1 000</span>
+        </div>
+        <input type="range" id="reqSlider" min="1" max="6" step="1" value="3"/>
+      </div>
+      <div class="ctrl">
+        <div class="ctrl-top">
+          <span class="ctrl-name">AVG TOKENS PER REQUEST (INPUT + OUTPUT)</span>
+          <span class="ctrl-value" id="tokVal">2 000 tokens</span>
+        </div>
+        <input type="range" id="tokSlider" min="0" max="6" step="1" value="2"/>
+      </div>
+    </div>
+
+    <div class="section-label">SCALE</div>
+    <div class="scale-row" id="scaleRow">
+      <button class="scale-btn active" data-scale="1" onclick="setScale(this)">PER QUERY</button>
+      <button class="scale-btn" data-scale="day" onclick="setScale(this)">PER DAY</button>
+      <button class="scale-btn" data-scale="month" onclick="setScale(this)">PER MONTH</button>
+      <button class="scale-btn" data-scale="year" onclick="setScale(this)">PER YEAR</button>
+    </div>
+
+    <div class="section-label">ENVIRONMENTAL FOOTPRINT</div>
+    <div class="results-grid">
+      <div class="metric-card highlight">
+        <div class="mc-label">CO₂ EQUIVALENT</div>
+        <div class="mc-value co2" id="co2Val">—</div>
+        <div class="mc-unit" id="co2Unit">grams CO₂e</div>
+      </div>
+      <div class="metric-card">
+        <div class="mc-label">WATER CONSUMPTION</div>
+        <div class="mc-value water" id="waterVal">—</div>
+        <div class="mc-unit" id="waterUnit">ml</div>
+      </div>
+      <div class="metric-card">
+        <div class="mc-label">ENERGY USED</div>
+        <div class="mc-value energy" id="energyVal">—</div>
+        <div class="mc-unit" id="energyUnit">Wh</div>
+      </div>
+    </div>
+
+    <!-- per-metric bars vs models -->
+    <div class="bar-section" id="barSection"></div>
+
+    <div class="scope-note">
+      ⚡ Figures cover <strong>inference only</strong> (no training). CO₂ based on average global grid intensity ~450 gCO₂/kWh. Water based on datacenter PUE and evaporative cooling estimates (~1.8L/kWh). Sources: Patterson et al. 2021, Luccioni et al. 2023, IEA 2023. <a href="https://aiworld.eu" target="_blank">aiworld.eu</a>
+    </div>
+  </div>
+
+  <!-- COMPARISONS -->
+  <div class="comparisons">
+    <div class="comp-title">Put it in perspective</div>
+    <div class="comp-subtitle">Your current selection compared to everyday human activities</div>
+    <div class="comp-grid" id="compGrid"></div>
+  </div>
+
+</div>
+
+<footer>
+  Formule d'impact environnemental &nbsp;·&nbsp; <em>aiworld.eu</em> style<br/>
+  Data approximations — for awareness, not billing
+</footer>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+// Energy per 1000 tokens in Wh (inference only, rough estimates from literature)
+const MODELS = [
+  { id:'gpt4o',    name:'GPT-4o',         provider:'OpenAI',    size:'~200B MoE', whPer1k:0.0029, color:'#10b981' },
+  { id:'gpt4',     name:'GPT-4 Turbo',    provider:'OpenAI',    size:'~1.8T MoE', whPer1k:0.0068, color:'#10b981' },
+  { id:'gpt35',    name:'GPT-3.5 Turbo',  provider:'OpenAI',    size:'~20B',      whPer1k:0.0009, color:'#10b981' },
+  { id:'claude3op',name:'Claude 3 Opus',  provider:'Anthropic', size:'~2T MoE',   whPer1k:0.0072, color:'#8b5cf6' },
+  { id:'claude3s', name:'Claude 3.5 S',   provider:'Anthropic', size:'~70B',      whPer1k:0.0018, color:'#8b5cf6' },
+  { id:'gemini15p',name:'Gemini 1.5 Pro', provider:'Google',    size:'~340B MoE', whPer1k:0.0031, color:'#3b82f6' },
+  { id:'llama70',  name:'Llama 3 70B',    provider:'Meta/OSS',  size:'70B',       whPer1k:0.0024, color:'#f59e0b' },
+  { id:'llama8',   name:'Llama 3 8B',     provider:'Meta/OSS',  size:'8B',        whPer1k:0.0006, color:'#f59e0b' },
+  { id:'mistral',  name:'Mistral 7B',     provider:'Mistral',   size:'7B',        whPer1k:0.0005, color:'#ec4899' },
+  { id:'mixtral',  name:'Mixtral 8x7B',   provider:'Mistral',   size:'~47B MoE',  whPer1k:0.0011, color:'#ec4899' },
+  { id:'gemma9',   name:'Gemma 2 9B',     provider:'Google',    size:'9B',        whPer1k:0.0007, color:'#3b82f6' },
+  { id:'qwen72',   name:'Qwen2 72B',      provider:'Alibaba',   size:'72B',       whPer1k:0.0025, color:'#06b6d4' },
+];
+
+// kWh → CO2 grams (grid avg 450 gCO2/kWh)
+const CO2_PER_KWH = 450;
+// kWh → water ml (datacenter avg ~1800 ml/kWh)
+const WATER_PER_KWH = 1800;
+
+// Token steps
+const TOKEN_STEPS = [250, 500, 1000, 2000, 4000, 8000, 32000];
+const TOKEN_LABELS = ['250','500','1 000','2 000','4 000','8 000','32 000'];
+
+// Request steps
+const REQ_STEPS = [100, 500, 1000, 5000, 10000, 100000, 1000000];
+const REQ_LABELS = ['100','500','1 000','5 000','10 000','100 000','1 000 000'];
+
+// ─── COMPARISONS DATA ────────────────────────────────────────────────────────
+// Each item: { name, cat, icon, iconBg, co2_per_unit (g), water_per_unit (ml), energy_per_unit (Wh), unit, description }
+const COMPARISONS = [
+  { id:'beef',     name:'Beef burger (150g)',        cat:'FOOD',      icon:'🥩', iconBg:'#7f1d1d',
+    co2:2700,  water:570000, energy:3500,  unit:'burger',   note:'Beef is one of the highest-impact foods — ~27g CO₂e/g and enormous water use.' },
+  { id:'chicken',  name:'Chicken meal (200g)',        cat:'FOOD',      icon:'🍗', iconBg:'#78350f',
+    co2:600,   water:150000, energy:900,   unit:'meal',     note:'~3x lower than beef but still significant land & water use.' },
+  { id:'netflix',  name:'Netflix streaming (1h HD)',  cat:'STREAMING', icon:'📺', iconBg:'#1e1b4b',
+    co2:36,    water:50,     energy:80,    unit:'hour',     note:'Avg HD stream ~36gCO₂/h incl. device, network & datacenter.' },
+  { id:'youtube',  name:'YouTube (1h 4K)',            cat:'STREAMING', icon:'▶️', iconBg:'#450a0a',
+    co2:55,    water:80,     energy:120,   unit:'hour',     note:'4K encoding and delivery adds significant overhead vs HD.' },
+  { id:'email',    name:'Email with attachment',      cat:'DIGITAL',   icon:'📧', iconBg:'#0c4a6e',
+    co2:50,    water:5,      energy:0.3,   unit:'email',    note:'~50g CO₂e for an email with large attachment, per Mike Berners-Lee.' },
+  { id:'google',   name:'Google search',              cat:'DIGITAL',   icon:'🔍', iconBg:'#14532d',
+    co2:0.3,   water:0.1,    energy:0.0003,unit:'search',   note:'~0.3g CO₂ per query — Google has published this figure.' },
+  { id:'car1km',   name:'Car ride (1 km, petrol)',    cat:'TRANSPORT', icon:'🚗', iconBg:'#1c1917',
+    co2:170,   water:0,      energy:700,   unit:'km',       note:'Average ICE car emits ~170g CO₂/km (ICCT 2023).' },
+  { id:'flight',   name:'Flight (1h economy)',        cat:'TRANSPORT', icon:'✈️', iconBg:'#1e3a5f',
+    co2:255000,water:0,      energy:800000,unit:'hour',     note:'~255kg CO₂e per passenger-hour (incl. contrail forcing).' },
+  { id:'tshirt',   name:'Cotton T-shirt (made once)', cat:'FASHION',   icon:'👕', iconBg:'#1a2e1a',
+    co2:8000,  water:2700000,energy:15000, unit:'shirt',    note:'One cotton tee uses ~2700L of water and emits ~8kg CO₂.' },
+  { id:'shower',   name:'Hot shower (8 min)',         cat:'HOME',      icon:'🚿', iconBg:'#0f2744',
+    co2:500,   water:64000,  energy:1400,  unit:'shower',   note:'Avg 8L/min shower + water heating = ~0.5kg CO₂.' },
+  { id:'avocado',  name:'Avocado (1 fruit)',          cat:'FOOD',      icon:'🥑', iconBg:'#14532d',
+    co2:570,   water:272000, energy:800,   unit:'avocado',  note:'Notoriously water-intensive: ~272L per fruit, mainly irrigation.' },
+  { id:'coffee',   name:'Espresso (1 cup)',           cat:'FOOD',      icon:'☕', iconBg:'#1c1309',
+    co2:280,   water:140000, energy:400,   unit:'cup',      note:'Coffee production uses 140L water/cup, incl. crop growth.' },
+];
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let selectedModel = MODELS[0];
+let reqIdx = 3; // 5000/day
+let tokIdx = 3; // 2000 tokens
+let scale = 1;  // 1 = per query
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+function init(){
+  buildModelGrid();
+  buildCompGrid();
+  document.getElementById('reqSlider').addEventListener('input', e => { reqIdx = +e.target.value; update(); });
+  document.getElementById('tokSlider').addEventListener('input', e => { tokIdx = +e.target.value; update(); });
+  update();
+}
+
+function buildModelGrid(){
+  const g = document.getElementById('modelGrid');
+  MODELS.forEach(m => {
+    const b = document.createElement('button');
+    b.className = 'model-btn' + (m.id === selectedModel.id ? ' active' : '');
+    b.innerHTML = `<span class="mb-name">${m.name}</span><span class="mb-provider">${m.provider}</span><span class="mb-size">${m.size}</span>`;
+    b.style.setProperty('--accent', m.color);
+    b.addEventListener('click', () => { selectedModel = m; document.querySelectorAll('.model-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); update(); });
+    g.appendChild(b);
+  });
+}
+
+function setScale(btn){
+  document.querySelectorAll('.scale-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const s = btn.dataset.scale;
+  if(s==='1') scale = 1;
+  else if(s==='day') scale = REQ_STEPS[reqIdx];
+  else if(s==='month') scale = REQ_STEPS[reqIdx] * 30;
+  else if(s==='year') scale = REQ_STEPS[reqIdx] * 365;
+  update();
+}
+
+// ─── COMPUTE ──────────────────────────────────────────────────────────────────
+function computePerQuery(model, tokens){
+  const wh = model.whPer1k * (tokens / 1000);
+  const kwh = wh / 1000;
+  const co2 = kwh * CO2_PER_KWH;       // grams
+  const water = kwh * WATER_PER_KWH;   // ml
+  return { wh, co2, water };
+}
+
+function formatNum(n){
+  if(n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+  if(n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+  if(n >= 1000) return (n/1000).toFixed(2) + 'k';
+  if(n >= 100) return Math.round(n).toFixed(0);
+  if(n >= 1) return n.toFixed(2);
+  if(n >= 0.01) return n.toFixed(3);
+  return n.toExponential(2);
+}
+
+function smartUnit(val, base){
+  // base: 'g','ml','Wh'
+  if(base==='g'){
+    if(val>=1e6) return [val/1e6,'tonnes CO₂e'];
+    if(val>=1000) return [val/1000,'kg CO₂e'];
+    return [val,'g CO₂e'];
+  }
+  if(base==='ml'){
+    if(val>=1e6) return [val/1e6,'kL'];
+    if(val>=1000) return [val/1000,'L'];
+    return [val,'ml'];
+  }
+  if(base==='Wh'){
+    if(val>=1e6) return [val/1e6,'MWh'];
+    if(val>=1000) return [val/1000,'kWh'];
+    return [val,'Wh'];
+  }
+}
+
+function update(){
+  const tokens = TOKEN_STEPS[tokIdx];
+  const reqs = REQ_STEPS[reqIdx];
+
+  document.getElementById('tokVal').textContent = TOKEN_LABELS[tokIdx] + ' tokens';
+  document.getElementById('reqVal').textContent = REQ_LABELS[reqIdx];
+
+  const perQ = computePerQuery(selectedModel, tokens);
+  const multiplier = scale === 1 ? 1 : scale;
+
+  const co2 = perQ.co2 * multiplier;
+  const water = perQ.water * multiplier;
+  const energy = perQ.wh * multiplier;
+
+  const [co2v, co2u] = smartUnit(co2, 'g');
+  const [waterv, wateru] = smartUnit(water, 'ml');
+  const [energyv, energyu] = smartUnit(energy, 'Wh');
+
+  document.getElementById('co2Val').textContent = formatNum(co2v);
+  document.getElementById('co2Unit').textContent = co2u;
+  document.getElementById('waterVal').textContent = formatNum(waterv);
+  document.getElementById('waterUnit').textContent = wateru;
+  document.getElementById('energyVal').textContent = formatNum(energyv);
+  document.getElementById('energyUnit').textContent = energyu;
+
+  buildBars(tokens, multiplier);
+  updateComps(co2, water, energy, multiplier > 1);
+}
+
+function buildBars(tokens, multiplier){
+  const sec = document.getElementById('barSection');
+  sec.innerHTML = '';
+
+  const label = document.createElement('div');
+  label.className = 'section-label';
+  label.textContent = 'CO₂ ACROSS ALL MODELS';
+  sec.appendChild(label);
+
+  const maxCo2 = Math.max(...MODELS.map(m => computePerQuery(m, tokens).co2 * multiplier));
+
+  MODELS.forEach(m => {
+    const {co2} = computePerQuery(m, tokens);
+    const val = co2 * multiplier;
+    const pct = (val / maxCo2 * 100).toFixed(1);
+    const [v, u] = smartUnit(val, 'g');
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    const isSelected = m.id === selectedModel.id;
+    row.innerHTML = `
+      <span class="bar-label" style="color:${isSelected ? '#ddeeff' : ''}">${m.name}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pct}%;background:${m.color};opacity:${isSelected?1:0.45}"></div>
+      </div>
+      <span class="bar-num">${formatNum(v)} ${u}</span>
+    `;
+    sec.appendChild(row);
+  });
+}
+
+function updateComps(co2g, waterMl, energyWh, isScaled){
+  const grid = document.getElementById('compGrid');
+  grid.innerHTML = '';
+
+  COMPARISONS.forEach(c => {
+    const co2ratio  = co2g    / c.co2;
+    const waterRatio = waterMl / c.water;
+    const energyRatio = energyWh / c.energy;
+
+    // pick most meaningful ratio (largest for impact, but cap at something sensible)
+    const mainRatio = co2ratio;
+
+    let equivText = '';
+    let bigNum = '';
+
+    if(mainRatio < 0.001){
+      bigNum = '< 0.001×';
+      equivText = `Your AI usage is <strong>far less</strong> impactful than one ${c.unit} in CO₂ terms.`;
+    } else if(mainRatio < 1){
+      const frac = (1 / mainRatio).toFixed(0);
+      bigNum = `1 / ${frac}`;
+      equivText = `It takes <strong>${frac} ${isScaled ? 'of this usage' : 'queries'}</strong> to equal the CO₂ of one ${c.unit}.`;
+    } else if(mainRatio < 1000){
+      bigNum = mainRatio.toFixed(mainRatio < 10 ? 2 : 0) + '×';
+      equivText = `Equivalent to <strong>${mainRatio.toFixed(mainRatio<10?2:0)} ${c.unit}${mainRatio>1?'s':''}</strong> in CO₂.`;
+    } else {
+      bigNum = formatNum(mainRatio) + '×';
+      equivText = `Equivalent to <strong>${formatNum(mainRatio)} ${c.unit}s</strong> in CO₂.`;
+    }
+
+    // water annotation
+    let waterNote = '';
+    if(c.water > 0){
+      const wr = waterMl / c.water;
+      if(wr >= 0.1){
+        const [v,u] = smartUnit(waterMl,'ml');
+        waterNote = ` <span style="color:var(--blue);font-size:11px">· ${formatNum(v)} ${u} water</span>`;
+      }
+    }
+
+    const card = document.createElement('div');
+    card.className = 'comp-card';
+    card.innerHTML = `
+      <div class="comp-card-top">
+        <div class="comp-icon" style="background:${c.iconBg}">${c.icon}</div>
+        <div>
+          <div class="comp-card-name">${c.name}</div>
+          <div class="comp-card-cat">${c.cat}</div>
+        </div>
+      </div>
+      <div class="comp-equiv">
+        <span class="big">${bigNum}</span>
+        ${equivText}${waterNote}
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">${c.note}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+window.setScale = setScale;
+init();
+</script>
+</body>
+</html>
+HTMLEOF
+echo "Done: $(wc -l < /mnt/user-data/outputs/aiworld-simulators/ai-environmental-impact.html) lines"
