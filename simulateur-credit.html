@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulateur Crédit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #07080d;
+    --bg2: #0d0f18;
+    --bg3: #13162100;
+    --panel: #0f1119;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --accent: #00e5c3;
+    --accent2: #0077ff;
+    --text: #e8eaf0;
+    --muted: #5a5f75;
+    --muted2: #8890a8;
+    --danger: #ff4f6a;
+    --mono: 'DM Mono', monospace;
+    --display: 'Syne', sans-serif;
+  }
+
+  html { font-size: 16px; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* glow orbs */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(0,119,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 580px;
+  }
+
+  /* header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .logo {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: 1.05rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .logo span { color: var(--accent); }
+
+  .badge {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--border2);
+    padding: 4px 10px;
+    border-radius: 100px;
+  }
+
+  /* title block */
+  .title-block {
+    margin-bottom: 2rem;
+    animation: fadeUp 0.5s 0.08s ease both;
+  }
+  .title-block h1 {
+    font-family: var(--display);
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+  .title-block h1 em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .title-block p {
+    font-size: 0.78rem;
+    color: var(--muted2);
+    letter-spacing: 0.02em;
+  }
+
+  /* card */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    animation: fadeUp 0.5s 0.16s ease both;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent2), var(--accent), transparent);
+    opacity: 0.5;
+  }
+
+  /* inputs section */
+  .fields { display: flex; flex-direction: column; gap: 1.4rem; margin-bottom: 2rem; }
+
+  .field-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .field-label span:first-child {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted2);
+  }
+  .field-label .val {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  /* number input */
+  input[type="number"] {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input[type="number"]:focus { border-color: var(--accent); }
+
+  /* range slider */
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--border2);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px rgba(0,229,195,0.5);
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+    box-shadow: 0 0 18px rgba(0,229,195,0.7);
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 16px; height: 16px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  /* divider */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 1.8rem;
+  }
+
+  /* results grid */
+  .results {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 1.8rem;
+  }
+  .res-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 12px;
+    transition: border-color 0.2s;
+  }
+  .res-card:hover { border-color: var(--border2); }
+  .res-card.accent-card { border-color: rgba(0,229,195,0.25); background: rgba(0,229,195,0.04); }
+
+  .res-label {
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .res-value {
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: var(--text);
+    transition: all 0.3s;
+  }
+  .res-card.accent-card .res-value { color: var(--accent); }
+  .res-sub {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* amortization bar */
+  .bar-section { margin-bottom: 1.5rem; }
+  .bar-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .bar-track {
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .bar-fill-capital {
+    height: 100%;
+    background: var(--accent2);
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    float: left;
+  }
+  .bar-fill-interest {
+    height: 100%;
+    background: var(--danger);
+    border-radius: 3px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    float: left;
+  }
+  .bar-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    font-size: 0.65rem;
+    color: var(--muted2);
+  }
+  .bar-legend span { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+
+  /* footer */
+  footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    animation: fadeUp 0.5s 0.3s ease both;
+  }
+  footer a { color: var(--muted2); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @media (max-width: 420px) {
+    .results { grid-template-columns: 1fr 1fr; }
+    .res-card:last-child { grid-column: span 2; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">Crédit<span>.</span>io</div>
+    <div class="badge">Simulateur</div>
+  </header>
+
+  <div class="title-block">
+    <h1>Calculez votre <em>crédit</em></h1>
+    <p>Mensualités · Coût total · Intérêts — en temps réel</p>
+  </div>
+
+  <div class="card">
+    <div class="fields">
+
+      <div>
+        <div class="field-label">
+          <span>Montant emprunté</span>
+          <span class="val" id="montant-val">20 000 €</span>
+        </div>
+        <input type="number" id="montant" value="20000" min="500" max="2000000" step="500" oninput="sync('montant'); calc()">
+      </div>
+
+      <div>
+        <div class="field-label">
+          <span>Durée</span>
+          <span class="val" id="annees-val">5 ans</span>
+        </div>
+        <input type="range" id="annees" min="1" max="30" value="5" step="1" oninput="calc()">
+      </div>
+
+      <div>
+        <div class="field-label">
+          <span>Taux annuel</span>
+          <span class="val" id="taux-val">4.0 %</span>
+        </div>
+        <input type="range" id="taux" min="0.1" max="15" value="4" step="0.1" oninput="calc()">
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="results">
+      <div class="res-card accent-card">
+        <div class="res-label">Mensualité</div>
+        <div class="res-value" id="res-men">—</div>
+        <div class="res-sub">/ mois</div>
+      </div>
+      <div class="res-card">
+        <div class="res-label">Coût total</div>
+        <div class="res-value" id="res-tot">—</div>
+        <div class="res-sub" id="res-tot-sub">—</div>
+      </div>
+      <div class="res-card">
+        <div class="res-label">Intérêts</div>
+        <div class="res-value" id="res-int">—</div>
+        <div class="res-sub" id="res-int-pct">—</div>
+      </div>
+    </div>
+
+    <div class="bar-section">
+      <div class="bar-header">
+        <span>Répartition du coût total</span>
+      </div>
+      <div class="bar-track" id="bar-track">
+        <div class="bar-fill-capital" id="bar-cap" style="width:70%"></div>
+        <div class="bar-fill-interest" id="bar-int" style="width:30%"></div>
+      </div>
+      <div class="bar-legend">
+        <span><span class="dot" style="background:var(--accent2)"></span>Capital</span>
+        <span><span class="dot" style="background:var(--danger)"></span>Intérêts</span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    Formule d'annuité constante &nbsp;·&nbsp; <a href="https://aiworld.eu" target="_blank">aiworld.eu</a> style
+  </footer>
+
+</div>
+
+<script>
+  const fmt = n => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  const fmtSmall = n => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
+
+  function sync(id) {
+    const v = parseFloat(document.getElementById(id).value) || 0;
+    document.getElementById(id + '-val').textContent = fmt(v);
+  }
+
+  function calc() {
+    const P = parseFloat(document.getElementById('montant').value) || 0;
+    const n = parseInt(document.getElementById('annees').value);
+    const r = parseFloat(document.getElementById('taux').value);
+
+    document.getElementById('montant-val').textContent = fmt(P);
+    document.getElementById('annees-val').textContent = n + ' an' + (n > 1 ? 's' : '');
+    document.getElementById('taux-val').textContent = r.toFixed(1) + ' %';
+
+    const rm = r / 100 / 12;
+    const N = n * 12;
+    let M = rm === 0 ? P / N : P * rm * Math.pow(1 + rm, N) / (Math.pow(1 + rm, N) - 1);
+
+    const total = M * N;
+    const interets = total - P;
+    const pctInt = P > 0 ? (interets / total * 100) : 0;
+    const pctCap = 100 - pctInt;
+
+    document.getElementById('res-men').textContent = fmt(M);
+    document.getElementById('res-tot').textContent = fmt(total);
+    document.getElementById('res-tot-sub').textContent = n + ' an' + (n > 1 ? 's' : '');
+    document.getElementById('res-int').textContent = fmt(interets);
+    document.getElementById('res-int-pct').textContent = pctInt.toFixed(1) + '% du total';
+
+    document.getElementById('bar-cap').style.width = pctCap.toFixed(1) + '%';
+    document.getElementById('bar-int').style.width = pctInt.toFixed(1) + '%';
+  }
+
+  calc();
+</script>
+</body>
+</html>
