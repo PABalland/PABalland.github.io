@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EU Trade Sankey</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+  background: #f8f7f4;
+  font-family: 'DM Sans', sans-serif;
+  margin: 0;
+  padding-top: 8px;
+  overflow: hidden;
+  height: calc(100vh - 8px); /* 👈 adjust */
+}
+  .chart-wrap {
+    background: #fff;
+    width: 100%;
+    height: 100vh;
+  }
+  .arrow-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .arrow-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #3b82f6;
+    padding: 5px 22px 5px 12px;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  }
+  .arrow-label.right {
+    clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%);
+    padding: 5px 12px 5px 22px;
+  }
+  .eu-flag { font-size: 1.5rem; }
+  svg { overflow: visible; width: 100%; height: calc(100vh - 32px); max-height: calc(100vh - 32px); display: block; margin: 0px 0; }
+  .link { fill-opacity: 0.45; transition: fill-opacity 0.2s; cursor: pointer; }
+  .link:hover { fill-opacity: 0.72; }
+  .tooltip {
+    position: fixed;
+    background: rgba(15,15,15,0.88);
+    color: #fff;
+    padding: 7px 13px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    pointer-events: none;
+    display: none;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  footer { margin-top: 20px; font-size: 0.72rem; color: #aaa; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="chart-wrap">
+  <div class="arrow-header">
+    <div class="arrow-label">Ukraine imports</div>
+    
+    <div class="arrow-label right">Ukraine exports</div>
+  </div>
+  <div id="chart"></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+<footer>Source: UN COMTRADE</footer>
+
+<script>
+const importData =  [
+  {
+    "country": "Rest of the World",
+    "import": 362349,
+    "import_pc": 0.2,
+    "color": "#8B4513",
+    "value": 0.2
+  },
+  {
+    "country": "EU14",
+    "import": 13373422,
+    "import_pc": 10.3,
+    "color": "#365a94",
+    "value": 10.3
+  },
+  {
+    "country": "EU13",
+    "import": 56157318,
+    "import_pc": 43.6,
+    "color": "#365a94",
+    "value": 43.6
+  },
+  {
+    "country": "China",
+    "import": 13344282,
+    "import_pc": 10.4,
+    "color": "#8cab79",
+    "value": 10.4
+  },
+  {
+    "country": "India",
+    "import": 41986,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Japan",
+    "import": 37143148,
+    "import_pc": 28.8,
+    "color": "#8cab79",
+    "value": 28.8
+  },
+  {
+    "country": "Kazakhstan",
+    "import": 45646,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Serbia",
+    "import": 6555914,
+    "import_pc": 5.1,
+    "color": "#365a94",
+    "value": 5.1
+  },
+  {
+    "country": "Turkiye",
+    "import": 396415,
+    "import_pc": 0.3,
+    "color": "#8cab79",
+    "value": 0.3
+  },
+  {
+    "country": "United States",
+    "import": 136088,
+    "import_pc": 0.1,
+    "color": "#800020",
+    "value": 0.1
+  },
+  {
+    "country": "Uzbekistan",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  }
+] 
+
+;
+
+const exportData =  [
+  {
+    "country": "Rest of the World",
+    "export": 6382870,
+    "export_pc": 2.7,
+    "color": "#8B4513",
+    "value": 2.7
+  },
+  {
+    "country": "EU14",
+    "export": 45935118,
+    "export_pc": 20,
+    "color": "#365a94",
+    "value": 20
+  },
+  {
+    "country": "EU13",
+    "export": 130879778,
+    "export_pc": 57,
+    "color": "#365a94",
+    "value": 57
+  },
+  {
+    "country": "China",
+    "export": 0,
+    "export_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "India",
+    "export": 8370646,
+    "export_pc": 3.7,
+    "color": "#8cab79",
+    "value": 3.7
+  },
+  {
+    "country": "Japan",
+    "export": 0,
+    "export_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Kazakhstan",
+    "export": 6302243,
+    "export_pc": 2.8,
+    "color": "#8cab79",
+    "value": 2.8
+  },
+  {
+    "country": "Serbia",
+    "export": 554640,
+    "export_pc": 0.2,
+    "color": "#365a94",
+    "value": 0.2
+  },
+  {
+    "country": "Turkiye",
+    "export": 3634959,
+    "export_pc": 1.6,
+    "color": "#8cab79",
+    "value": 1.6
+  },
+  {
+    "country": "United States",
+    "export": 20924189,
+    "export_pc": 9.1,
+    "color": "#800020",
+    "value": 9.1
+  },
+  {
+    "country": "Uzbekistan",
+    "export": 3701264,
+    "export_pc": 1.6,
+    "color": "#8cab79",
+    "value": 1.6
+  }
+] 
+
+
+;
+
+// ── Dimensions ────────────────────────────────────────────────────────────────
+const W = 780, H = 640;
+const ML = 148, MR = 155, MT = 0, MB = 20;
+const IW = W - ML - MR;
+const IH = H - MT - MB;
+const BAR = 16, GAP = 5;
+const CX = IW / 2;         // center x
+const SPINE_W = 10;        // blue center line width
+
+function computeLayout(data) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const usable = IH - GAP * (data.length - 1);
+  let y = 0;
+  return data.map(d => {
+    const h = (d.value / total) * usable;
+    const node = { ...d, y, h };
+    y += h + GAP;
+    return node;
+  });
+}
+
+const impNodes = computeLayout(importData);
+const expNodes = computeLayout(exportData);
+const impMap = Object.fromEntries(impNodes.map(d => [d.country, d]));
+const expMap = Object.fromEntries(expNodes.map(d => [d.country, d]));
+
+// ── SVG ───────────────────────────────────────────────────────────────────────
+const svg = d3.select("#chart").append("svg")
+  .attr("viewBox", `0 0 ${W} ${H}`)
+  .attr("preserveAspectRatio", "xMidYMid meet");
+
+const g = svg.append("g").attr("transform", `translate(${ML},${MT})`);
+
+// ── Layer 1: Ribbons (behind everything) ──────────────────────────────────────
+// Full S-curve from right edge of import bar → left edge of export bar
+importData.forEach(({ country }) => {
+  const imp = impMap[country];
+  const exp = expMap[country];
+  if (!imp || !exp) return;
+
+  const x0 = BAR;
+  const x1 = IW - BAR;
+
+  const path = [
+    `M ${x0} ${imp.y}`,
+    `C ${CX} ${imp.y}, ${CX} ${exp.y}, ${x1} ${exp.y}`,
+    `L ${x1} ${exp.y + exp.h}`,
+    `C ${CX} ${exp.y + exp.h}, ${CX} ${imp.y + imp.h}, ${x0} ${imp.y + imp.h}`,
+    `Z`
+  ].join(" ");
+
+  g.append("path")
+    .attr("class", "link")
+    .attr("d", path)
+    .attr("fill", imp.color)
+    .on("mousemove", e => {
+      const tip = document.getElementById("tooltip");
+      tip.style.display = "block";
+      tip.style.left = (e.clientX + 14) + "px";
+      tip.style.top  = (e.clientY - 34) + "px";
+      tip.innerHTML = `<strong>${country}</strong><br>Import: ${imp.value}%&emsp;Export: ${exp.value}%`;
+    })
+    .on("mouseleave", () => { document.getElementById("tooltip").style.display = "none"; });
+});
+
+// ── Layer 2: Import bars (on top of ribbons) ──────────────────────────────────
+g.selectAll(".imp-bar").data(impNodes).join("rect")
+  .attr("x", 0).attr("y", d => d.y)
+  .attr("width", BAR).attr("height", d => d.h)
+  .attr("fill", d => d.color).attr("rx", 2);
+
+// ── Layer 3: Export bars (on top of ribbons) ──────────────────────────────────
+g.selectAll(".exp-bar").data(expNodes).join("rect")
+  .attr("x", IW - BAR).attr("y", d => d.y)
+  .attr("width", BAR).attr("height", d => d.h)
+  .attr("fill", d => d.color).attr("rx", 2);
+
+// ── Layer 4: Center vertical line ─────────────────────────────────────────────
+g.append("rect")
+  .attr("x", CX - SPINE_W / 2)
+  .attr("y", 0)
+  .attr("width", SPINE_W)
+  .attr("height", IH)
+  .attr("fill", "#3b82f6")
+  .attr("rx", 3);
+
+// ── Layer 5: Labels & values (topmost) ────────────────────────────────────────
+const lbl = sel => sel
+  .style("font-family", "'DM Sans', sans-serif")
+  .style("font-size", "12px").style("font-weight", "500").style("fill", "#333");
+const val = sel => sel
+  .style("font-family", "'DM Sans', sans-serif")
+  .style("font-weight", "600").style("fill", "#fff");
+
+// Import labels
+g.selectAll(".il").data(impNodes).join("text").call(lbl)
+  .attr("x", -8).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "end")
+  .text(d => d.country);
+
+// Import values
+g.selectAll(".iv").data(impNodes.filter(d => d.h > 5)).join("text").call(val)
+  .attr("x", BAR / 2).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "middle")
+  .style("font-size", d => d.h < 14 ? "6px" : "8px")
+  .text(d => d.value);
+
+// Export labels
+g.selectAll(".el").data(expNodes).join("text").call(lbl)
+  .attr("x", IW + 8).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "start")
+  .text(d => d.country);
+
+// Export values
+g.selectAll(".ev").data(expNodes.filter(d => d.h > 5)).join("text").call(val)
+  .attr("x", IW - BAR / 2).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "middle")
+  .style("font-size", d => d.h < 14 ? "6px" : "8px")
+  .text(d => d.value);
+</script>
+</body>
+</html>
