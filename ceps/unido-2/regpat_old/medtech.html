@@ -1,0 +1,343 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Link RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Link RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "to": "Australia (AU)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 2,
+    "binary": 1,
+    "expected": 5.92,
+    "untapped": 4.92,
+    "links.rca": 0.17,
+    "sum_from": 12.5,
+    "sum_to": 188,
+    "binary.pc": 0.0025,
+    "th.max": 4215.5,
+    "th.max.pc": 0.0148,
+    "RD": 63.69,
+    "RD.added": 22.32,
+    "pct_from": 0.0616,
+    "pct_to": 0.9268,
+    "pct_binary_from": 1.0789,
+    "parent": "Oceania",
+    "n": 1.49,
+    "pct": 4,
+    "nn": 2.6846,
+    "color": "#498A49",
+    "id": "Australia (AU)",
+    "value": 1
+  },
+  {
+    "to": "Belarus (BY)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 4,
+    "binary": 3,
+    "expected": 0.19,
+    "untapped": -5.81,
+    "links.rca": 31.58,
+    "sum_from": 12.5,
+    "sum_to": 8,
+    "binary.pc": 0.015,
+    "th.max": 135.5,
+    "th.max.pc": 0.0005,
+    "RD": 63.69,
+    "RD.added": 5.26,
+    "pct_from": 0.0616,
+    "pct_to": 0.0394,
+    "pct_binary_from": 76.065,
+    "parent": "Europe",
+    "n": 0.01,
+    "pct": 12,
+    "nn": 1200,
+    "color": "darkgreen",
+    "id": "Belarus (BY)",
+    "value": 3
+  },
+  {
+    "to": "Brazil (BR)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 8,
+    "binary": 1,
+    "expected": 0.89,
+    "untapped": -0.11,
+    "links.rca": 1.12,
+    "sum_from": 12.5,
+    "sum_to": 46.5,
+    "binary.pc": 0.0025,
+    "th.max": 636.5,
+    "th.max.pc": 0.0022,
+    "RD": 63.69,
+    "RD.added": 16.8,
+    "pct_from": 0.0616,
+    "pct_to": 0.2292,
+    "pct_binary_from": 4.3622,
+    "parent": "South America",
+    "n": 0.29,
+    "pct": 4,
+    "nn": 13.7931,
+    "color": "#006400",
+    "id": "Brazil (BR)",
+    "value": 1
+  },
+  {
+    "to": "France (FR)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 2,
+    "binary": 2,
+    "expected": 12.26,
+    "untapped": 10.26,
+    "links.rca": 0.16,
+    "sum_from": 12.5,
+    "sum_to": 504.5,
+    "binary.pc": 0.005,
+    "th.max": 8726.5,
+    "th.max.pc": 0.0306,
+    "RD": 63.69,
+    "RD.added": 14.44,
+    "pct_from": 0.0616,
+    "pct_to": 2.4872,
+    "pct_binary_from": 0.8041,
+    "parent": "Europe",
+    "n": 2.82,
+    "pct": 8,
+    "nn": 2.8369,
+    "color": "#458845",
+    "id": "France (FR)",
+    "value": 2
+  },
+  {
+    "to": "India (IN)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 1,
+    "binary": 1,
+    "expected": 5.49,
+    "untapped": 4.49,
+    "links.rca": 0.18,
+    "sum_from": 12.5,
+    "sum_to": 250,
+    "binary.pc": 0.0025,
+    "th.max": 3907,
+    "th.max.pc": 0.0137,
+    "RD": 63.69,
+    "RD.added": 4.48,
+    "pct_from": 0.0616,
+    "pct_to": 1.2325,
+    "pct_binary_from": 0.8114,
+    "parent": "Asia",
+    "n": 1.24,
+    "pct": 4,
+    "nn": 3.2258,
+    "color": "#3D843D",
+    "id": "India (IN)",
+    "value": 1
+  },
+  {
+    "to": "Pakistan (PK)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 2,
+    "binary": 1,
+    "expected": 0.24,
+    "untapped": -0.76,
+    "links.rca": 4.17,
+    "sum_from": 12.5,
+    "sum_to": 10,
+    "binary.pc": 0.0025,
+    "th.max": 171,
+    "th.max.pc": 0.0006,
+    "RD": 63.69,
+    "RD.added": 5.64,
+    "pct_from": 0.0616,
+    "pct_to": 0.0493,
+    "pct_binary_from": 20.284,
+    "parent": "Asia",
+    "n": 0.01,
+    "pct": 4,
+    "nn": 400,
+    "color": "darkgreen",
+    "id": "Pakistan (PK)",
+    "value": 1
+  },
+  {
+    "to": "Poland (PL)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 1,
+    "binary": 1,
+    "expected": 0.94,
+    "untapped": -0.06,
+    "links.rca": 1.06,
+    "sum_from": 12.5,
+    "sum_to": 47.5,
+    "binary.pc": 0.0025,
+    "th.max": 669.5,
+    "th.max.pc": 0.0024,
+    "RD": 63.69,
+    "RD.added": 15.87,
+    "pct_from": 0.0616,
+    "pct_to": 0.2342,
+    "pct_binary_from": 4.2703,
+    "parent": "Europe",
+    "n": 0.22,
+    "pct": 4,
+    "nn": 18.1818,
+    "color": "#006400",
+    "id": "Poland (PL)",
+    "value": 1
+  },
+  {
+    "to": "Russia (RU)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 2,
+    "binary": 1,
+    "expected": 1.65,
+    "untapped": 0.65,
+    "links.rca": 0.61,
+    "sum_from": 12.5,
+    "sum_to": 74,
+    "binary.pc": 0.0025,
+    "th.max": 1177.5,
+    "th.max.pc": 0.0041,
+    "RD": 63.69,
+    "RD.added": 13.65,
+    "pct_from": 0.0616,
+    "pct_to": 0.3648,
+    "pct_binary_from": 2.7411,
+    "parent": "Europe",
+    "n": 0.43,
+    "pct": 4,
+    "nn": 9.3023,
+    "color": "#036603",
+    "id": "Russia (RU)",
+    "value": 1
+  },
+  {
+    "to": "Saudi Arabia (SA)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 6,
+    "binary": 1,
+    "expected": 0.36,
+    "untapped": -0.64,
+    "links.rca": 2.78,
+    "sum_from": 12.5,
+    "sum_to": 11.5,
+    "binary.pc": 0.0025,
+    "th.max": 257.5,
+    "th.max.pc": 0.0009,
+    "RD": 63.69,
+    "RD.added": 6.62,
+    "pct_from": 0.0616,
+    "pct_to": 0.0567,
+    "pct_binary_from": 17.6383,
+    "parent": "Asia",
+    "n": 0.06,
+    "pct": 4,
+    "nn": 66.6667,
+    "color": "#006400",
+    "id": "Saudi Arabia (SA)",
+    "value": 1
+  },
+  {
+    "to": "South Korea (KR)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 12,
+    "binary": 1,
+    "expected": 22,
+    "untapped": 21,
+    "links.rca": 0.05,
+    "sum_from": 12.5,
+    "sum_to": 93,
+    "binary.pc": 0.0025,
+    "th.max": 15658,
+    "th.max.pc": 0.055,
+    "RD": 63.69,
+    "RD.added": 12.83,
+    "pct_from": 0.0616,
+    "pct_to": 0.4585,
+    "pct_binary_from": 2.1811,
+    "parent": "Asia",
+    "n": 6.93,
+    "pct": 4,
+    "nn": 0.5772,
+    "color": "#C2A0A0",
+    "id": "South Korea (KR)",
+    "value": 1
+  },
+  {
+    "to": "United States (US)",
+    "from": "Ukraine (UA)",
+    "domain": "MedTech",
+    "full": 131,
+    "binary": 12,
+    "expected": 0,
+    "untapped": 0,
+    "links.rca": 0,
+    "sum_from": 12.5,
+    "sum_to": 2770,
+    "binary.pc": 0,
+    "th.max": 0,
+    "th.max.pc": 0,
+    "RD": 63.69,
+    "RD.added": 19.01,
+    "pct_from": 0.0616,
+    "pct_to": 13.6561,
+    "pct_binary_from": 0.8787,
+    "parent": "North America",
+    "n": 32.91,
+    "pct": 48,
+    "nn": 1.4585,
+    "color": "#7EA67E",
+    "id": "United States (US)",
+    "value": 12
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Links:</td><td>"+d.binary+"</td></tr><tr><td>PCT:</td><td>"+d.pct+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>
