@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EU Trade Sankey</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+  background: #f8f7f4;
+  font-family: 'DM Sans', sans-serif;
+  margin: 0;
+  padding-top: 8px;
+  overflow: hidden;
+  height: calc(100vh - 8px); /* 👈 adjust */
+}
+  .chart-wrap {
+    background: #fff;
+    width: 100%;
+    height: 100vh;
+  }
+  .arrow-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .arrow-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #3b82f6;
+    padding: 5px 22px 5px 12px;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  }
+  .arrow-label.right {
+    clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%);
+    padding: 5px 12px 5px 22px;
+  }
+  .eu-flag { font-size: 1.5rem; }
+  svg { overflow: visible; width: 100%; height: calc(100vh - 32px); max-height: calc(100vh - 32px); display: block; margin: 0px 0; }
+  .link { fill-opacity: 0.45; transition: fill-opacity 0.2s; cursor: pointer; }
+  .link:hover { fill-opacity: 0.72; }
+  .tooltip {
+    position: fixed;
+    background: rgba(15,15,15,0.88);
+    color: #fff;
+    padding: 7px 13px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    pointer-events: none;
+    display: none;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  footer { margin-top: 20px; font-size: 0.72rem; color: #aaa; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="chart-wrap">
+  <div class="arrow-header">
+    <div class="arrow-label">World Collaboration (%)</div>
+    
+    <div class="arrow-label right">Ukraine Collaborations (%)</div>
+  </div>
+  <div id="chart"></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+<footer>Source: UN COMTRADE</footer>
+
+<script>
+const importData =  [
+  {
+    "country": "Albania (AL)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Algeria (DZ)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Andorra (AD)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Antigua and Barbuda (AG)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Argentina (AR)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#6a0dad",
+    "value": 0
+  },
+  {
+    "country": "Armenia (AM)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Aruba (AW)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Australia (AU)",
+    "import": 51,
+    "import_pc": 0.8,
+    "color": "#8B4513",
+    "value": 0.8
+  },
+  {
+    "country": "Austria (AT)",
+    "import": 25,
+    "import_pc": 0.4,
+    "color": "#365a94",
+    "value": 0.4
+  },
+  {
+    "country": "Azerbaijan (AZ)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Bahamas (BS)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Bahrain (BH)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Bangladesh (BD)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Barbados (BB)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Belarus (BY)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Belgium (BE)",
+    "import": 32,
+    "import_pc": 0.5,
+    "color": "#365a94",
+    "value": 0.5
+  },
+  {
+    "country": "Belize (BZ)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Benin (BJ)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Bermuda (BM)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Bhutan (BT)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Bolivia (BO)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#6a0dad",
+    "value": 0
+  },
+  {
+    "country": "Bosnia and Herzegovina (BA)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Botswana (BW)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Brazil (BR)",
+    "import": 13,
+    "import_pc": 0.2,
+    "color": "#6a0dad",
+    "value": 0.2
+  },
+  {
+    "country": "British Indian Ocean Territory (IO)",
+    "import": 2,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "British Virgin Islands (VG)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Brunei (BN)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Bulgaria (BG)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Burkina Faso (BF)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Cabo Verde (CV)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Cambodia (KH)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Cameroon (CM)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Canada (CA)",
+    "import": 85,
+    "import_pc": 1.3,
+    "color": "#800020",
+    "value": 1.3
+  },
+  {
+    "country": "Cayman Islands (KY)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Chile (CL)",
+    "import": 4,
+    "import_pc": 0.1,
+    "color": "#6a0dad",
+    "value": 0.1
+  },
+  {
+    "country": "China (CN)",
+    "import": 1319,
+    "import_pc": 19.6,
+    "color": "#8cab79",
+    "value": 19.6
+  },
+  {
+    "country": "Colombia (CO)",
+    "import": 6,
+    "import_pc": 0.1,
+    "color": "#6a0dad",
+    "value": 0.1
+  },
+  {
+    "country": "Congo Republic (CG)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Costa Rica (CR)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Croatia (HR)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Cuba (CU)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Curacao (CW)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Cyprus (CY)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Czechia (CZ)",
+    "import": 2,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Denmark (DK)",
+    "import": 16,
+    "import_pc": 0.2,
+    "color": "#365a94",
+    "value": 0.2
+  },
+  {
+    "country": "Dominican Republic (DO)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Ecuador (EC)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#6a0dad",
+    "value": 0
+  },
+  {
+    "country": "Egypt (EG)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Estonia (EE)",
+    "import": 3,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Ethiopia (ET)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Faroe Islands (FO)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Finland (FI)",
+    "import": 29,
+    "import_pc": 0.4,
+    "color": "#365a94",
+    "value": 0.4
+  },
+  {
+    "country": "France (FR)",
+    "import": 162,
+    "import_pc": 2.4,
+    "color": "#365a94",
+    "value": 2.4
+  },
+  {
+    "country": "Gabon (GA)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Georgia (GE)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Germany (DE)",
+    "import": 542,
+    "import_pc": 8.1,
+    "color": "#365a94",
+    "value": 8.1
+  },
+  {
+    "country": "Ghana (GH)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Gibraltar (GI)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Greece (GR)",
+    "import": 3,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Guadeloupe (GP)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Guam (GU)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8B4513",
+    "value": 0
+  },
+  {
+    "country": "Guatemala (GT)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Guernsey (GG)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Guinea (GN)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Honduras (HN)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Hong Kong (HK)",
+    "import": 17,
+    "import_pc": 0.3,
+    "color": "#8cab79",
+    "value": 0.3
+  },
+  {
+    "country": "Hungary (HU)",
+    "import": 8,
+    "import_pc": 0.1,
+    "color": "#365a94",
+    "value": 0.1
+  },
+  {
+    "country": "Iceland (IS)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "India (IN)",
+    "import": 83,
+    "import_pc": 1.2,
+    "color": "#8cab79",
+    "value": 1.2
+  },
+  {
+    "country": "Indonesia (ID)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Iran (IR)",
+    "import": 2,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Iraq (IQ)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Ireland (IE)",
+    "import": 15,
+    "import_pc": 0.2,
+    "color": "#365a94",
+    "value": 0.2
+  },
+  {
+    "country": "Isle of Man (IM)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Israel (IL)",
+    "import": 64,
+    "import_pc": 1,
+    "color": "#8cab79",
+    "value": 1
+  },
+  {
+    "country": "Italy (IT)",
+    "import": 52,
+    "import_pc": 0.8,
+    "color": "#365a94",
+    "value": 0.8
+  },
+  {
+    "country": "Ivory Coast (CI)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Jamaica (JM)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Japan (JP)",
+    "import": 1917,
+    "import_pc": 28.6,
+    "color": "#8cab79",
+    "value": 28.6
+  },
+  {
+    "country": "Jersey (JE)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Jordan (JO)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Kazakhstan (KZ)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Kenya (KE)",
+    "import": 2,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Kuwait (KW)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Kyrgyzstan (KG)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Latvia (LV)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Lebanon (LB)",
+    "import": 2,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Libya (LY)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Liechtenstein (LI)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Lithuania (LT)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Luxembourg (LU)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Macao (MO)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Madagascar (MG)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Malawi (MW)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Malaysia (MY)",
+    "import": 9,
+    "import_pc": 0.1,
+    "color": "#8cab79",
+    "value": 0.1
+  },
+  {
+    "country": "Maldives (MV)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Mali (ML)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Malta (MT)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Mauritius (MU)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Mexico (MX)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Moldova (MD)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Monaco (MC)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Mongolia (MN)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Montenegro (ME)",
+    "import": 3,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Morocco (MA)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Mozambique (MZ)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Nauru (NR)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8B4513",
+    "value": 0
+  },
+  {
+    "country": "Nepal (NP)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "New Caledonia (NC)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8B4513",
+    "value": 0
+  },
+  {
+    "country": "New Zealand (NZ)",
+    "import": 3,
+    "import_pc": 0,
+    "color": "#8B4513",
+    "value": 0
+  },
+  {
+    "country": "Nicaragua (NI)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Nigeria (NG)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "North Korea (KP)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "North Macedonia (MK)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Norway (NO)",
+    "import": 12,
+    "import_pc": 0.2,
+    "color": "#365a94",
+    "value": 0.2
+  },
+  {
+    "country": "Oman (OM)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Pakistan (PK)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Palestine (PS)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Panama (PA)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Paraguay (PY)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#6a0dad",
+    "value": 0
+  },
+  {
+    "country": "Peru (PE)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#6a0dad",
+    "value": 0
+  },
+  {
+    "country": "Philippines (PH)",
+    "import": 2,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Poland (PL)",
+    "import": 18,
+    "import_pc": 0.3,
+    "color": "#365a94",
+    "value": 0.3
+  },
+  {
+    "country": "Portugal (PT)",
+    "import": 8,
+    "import_pc": 0.1,
+    "color": "#365a94",
+    "value": 0.1
+  },
+  {
+    "country": "Puerto Rico (PR)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Qatar (QA)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Reunion (RE)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Romania (RO)",
+    "import": 18,
+    "import_pc": 0.3,
+    "color": "#365a94",
+    "value": 0.3
+  },
+  {
+    "country": "Russia (RU)",
+    "import": 8,
+    "import_pc": 0.1,
+    "color": "#365a94",
+    "value": 0.1
+  },
+  {
+    "country": "Rwanda (RW)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "San Marino (SM)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Saudi Arabia (SA)",
+    "import": 10,
+    "import_pc": 0.1,
+    "color": "#8cab79",
+    "value": 0.1
+  },
+  {
+    "country": "Senegal (SN)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Serbia (RS)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Seychelles (SC)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Singapore (SG)",
+    "import": 68,
+    "import_pc": 1,
+    "color": "#8cab79",
+    "value": 1
+  },
+  {
+    "country": "Slovakia (SK)",
+    "import": 3,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Slovenia (SI)",
+    "import": 3,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "South Africa (ZA)",
+    "import": 2,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "South Korea (KR)",
+    "import": 454,
+    "import_pc": 6.8,
+    "color": "#8cab79",
+    "value": 6.8
+  },
+  {
+    "country": "Spain (ES)",
+    "import": 18,
+    "import_pc": 0.3,
+    "color": "#365a94",
+    "value": 0.3
+  },
+  {
+    "country": "Sri Lanka (LK)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "St Kitts and Nevis (KN)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Sudan (SD)",
+    "import": 1,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Suriname (SR)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#6a0dad",
+    "value": 0
+  },
+  {
+    "country": "Sweden (SE)",
+    "import": 98,
+    "import_pc": 1.5,
+    "color": "#365a94",
+    "value": 1.5
+  },
+  {
+    "country": "Switzerland (CH)",
+    "import": 37,
+    "import_pc": 0.6,
+    "color": "#365a94",
+    "value": 0.6
+  },
+  {
+    "country": "Syria (SY)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Taiwan (TW)",
+    "import": 4,
+    "import_pc": 0.1,
+    "color": "#8cab79",
+    "value": 0.1
+  },
+  {
+    "country": "Tanzania (TZ)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Thailand (TH)",
+    "import": 4,
+    "import_pc": 0.1,
+    "color": "#8cab79",
+    "value": 0.1
+  },
+  {
+    "country": "The Netherlands (NL)",
+    "import": 24,
+    "import_pc": 0.4,
+    "color": "#365a94",
+    "value": 0.4
+  },
+  {
+    "country": "Timor-Leste (TL)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8B4513",
+    "value": 0
+  },
+  {
+    "country": "Tokelau (TK)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8B4513",
+    "value": 0
+  },
+  {
+    "country": "Trinidad and Tobago (TT)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Tunisia (TN)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Turkiye (TR)",
+    "import": 32,
+    "import_pc": 0.5,
+    "color": "#8cab79",
+    "value": 0.5
+  },
+  {
+    "country": "Turkmenistan (TM)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Tuvalu (TV)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8B4513",
+    "value": 0
+  },
+  {
+    "country": "U.S. Outlying Islands (UM)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8B4513",
+    "value": 0
+  },
+  {
+    "country": "U.S. Virgin Islands (VI)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#800020",
+    "value": 0
+  },
+  {
+    "country": "Uganda (UG)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "United Arab Emirates (AE)",
+    "import": 13,
+    "import_pc": 0.2,
+    "color": "#8cab79",
+    "value": 0.2
+  },
+  {
+    "country": "United Kingdom (GB)",
+    "import": 122,
+    "import_pc": 1.8,
+    "color": "#365a94",
+    "value": 1.8
+  },
+  {
+    "country": "United States (US)",
+    "import": 1270,
+    "import_pc": 18.9,
+    "color": "#800020",
+    "value": 18.9
+  },
+  {
+    "country": "Uruguay (UY)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#6a0dad",
+    "value": 0
+  },
+  {
+    "country": "Uzbekistan (UZ)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Vatican City (VA)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#365a94",
+    "value": 0
+  },
+  {
+    "country": "Venezuela (VE)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#6a0dad",
+    "value": 0
+  },
+  {
+    "country": "Vietnam (VN)",
+    "import": 3,
+    "import_pc": 0,
+    "color": "#8cab79",
+    "value": 0
+  },
+  {
+    "country": "Zambia (ZM)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  },
+  {
+    "country": "Zimbabwe (ZW)",
+    "import": 0,
+    "import_pc": 0,
+    "color": "#e28f26",
+    "value": 0
+  }
+] 
+
+;
+
+const exportData =  [
+  {
+    "country": "Albania (AL)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Algeria (DZ)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Andorra (AD)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Antigua and Barbuda (AG)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Argentina (AR)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "Armenia (AM)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Aruba (AW)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Australia (AU)",
+    "export": 0,
+    "color": "#8B4513"
+  },
+  {
+    "country": "Austria (AT)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Azerbaijan (AZ)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Bahamas (BS)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Bahrain (BH)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Bangladesh (BD)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Barbados (BB)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Belarus (BY)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Belgium (BE)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Belize (BZ)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Benin (BJ)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Bermuda (BM)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Bhutan (BT)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Bolivia (BO)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "Bosnia and Herzegovina (BA)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Botswana (BW)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Brazil (BR)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "British Indian Ocean Territory (IO)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "British Virgin Islands (VG)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Brunei (BN)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Bulgaria (BG)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Burkina Faso (BF)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Cabo Verde (CV)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Cambodia (KH)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Cameroon (CM)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Canada (CA)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Cayman Islands (KY)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Chile (CL)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "China (CN)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Colombia (CO)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "Congo Republic (CG)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Costa Rica (CR)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Croatia (HR)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Cuba (CU)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Curacao (CW)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Cyprus (CY)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Czechia (CZ)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Denmark (DK)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Dominican Republic (DO)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Ecuador (EC)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "Egypt (EG)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Estonia (EE)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Ethiopia (ET)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Faroe Islands (FO)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Finland (FI)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "France (FR)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Gabon (GA)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Georgia (GE)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Germany (DE)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Ghana (GH)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Gibraltar (GI)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Greece (GR)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Guadeloupe (GP)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Guam (GU)",
+    "export": 0,
+    "color": "#8B4513"
+  },
+  {
+    "country": "Guatemala (GT)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Guernsey (GG)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Guinea (GN)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Honduras (HN)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Hong Kong (HK)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Hungary (HU)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Iceland (IS)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "India (IN)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Indonesia (ID)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Iran (IR)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Iraq (IQ)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Ireland (IE)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Isle of Man (IM)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Israel (IL)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Italy (IT)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Ivory Coast (CI)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Jamaica (JM)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Japan (JP)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Jersey (JE)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Jordan (JO)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Kazakhstan (KZ)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Kenya (KE)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Kuwait (KW)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Kyrgyzstan (KG)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Latvia (LV)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Lebanon (LB)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Libya (LY)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Liechtenstein (LI)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Lithuania (LT)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Luxembourg (LU)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Macao (MO)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Madagascar (MG)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Malawi (MW)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Malaysia (MY)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Maldives (MV)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Mali (ML)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Malta (MT)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Mauritius (MU)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Mexico (MX)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Moldova (MD)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Monaco (MC)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Mongolia (MN)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Montenegro (ME)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Morocco (MA)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Mozambique (MZ)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Nauru (NR)",
+    "export": 0,
+    "color": "#8B4513"
+  },
+  {
+    "country": "Nepal (NP)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "New Caledonia (NC)",
+    "export": 0,
+    "color": "#8B4513"
+  },
+  {
+    "country": "New Zealand (NZ)",
+    "export": 0,
+    "color": "#8B4513"
+  },
+  {
+    "country": "Nicaragua (NI)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Nigeria (NG)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "North Korea (KP)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "North Macedonia (MK)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Norway (NO)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Oman (OM)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Pakistan (PK)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Palestine (PS)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Panama (PA)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Paraguay (PY)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "Peru (PE)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "Philippines (PH)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Poland (PL)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Portugal (PT)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Puerto Rico (PR)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Qatar (QA)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Reunion (RE)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Romania (RO)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Russia (RU)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Rwanda (RW)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "San Marino (SM)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Saudi Arabia (SA)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Senegal (SN)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Serbia (RS)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Seychelles (SC)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Singapore (SG)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Slovakia (SK)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Slovenia (SI)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "South Africa (ZA)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "South Korea (KR)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Spain (ES)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Sri Lanka (LK)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "St Kitts and Nevis (KN)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Sudan (SD)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Suriname (SR)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "Sweden (SE)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Switzerland (CH)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Syria (SY)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Taiwan (TW)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Tanzania (TZ)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Thailand (TH)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "The Netherlands (NL)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Timor-Leste (TL)",
+    "export": 0,
+    "color": "#8B4513"
+  },
+  {
+    "country": "Tokelau (TK)",
+    "export": 0,
+    "color": "#8B4513"
+  },
+  {
+    "country": "Trinidad and Tobago (TT)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Tunisia (TN)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Turkiye (TR)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Turkmenistan (TM)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Tuvalu (TV)",
+    "export": 0,
+    "color": "#8B4513"
+  },
+  {
+    "country": "U.S. Outlying Islands (UM)",
+    "export": 0,
+    "color": "#8B4513"
+  },
+  {
+    "country": "U.S. Virgin Islands (VI)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Uganda (UG)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "United Arab Emirates (AE)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "United Kingdom (GB)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "United States (US)",
+    "export": 0,
+    "color": "#800020"
+  },
+  {
+    "country": "Uruguay (UY)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "Uzbekistan (UZ)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Vatican City (VA)",
+    "export": 0,
+    "color": "#365a94"
+  },
+  {
+    "country": "Venezuela (VE)",
+    "export": 0,
+    "color": "#6a0dad"
+  },
+  {
+    "country": "Vietnam (VN)",
+    "export": 0,
+    "color": "#8cab79"
+  },
+  {
+    "country": "Zambia (ZM)",
+    "export": 0,
+    "color": "#e28f26"
+  },
+  {
+    "country": "Zimbabwe (ZW)",
+    "export": 0,
+    "color": "#e28f26"
+  }
+] 
+
+
+;
+
+// ── Dimensions ────────────────────────────────────────────────────────────────
+const W = 780, H = 640;
+const ML = 148, MR = 155, MT = 0, MB = 20;
+const IW = W - ML - MR;
+const IH = H - MT - MB;
+const BAR = 16, GAP = 5;
+const CX = IW / 2;         // center x
+const SPINE_W = 10;        // blue center line width
+
+function computeLayout(data) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const usable = IH - GAP * (data.length - 1);
+  let y = 0;
+  return data.map(d => {
+    const h = (d.value / total) * usable;
+    const node = { ...d, y, h };
+    y += h + GAP;
+    return node;
+  });
+}
+
+const impNodes = computeLayout(importData);
+const expNodes = computeLayout(exportData);
+const impMap = Object.fromEntries(impNodes.map(d => [d.country, d]));
+const expMap = Object.fromEntries(expNodes.map(d => [d.country, d]));
+
+// ── SVG ───────────────────────────────────────────────────────────────────────
+const svg = d3.select("#chart").append("svg")
+  .attr("viewBox", `0 0 ${W} ${H}`)
+  .attr("preserveAspectRatio", "xMidYMid meet");
+
+const g = svg.append("g").attr("transform", `translate(${ML},${MT})`);
+
+// ── Layer 1: Ribbons (behind everything) ──────────────────────────────────────
+// Full S-curve from right edge of import bar → left edge of export bar
+importData.forEach(({ country }) => {
+  const imp = impMap[country];
+  const exp = expMap[country];
+  if (!imp || !exp) return;
+
+  const x0 = BAR;
+  const x1 = IW - BAR;
+
+  const path = [
+    `M ${x0} ${imp.y}`,
+    `C ${CX} ${imp.y}, ${CX} ${exp.y}, ${x1} ${exp.y}`,
+    `L ${x1} ${exp.y + exp.h}`,
+    `C ${CX} ${exp.y + exp.h}, ${CX} ${imp.y + imp.h}, ${x0} ${imp.y + imp.h}`,
+    `Z`
+  ].join(" ");
+
+  g.append("path")
+    .attr("class", "link")
+    .attr("d", path)
+    .attr("fill", imp.color)
+    .on("mousemove", e => {
+      const tip = document.getElementById("tooltip");
+      tip.style.display = "block";
+      tip.style.left = (e.clientX + 14) + "px";
+      tip.style.top  = (e.clientY - 34) + "px";
+      tip.innerHTML = `<strong>${country}</strong><br>Import: ${imp.value}%&emsp;Export: ${exp.value}%`;
+    })
+    .on("mouseleave", () => { document.getElementById("tooltip").style.display = "none"; });
+});
+
+// ── Layer 2: Import bars (on top of ribbons) ──────────────────────────────────
+g.selectAll(".imp-bar").data(impNodes).join("rect")
+  .attr("x", 0).attr("y", d => d.y)
+  .attr("width", BAR).attr("height", d => d.h)
+  .attr("fill", d => d.color).attr("rx", 2);
+
+// ── Layer 3: Export bars (on top of ribbons) ──────────────────────────────────
+g.selectAll(".exp-bar").data(expNodes).join("rect")
+  .attr("x", IW - BAR).attr("y", d => d.y)
+  .attr("width", BAR).attr("height", d => d.h)
+  .attr("fill", d => d.color).attr("rx", 2);
+
+// ── Layer 4: Center vertical line ─────────────────────────────────────────────
+g.append("rect")
+  .attr("x", CX - SPINE_W / 2)
+  .attr("y", 0)
+  .attr("width", SPINE_W)
+  .attr("height", IH)
+  .attr("fill", "#3b82f6")
+  .attr("rx", 3);
+
+// ── Layer 5: Labels & values (topmost) ────────────────────────────────────────
+const lbl = sel => sel
+  .style("font-family", "'DM Sans', sans-serif")
+  .style("font-size", "12px").style("font-weight", "500").style("fill", "#333");
+const val = sel => sel
+  .style("font-family", "'DM Sans', sans-serif")
+  .style("font-weight", "600").style("fill", "#fff");
+
+// Import labels
+g.selectAll(".il").data(impNodes).join("text").call(lbl)
+  .attr("x", -8).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "end")
+  .text(d => d.country);
+
+// Import values
+g.selectAll(".iv").data(impNodes.filter(d => d.h > 5)).join("text").call(val)
+  .attr("x", BAR / 2).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "middle")
+  .style("font-size", d => d.h < 14 ? "6px" : "8px")
+  .text(d => d.value);
+
+// Export labels
+g.selectAll(".el").data(expNodes).join("text").call(lbl)
+  .attr("x", IW + 8).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "start")
+  .text(d => d.country);
+
+// Export values
+g.selectAll(".ev").data(expNodes.filter(d => d.h > 5)).join("text").call(val)
+  .attr("x", IW - BAR / 2).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "middle")
+  .style("font-size", d => d.h < 14 ? "6px" : "8px")
+  .text(d => d.value);
+</script>
+</body>
+</html>
