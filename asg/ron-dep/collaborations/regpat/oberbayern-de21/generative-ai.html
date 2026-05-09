@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EU Trade Sankey</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+  background: #f8f7f4;
+  font-family: 'DM Sans', sans-serif;
+  margin: 0;
+  padding-top: 8px;
+  overflow: hidden;
+  height: calc(100vh - 8px); /* 👈 adjust */
+}
+  .chart-wrap {
+    background: #fff;
+    width: 100%;
+    height: 100vh;
+  }
+  .arrow-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .arrow-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #3b82f6;
+    padding: 5px 22px 5px 12px;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 0 100%);
+  }
+  .arrow-label.right {
+    clip-path: polygon(10px 0, 100% 0, 100% 100%, 10px 100%, 0 50%);
+    padding: 5px 12px 5px 22px;
+  }
+  .eu-flag { font-size: 1.5rem; }
+  svg { overflow: visible; width: 100%; height: calc(100vh - 32px); max-height: calc(100vh - 32px); display: block; margin: 0px 0; }
+  .link { fill-opacity: 0.45; transition: fill-opacity 0.2s; cursor: pointer; }
+  .link:hover { fill-opacity: 0.72; }
+  .tooltip {
+    position: fixed;
+    background: rgba(15,15,15,0.88);
+    color: #fff;
+    padding: 7px 13px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    pointer-events: none;
+    display: none;
+    z-index: 100;
+    white-space: nowrap;
+  }
+  footer { margin-top: 20px; font-size: 0.72rem; color: #aaa; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="chart-wrap">
+  <div class="arrow-header">
+    <div class="arrow-label">Expected - Share of global collaboration (%)</div>
+    
+    <div class="arrow-label right">Observed - Share of regional portfolio (%)</div>
+  </div>
+  <div id="chart"></div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+<footer>Source: UN COMTRADE</footer>
+
+<script>
+const importData =  [
+  {
+    "country": "Rest of the World",
+    "import": 93,
+    "import_pc": 7.1,
+    "color": "#8B4513",
+    "value": 7.1
+  },
+  {
+    "country": "Berlin (DE30)",
+    "import": 10,
+    "import_pc": 0.31,
+    "color": "#156F15",
+    "value": 0.31
+  },
+  {
+    "country": "Canada (CA)",
+    "import": 15,
+    "import_pc": 2.42,
+    "color": "#93B193",
+    "value": 2.42
+  },
+  {
+    "country": "China (CN)",
+    "import": 44,
+    "import_pc": 22.34,
+    "color": "#B88484",
+    "value": 22.34
+  },
+  {
+    "country": "Dolnośląskie (PL51)",
+    "import": 6,
+    "import_pc": 0.02,
+    "color": "#006400",
+    "value": 0.02
+  },
+  {
+    "country": "Düsseldorf (DEA1)",
+    "import": 8,
+    "import_pc": 0.14,
+    "color": "#006400",
+    "value": 0.14
+  },
+  {
+    "country": "Helsinki-Uusimaa (FI1B)",
+    "import": 18,
+    "import_pc": 0.44,
+    "color": "#0A690A",
+    "value": 0.44
+  },
+  {
+    "country": "Île de France (FR10)",
+    "import": 30,
+    "import_pc": 1.07,
+    "color": "#1D731D",
+    "value": 1.07
+  },
+  {
+    "country": "India (IN)",
+    "import": 14,
+    "import_pc": 2.19,
+    "color": "#8FAF8F",
+    "value": 2.19
+  },
+  {
+    "country": "Inner London (UKI1)",
+    "import": 2,
+    "import_pc": 1.11,
+    "color": "#B67F7F",
+    "value": 1.11
+  },
+  {
+    "country": "Israel (IL)",
+    "import": 8,
+    "import_pc": 1.42,
+    "color": "#A4BAA4",
+    "value": 1.42
+  },
+  {
+    "country": "Japan (JP)",
+    "import": 2,
+    "import_pc": 10.92,
+    "color": "#992828",
+    "value": 10.92
+  },
+  {
+    "country": "Karlsruhe (DE12)",
+    "import": 14,
+    "import_pc": 0.43,
+    "color": "#156F15",
+    "value": 0.43
+  },
+  {
+    "country": "Köln (DEA2)",
+    "import": 11,
+    "import_pc": 0.23,
+    "color": "#026502",
+    "value": 0.23
+  },
+  {
+    "country": "Länsi-Suomi (FI19)",
+    "import": 12,
+    "import_pc": 0.18,
+    "color": "#006400",
+    "value": 0.18
+  },
+  {
+    "country": "Mittelfranken (DE25)",
+    "import": 39,
+    "import_pc": 0.36,
+    "color": "#006400",
+    "value": 0.36
+  },
+  {
+    "country": "Niederbayern (DE22)",
+    "import": 15,
+    "import_pc": 0.05,
+    "color": "#006400",
+    "value": 0.05
+  },
+  {
+    "country": "Nordjylland (DK05)",
+    "import": 10,
+    "import_pc": 0.05,
+    "color": "#006400",
+    "value": 0.05
+  },
+  {
+    "country": "Oberfranken (DE24)",
+    "import": 12,
+    "import_pc": 0.06,
+    "color": "#006400",
+    "value": 0.06
+  },
+  {
+    "country": "Oberpfalz (DE23)",
+    "import": 13,
+    "import_pc": 0.05,
+    "color": "#006400",
+    "value": 0.05
+  },
+  {
+    "country": "Outer London (UKI2)",
+    "import": 6,
+    "import_pc": 0.15,
+    "color": "#0A6A0A",
+    "value": 0.15
+  },
+  {
+    "country": "Schwaben (DE27)",
+    "import": 12,
+    "import_pc": 0.08,
+    "color": "#006400",
+    "value": 0.08
+  },
+  {
+    "country": "Stuttgart (DE11)",
+    "import": 14,
+    "import_pc": 0.78,
+    "color": "#368036",
+    "value": 0.78
+  },
+  {
+    "country": "Thüringen (DEG0)",
+    "import": 14,
+    "import_pc": 0.07,
+    "color": "#006400",
+    "value": 0.07
+  },
+  {
+    "country": "Tübingen (DE14)",
+    "import": 10,
+    "import_pc": 0.17,
+    "color": "#006400",
+    "value": 0.17
+  },
+  {
+    "country": "United States (US)",
+    "import": 65,
+    "import_pc": 29.91,
+    "color": "#BA8B8B",
+    "value": 29.91
+  },
+  {
+    "country": "Zürich (CH04)",
+    "import": 5,
+    "import_pc": 0.33,
+    "color": "#418641",
+    "value": 0.33
+  }
+] 
+
+;
+
+const exportData =  [
+  {
+    "country": "Rest of the World",
+    "export": 93,
+    "export_pc": 18.6,
+    "color": "#8B4513",
+    "value": 18.6
+  },
+  {
+    "country": "Berlin (DE30)",
+    "export": 10,
+    "export_pc": 1.99,
+    "color": "#156F15",
+    "value": 1.99
+  },
+  {
+    "country": "Canada (CA)",
+    "export": 15,
+    "export_pc": 2.99,
+    "color": "#93B193",
+    "value": 2.99
+  },
+  {
+    "country": "China (CN)",
+    "export": 44,
+    "export_pc": 8.76,
+    "color": "#B88484",
+    "value": 8.76
+  },
+  {
+    "country": "Dolnośląskie (PL51)",
+    "export": 6,
+    "export_pc": 1.2,
+    "color": "#006400",
+    "value": 1.2
+  },
+  {
+    "country": "Düsseldorf (DEA1)",
+    "export": 8,
+    "export_pc": 1.59,
+    "color": "#006400",
+    "value": 1.59
+  },
+  {
+    "country": "Helsinki-Uusimaa (FI1B)",
+    "export": 18,
+    "export_pc": 3.59,
+    "color": "#0A690A",
+    "value": 3.59
+  },
+  {
+    "country": "Île de France (FR10)",
+    "export": 30,
+    "export_pc": 5.98,
+    "color": "#1D731D",
+    "value": 5.98
+  },
+  {
+    "country": "India (IN)",
+    "export": 14,
+    "export_pc": 2.79,
+    "color": "#8FAF8F",
+    "value": 2.79
+  },
+  {
+    "country": "Inner London (UKI1)",
+    "export": 2,
+    "export_pc": 0.4,
+    "color": "#B67F7F",
+    "value": 0.4
+  },
+  {
+    "country": "Israel (IL)",
+    "export": 8,
+    "export_pc": 1.59,
+    "color": "#A4BAA4",
+    "value": 1.59
+  },
+  {
+    "country": "Japan (JP)",
+    "export": 2,
+    "export_pc": 0.4,
+    "color": "#992828",
+    "value": 0.4
+  },
+  {
+    "country": "Karlsruhe (DE12)",
+    "export": 14,
+    "export_pc": 2.79,
+    "color": "#156F15",
+    "value": 2.79
+  },
+  {
+    "country": "Köln (DEA2)",
+    "export": 11,
+    "export_pc": 2.19,
+    "color": "#026502",
+    "value": 2.19
+  },
+  {
+    "country": "Länsi-Suomi (FI19)",
+    "export": 12,
+    "export_pc": 2.39,
+    "color": "#006400",
+    "value": 2.39
+  },
+  {
+    "country": "Mittelfranken (DE25)",
+    "export": 39,
+    "export_pc": 7.77,
+    "color": "#006400",
+    "value": 7.77
+  },
+  {
+    "country": "Niederbayern (DE22)",
+    "export": 15,
+    "export_pc": 2.99,
+    "color": "#006400",
+    "value": 2.99
+  },
+  {
+    "country": "Nordjylland (DK05)",
+    "export": 10,
+    "export_pc": 1.99,
+    "color": "#006400",
+    "value": 1.99
+  },
+  {
+    "country": "Oberfranken (DE24)",
+    "export": 12,
+    "export_pc": 2.39,
+    "color": "#006400",
+    "value": 2.39
+  },
+  {
+    "country": "Oberpfalz (DE23)",
+    "export": 13,
+    "export_pc": 2.59,
+    "color": "#006400",
+    "value": 2.59
+  },
+  {
+    "country": "Outer London (UKI2)",
+    "export": 6,
+    "export_pc": 1.2,
+    "color": "#0A6A0A",
+    "value": 1.2
+  },
+  {
+    "country": "Schwaben (DE27)",
+    "export": 12,
+    "export_pc": 2.39,
+    "color": "#006400",
+    "value": 2.39
+  },
+  {
+    "country": "Stuttgart (DE11)",
+    "export": 14,
+    "export_pc": 2.79,
+    "color": "#368036",
+    "value": 2.79
+  },
+  {
+    "country": "Thüringen (DEG0)",
+    "export": 14,
+    "export_pc": 2.79,
+    "color": "#006400",
+    "value": 2.79
+  },
+  {
+    "country": "Tübingen (DE14)",
+    "export": 10,
+    "export_pc": 1.99,
+    "color": "#006400",
+    "value": 1.99
+  },
+  {
+    "country": "United States (US)",
+    "export": 65,
+    "export_pc": 12.95,
+    "color": "#BA8B8B",
+    "value": 12.95
+  },
+  {
+    "country": "Zürich (CH04)",
+    "export": 5,
+    "export_pc": 1,
+    "color": "#418641",
+    "value": 1
+  }
+] 
+
+
+;
+
+// ── Dimensions ────────────────────────────────────────────────────────────────
+const W = 780, H = 640;
+const ML = 148, MR = 155, MT = 0, MB = 20;
+const IW = W - ML - MR;
+const IH = H - MT - MB;
+const BAR = 16, GAP = 5;
+const CX = IW / 2;         // center x
+const SPINE_W = 10;        // blue center line width
+
+function computeLayout(data) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  const usable = IH - GAP * (data.length - 1);
+  let y = 0;
+  return data.map(d => {
+    const h = (d.value / total) * usable;
+    const node = { ...d, y, h };
+    y += h + GAP;
+    return node;
+  });
+}
+
+const impNodes = computeLayout(importData);
+const expNodes = computeLayout(exportData);
+const impMap = Object.fromEntries(impNodes.map(d => [d.country, d]));
+const expMap = Object.fromEntries(expNodes.map(d => [d.country, d]));
+
+// ── SVG ───────────────────────────────────────────────────────────────────────
+const svg = d3.select("#chart").append("svg")
+  .attr("viewBox", `0 0 ${W} ${H}`)
+  .attr("preserveAspectRatio", "xMidYMid meet");
+
+const g = svg.append("g").attr("transform", `translate(${ML},${MT})`);
+
+// ── Layer 1: Ribbons (behind everything) ──────────────────────────────────────
+// Full S-curve from right edge of import bar → left edge of export bar
+importData.forEach(({ country }) => {
+  const imp = impMap[country];
+  const exp = expMap[country];
+  if (!imp || !exp) return;
+
+  const x0 = BAR;
+  const x1 = IW - BAR;
+
+  const path = [
+    `M ${x0} ${imp.y}`,
+    `C ${CX} ${imp.y}, ${CX} ${exp.y}, ${x1} ${exp.y}`,
+    `L ${x1} ${exp.y + exp.h}`,
+    `C ${CX} ${exp.y + exp.h}, ${CX} ${imp.y + imp.h}, ${x0} ${imp.y + imp.h}`,
+    `Z`
+  ].join(" ");
+
+  g.append("path")
+    .attr("class", "link")
+    .attr("d", path)
+    .attr("fill", imp.color)
+    .on("mousemove", e => {
+      const tip = document.getElementById("tooltip");
+      tip.style.display = "block";
+      tip.style.left = (e.clientX + 14) + "px";
+      tip.style.top  = (e.clientY - 34) + "px";
+      tip.innerHTML = `<strong>${country}</strong><br>Import: ${imp.value}%&emsp;Export: ${exp.value}%`;
+    })
+    .on("mouseleave", () => { document.getElementById("tooltip").style.display = "none"; });
+});
+
+// ── Layer 2: Import bars (on top of ribbons) ──────────────────────────────────
+g.selectAll(".imp-bar").data(impNodes).join("rect")
+  .attr("x", 0).attr("y", d => d.y)
+  .attr("width", BAR).attr("height", d => d.h)
+  .attr("fill", d => d.color).attr("rx", 2);
+
+// ── Layer 3: Export bars (on top of ribbons) ──────────────────────────────────
+g.selectAll(".exp-bar").data(expNodes).join("rect")
+  .attr("x", IW - BAR).attr("y", d => d.y)
+  .attr("width", BAR).attr("height", d => d.h)
+  .attr("fill", d => d.color).attr("rx", 2);
+
+// ── Layer 4: Center vertical line ─────────────────────────────────────────────
+g.append("rect")
+  .attr("x", CX - SPINE_W / 2)
+  .attr("y", 0)
+  .attr("width", SPINE_W)
+  .attr("height", IH)
+  .attr("fill", "#3b82f6")
+  .attr("rx", 3);
+
+// ── Layer 5: Labels & values (topmost) ────────────────────────────────────────
+const lbl = sel => sel
+  .style("font-family", "'DM Sans', sans-serif")
+  .style("font-size", "12px").style("font-weight", "500").style("fill", "#333");
+const val = sel => sel
+  .style("font-family", "'DM Sans', sans-serif")
+  .style("font-weight", "600").style("fill", "#fff");
+
+// Import labels
+g.selectAll(".il").data(impNodes).join("text").call(lbl)
+  .attr("x", -8).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "end")
+  .text(d => d.country);
+
+// Import values
+g.selectAll(".iv").data(impNodes.filter(d => d.h > 5)).join("text").call(val)
+  .attr("x", BAR / 2).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "middle")
+  .style("font-size", d => d.h < 14 ? "6px" : "8px")
+  .text(d => d.value);
+
+// Export labels
+g.selectAll(".el").data(expNodes).join("text").call(lbl)
+  .attr("x", IW + 8).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "start")
+  .text(d => d.country);
+
+// Export values
+g.selectAll(".ev").data(expNodes.filter(d => d.h > 5)).join("text").call(val)
+  .attr("x", IW - BAR / 2).attr("y", d => d.y + d.h / 2)
+  .attr("dy", "0.35em").attr("text-anchor", "middle")
+  .style("font-size", d => d.h < 14 ? "6px" : "8px")
+  .text(d => d.value);
+</script>
+</body>
+</html>
