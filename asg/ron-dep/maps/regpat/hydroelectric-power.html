@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-geomap.v0.6.full.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #legend {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px 16px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      font-family: sans-serif;
+      font-size: 13px;
+      z-index: 1000;
+    }
+    #legend h4 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin: 4px 0;
+    }
+    .legend-swatch {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border: 1px solid #999;
+    }
+  </style>
+</head>
+<body>
+
+<div id="legend">
+  <h4>Dependency category</h4>
+  <div class="legend-item"><span class="legend-swatch" style="background: darkgreen"></span>Depends on both</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: darkred"></span>Depends on China only</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: darkblue"></span>Depends on US only</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: darkgrey"></span>Depends on neither</div>
+</div>
+
+<script>
+
+  var popData = [
+  {
+    "id": "FR10",
+    "name": "Île de France (FR10)",
+    "value": 2,
+    "color": "darkred"
+  },
+  {
+    "id": "CA",
+    "name": "Canada (CA)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "DEA3",
+    "name": "Münster (DEA3)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UKM5",
+    "name": "North Eastern Scotland (UKM5)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "DEA2",
+    "name": "Köln (DEA2)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "KR",
+    "name": "South Korea (KR)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "SA",
+    "name": "Saudi Arabia (SA)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "ES61",
+    "name": "Andalucía (ES61)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "NZ",
+    "name": "New Zealand (NZ)",
+    "value": 3,
+    "color": "darkblue"
+  }
+]  ;
+
+var categoryLabels = {
+  1: "Depends on both",
+  2: "Depends on China only",
+  3: "Depends on US only",
+  4: "Depends on neither"
+};
+
+var categoryColors = {
+  1: "darkgreen",
+  2: "darkred",
+  3: "darkblue",
+  4: "darkgrey"
+};
+
+var chart = new d3plus.Geomap()
+  .config({
+    data: popData,
+    ocean: "transparent",
+    projection: "geoTransverseMercator",
+    legend: false,
+    shapeConfig: {
+      Path: {
+        fill: function(d) {
+          return categoryColors[d.value] || "white";
+        }
+      }
+    },
+    label: function(d) {
+      return d.name + ": " + categoryLabels[d.value];
+    }
+  });
+
+chart
+  .topojson("https://www.paballand.com/json/topojson/NUTS_RG_20M_2010_4326-nuts-2-regpat.json")
+  .fitFilter(function(d) {
+    return ["FRY1","FRY2","FRY3","FRY4","FRY5","ES70","FRY","ES7","FRY10","FRY20","FRY30","FRY40","FRY50","ES70"].indexOf(d.id) < 0;
+  })
+  .render();
+
+</script>
+</html>
+
+
+
+  
+
