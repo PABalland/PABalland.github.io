@@ -1,0 +1,721 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://www.paballand.com/js/d3plus-geomap.v0.6.full.min.js"></script>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    #legend {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 12px 16px;
+      border-radius: 6px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      font-family: sans-serif;
+      font-size: 13px;
+      z-index: 1000;
+    }
+    #legend h4 {
+      margin: 0 0 8px 0;
+      font-size: 14px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin: 4px 0;
+    }
+    .legend-swatch {
+      width: 16px;
+      height: 16px;
+      margin-right: 8px;
+      border: 1px solid #999;
+    }
+  </style>
+</head>
+<body>
+
+<div id="legend">
+  <h4>Dependency category</h4>
+  <div class="legend-item"><span class="legend-swatch" style="background: darkgreen"></span>China & US Depend</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: darkred"></span>China Depends</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: darkblue"></span>US Depends</div>
+  <div class="legend-item"><span class="legend-swatch" style="background: darkgrey"></span>Neither Depends</div>
+</div>
+
+<script>
+
+  var popData = [
+  {
+    "id": "FR71",
+    "name": "Rhône-Alpes (FR71)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "FR82",
+    "name": "Provence-Alpes-Côte d'Azur (FR82)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "DE71",
+    "name": "Darmstadt (DE71)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "DE12",
+    "name": "Karlsruhe (DE12)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "DE25",
+    "name": "Mittelfranken (DE25)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "BE10",
+    "name": "Région de Bruxelles-Capitale / Brussels Hoofdstedelijk Gewest (BE10)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "FR10",
+    "name": "Île de France (FR10)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "US",
+    "name": "United States (US)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "CA",
+    "name": "Canada (CA)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "CH06",
+    "name": "Zentralschweiz (CH06)",
+    "value": 1,
+    "color": "darkgreen"
+  },
+  {
+    "id": "CH01",
+    "name": "Région lémanique (CH01)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "IN",
+    "name": "India (IN)",
+    "value": 1,
+    "color": "darkgreen"
+  },
+  {
+    "id": "UKH2",
+    "name": "Bedfordshire and Hertfordshire (UKH2)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "SG",
+    "name": "Singapore (SG)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "AU",
+    "name": "Australia (AU)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "ITH3",
+    "name": "Veneto (ITH3)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "DEF0",
+    "name": "Schleswig-Holstein (DEF0)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "BE21",
+    "name": "Prov. Antwerpen (BE21)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "NO01",
+    "name": "Oslo og Akershus (NO01)",
+    "value": 1,
+    "color": "darkgreen"
+  },
+  {
+    "id": "DK01",
+    "name": "Hovedstaden (DK01)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "AE",
+    "name": "United Arab Emirates (AE)",
+    "value": 1,
+    "color": "darkgreen"
+  },
+  {
+    "id": "UKJ2",
+    "name": "Surrey, East and West Sussex (UKJ2)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "ITC1",
+    "name": "Piemonte (ITC1)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "NL41",
+    "name": "Noord-Brabant (NL41)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "CN",
+    "name": "China (CN)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "DEA2",
+    "name": "Köln (DEA2)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "CH04",
+    "name": "Zürich (CH04)",
+    "value": 2,
+    "color": "darkred"
+  },
+  {
+    "id": "NL33",
+    "name": "Zuid-Holland (NL33)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "CH03",
+    "name": "Nordwestschweiz (CH03)",
+    "value": 2,
+    "color": "darkred"
+  },
+  {
+    "id": "ES30",
+    "name": "Comunidad de Madrid (ES30)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "ITC3",
+    "name": "Liguria (ITC3)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "ITC4",
+    "name": "Lombardia (ITC4)",
+    "value": 2,
+    "color": "darkred"
+  },
+  {
+    "id": "DE21",
+    "name": "Oberbayern (DE21)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "MY",
+    "name": "Malaysia (MY)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "FI1B",
+    "name": "Helsinki-Uusimaa (FI1B)",
+    "value": 1,
+    "color": "darkgreen"
+  },
+  {
+    "id": "KR",
+    "name": "South Korea (KR)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "SA",
+    "name": "Saudi Arabia (SA)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "SE11",
+    "name": "Stockholm (SE11)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "DEA1",
+    "name": "Düsseldorf (DEA1)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "DE30",
+    "name": "Berlin (DE30)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "DE11",
+    "name": "Stuttgart (DE11)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "IE02",
+    "name": "Southern and Eastern (IE02)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UKI1",
+    "name": "Inner London (UKI1)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "DE14",
+    "name": "Tübingen (DE14)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "FR30",
+    "name": "Nord - Pas-de-Calais (FR30)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "ZA",
+    "name": "South Africa (ZA)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "BE24",
+    "name": "Prov. Vlaams-Brabant (BE24)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "JP",
+    "name": "Japan (JP)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "ES51",
+    "name": "Cataluña (ES51)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "IL",
+    "name": "Israel (IL)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "NL31",
+    "name": "Utrecht (NL31)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "VN",
+    "name": "Vietnam (VN)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "BR",
+    "name": "Brazil (BR)",
+    "value": 1,
+    "color": "darkgreen"
+  },
+  {
+    "id": "ME",
+    "name": "Montenegro (ME)",
+    "value": 2,
+    "color": "darkred"
+  },
+  {
+    "id": "PK",
+    "name": "Pakistan (PK)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "DEB3",
+    "name": "Rheinhessen-Pfalz (DEB3)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "DEA4",
+    "name": "Detmold (DEA4)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "ITH5",
+    "name": "Emilia-Romagna (ITH5)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "DE91",
+    "name": "Braunschweig (DE91)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "TR",
+    "name": "Turkiye (TR)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "TH",
+    "name": "Thailand (TH)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UKJ3",
+    "name": "Hampshire and Isle of Wight (UKJ3)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "TW",
+    "name": "Taiwan (TW)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "DED2",
+    "name": "Dresden (DED2)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "FI19",
+    "name": "Länsi-Suomi (FI19)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UKK1",
+    "name": "Gloucestershire, Wiltshire and Bristol/Bath area (UKK1)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "NL32",
+    "name": "Noord-Holland (NL32)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "RU",
+    "name": "Russia (RU)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "FR81",
+    "name": "Languedoc-Roussillon (FR81)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "PT11",
+    "name": "Norte (PT11)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "HK",
+    "name": "Hong Kong (HK)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UKI2",
+    "name": "Outer London (UKI2)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "ITF3",
+    "name": "Campania (ITF3)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "LU00",
+    "name": "Luxembourg (LU00)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UKD3",
+    "name": "Greater Manchester (UKD3)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "BE31",
+    "name": "Prov. Brabant Wallon (BE31)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "SE22",
+    "name": "Sydsverige (SE22)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "CO",
+    "name": "Colombia (CO)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UKN0",
+    "name": "Northern Ireland (UKN0)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "PL63",
+    "name": "Pomorskie (PL63)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "HU10",
+    "name": "Közép-Magyarország (HU10)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "AT13",
+    "name": "Wien (AT13)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "UKJ1",
+    "name": "Berkshire, Buckinghamshire and Oxfordshire (UKJ1)",
+    "value": 1,
+    "color": "darkgreen"
+  },
+  {
+    "id": "UKH1",
+    "name": "East Anglia (UKH1)",
+    "value": 1,
+    "color": "darkgreen"
+  },
+  {
+    "id": "UKH3",
+    "name": "Essex (UKH3)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UKM2",
+    "name": "Eastern Scotland (UKM2)",
+    "value": 1,
+    "color": "darkgreen"
+  },
+  {
+    "id": "CZ07",
+    "name": "Střední Morava (CZ07)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "FR62",
+    "name": "Midi-Pyrénées (FR62)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "BG41",
+    "name": "Yugozapaden (BG41)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "CR",
+    "name": "Costa Rica (CR)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "RO42",
+    "name": "Vest (RO42)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UKJ4",
+    "name": "Kent (UKJ4)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "EE00",
+    "name": "Eesti (EE00)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UA",
+    "name": "Ukraine (UA)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "UKL2",
+    "name": "East Wales (UKL2)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "RO32",
+    "name": "Bucureşti - Ilfov (RO32)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "PH",
+    "name": "Philippines (PH)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "CZ01",
+    "name": "Praha (CZ01)",
+    "value": 4,
+    "color": "darkgrey"
+  },
+  {
+    "id": "AR",
+    "name": "Argentina (AR)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "PR",
+    "name": "Puerto Rico (PR)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "KE",
+    "name": "Kenya (KE)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "TL",
+    "name": "Timor-Leste (TL)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "KY",
+    "name": "Cayman Islands (KY)",
+    "value": 3,
+    "color": "darkblue"
+  },
+  {
+    "id": "JM",
+    "name": "Jamaica (JM)",
+    "value": 3,
+    "color": "darkblue"
+  }
+]  ;
+
+var categoryLabels = {
+  1: "China & US Depend",
+  2: "China Depends",
+  3: "US Depends",
+  4: "Neither Depends"
+};
+
+var categoryColors = {
+  1: "darkgreen",
+  2: "darkred",
+  3: "darkblue",
+  4: "darkgrey"
+};
+
+var chart = new d3plus.Geomap()
+  .config({
+    data: popData,
+    ocean: "transparent",
+    projection: "geoTransverseMercator",
+    legend: false,
+    shapeConfig: {
+      Path: {
+        fill: function(d) {
+          return categoryColors[d.value] || "white";
+        }
+      }
+    },
+    label: function(d) {
+      return d.name + ": " + categoryLabels[d.value];
+    }
+  });
+
+chart
+  .topojson("https://www.paballand.com/json/topojson/NUTS_RG_20M_2010_4326-nuts-2-regpat.json")
+  .fitFilter(function(d) {
+    return ["FRY1","FRY2","FRY3","FRY4","FRY5","ES70","FRY","ES7","FRY10","FRY20","FRY30","FRY40","FRY50","ES70"].indexOf(d.id) < 0;
+  })
+  .render();
+
+</script>
+</html>
+
+
+
+  
+
