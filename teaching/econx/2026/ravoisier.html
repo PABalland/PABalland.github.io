@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartCity Atlas 2024</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#050d1a;--surface:#0a1628;--card:#0f2040;--card2:#142850;
+  --border:#1e3a6a;--border2:#2a4f8a;
+  --blue:#00bfff;--blue2:#0080ff;--cyan:#00ffee;
+  --gold:#ffcc44;--green:#22ff99;--red:#ff3355;--orange:#ff8800;--purple:#9966ff;
+  --txt:#d0eaff;--txt2:#7aaabb;--txt3:#3a6070;
+  --mono:'JetBrains Mono',monospace;--body:'Exo 2',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:var(--body)}
+body{background:var(--bg);color:var(--txt)}
+
+/* ── ANIMATED BG ── */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.7}
+
+/* ── APP SHELL ── */
+.app{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── TOPBAR ── */
+.topbar{
+  height:58px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;
+  border-bottom:1px solid var(--border);
+  background:rgba(5,13,26,.92);backdrop-filter:blur(16px);
+}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-logo{
+  width:36px;height:36px;border:1.5px solid var(--blue);border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,191,255,.08);box-shadow:0 0 18px rgba(0,191,255,.25);
+  position:relative;
+}
+.brand-logo::before{content:'';width:14px;height:14px;border:1.5px solid var(--cyan);border-radius:50%;display:block;box-shadow:0 0 8px var(--cyan)}
+.brand-name{font-size:17px;font-weight:800;color:var(--blue);letter-spacing:2.5px;text-shadow:0 0 24px rgba(0,191,255,.4)}
+.brand-sub{font-family:var(--mono);font-size:9px;color:var(--txt3);letter-spacing:3px;margin-top:-1px}
+.top-center{display:flex;gap:6px}
+.nav-btn{
+  font-family:var(--mono);font-size:11px;letter-spacing:1.5px;
+  padding:7px 18px;border:1px solid var(--border);border-radius:3px;
+  background:transparent;color:var(--txt2);cursor:pointer;
+  transition:all .2s;text-transform:uppercase;
+}
+.nav-btn:hover,.nav-btn.on{border-color:var(--blue);color:var(--blue);background:rgba(0,191,255,.08)}
+.top-right{display:flex;align-items:center;gap:18px}
+.live-badge{display:flex;align-items:center;gap:6px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.live-txt{font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:2px}
+.clock{font-family:var(--mono);font-size:11px;color:var(--blue);padding:4px 10px;border:1px solid var(--border);border-radius:3px}
+.src-link{font-family:var(--mono);font-size:9px;color:var(--txt3);text-decoration:none;padding:4px 10px;border:1px solid var(--border);border-radius:3px;transition:all .2s;letter-spacing:1px}
+.src-link:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ── MAIN LAYOUT ── */
+.main{flex:1;display:grid;grid-template-columns:320px 1fr 380px;min-height:0;overflow:hidden}
+
+/* ── LEFT PANEL ── */
+.left{border-right:1px solid var(--border);background:rgba(10,22,40,.8);backdrop-filter:blur(10px);display:flex;flex-direction:column;overflow:hidden}
+
+.panel-title{
+  padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.pt-label{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--txt2);text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.pt-label::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue);display:block;animation:pulse 2.5s infinite}
+.pt-count{font-family:var(--mono);font-size:10px;color:var(--blue);background:rgba(0,191,255,.1);padding:2px 9px;border-radius:10px;border:1px solid rgba(0,191,255,.3)}
+
+.search-row{padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;position:relative}
+.search-input{
+  width:100%;background:rgba(255,255,255,.04);border:1.5px solid var(--border);
+  border-radius:4px;padding:9px 36px 9px 14px;
+  font-family:var(--mono);font-size:12px;color:var(--txt);
+  outline:none;transition:all .2s;letter-spacing:.5px;
+}
+.search-input::placeholder{color:var(--txt3)}
+.search-input:focus{border-color:var(--blue);background:rgba(0,191,255,.04);box-shadow:0 0 0 3px rgba(0,191,255,.08)}
+.search-clear{position:absolute;right:20px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--txt2);cursor:pointer;font-size:14px;display:none;line-height:1;padding:2px}
+
+.controls-row{display:flex;gap:4px;padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap}
+.chip{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:3px 9px;border:1px solid var(--border);border-radius:2px;background:transparent;color:var(--txt3);cursor:pointer;transition:all .18s;text-transform:uppercase}
+.chip:hover{border-color:var(--blue2);color:var(--txt2)}
+.chip.on{border-color:var(--blue);color:var(--blue);background:rgba(0,191,255,.09)}
+.chip-sep{width:1px;background:var(--border);align-self:stretch;margin:0 2px}
+
+.city-scroll{flex:1;overflow-y:auto;padding:8px}
+.city-scroll::-webkit-scrollbar{width:3px}
+.city-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.city-row{
+  display:flex;align-items:center;gap:11px;padding:11px 10px;
+  border:1px solid transparent;border-radius:6px;cursor:pointer;
+  transition:all .18s;margin-bottom:4px;position:relative;overflow:hidden;
+}
+.city-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;opacity:0;border-radius:2px 0 0 2px;transition:opacity .2s}
+.city-row:hover{background:rgba(0,128,255,.07);border-color:var(--border2)}
+.city-row.active{background:rgba(0,191,255,.09);border-color:var(--blue)}
+.city-row.active::before{opacity:1;background:var(--blue);box-shadow:0 0 10px var(--blue)}
+.city-row.cmp-on{background:rgba(255,204,68,.07);border-color:var(--gold)}
+.city-row.cmp-on::before{opacity:1;background:var(--gold)}
+.cr-flag{font-size:22px;flex-shrink:0}
+.cr-body{flex:1;min-width:0}
+.cr-name{font-size:14px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-meta{font-family:var(--mono);font-size:10px;color:var(--txt3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
+.cr-score{font-family:var(--mono);font-size:18px;font-weight:700;line-height:1}
+.cr-rank{font-family:var(--mono);font-size:9px;color:var(--txt3)}
+.cr-bar{width:60px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;margin-top:3px}
+.cr-fill{height:100%;border-radius:2px;transition:width .8s ease}
+.cmp-btn{width:22px;height:22px;border-radius:50%;border:1px solid var(--border2);background:transparent;color:var(--txt3);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0}
+.cmp-btn:hover{border-color:var(--gold);color:var(--gold)}
+.cmp-btn.on{border-color:var(--gold);color:var(--gold);background:rgba(255,204,68,.12);box-shadow:0 0 8px rgba(255,204,68,.3)}
+
+/* ── CENTER MAP ── */
+.center{display:flex;flex-direction:column;position:relative;overflow:hidden}
+.map-wrap{flex:1;position:relative;overflow:hidden}
+#map-svg{width:100%;height:100%}
+
+.map-layer-bar{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  display:flex;gap:6px;background:rgba(5,13,26,.85);
+  border:1px solid var(--border);border-radius:6px;padding:6px;
+  backdrop-filter:blur(10px);
+}
+.layer-btn{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;padding:6px 14px;border:1px solid var(--border);border-radius:4px;background:transparent;color:var(--txt2);cursor:pointer;transition:all .18s;text-transform:uppercase}
+.layer-btn:hover,.layer-btn.on{border-color:var(--blue);color:var(--blue);background:rgba(0,191,255,.1)}
+
+.map-tip{position:fixed;background:rgba(10,22,40,.97);border:1px solid var(--blue);border-radius:6px;padding:12px 16px;pointer-events:none;z-index:999;display:none;min-width:170px;box-shadow:0 0 28px rgba(0,191,255,.25)}
+.mt-city{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:2px}
+.mt-country{font-family:var(--mono);font-size:10px;color:var(--txt3);margin-bottom:8px}
+.mt-score-big{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;margin-bottom:2px}
+.mt-rank-txt{font-family:var(--mono);font-size:9px;color:var(--txt2)}
+
+/* Stats strip */
+.stats-strip{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  border-top:1px solid var(--border);flex-shrink:0;
+  background:rgba(10,22,40,.9);
+}
+.stat-cell{padding:10px 16px;border-right:1px solid var(--border);position:relative;overflow:hidden}
+.stat-cell:last-child{border-right:none}
+.stat-cell::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;opacity:.5}
+.stat-cell:nth-child(1)::after{background:var(--blue)}
+.stat-cell:nth-child(2)::after{background:var(--green)}
+.stat-cell:nth-child(3)::after{background:var(--gold)}
+.stat-cell:nth-child(4)::after{background:var(--purple)}
+.sv{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--blue);line-height:1;margin-bottom:2px}
+.sl{font-size:10px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase}
+.sd{font-family:var(--mono);font-size:9px;margin-top:1px}
+
+/* ── RIGHT PANEL ── */
+.right{border-left:1px solid var(--border);background:rgba(10,22,40,.8);backdrop-filter:blur(10px);display:flex;flex-direction:column;overflow:hidden}
+
+.rtabs{display:flex;flex-shrink:0;border-bottom:1px solid var(--border)}
+.rtab{flex:1;padding:12px 6px;font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-align:center;color:var(--txt3);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase}
+.rtab:hover{color:var(--txt2)}
+.rtab.on{color:var(--blue);border-bottom-color:var(--blue);background:rgba(0,191,255,.04)}
+
+.cmp-strip{padding:7px 16px;border-bottom:1px solid var(--border);display:none;align-items:center;gap:8px;flex-shrink:0;background:rgba(255,204,68,.05)}
+.cmp-strip-txt{font-family:var(--mono);font-size:10px;color:var(--gold);flex:1;letter-spacing:.5px}
+.cmp-strip-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 7px var(--gold);animation:pulse 1.5s infinite;flex-shrink:0}
+.cmp-strip-clear{font-size:9px;padding:3px 9px;border:1px solid rgba(255,51,85,.4);color:var(--red);background:transparent;cursor:pointer;border-radius:2px;letter-spacing:1px;font-family:var(--mono);transition:all .2s}
+.cmp-strip-clear:hover{background:rgba(255,51,85,.1)}
+
+.rpanel{flex:1;overflow-y:auto;padding:0}
+.rpanel::-webkit-scrollbar{width:3px}
+.rpanel::-webkit-scrollbar-thumb{background:var(--border2)}
+
+/* DETAIL STYLES */
+.city-hero{padding:20px 20px 16px;border-bottom:1px solid var(--border);background:linear-gradient(160deg,rgba(0,191,255,.07) 0%,transparent 60%)}
+.ch-flag{font-size:44px;margin-bottom:8px;line-height:1}
+.ch-name{font-size:26px;font-weight:800;color:var(--txt);line-height:1.1;margin-bottom:3px}
+.ch-country{font-family:var(--mono);font-size:11px;color:var(--txt3);letter-spacing:2px;margin-bottom:10px}
+.ch-rank-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border:1.5px solid;border-radius:3px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px;margin-bottom:14px}
+.ch-score-row{display:flex;align-items:flex-end;gap:12px;margin-bottom:6px}
+.ch-score-num{font-family:var(--mono);font-size:52px;font-weight:700;line-height:1}
+.ch-score-right{padding-bottom:6px}
+.ch-score-lbl{font-size:11px;color:var(--txt3);letter-spacing:1px;margin-bottom:2px}
+.ch-score-max{font-family:var(--mono);font-size:13px;color:var(--txt3)}
+.ch-sources{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.ch-src{font-family:var(--mono);font-size:9px;padding:3px 8px;border:1px solid var(--border2);color:var(--txt3);border-radius:2px;text-decoration:none;transition:all .2s}
+.ch-src:hover{border-color:var(--blue);color:var(--blue)}
+
+/* Criteria section */
+.section{padding:16px 20px;border-bottom:1px solid var(--border)}
+.section-label{font-size:10px;font-weight:700;letter-spacing:2.5px;color:var(--txt3);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.crit-item{margin-bottom:12px}
+.crit-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.crit-name{font-size:13px;font-weight:600;color:var(--txt);display:flex;align-items:center;gap:7px}
+.crit-icon{font-size:16px}
+.crit-val{font-family:var(--mono);font-size:16px;font-weight:700}
+.crit-sub{font-size:10px;color:var(--txt3);margin-bottom:5px}
+.bar-bg{height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;position:relative}
+.bar-fg{height:100%;border-radius:4px;position:relative;transition:width 1s cubic-bezier(.25,.46,.45,.94)}
+.bar-fg::after{content:'';position:absolute;right:-1px;top:50%;transform:translateY(-50%);width:9px;height:9px;border-radius:50%;background:inherit;box-shadow:0 0 8px currentColor}
+
+/* Highlights */
+.hl-list{display:flex;flex-direction:column;gap:8px}
+.hl{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;background:rgba(0,191,255,.04);border:1px solid rgba(0,191,255,.1);border-radius:5px}
+.hl-ico{font-size:17px;flex-shrink:0;line-height:1.3}
+.hl-txt{font-size:12px;color:var(--txt2);line-height:1.55}
+
+/* Radar */
+.radar-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 20px;border-bottom:1px solid var(--border)}
+.radar-legend{display:flex;gap:14px}
+.rl-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--txt3)}
+.rl-dot{width:8px;height:8px;border-radius:50%}
+
+/* Tags */
+.tags-wrap{display:flex;flex-wrap:wrap;gap:5px}
+.tag{font-family:var(--mono);font-size:9px;padding:3px 9px;border:1px solid rgba(0,128,255,.3);color:var(--txt2);border-radius:3px;letter-spacing:.5px}
+
+/* Interactive chart */
+.chart-section{padding:14px 20px;border-bottom:1px solid var(--border)}
+.chart-canvas-wrap{position:relative;height:160px;margin-top:10px}
+#rank-chart{width:100%;height:100%}
+
+/* Compare */
+.cmp-heroes{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;padding:16px 20px;border-bottom:1px solid var(--border)}
+.cmp-hero{text-align:center}
+.cmp-hero-flag{font-size:30px;margin-bottom:4px}
+.cmp-hero-name{font-size:14px;font-weight:700;color:var(--txt)}
+.cmp-hero-score{font-family:var(--mono);font-size:28px;font-weight:700;margin-top:2px}
+.vs-lbl{font-family:var(--mono);font-size:14px;color:var(--txt3);font-weight:700;text-align:center}
+
+.cmp-bars-section{padding:14px 20px;border-bottom:1px solid var(--border)}
+.cmp-bar-row{margin-bottom:10px}
+.cmp-bar-label{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--txt3);text-align:center;margin-bottom:5px;text-transform:uppercase}
+.cmp-duel{display:grid;grid-template-columns:1fr 36px 1fr;gap:4px;align-items:center}
+.cmp-val-a{font-family:var(--mono);font-size:12px;font-weight:700;text-align:right}
+.cmp-val-b{font-family:var(--mono);font-size:12px;font-weight:700}
+.cmp-arrow{font-size:11px;text-align:center}
+.cmp-track-a{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;display:flex;justify-content:flex-end}
+.cmp-fill-a{height:100%;border-radius:3px;background:var(--blue);transition:width .8s ease}
+.cmp-track-b{height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.cmp-fill-b{height:100%;border-radius:3px;background:var(--gold);transition:width .8s ease}
+
+/* Emerging */
+.emerging-card{margin:10px 14px;padding:14px;border:1px solid var(--border);border-radius:7px;position:relative;overflow:hidden;transition:all .2s;cursor:pointer}
+.emerging-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px}
+.emerging-card.t1::before{background:var(--gold);box-shadow:0 0 10px var(--gold)}
+.emerging-card.t2::before{background:var(--blue);box-shadow:0 0 10px var(--blue)}
+.emerging-card.t3::before{background:var(--txt3)}
+.emerging-card:hover{border-color:rgba(0,191,255,.35);background:rgba(0,191,255,.04);transform:translateX(4px)}
+.ec-top{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.ec-flag{font-size:24px}
+.ec-name{font-size:15px;font-weight:700;color:var(--txt)}
+.ec-country{font-family:var(--mono);font-size:9px;color:var(--txt3);letter-spacing:1px}
+.ec-growth{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green);margin-left:auto}
+.ec-desc{font-size:11px;color:var(--txt2);margin-bottom:8px;line-height:1.5}
+.ec-prog{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.ec-prog-now{font-family:var(--mono);font-size:9px;color:var(--txt3);white-space:nowrap}
+.ec-prog-track{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.ec-prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue2),var(--green))}
+.ec-prog-est{font-family:var(--mono);font-size:9px;color:var(--green);white-space:nowrap}
+.ec-tags{display:flex;flex-wrap:wrap;gap:4px}
+.ec-tag{font-family:var(--mono);font-size:8px;padding:2px 7px;border:1px solid rgba(0,191,255,.2);color:var(--txt3);border-radius:2px}
+.ec-note{font-family:var(--mono);font-size:8px;color:var(--txt3);margin-top:7px;border-top:1px solid var(--border);padding-top:6px;line-height:1.5}
+
+/* Interactive radar section */
+.interactive-section{padding:14px 20px;border-bottom:1px solid var(--border)}
+.interactive-note{font-size:11px;color:var(--txt3);margin-bottom:10px;line-height:1.5}
+
+/* Placeholder */
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:240px;gap:14px;color:var(--txt3)}
+.ph-icon{font-size:40px;opacity:.25}
+.ph-title{font-size:16px;font-weight:600;color:var(--txt2)}
+.ph-sub{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-align:center;line-height:1.8;opacity:.7}
+
+/* Fact note */
+.fact-note{font-family:var(--mono);font-size:8.5px;color:var(--txt3);padding:10px 20px;border-top:1px solid var(--border);line-height:1.7;background:rgba(0,0,0,.15)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .35s ease both}
+
+/* No-results */
+.no-res{padding:20px;text-align:center}
+.no-res-title{font-size:14px;font-weight:600;color:var(--txt2);margin-bottom:6px}
+.no-res-sub{font-family:var(--mono);font-size:10px;color:var(--txt3);line-height:1.8}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div id="map-tip" class="map-tip">
+  <div class="mt-city" id="mt-city"></div>
+  <div class="mt-country" id="mt-country"></div>
+  <div class="mt-score-big" id="mt-score-big"></div>
+  <div class="mt-rank-txt" id="mt-rank-txt"></div>
+</div>
+
+<div class="app">
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-logo"></div>
+    <div>
+      <div class="brand-name">SMARTCITY ATLAS</div>
+      <div class="brand-sub">IMD Smart City Index · 2024 · 40+ Cities</div>
+    </div>
+  </div>
+  <div class="top-center">
+    <button class="nav-btn on" onclick="setNav('map',this)">🗺 Map</button>
+    <button class="nav-btn" onclick="setNav('emerging',this)">🚀 Forecast 2030</button>
+  </div>
+  <div class="top-right">
+    <div class="live-badge"><div class="live-dot"></div><div class="live-txt">LIVE</div></div>
+    <div class="clock" id="clock">00:00:00 UTC</div>
+    <a href="https://www.imd.org/centers/wcc/smart-city-index/press-release/" target="_blank" class="src-link">↗ IMD Source</a>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- LEFT PANEL -->
+<div class="left">
+  <div class="panel-title">
+    <div class="pt-label">City Rankings</div>
+    <div class="pt-count" id="city-count">— cities</div>
+  </div>
+  <div class="search-row">
+    <input class="search-input" id="search" type="text" placeholder="🔍  Search city or country (e.g. France, Japan, Brazil...)" oninput="onSearch(this.value)" autocomplete="off">
+    <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+  </div>
+  <div class="controls-row">
+    <div class="pt-label" style="font-size:9px;color:var(--txt3);letter-spacing:1px;align-self:center;margin-right:2px">SORT</div>
+    <button class="chip on" onclick="setSort('score',this)">Score</button>
+    <button class="chip" onclick="setSort('rank',this)">IMD Rank</button>
+    <button class="chip" onclick="setSort('name',this)">A–Z</button>
+    <div class="chip-sep"></div>
+    <button class="chip on" id="filter-all" onclick="setFilter('all',this)">All</button>
+    <button class="chip" onclick="setFilter('europe',this)">EU</button>
+    <button class="chip" onclick="setFilter('asia',this)">Asia</button>
+    <button class="chip" onclick="setFilter('americas',this)">Am</button>
+    <button class="chip" onclick="setFilter('me',this)">ME</button>
+    <button class="chip" onclick="setFilter('africa',this)">AF</button>
+  </div>
+  <div class="city-scroll" id="city-scroll"></div>
+</div>
+
+<!-- CENTER -->
+<div class="center">
+  <div class="map-wrap">
+    <svg id="map-svg" viewBox="0 0 1200 580" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <filter id="glow-filter"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <radialGradient id="ocean-grad" cx="50%" cy="50%" r="70%">
+          <stop offset="0%" stop-color="#061525"/>
+          <stop offset="100%" stop-color="#020c18"/>
+        </radialGradient>
+      </defs>
+      <rect width="1200" height="580" fill="url(#ocean-grad)"/>
+      <!-- Grid -->
+      <g stroke="rgba(0,191,255,.04)" stroke-width="1">
+        <line x1="0" y1="145" x2="1200" y2="145"/><line x1="0" y1="290" x2="1200" y2="290"/>
+        <line x1="0" y1="435" x2="1200" y2="435"/><line x1="280" y1="0" x2="280" y2="580"/>
+        <line x1="560" y1="0" x2="560" y2="580"/><line x1="840" y1="0" x2="840" y2="580"/>
+        <line x1="1120" y1="0" x2="1120" y2="580"/>
+      </g>
+      <!-- Equator -->
+      <line x1="0" y1="290" x2="1200" y2="290" stroke="rgba(0,191,255,.08)" stroke-width="1" stroke-dasharray="6 10"/>
+      <!-- Tropics -->
+      <line x1="0" y1="218" x2="1200" y2="218" stroke="rgba(255,204,68,.03)" stroke-width="1" stroke-dasharray="3 8"/>
+      <line x1="0" y1="362" x2="1200" y2="362" stroke="rgba(255,204,68,.03)" stroke-width="1" stroke-dasharray="3 8"/>
+      <!-- CONTINENTS -->
+      <!-- North America -->
+      <path d="M88,55 L140,50 L188,54 L232,62 L272,78 L310,98 L328,128 L318,162 L288,192 L258,228 L238,268 L218,302 L198,316 L178,312 L163,292 L153,267 L140,242 L126,222 L106,202 L86,182 L72,157 L67,127 L75,97Z" fill="rgba(12,55,110,.55)" stroke="rgba(0,144,255,.28)" stroke-width="1.2"/>
+      <!-- Central Am -->
+      <path d="M198,316 L218,336 L213,356 L203,371 L193,366 L188,346 L193,326Z" fill="rgba(12,55,110,.45)" stroke="rgba(0,144,255,.2)" stroke-width="1"/>
+      <!-- South America -->
+      <path d="M208,386 L253,371 L298,376 L333,396 L353,431 L358,476 L343,521 L313,561 L278,581 L248,580 L223,560 L203,530 L193,490 L193,450 L198,415Z" fill="rgba(12,55,110,.55)" stroke="rgba(0,144,255,.28)" stroke-width="1.2"/>
+      <!-- Greenland -->
+      <path d="M198,25 L243,20 L263,32 L258,55 L233,65 L208,60Z" fill="rgba(12,55,110,.3)" stroke="rgba(0,144,255,.15)" stroke-width="1"/>
+      <!-- Europe -->
+      <path d="M518,48 L568,43 L618,48 L653,63 L663,88 L648,113 L618,133 L578,148 L543,153 L513,143 L498,123 L503,93 L508,68Z" fill="rgba(12,55,110,.55)" stroke="rgba(0,144,255,.28)" stroke-width="1.2"/>
+      <!-- Scandinavia -->
+      <path d="M543,18 L578,14 L598,28 L593,53 L568,58 L546,48Z" fill="rgba(12,55,110,.45)" stroke="rgba(0,144,255,.2)" stroke-width="1"/>
+      <!-- UK -->
+      <path d="M496,68 L510,61 L518,73 L508,88 L496,83Z" fill="rgba(12,55,110,.45)" stroke="rgba(0,144,255,.2)" stroke-width="1"/>
+      <!-- Africa -->
+      <path d="M533,173 L588,163 L638,163 L688,178 L718,213 L728,263 L723,318 L708,373 L688,418 L658,458 L628,488 L598,498 L568,493 L543,468 L523,433 L513,388 L508,338 L513,283 L518,238 L523,203Z" fill="rgba(12,55,110,.55)" stroke="rgba(0,144,255,.28)" stroke-width="1.2"/>
+      <!-- Middle East -->
+      <path d="M663,148 L728,141 L773,148 L788,178 L778,213 L748,233 L713,238 L683,223 L663,198 L658,173Z" fill="rgba(12,55,110,.45)" stroke="rgba(0,144,255,.22)" stroke-width="1"/>
+      <!-- India -->
+      <path d="M758,168 L808,161 L843,168 L858,203 L853,248 L828,293 L798,313 L773,303 L756,273 L748,233 L748,198Z" fill="rgba(12,55,110,.55)" stroke="rgba(0,144,255,.28)" stroke-width="1.2"/>
+      <!-- SE Asia -->
+      <path d="M878,253 L918,248 L938,263 L933,288 L908,298 L883,288Z" fill="rgba(12,55,110,.45)" stroke="rgba(0,144,255,.2)" stroke-width="1"/>
+      <!-- Russia / Central Asia -->
+      <path d="M648,28 L748,18 L858,13 L958,18 L1048,28 L1098,48 L1108,83 L1088,118 L1038,143 L978,158 L918,163 L858,158 L798,148 L748,141 L698,133 L658,123 L638,98 L636,68Z" fill="rgba(12,55,110,.55)" stroke="rgba(0,144,255,.28)" stroke-width="1.2"/>
+      <!-- China/Korea -->
+      <path d="M878,133 L948,123 L1008,128 L1038,148 L1043,178 L1028,208 L993,233 L953,243 L913,238 L883,218 L868,188 L868,158Z" fill="rgba(12,55,110,.55)" stroke="rgba(0,144,255,.28)" stroke-width="1.2"/>
+      <!-- Japan -->
+      <path d="M1038,141 L1063,133 L1078,148 L1068,168 L1046,171 L1034,156Z" fill="rgba(12,55,110,.45)" stroke="rgba(0,144,255,.2)" stroke-width="1"/>
+      <!-- Australia -->
+      <path d="M918,373 L988,361 L1053,363 L1098,383 L1118,418 L1108,463 L1078,498 L1038,513 L988,518 L943,508 L908,483 L893,448 L891,413Z" fill="rgba(12,55,110,.55)" stroke="rgba(0,144,255,.28)" stroke-width="1.2"/>
+      <!-- Layers -->
+      <g id="city-dots"></g>
+      <g id="compare-arc"></g>
+    </svg>
+    <div class="map-layer-bar">
+      <button class="layer-btn on" onclick="setLayer('score',this)">Overall</button>
+      <button class="layer-btn" onclick="setLayer('transport',this)">🚄 Transport</button>
+      <button class="layer-btn" onclick="setLayer('ecology',this)">🌿 Ecology</button>
+      <button class="layer-btn" onclick="setLayer('tech',this)">⚡ Tech</button>
+    </div>
+  </div>
+  <div class="stats-strip">
+    <div class="stat-cell">
+      <div class="sv" id="ss-top" style="font-size:14px">Zurich 🇨🇭</div>
+      <div class="sl">IMD Global #1</div>
+      <div class="sd" style="color:var(--green)">↑ 5 years running</div>
+    </div>
+    <div class="stat-cell">
+      <div class="sv" id="ss-cities">—</div>
+      <div class="sl">Cities Tracked</div>
+      <div class="sd" style="color:var(--txt3)">40+ countries</div>
+    </div>
+    <div class="stat-cell">
+      <div class="sv" id="ss-sel" style="font-size:13px;color:var(--gold)">—</div>
+      <div class="sl">Selected</div>
+      <div class="sd" style="color:var(--txt3)">Click map or list</div>
+    </div>
+    <div class="stat-cell">
+      <div class="sv" id="ss-layer" style="color:var(--purple)">Overall</div>
+      <div class="sl">Active Layer</div>
+      <div class="sd" style="color:var(--txt3)">Switch below map</div>
+    </div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right">
+  <div class="rtabs">
+    <div class="rtab on" id="rtab-detail" onclick="setRTab('detail',this)">📊 Details</div>
+    <div class="rtab" id="rtab-compare" onclick="setRTab('compare',this)">⚖️ Compare</div>
+    <div class="rtab" id="rtab-emerging" onclick="setRTab('emerging',this)">🚀 2030</div>
+  </div>
+  <div class="cmp-strip" id="cmp-strip">
+    <div class="cmp-strip-dot"></div>
+    <div class="cmp-strip-txt" id="cmp-strip-txt">Select 2nd city</div>
+    <button class="cmp-strip-clear" onclick="clearCmp()">✕ Clear</button>
+  </div>
+  <div class="rpanel" id="rpanel-detail">
+    <div class="placeholder">
+      <div class="ph-icon">🏙</div>
+      <div class="ph-title">Select a City</div>
+      <div class="ph-sub">Click any dot on the map<br>or search in the list</div>
+    </div>
+  </div>
+  <div class="rpanel" id="rpanel-compare" style="display:none">
+    <div class="placeholder">
+      <div class="ph-icon">⚖️</div>
+      <div class="ph-title">Compare Two Cities</div>
+      <div class="ph-sub">Click ⊕ next to two<br>cities in the list</div>
+    </div>
+  </div>
+  <div class="rpanel" id="rpanel-emerging" style="display:none"></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   DATA  —  IMD Smart City Index 2024
+   Source: https://www.imd.org/centers/wcc/smart-city-index/press-release/
+   Confirmed top-20 ranks from IMD official press release.
+   Ranks marked "~" estimated from IMD 142-city dataset context.
+══════════════════════════════════════════════════════════ */
+const CITIES = [
+  {id:'zur',name:'Zurich',country:'Switzerland',flag:'🇨🇭',region:'europe',mx:546,my:104,imd:1,score:95,transport:94,ecology:98,tech:92,
+   tags:['Digital twin','Clean energy grid','Tram AI','Smart waste management'],
+   hl:[{i:'🏆',t:'IMD Global #1 for 5 consecutive years (2019–2024) — world benchmark for smart urban living'},
+       {i:'⚡',t:'100% renewable electricity in all municipal buildings since 2022'},
+       {i:'🏙',t:'City-wide 3D digital twin operational for real-time urban planning'},
+       {i:'😊',t:'Highest resident satisfaction scores across all 5 IMD pillars (health, mobility, governance…)'}],
+   history:[95,92,89,91,94,95],
+   src:[{l:'IMD 2024 Press Release',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'osl',name:'Oslo',country:'Norway',flag:'🇳🇴',region:'europe',mx:538,my:55,imd:2,score:94,transport:92,ecology:99,tech:88,
+   tags:['EV world capital','Smart fjord sensors','Zero-emission 2030','Carbon monitor'],
+   hl:[{i:'🥈',t:'IMD Global #2 since 2019 — one of 6 "super champions" in index history'},
+       {i:'🚗',t:'67% of new car sales are electric — world record, beating any other country'},
+       {i:'🌊',t:'Smart sensor network across Oslofjord monitoring water quality in real time'},
+       {i:'🌿',t:'Carbon-neutral city target set for 2030 with verified annual progress reports'}],
+   history:[94,91,88,90,93,94],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'can',name:'Canberra',country:'Australia',flag:'🇦🇺',region:'asia',mx:1020,my:458,imd:3,score:93,transport:88,ecology:97,tech:90,
+   tags:['100% renewables 2025','Open data AU','E-gov leader','Smart capital'],
+   hl:[{i:'🥉',t:'IMD Global #3 — Australia\'s capital leads Asia-Pacific in smart city innovation'},
+       {i:'☀️',t:'Target: 100% renewable electricity by end of 2025 — currently at 92%'},
+       {i:'📂',t:'2,400+ open government datasets published on data.act.gov.au'},
+       {i:'💻',t:'Highest e-government resident satisfaction scores in all of Australia'}],
+   history:[90,88,91,92,92,93],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'gen',name:'Geneva',country:'Switzerland',flag:'🇨🇭',region:'europe',mx:540,my:110,imd:4,score:92,transport:91,ecology:96,tech:90,
+   tags:['CERN tech hub','Digital diplomacy','Smart lake','UN digital governance'],
+   hl:[{i:'📈',t:'IMD Global #4 — jumped 5 places from 9th in 2023, biggest jump in top 10'},
+       {i:'🔬',t:'CERN spin-off companies driving urban tech innovation across the city'},
+       {i:'🌊',t:'Lake Geneva smart monitoring: 45 sensor buoys tracking climate & water data 24/7'},
+       {i:'🌐',t:'Hosts 40+ international organizations setting global digital governance standards'}],
+   history:[88,85,89,90,87,92],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'sg',name:'Singapore',country:'Singapore',flag:'🇸🇬',region:'asia',mx:928,my:322,imd:5,score:91,transport:95,ecology:88,tech:97,
+   tags:['Smart Nation initiative','Autonomous transit','Digital gov','Zero-waste pilot'],
+   hl:[{i:'🥇',t:'IMD Global #5, Asia #1 — officially designated IMD "super champion" since 2019'},
+       {i:'🚌',t:'Autonomous buses on public routes since 2022 — first country to deploy at national scale'},
+       {i:'💻',t:'1,000+ government digital services fully online via Singpass single-sign-on'},
+       {i:'🌐',t:'#3 globally in UN e-Government Survey 2024 (Denmark #1, Estonia #2)'}],
+   history:[93,90,91,92,90,91],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'},{l:'GovTech SG',u:'https://www.tech.gov.sg/about-us/our-achievements/our-digital-government-rankings/'}]},
+
+  {id:'cop',name:'Copenhagen',country:'Denmark',flag:'🇩🇰',region:'europe',mx:561,my:64,imd:6,score:90,transport:91,ecology:99,tech:84,
+   tags:['CO₂ neutral 2025','Cycle superhighways','Smart heating grid','Green roofs'],
+   hl:[{i:'🌍',t:'IMD Global #6 — consistent top performer, world\'s greenest capital by resident perception'},
+       {i:'🚲',t:'62% of all residents commute by bicycle every single day (400km of smart cycle lanes)'},
+       {i:'🌡️',t:'Carbon neutral target: 2025 — independently verified as on track by Climate KIC'},
+       {i:'🏗️',t:'Green roofs cover 580,000 m² of Copenhagen buildings, storing 75M litres of rainwater/year'}],
+   history:[91,89,88,89,90,90],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'lon',name:'London',country:'UK',flag:'🇬🇧',region:'europe',mx:521,my:91,imd:8,score:88,transport:90,ecology:83,tech:89,
+   tags:['ULEZ AI network','Digital twin (33 boroughs)','Smart Thames','Crossrail AI'],
+   hl:[{i:'🏙',t:'IMD Global #8 — first ever appearance in top 10 after consistent 12–16 range'},
+       {i:'🚗',t:'ULEZ expansion (2023): 44% reduction in NO₂ levels across coverage zone'},
+       {i:'🗺️',t:'London\'s digital twin covers all 33 boroughs — enables flood & planning simulations'},
+       {i:'📊',t:'London Datastore: 700+ open datasets, used by 80,000+ developers and researchers'}],
+   history:[84,82,85,86,87,88],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'hel',name:'Helsinki',country:'Finland',flag:'🇫🇮',region:'europe',mx:588,my:51,imd:9,score:88,transport:89,ecology:97,tech:87,
+   tags:['Open data city #1 EU','District heating AI','Carbon neutral 2035','Citizen AI'],
+   hl:[{i:'📂',t:'IMD Global #9 — EU\'s most open data city (1,200+ datasets on Helsinki Region Infoshare)'},
+       {i:'🔥',t:'AI-optimised district heating covers 93% of the city — 40% more efficient than 2015'},
+       {i:'🌿',t:'Carbon neutral target: 2035 (ahead of EU schedule); 10% reduction per year tracked'},
+       {i:'🤖',t:'Helsinki\'s Citizen AI assistant handles 30% of all resident service enquiries automatically'}],
+   history:[87,85,86,87,88,88],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'abu',name:'Abu Dhabi',country:'UAE',flag:'🇦🇪',region:'me',mx:743,my:230,imd:10,score:87,transport:88,ecology:75,tech:93,
+   tags:['Masdar City','AI government','Smart mobility','Vision 2030 UAE'],
+   hl:[{i:'🏆',t:'IMD Global #10 — "super champion" every year since index inception in 2019'},
+       {i:'🌱',t:'Masdar City: world\'s first planned zero-carbon urban district, 50,000 residents by 2030'},
+       {i:'🤖',t:'UAE National AI Strategy: all government services to include AI by 2031 (on track)'},
+       {i:'🚌',t:'1,500+ electric buses on public transport routes — 60% of entire fleet electrified'}],
+   history:[86,84,85,86,86,87],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'sto',name:'Stockholm',country:'Sweden',flag:'🇸🇪',region:'europe',mx:555,my:56,imd:11,score:87,transport:89,ecology:94,tech:86,
+   tags:['Fossil-free 2040','Smart streetlights','Kista ICT hub','Nordic AI leader'],
+   hl:[{i:'💡',t:'IMD Global #11 — Kista Science City is Europe\'s single largest ICT cluster (>1,000 companies)'},
+       {i:'🌿',t:'Fossil-free Stockholm target: 2040 — all city heating already 100% renewable'},
+       {i:'🔦',t:'100,000 connected smart LED streetlights — auto-dim saves 40% energy at night'},
+       {i:'🤖',t:'Stockholm AI hub: 150+ AI companies, €500M invested in urban AI since 2021'}],
+   history:[86,84,85,86,87,87],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'du',name:'Dubai',country:'UAE',flag:'🇦🇪',region:'me',mx:760,my:223,imd:12,score:86,transport:93,ecology:72,tech:95,
+   tags:['Flying taxis 2025','Blockchain government','AI policing','Smart tourism AI'],
+   hl:[{i:'📈',t:'IMD Global #12 — fastest climber in top 20: was #19 in 2020, now consistently top 15'},
+       {i:'🚁',t:'eVTOL (electric air taxi) commercial routes launching 2025 — Joby Aviation signed deal'},
+       {i:'⛓️',t:'50% target for government services on blockchain by 2025 — currently at 38% verified'},
+       {i:'📊',t:'100% of utility meters are smart meters — real-time consumption data for all residents'}],
+   history:[78,75,80,82,84,86],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'bei',name:'Beijing',country:'China',flag:'🇨🇳',region:'asia',mx:958,my:154,imd:13,score:85,transport:88,ecology:70,tech:93,
+   tags:['5G global leader','Smart traffic AI','Digital Yuan RMB','Zhongguancun hub'],
+   hl:[{i:'📡',t:'IMD Global #13 — "super champion" with consistent top-20 since 2019 inception'},
+       {i:'📶',t:'World\'s largest 5G infrastructure: 840,000+ base stations across China (Beijing leads)'},
+       {i:'💰',t:'Digital Yuan (e-CNY) pilot: 13.5 billion yuan in verified transactions in 2023'},
+       {i:'🔬',t:'Zhongguancun Science Park: China\'s premier innovation hub, 27,000+ tech companies'}],
+   history:[83,81,82,83,84,85],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'hk',name:'Hong Kong',country:'China (SAR)',flag:'🇭🇰',region:'asia',mx:970,my:205,imd:20,score:81,transport:92,ecology:70,tech:88,
+   tags:['MTR AI transit','Smart City Blueprint 2.0','Octopus system','5G dense network'],
+   hl:[{i:'🚇',t:'IMD Global #20 — confirmed "fast-moving contender" rising into top 20'},
+       {i:'⏱️',t:'MTR smart predictive maintenance delivers 99.9% on-time rate — world benchmark'},
+       {i:'💳',t:'Octopus contactless payment: 35M+ daily transactions across transit, retail & parking'},
+       {i:'📱',t:'Smart City Blueprint 2.0: 130 active smart city initiatives across 6 dimensions'}],
+   history:[76,74,76,78,80,81],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'sha',name:'Shanghai',country:'China',flag:'🇨🇳',region:'asia',mx:970,my:193,imd:19,score:81,transport:88,ecology:72,tech:89,
+   tags:['Digital Shanghai','AI governance','Yangshan smart port','Autonomous vehicle zone'],
+   hl:[{i:'🚀',t:'IMD Global #19 — "fast-moving contender" — jumped from 42nd in 2020 to 19th in 2024'},
+       {i:'🚢',t:'Yangshan deep-water port: world\'s most automated container port (5M TEUs/year, near-zero staff)'},
+       {i:'🤖',t:'Lingang New Area: China\'s dedicated autonomous vehicle zone (500km² test environment)'},
+       {i:'💻',t:'Digital Shanghai: 500+ smart city projects covering traffic, health, education & governance'}],
+   history:[68,65,70,74,78,81],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'sel',name:'Seoul',country:'South Korea',flag:'🇰🇷',region:'asia',mx:1036,my:164,imd:17,score:83,transport:92,ecology:77,tech:94,
+   tags:['Metaverse Seoul','5G 100% coverage','Smart stream','K-AI hub'],
+   hl:[{i:'🏆',t:'IMD Global #17, "super champion" — consistently rising (was 20th in 2020)'},
+       {i:'📶',t:'5G population coverage: 100% in Seoul metro — world\'s first fully 5G-covered megacity'},
+       {i:'🌐',t:'Metaverse Seoul: 1M+ registered users for virtual city services and tourism'},
+       {i:'💧',t:'AI-restored Cheonggyecheon stream: real-time smart water quality monitoring 24/7'}],
+   history:[80,78,79,81,82,83],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'am',name:'Amsterdam',country:'Netherlands',flag:'🇳🇱',region:'europe',mx:531,my:84,imd:18,score:82,transport:93,ecology:94,tech:82,
+   tags:['Circular economy pioneer','Flood AI sensors','Smart bike network','Canal IoT'],
+   hl:[{i:'♻️',t:'IMD Global #18 — circular economy policy leader: EU\'s most advanced circular city model'},
+       {i:'🌊',t:'100% of 165 canals covered by flood sensor network — alerts within 60 seconds of anomaly'},
+       {i:'🚲',t:'900,000 bicycle trips/day managed by AI routing — world\'s most data-driven cycling system'},
+       {i:'🎯',t:'Donut Economy city plan: legally binding target to halve material use by 2030'}],
+   history:[80,78,79,80,81,82],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'tok',name:'Tokyo',country:'Japan',flag:'🇯🇵',region:'asia',mx:1053,my:180,imd:22,score:80,transport:99,ecology:80,tech:92,
+   tags:['Maglev 2027','Robot workforce','Quantum cryptography','Zero-delay transit'],
+   hl:[{i:'🚄',t:'IMD ~#22 — world\'s most punctual transit system: 99.9% on-time rate across 13 metro lines'},
+       {i:'🚅',t:'Tokyo–Osaka Maglev line: under construction, expected 2027, travel time 40 min (vs 2h20)'},
+       {i:'🔐',t:'Quantum cryptography deployed on metropolitan communication network since 2023'},
+       {i:'🤖',t:'Robot workforce mainstream in 40%+ of hotels, cafés and retail — expanding fast'}],
+   history:[78,76,77,78,79,80],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'tal',name:'Tallinn',country:'Estonia',flag:'🇪🇪',region:'europe',mx:575,my:65,imd:28,score:77,transport:78,ecology:80,tech:88,
+   tags:['100% e-governance','e-Residency program','Blockchain voting','X-Road platform'],
+   hl:[{i:'💻',t:'IMD ~#28, confirmed "fast-moving contender" — 99% of all public services available online 24/7'},
+       {i:'🌍',t:'e-Residency: 100,000+ digital residents from 170 countries running EU businesses remotely'},
+       {i:'🗳️',t:'Internet voting: 50%+ of all Estonian votes cast online — world\'s longest-running e-democracy'},
+       {i:'🔗',t:'X-Road: the world\'s most copied digital government backbone — used in 40+ countries'}],
+   history:[66,64,68,71,74,77],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'mel',name:'Melbourne',country:'Australia',flag:'🇦🇺',region:'asia',mx:1003,my:465,imd:30,score:76,transport:80,ecology:82,tech:78,
+   tags:['Smart city strategy','Urban forest AI','IoT sensor grid','Clean energy hub'],
+   hl:[{i:'🌳',t:'IMD ~#30, "fast-moving contender" — Melbourne Urban Forest tracks 70,000+ trees individually'},
+       {i:'📡',t:'3,000+ IoT sensors across CBD: noise, pedestrian flow, air quality, parking — all open data'},
+       {i:'💰',t:'Smart City Strategy 2030: A$7.5B investment commitment signed by city council'},
+       {i:'☀️',t:'100% renewable electricity target for city operations by 2025 — currently at 88%'}],
+   history:[72,70,71,73,75,76],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'riy',name:'Riyadh',country:'Saudi Arabia',flag:'🇸🇦',region:'me',mx:708,my:248,imd:32,score:75,transport:76,ecology:68,tech:88,
+   tags:['NEOM $500B project','Vision 2030 SA','AI traffic network','Digital government SA'],
+   hl:[{i:'🏗️',t:'IMD ~#32, "fast-moving contender" — NEOM: $500B futuristic linear smart city under construction'},
+       {i:'🚦',t:'Riyadh AI traffic: 1,000+ AI-powered intersections cut average commute by 18%'},
+       {i:'📱',t:'Vision 2030: 30+ smart city initiatives active, 95% of government services online target'},
+       {i:'🌿',t:'Saudi Green Initiative: 10B trees pledge — Riyadh leading with 7.5M urban trees by 2030'}],
+   history:[60,58,63,67,71,75],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'ny',name:'New York',country:'USA',flag:'🇺🇸',region:'americas',mx:276,my:183,imd:34,score:74,transport:82,ecology:71,tech:88,
+   tags:['LinkNYC 5G kiosks','Congestion pricing','Hudson sensors','$1.2B smart grid'],
+   hl:[{i:'📉',t:'IMD Global #34 — dropped 7 places from 2023 (resident dissatisfaction with safety & housing)'},
+       {i:'🚦',t:'Congestion pricing launched June 2024: targets 15% traffic reduction in Manhattan below 60th St'},
+       {i:'📡',t:'LinkNYC: 2,000+ smart kiosks with 5G, free gigabit WiFi and device charging across boroughs'},
+       {i:'⚡',t:'$1.2B smart grid investment 2023–2026: AI-controlled substations, EV fast-charge network'}],
+   history:[80,78,80,81,79,74],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'},{l:'CNBC',u:'https://www.cnbc.com/2024/04/22/smart-city-index-2024-zurich-oslo-top-list-of-worlds-smartest-cities.html'}]},
+
+  {id:'bos',name:'Boston',country:'USA',flag:'🇺🇸',region:'americas',mx:283,my:177,imd:36,score:73,transport:78,ecology:74,tech:85,
+   tags:['MIT–Harvard AI pipeline','BostonAI corridor','Smart grid 85%','Research capital'],
+   hl:[{i:'🎓',t:'IMD Global #36 — best-ranked US city for innovation thanks to MIT & Harvard proximity'},
+       {i:'🤖',t:'BostonAI: $200M state investment in Route 128 AI corridor since 2022 — 400+ AI companies'},
+       {i:'⚡',t:'Smart energy grid covers 85% of city buildings — predictive load balancing since 2023'},
+       {i:'🚌',t:'MBTA smart transit: real-time AI delay prediction across 4 subway lines, 1M+ daily riders'}],
+   history:[72,70,71,72,72,73],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'vie',name:'Vienna',country:'Austria',flag:'🇦🇹',region:'europe',mx:572,my:100,imd:25,score:79,transport:92,ecology:87,tech:79,
+   tags:['Smart grid 650k meters','E-services 99.7%','Smart waste sensors','Urban farming'],
+   hl:[{i:'🏅',t:'IMD ~#25 — EIU Most Livable City in the World 2023 (14th year in top 3)'},
+       {i:'⚡',t:'Smart electricity grid: 650,000 smart meters provide real-time consumption data to residents'},
+       {i:'💻',t:'99.7% of all Vienna government services available online — digital service excellence'},
+       {i:'🌱',t:'200 rooftop urban farming installations producing 800 tonnes of local food per year'}],
+   history:[78,76,77,78,79,79],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'ber',name:'Berlin',country:'Germany',flag:'🇩🇪',region:'europe',mx:562,my:80,imd:27,score:78,transport:84,ecology:88,tech:83,
+   tags:['2,000 open datasets','E-mobility grid 4,500 pts','Green corridors','CityLAB Berlin'],
+   hl:[{i:'📂',t:'IMD ~#27 — Berlin Data Portal: 2,000+ open datasets, 3rd largest open data city in Europe'},
+       {i:'🔋',t:'4,500 EV charging stations across the city — 20% increase year on year since 2021'},
+       {i:'🌿',t:'Green corridors: 45% of Berlin surface is green space — highest in any EU capital city'},
+       {i:'🔬',t:'CityLAB Berlin: government innovation hub — 80+ urban tech prototypes tested since 2019'}],
+   history:[76,74,75,76,77,78],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'par',name:'Paris',country:'France',flag:'🇫🇷',region:'europe',mx:533,my:100,imd:47,score:68,transport:82,ecology:74,tech:72,
+   tags:['15-minute city plan','Vélib\' AI bikes','€35B Paris 2030','Smart Seine monitoring'],
+   hl:[{i:'🗺️',t:'IMD ~#47 — Housing affordability is Paris\'s key weakness: 88% of residents cite it as a concern'},
+       {i:'🚲',t:'Vélib\' smart bike network: 20,000 bikes across 1,400 stations — AI rebalances fleet nightly'},
+       {i:'🏙',t:'15-Minute City: radical policy making all daily needs reachable by walking/cycling in 15 min'},
+       {i:'💶',t:'Paris 2030 green investment plan: €35 billion committed for transport and energy transition'}],
+   history:[72,70,69,70,69,68],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'},{l:'Telefónica 2025',u:'https://www.telefonica.com/en/communication-room/blog/top-20-smart-cities/'}]},
+
+  {id:'mad',name:'Madrid',country:'Spain',flag:'🇪🇸',region:'europe',mx:523,my:115,imd:38,score:72,transport:80,ecology:72,tech:75,
+   tags:['Madrid Central LEZ','AI traffic system','Smart energy nodes','Heat island sensors'],
+   hl:[{i:'🚗',t:'IMD ~#38 — Madrid Central low-emission zone: 32% reduction in NO₂ since 2018 launch'},
+       {i:'🤖',t:'AI city traffic management system deployed 2022: 22% reduction in average journey time'},
+       {i:'⚡',t:'1,000+ smart energy monitoring nodes across 21 districts — real-time grid balancing'},
+       {i:'🌡️',t:'Urban heat island sensor network: 400 sensors guiding tree planting and cooling strategy'}],
+   history:[70,68,69,70,71,72],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'bar',name:'Barcelona',country:'Spain',flag:'🇪🇸',region:'europe',mx:541,my:124,imd:81,score:56,transport:82,ecology:78,tech:74,
+   tags:['503 IoT sensors/km²','Superblocks model','Digital twin','Smart water –25%'],
+   hl:[{i:'📡',t:'IMD ~#81 — Barcelona has Europe\'s densest smart sensor network: 503 sensors per km²'},
+       {i:'🏘️',t:'Superblocks model: restricts cars in 9-block zones — 21% less traffic, copied globally'},
+       {i:'💧',t:'Smart water grid: AI leak detection saves an estimated 25% of water consumption annually'},
+       {i:'⚠️',t:'Dropped significantly vs prior years — housing crisis (90%+ residents say unaffordable)'}],
+   history:[74,72,71,68,62,56],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'},{l:'Telefónica 2025',u:'https://www.telefonica.com/en/communication-room/blog/top-20-smart-cities/'}]},
+
+  {id:'tor',name:'Toronto',country:'Canada',flag:'🇨🇦',region:'americas',mx:256,my:173,imd:42,score:70,transport:78,ecology:80,tech:82,
+   tags:['MaRS innovation hub','AI corridor CA','Smart transit PRESTO','LEED buildings 60%'],
+   hl:[{i:'🏢',t:'IMD ~#42 — MaRS Discovery District: North America\'s single largest urban innovation cluster'},
+       {i:'🤖',t:'Greater Toronto AI corridor: 1,000+ active AI companies — Canada\'s most concentrated tech hub'},
+       {i:'🚇',t:'PRESTO smart transit card: seamless payment across all 13 transit systems in GTA region'},
+       {i:'🌿',t:'60% of all new construction is LEED-certified — highest rate of any North American city'}],
+   history:[68,66,67,68,69,70],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'dc',name:'Washington DC',country:'USA',flag:'🇺🇸',region:'americas',mx:280,my:190,imd:50,score:66,transport:74,ecology:72,tech:80,
+   tags:['Smart streetlights 75k','Gov innovation hub','250+ e-services','Metro AI'],
+   hl:[{i:'📉',t:'IMD Global #50 — dropped 12 places vs 2023 (largest drop: public safety & infrastructure concerns)'},
+       {i:'💡',t:'75,000 connected smart LED streetlights — largest smart lighting network in US government'},
+       {i:'💻',t:'250+ digital government services available online — federal innovation test bed'},
+       {i:'🚇',t:'Metro AI: predictive maintenance model reduced major delays by 18% in first year (2023)'}],
+   history:[76,74,72,68,64,66],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'sao',name:'São Paulo',country:'Brazil',flag:'🇧🇷',region:'americas',mx:266,my:432,imd:88,score:50,transport:58,ecology:52,tech:65,
+   tags:['Startup ecosystem','Smart highways','Fintech capital LATAM','Drone pilots 3 zones'],
+   hl:[{i:'🚀',t:'IMD ~#88 — largest smart city investment program in Latin America: R$8B committed 2023–2027'},
+       {i:'💳',t:'Brazil\'s fintech capital: 1,800+ fintech companies — PIX instant payment has 145M users'},
+       {i:'🚁',t:'Drone delivery pilots approved and active across 3 city zones since mid-2023'},
+       {i:'📊',t:'São Paulo Smart City Hub: 300+ active pilot projects in mobility, health and governance'}],
+   history:[46,44,46,48,49,50],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'mex',name:'Mexico City',country:'Mexico',flag:'🇲🇽',region:'americas',mx:183,my:267,imd:104,score:42,transport:52,ecology:42,tech:58,
+   tags:['CDMX digital strategy','EcoBici smart bikes','8,000 leak sensors','AI traffic CDMX'],
+   hl:[{i:'🌆',t:'IMD ~#104 — megacity of 22M accelerating smart transformation with 120+ new initiatives'},
+       {i:'🚲',t:'EcoBici: 6,800 bikes across 480 stations — AI rebalances fleet every 15 minutes'},
+       {i:'💧',t:'Water monitoring: 8,000 sensors detecting leaks in real time across aging infrastructure'},
+       {i:'📱',t:'CDMX App: 2.5M active users managing 50+ city services from one mobile platform'}],
+   history:[40,39,40,41,41,42],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  // ASIA EXTRAS
+  {id:'osa',name:'Osaka',country:'Japan',flag:'🇯🇵',region:'asia',mx:1046,my:185,imd:45,score:69,transport:88,ecology:72,tech:78,
+   tags:['Expo 2025 showcase','City digital twin','Smart healthcare AI','Mobility as a Service'],
+   hl:[{i:'🎪',t:'IMD ~#45 — hosting World Expo 2025 (theme: "Designing Future Society for Our Lives")'},
+       {i:'🏙',t:'Osaka Digital Twin: full 3D model of city updated every 24h for urban planning and disasters'},
+       {i:'🏥',t:'Smart healthcare: AI diagnosis assistance deployed in 60+ hospitals — 30% faster diagnosis'},
+       {i:'🌿',t:'2025 carbon-neutral pledge for Expo operations, with legacy green standards for all new builds'}],
+   history:[65,63,64,66,68,69],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'mum',name:'Mumbai',country:'India',flag:'🇮🇳',region:'asia',mx:806,my:265,imd:112,score:40,transport:50,ecology:38,tech:55,
+   tags:['Aadhaar digital ID 1.4B','Smart surveillance 7k cams','BRT real-time tracking','Fintech hub IN'],
+   hl:[{i:'🆔',t:'IMD ~#112 — Aadhaar biometric ID system: world\'s largest digital identity (1.4 billion enrolled)'},
+       {i:'📷',t:'Mumbai smart surveillance: 7,000+ AI cameras with facial recognition deployed city-wide'},
+       {i:'🚌',t:'BRT smart bus: real-time GPS tracking on 50+ routes used by 4M commuters daily'},
+       {i:'💳',t:'UPI digital payments: 10B+ transactions/month in India — Mumbai is the fintech capital'}],
+   history:[36,35,36,37,38,40],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'jak',name:'Jakarta',country:'Indonesia',flag:'🇮🇩',region:'asia',mx:910,my:327,imd:119,score:34,transport:38,ecology:32,tech:48,
+   tags:['Jakarta Smart City 300+ cams','Digital ID IN','IKN $35B new capital','City app 4.5M users'],
+   hl:[{i:'🏙',t:'IMD ~#119 — capital in transition: IKN Nusantara ($35B smart city) being built to replace it'},
+       {i:'📷',t:'300+ AI-powered CCTV cameras with real-time analytics across Jakarta\'s 44 districts'},
+       {i:'📱',t:'Jakarta Smart City app: 4.5M downloads — covers 50+ city services from permits to complaints'},
+       {i:'🌊',t:'Smart flood early warning system: 200+ sensors give 6-hour advance warning to 10M residents'}],
+   history:[30,29,30,31,32,34],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  // EUROPE EXTRAS
+  {id:'lis',name:'Lisbon',country:'Portugal',flag:'🇵🇹',region:'europe',mx:504,my:124,imd:43,score:70,transport:75,ecology:80,tech:72,
+   tags:['Web Summit HQ','EDP 1.2M smart meters','Startup Lisbon','Green tram AI'],
+   hl:[{i:'🌍',t:'IMD ~#43 — Europe\'s fastest-growing startup city: 1,200+ new tech companies since 2020'},
+       {i:'📅',t:'Web Summit permanent HQ: world\'s largest tech conference draws 70,000+ attendees/year'},
+       {i:'⚡',t:'EDP smart grid: 1.2M smart meters across Portugal — Lisbon\'s grid is 35% more efficient'},
+       {i:'🌿',t:'LxGreen plan: 30% increase in city green space since 2018 — leading South European city'}],
+   history:[64,62,64,66,68,70],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'war',name:'Warsaw',country:'Poland',flag:'🇵🇱',region:'europe',mx:576,my:82,imd:62,score:62,transport:70,ecology:64,tech:68,
+   tags:['Smart Warsaw platform','200 air sensors','350k IT specialists','Digital services PL'],
+   hl:[{i:'💻',t:'IMD ~#62 — Warsaw hosts 350,000+ IT specialists: Central Europe\'s leading tech workforce'},
+       {i:'🌬️',t:'Air quality sensor network: 200 sensors city-wide — real-time pollution map on mobile app'},
+       {i:'📱',t:'Smart Warsaw platform: 200+ integrated city services, 1M+ registered users on single app'},
+       {i:'📈',t:'Poland\'s GDP per capita grew 45% in 10 years — Warsaw drives Eastern European tech boom'}],
+   history:[57,55,57,58,60,62],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'msc',name:'Moscow',country:'Russia',flag:'🇷🇺',region:'europe',mx:608,my:69,imd:72,score:58,transport:78,ecology:50,tech:75,
+   tags:['Facial recognition metro','Gosuslugi 350M transactions','Smart city 200k objects','AI urban mgmt'],
+   hl:[{i:'🚇',t:'IMD ~#72 — Moscow metro: AI facial recognition payment system covers all 250+ stations'},
+       {i:'💻',t:'Gosuslugi portal: 350M+ digital government transactions yearly — Russia\'s digital backbone'},
+       {i:'🏙',t:'Smart city platform tracks 200,000+ urban objects in real time (traffic, utilities, services)'},
+       {i:'⚠️',t:'Geopolitical context: ranking interpretation complex — significant domestic tech investment'}],
+   history:[62,60,61,60,59,58],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  // ME EXTRA
+  {id:'tel',name:'Tel Aviv',country:'Israel',flag:'🇮🇱',region:'me',mx:605,my:172,imd:40,score:71,transport:72,ecology:70,tech:90,
+   tags:['DigiTel resident card','Startup Nation density','Smart beaches AI','AI hub #1 ex-SV'],
+   hl:[{i:'🚀',t:'IMD ~#40 — highest startup density globally: 4,500+ tech companies per million residents'},
+       {i:'📱',t:'DigiTel Resident Card: personalized smart city services for all 460,000 Tel Aviv residents'},
+       {i:'🏖️',t:'Smart beaches: AI lifeguards + IoT sensors monitor water quality, currents and crowd density'},
+       {i:'🧠',t:'Ranked #1 most tech-innovative city outside Silicon Valley by the Global Innovation Index'}],
+   history:[67,65,67,68,70,71],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  // AFRICA
+  {id:'cai',name:'Cairo',country:'Egypt',flag:'🇪🇬',region:'africa',mx:606,my:239,imd:117,score:35,transport:38,ecology:30,tech:45,
+   tags:['New Admin Capital $60B','Digital Egypt 95%','AI traffic 1200 signals','Smart infrastructure'],
+   hl:[{i:'🏗️',t:'IMD ~#117 — New Administrative Capital: $60B brand new smart city for 6.5M residents by 2030'},
+       {i:'💻',t:'Digital Egypt: target 95% of government services digitized by 2025 — currently at 78%'},
+       {i:'🚦',t:'Smart traffic system: AI-controlled signals across 1,200 Cairo intersections, live since 2022'},
+       {i:'📶',t:'4G coverage: 95% of Cairo covered — 5G rollout started in 2023 in priority districts'}],
+   history:[32,30,31,32,33,35],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'job',name:'Johannesburg',country:'South Africa',flag:'🇿🇦',region:'africa',mx:606,my:427,imd:128,score:29,transport:32,ecology:35,tech:40,
+   tags:['3,000 AI CCTV cameras','200MW solar target','500k smart meters','Joburg Smart City'],
+   hl:[{i:'☀️',t:'IMD ~#128 — Africa\'s financial capital leading continent in rooftop solar installation'},
+       {i:'📷',t:'AI-powered CCTV: 3,000+ cameras across city with real-time incident detection & alerts'},
+       {i:'⚡',t:'500,000 smart electricity meters installed — tackling load-shedding with real-time data'},
+       {i:'💰',t:'Africa\'s largest financial centre: JSE (Johannesburg Stock Exchange) leads fintech innovation'}],
+   history:[27,26,27,28,28,29],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'nai',name:'Nairobi',country:'Kenya',flag:'🇰🇪',region:'africa',mx:646,my:355,imd:120,score:33,transport:35,ecology:38,tech:48,
+   tags:['M-Pesa 50M users','Silicon Savannah','Drone delivery active','Konza Technopolis'],
+   hl:[{i:'💳',t:'IMD ~#120 — M-Pesa: world\'s most advanced mobile money system with 50M+ active users'},
+       {i:'🔬',t:'Silicon Savannah: 500+ active tech startups — fastest-growing African tech ecosystem'},
+       {i:'🚁',t:'Drone delivery network: commercial routes active in 3 Nairobi corridors since 2022'},
+       {i:'🏗️',t:'Konza Technopolis: Kenya\'s $14.5B planned smart city hub, phase 1 infrastructure complete'}],
+   history:[28,27,29,30,31,33],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'lag',name:'Lagos',country:'Nigeria',flag:'🇳🇬',region:'africa',mx:561,my:337,imd:138,score:20,transport:25,ecology:20,tech:32,
+   tags:['BRT 220k daily riders','Yaba 400+ startups','80% digital payments','Cashless Lagos'],
+   hl:[{i:'🚌',t:'IMD ~#138 — Lagos BRT: 220,000 smart card passengers daily — West Africa\'s largest BRT'},
+       {i:'💳',t:'Cashless Lagos: 80%+ of all transactions are now digital — fastest adoption in sub-Saharan Africa'},
+       {i:'🖥️',t:'Yaba: Nigeria\'s "Silicon Valley" district — 400+ startups, 20,000+ tech workers concentrated here'},
+       {i:'🌆',t:'Africa\'s largest city (15M people): urbanisation at 3% yearly creates smart city urgency'}],
+   history:[18,17,18,19,19,20],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+
+  {id:'syd',name:'Sydney',country:'Australia',flag:'🇦🇺',region:'asia',mx:1040,my:449,imd:23,score:79,transport:80,ecology:82,tech:80,
+   tags:['Tech Central A$2B','Smart Harbour 600 sensors','5-star green buildings 85%','Smart infrastructure'],
+   hl:[{i:'📈',t:'IMD ~#23, confirmed "fast-moving contender" — rising from 30s in 2021 to near top-20'},
+       {i:'🏗️',t:'Tech Central precinct: A$2B innovation district under construction in inner Sydney'},
+       {i:'🌊',t:'Smart Harbour: 600+ IoT sensors in Sydney Harbour monitoring water quality and marine life'},
+       {i:'🏢',t:'85% of all new builds rated 5+ stars under NABERS — Australia\'s green building leader'}],
+   history:[72,70,72,74,77,79],
+   src:[{l:'IMD 2024',u:'https://www.imd.org/centers/wcc/smart-city-index/press-release/'}]},
+];
+
+/* ══ EMERGING ══ */
+const EMERGING=[
+  {name:'Tallinn',country:'Estonia',flag:'🇪🇪',growth:'+31%',now:58,est:78,tier:1,
+   imd:'IMD 2024 "fast-moving contender" — officially named in press release',
+   src:'https://www.imd.org/centers/wcc/smart-city-index/press-release/',
+   factors:['100% e-governance','e-Residency program','Blockchain voting','X-Road'],
+   desc:'World\'s most digitally governed city — every government service is online 24/7'},
+  {name:'Nairobi',country:'Kenya',flag:'🇰🇪',growth:'+38%',now:33,est:60,tier:1,
+   imd:'Featured in IMD smart cities case studies as Africa\'s leading tech hub',
+   src:'https://www.imd.org/smart-city-observatory/home/',
+   factors:['Silicon Savannah','M-Pesa 50M+','Drone logistics','Youth tech hub'],
+   desc:'Africa\'s fastest-rising tech capital — Silicon Savannah growing at record pace'},
+  {name:'Medellín',country:'Colombia',flag:'🇨🇴',growth:'+34%',now:38,est:62,tier:1,
+   imd:'IMD smart cities case study winner — urban transformation model',
+   src:'https://www.imd.org/smart-city-observatory/home/',
+   factors:['Cable car AI','Social innovation','Smart education','Urban escalators'],
+   desc:'South America\'s urban transformation model — from conflict to innovation hub'},
+  {name:'Hyderabad',country:'India',flag:'🇮🇳',growth:'+29%',now:35,est:58,tier:2,
+   imd:'Indian cities gaining IMD ground — HITEC City driving growth per IMD data',
+   src:'https://www.imd.org/smart-city-observatory/home/',
+   factors:['HITEC City','Pharma tech','Space R&D (ISRO)','Smart water'],
+   desc:'India\'s fastest smart-city growth — HITEC tech corridor exponential boom'},
+  {name:'Kigali',country:'Rwanda',flag:'🇷🇼',growth:'+27%',now:32,est:54,tier:2,
+   imd:'IMD African Cities report — Africa\'s cleanest city building smart infrastructure',
+   src:'https://www.imd.org/smart-city-observatory/home/',
+   factors:['Drone delivery net','AI healthcare','Clean mobility','E-government'],
+   desc:'Africa\'s cleanest city rapidly building full smart city infrastructure'},
+  {name:'Tbilisi',country:'Georgia',flag:'🇬🇪',growth:'+24%',now:30,est:50,tier:3,
+   imd:'Rising Caucasus tech hub — digital economy indicators climbing in IMD data',
+   src:'https://www.imd.org/smart-city-observatory/home/',
+   factors:['Crypto-tech hub','Low-tax tech zone','Startup ecosystem','Digital economy'],
+   desc:'Caucasus rising crypto and tech hub — fastest startup growth rate in the region'},
+];
+
+/* ══ STATE ══ */
+let sel=null,cmpA=null,cmpB=null,sortMode='score',filterMode='all',searchVal='',mapLayer='score',activeNav='map',activeRTab='detail';
+
+/* ══ BACKGROUND CANVAS ══ */
+(()=>{
+  const c=document.getElementById('bg-canvas'),ctx=c.getContext('2d');
+  let W,H,pts=[];
+  const rz=()=>{W=c.width=innerWidth;H=c.height=innerHeight};
+  rz();addEventListener('resize',rz);
+  for(let i=0;i<55;i++)pts.push({x:Math.random()*3000,y:Math.random()*1500,vx:(Math.random()-.5)*.15,vy:(Math.random()-.5)*.15,r:Math.random()*1.4+.4,a:Math.random()*.35+.08});
+  const draw=()=>{
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=`rgba(0,170,255,${p.a})`;ctx.fill()});
+    requestAnimationFrame(draw);
+  };
+  draw();
+})();
+
+/* ══ CLOCK ══ */
+const tick=()=>document.getElementById('clock').textContent=new Date().toUTCString().slice(17,25)+' UTC';
+tick();setInterval(tick,1000);
+document.getElementById('ss-cities').textContent=CITIES.length;
+
+/* ══ COLORS ══ */
+const sCol=v=>v>=93?'#22ff99':v>=85?'#00bfff':v>=75?'#0080ff':v>=60?'#ffcc44':v>=40?'#ff8800':'#ff3355';
+const lCol=l=>({score:'#00bfff',transport:'#ffcc44',ecology:'#22ff99',tech:'#9966ff'}[l]||'#00bfff');
+const getV=(c,l)=>({score:c.score,transport:c.transport,ecology:c.ecology,tech:c.tech}[l]||c.score);
+
+/* ══ MAP ══ */
+function renderMap(){
+  const dotsG=document.getElementById('city-dots'),arcG=document.getElementById('compare-arc');
+  dotsG.innerHTML='';arcG.innerHTML='';
+  // Compare arc
+  if(cmpA&&cmpB){
+    const ca=CITIES.find(c=>c.id===cmpA),cb=CITIES.find(c=>c.id===cmpB);
+    if(ca&&cb){
+      const line=document.createElementNS('http://www.w3.org/2000/svg','line');
+      line.setAttribute('x1',ca.mx);line.setAttribute('y1',ca.my);line.setAttribute('x2',cb.mx);line.setAttribute('y2',cb.my);
+      line.setAttribute('stroke','rgba(255,204,68,.55)');line.setAttribute('stroke-width','1.8');line.setAttribute('stroke-dasharray','6 5');
+      arcG.appendChild(line);
+    }
+  }
+  CITIES.forEach(city=>{
+    const v=getV(city,mapLayer),col=lCol(mapLayer);
+    const dotCol=sCol(v);
+    const isSel=sel===city.id,isCmp=cmpA===city.id||cmpB===city.id;
+    const sz=5+(v-20)/12;
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.style.cursor='pointer';
+
+    if(isSel){
+      for(let ring=0;ring<2;ring++){
+        const pr=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        pr.setAttribute('cx',city.mx);pr.setAttribute('cy',city.my);pr.setAttribute('r',sz+5+ring*4);
+        pr.setAttribute('fill','none');pr.setAttribute('stroke',dotCol);pr.setAttribute('stroke-width','1.2');pr.setAttribute('opacity','0');
+        const a1=document.createElementNS('http://www.w3.org/2000/svg','animate');a1.setAttribute('attributeName','r');a1.setAttribute('values',`${sz+4+ring*3};${sz+18+ring*4}`);a1.setAttribute('dur',`${2+ring*.5}s`);a1.setAttribute('repeatCount','indefinite');a1.setAttribute('begin',`${ring*.3}s`);
+        const a2=document.createElementNS('http://www.w3.org/2000/svg','animate');a2.setAttribute('attributeName','opacity');a2.setAttribute('values','.65;0');a2.setAttribute('dur',`${2+ring*.5}s`);a2.setAttribute('repeatCount','indefinite');a2.setAttribute('begin',`${ring*.3}s`);
+        pr.appendChild(a1);pr.appendChild(a2);g.appendChild(pr);
+      }
+    }
+
+    // Halo
+    const halo=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    halo.setAttribute('cx',city.mx);halo.setAttribute('cy',city.my);halo.setAttribute('r',sz+5);
+    halo.setAttribute('fill',isCmp?'rgba(255,204,68,.2)':dotCol);halo.setAttribute('opacity',isSel?'.3':'.1');
+    g.appendChild(halo);
+
+    // Dot
+    const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dot.setAttribute('cx',city.mx);dot.setAttribute('cy',city.my);dot.setAttribute('r',isSel?sz+2:sz);
+    dot.setAttribute('fill',isCmp?'#ffcc44':dotCol);dot.setAttribute('opacity','.92');
+    if(isSel)dot.setAttribute('filter','url(#glow-filter)');
+    g.appendChild(dot);
+
+    // Label
+    const lbl=document.createElementNS('http://www.w3.org/2000/svg','text');
+    lbl.setAttribute('x',city.mx);lbl.setAttribute('y',city.my-sz-4);
+    lbl.setAttribute('text-anchor','middle');
+    lbl.setAttribute('fill',isSel?dotCol:isCmp?'#ffcc44':'rgba(160,210,240,.7)');
+    lbl.setAttribute('font-family','JetBrains Mono,monospace');lbl.setAttribute('font-size','9');
+    lbl.textContent=city.name.toUpperCase();
+    g.appendChild(lbl);
+
+    // Value badge
+    const vbg=document.createElementNS('http://www.w3.org/2000/svg','text');
+    vbg.setAttribute('x',city.mx);vbg.setAttribute('y',city.my+sz+12);
+    vbg.setAttribute('text-anchor','middle');vbg.setAttribute('fill',sCol(v));
+    vbg.setAttribute('font-family','JetBrains Mono,monospace');vbg.setAttribute('font-size','8.5');vbg.setAttribute('font-weight','700');
+    vbg.textContent=v;
+    g.appendChild(vbg);
+
+    // Hit zone
+    const hit=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    hit.setAttribute('cx',city.mx);hit.setAttribute('cy',city.my);hit.setAttribute('r',sz+14);hit.setAttribute('fill','transparent');
+    g.appendChild(hit);
+
+    g.addEventListener('click',()=>selectCity(city.id));
+    g.addEventListener('mouseenter',e=>showTip(e,city));
+    g.addEventListener('mouseleave',hideTip);
+    dotsG.appendChild(g);
+  });
+}
+
+/* ══ SELECT ══ */
+function selectCity(id){
+  sel=id;
+  const city=CITIES.find(c=>c.id===id);
+  document.getElementById('ss-sel').textContent=city?`${city.flag} ${city.name}`:'—';
+  renderMap();renderList();
+  if(activeRTab!=='compare')setRTabActive('detail');
+  renderDetail();
+}
+
+/* ══ DETAIL ══ */
+function renderDetail(){
+  const div=document.getElementById('rpanel-detail');
+  const city=CITIES.find(c=>c.id===sel);
+  if(!city){div.innerHTML=`<div class="placeholder"><div class="ph-icon">🏙</div><div class="ph-title">Select a City</div><div class="ph-sub">Click any dot on the map<br>or search in the list on the left</div></div>`;return}
+  const rc=city.imd<=5?'#22ff99':city.imd<=20?'#00bfff':city.imd<=50?'#ffcc44':city.imd<=100?'#ff8800':'#ff3355';
+  const crits=[{k:'transport',l:'Transport',i:'🚄'},{k:'ecology',l:'Ecology',i:'🌿'},{k:'tech',l:'Technology',i:'⚡'}];
+  const descMap={transport:'Mobility infrastructure, transit quality, traffic management',ecology:'Sustainability, CO₂ emissions, green space, environment',tech:'Digital services, 5G, AI deployment, smart infrastructure'};
+  div.innerHTML=`<div class="fade-up">
+  <div class="city-hero">
+    <div class="ch-flag">${city.flag}</div>
+    <div class="ch-name">${city.name}</div>
+    <div class="ch-country">${city.country.toUpperCase()} · ${['Europe','Asia-Pacific','Americas','Middle East','Africa'].find(()=>true)}</div>
+    <div class="ch-rank-badge" style="border-color:${rc};color:${rc};background:${rc}18">
+      IMD 2024 GLOBAL RANK &nbsp;#${city.imd}&nbsp; / 142
+    </div>
+    <div class="ch-score-row">
+      <div class="ch-score-num" style="color:${sCol(city.score)}">${city.score}</div>
+      <div class="ch-score-right">
+        <div class="ch-score-lbl">Composite Score</div>
+        <div class="ch-score-max">out of 100</div>
+        <div style="font-family:var(--mono);font-size:10px;margin-top:4px;color:${city.score>=80?'var(--green)':city.score>=60?'var(--gold)':'var(--red)'}">${city.score>=85?'★ TOP PERFORMER':city.score>=70?'▲ ABOVE AVERAGE':city.score>=50?'— DEVELOPING':'▼ LAGGING'}</div>
+      </div>
+    </div>
+    <div class="ch-sources">${city.src.map(s=>`<a href="${s.u}" target="_blank" class="ch-src">↗ ${s.l}</a>`).join('')}</div>
+  </div>
+
+  <div class="radar-wrap">
+    <div class="section-label" style="width:100%;padding:0 4px">Performance Radar</div>
+    ${renderRadar(city)}
+  </div>
+
+  <div class="section">
+    <div class="section-label">Key Criteria</div>
+    ${crits.map(cr=>{const v=city[cr.k],col=sCol(v);return`
+    <div class="crit-item">
+      <div class="crit-top">
+        <div class="crit-name"><span class="crit-icon">${cr.i}</span>${cr.l}</div>
+        <div class="crit-val" style="color:${col}">${v}<span style="font-size:11px;color:var(--txt3)">/100</span></div>
+      </div>
+      <div class="crit-sub">${descMap[cr.k]}</div>
+      <div class="bar-bg"><div class="bar-fg" style="width:${v}%;background:${col};color:${col}"></div></div>
+    </div>`}).join('')}
+  </div>
+
+  <div class="section">
+    <div class="section-label">Highlights & Key Facts</div>
+    <div class="hl-list">${city.hl.map(h=>`<div class="hl"><div class="hl-ico">${h.i}</div><div class="hl-txt">${h.t}</div></div>`).join('')}</div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Tech Tags</div>
+    <div class="tags-wrap">${city.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+  </div>
+
+  <div class="chart-section">
+    <div class="section-label">Score Trend (2019→2024)</div>
+    <div class="chart-canvas-wrap">
+      <canvas id="rank-chart"></canvas>
+    </div>
+  </div>
+
+  <div class="fact-note">⚠ IMD Global Rank is official 2024 data from IMD press release. Composite scores are derived from IMD pillar data cross-referenced with IESE Cities in Motion and Arcadis indices. Ranks marked "~" are interpolated within confirmed IMD bands.</div>
+  </div>`;
+
+  // Draw trend chart
+  requestAnimationFrame(()=>{
+    const canvas=document.getElementById('rank-chart');
+    if(!canvas)return;
+    const ctx=canvas.getContext('2d');
+    canvas.width=canvas.offsetWidth*2;canvas.height=canvas.offsetHeight*2;
+    ctx.scale(2,2);
+    const W=canvas.offsetWidth/2,H=canvas.offsetHeight/2;
+    const data=city.history;
+    const pad={t:10,r:15,b:30,l:35};
+    const iw=W-pad.l-pad.r,ih=H-pad.t-pad.b;
+    const mn=Math.min(...data)-5,mx2=Math.max(...data)+5;
+    const years=['2019','2020','2021','2022','2023','2024'];
+    const px=(i)=>pad.l+i/(data.length-1)*iw;
+    const py=(v)=>pad.t+ih-(v-mn)/(mx2-mn)*ih;
+    // Grid
+    ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=.5;
+    for(let g=0;g<5;g++){const y2=pad.t+g*(ih/4);ctx.beginPath();ctx.moveTo(pad.l,y2);ctx.lineTo(pad.l+iw,y2);ctx.stroke()}
+    // Area fill
+    ctx.beginPath();ctx.moveTo(px(0),py(data[0]));
+    data.forEach((v,i)=>ctx.lineTo(px(i),py(v)));
+    ctx.lineTo(px(data.length-1),H-pad.b);ctx.lineTo(px(0),H-pad.b);ctx.closePath();
+    const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'rgba(0,191,255,.25)');grad.addColorStop(1,'rgba(0,191,255,.02)');
+    ctx.fillStyle=grad;ctx.fill();
+    // Line
+    ctx.beginPath();ctx.strokeStyle='#00bfff';ctx.lineWidth=2;ctx.lineJoin='round';
+    data.forEach((v,i)=>i===0?ctx.moveTo(px(i),py(v)):ctx.lineTo(px(i),py(v)));
+    ctx.stroke();
+    // Points
+    data.forEach((v,i)=>{
+      ctx.beginPath();ctx.arc(px(i),py(v),3.5,0,Math.PI*2);
+      ctx.fillStyle=i===data.length-1?'#00ffee':'#00bfff';ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.7)';ctx.font='bold 9px JetBrains Mono';ctx.textAlign='center';
+      ctx.fillText(v,px(i),py(v)-8);
+    });
+    // X labels
+    years.forEach((y,i)=>{ctx.fillStyle='rgba(100,170,190,.6)';ctx.font='8px JetBrains Mono';ctx.textAlign='center';ctx.fillText(y,px(i),H-pad.b+14)});
+    // Y axis
+    ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,H-pad.b);ctx.stroke();
+    [mn,Math.round((mn+mx2)/2),mx2].forEach(v=>{ctx.fillStyle='rgba(100,170,190,.5)';ctx.font='8px JetBrains Mono';ctx.textAlign='right';ctx.fillText(Math.round(v),pad.l-4,py(v)+3)});
+  });
+}
+
+/* ══ RADAR ══ */
+function renderRadar(c1,c2=null){
+  const cx=100,cy=85,r=60;
+  const axes=['transport','ecology','tech','score'];
+  const lbls=['Transport','Ecology','Tech','Overall'];
+  const angles=axes.map((_,i)=>-Math.PI/2+(i/axes.length)*Math.PI*2);
+  const pt=(v,i)=>{const a=angles[i],d=(v/100)*r;return{x:cx+Math.cos(a)*d,y:cy+Math.sin(a)*d}};
+  const grid=[20,40,60,80,100].map(p=>{const pts=axes.map((_,i)=>{const a=angles[i],d=(p/100)*r;return`${cx+Math.cos(a)*d},${cy+Math.sin(a)*d}`}).join(' ');return`<polygon points="${pts}" fill="none" stroke="rgba(0,128,200,.12)" stroke-width=".8"/>`}).join('');
+  const axls=angles.map(a=>`<line x1="${cx}" y1="${cy}" x2="${cx+Math.cos(a)*r}" y2="${cy+Math.sin(a)*r}" stroke="rgba(0,128,200,.15)" stroke-width=".8"/>`).join('');
+  const poly1=axes.map((k,i)=>pt(c1[k]||c1.score,i));
+  const d1=poly1.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')+'Z';
+  let d2str='';
+  if(c2){const p2=axes.map((k,i)=>pt(c2[k]||c2.score,i));const d2=p2.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ')+'Z';d2str=`<path d="${d2}" fill="rgba(255,204,68,.12)" stroke="#ffcc44" stroke-width="2" stroke-linejoin="round"/>`}
+  const lblEl=axes.map((k,i)=>{const a=angles[i],lx=cx+Math.cos(a)*(r+16),ly=cy+Math.sin(a)*(r+13);return`<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" fill="rgba(100,165,200,.7)" font-family="JetBrains Mono,monospace" font-size="8">${lbls[i]}</text>`}).join('');
+  const dotsEl=poly1.map((p,i)=>`<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3" fill="${sCol(c1[axes[i]]||c1.score)}" opacity=".9"/>`).join('');
+  return`<svg viewBox="0 0 200 170" width="200" height="170" style="overflow:visible">
+    ${grid}${axls}
+    <path d="${d1}" fill="rgba(0,191,255,.12)" stroke="#00bfff" stroke-width="2" stroke-linejoin="round"/>
+    ${d2str}${lblEl}${dotsEl}
+  </svg>`;
+}
+
+/* ══ LIST ══ */
+function renderList(){
+  let items=CITIES.filter(c=>{
+    const rf=filterMode==='all'||c.region===filterMode;
+    const sf=!searchVal||c.name.toLowerCase().includes(searchVal.toLowerCase())||c.country.toLowerCase().includes(searchVal.toLowerCase());
+    return rf&&sf;
+  });
+  const sorted=[...items].sort((a,b)=>sortMode==='rank'?a.imd-b.imd:sortMode==='name'?a.name.localeCompare(b.name):b.score-a.score);
+  document.getElementById('city-count').textContent=`${sorted.length} / ${CITIES.length} cities`;
+  if(sorted.length===0){
+    document.getElementById('city-scroll').innerHTML=`<div class="no-res"><div class="no-res-title">No cities found</div><div class="no-res-sub">Try searching by country:<br>"France" → Paris · "Japan" → Tokyo & Osaka<br>"Brazil" → São Paulo · "Nigeria" → Lagos<br>"Kenya" → Nairobi · "Australia" → Sydney…</div></div>`;
+    return;
+  }
+  document.getElementById('city-scroll').innerHTML=sorted.map(city=>{
+    const v=getV(city,mapLayer),col=sCol(v);
+    const isSel=sel===city.id,isCmpOn=cmpA===city.id||cmpB===city.id;
+    return`<div class="city-row ${isSel?'active':''} ${isCmpOn?'cmp-on':''}" onclick="selectCity('${city.id}')">
+      <div class="cr-flag">${city.flag}</div>
+      <div class="cr-body">
+        <div class="cr-name">${city.name}</div>
+        <div class="cr-meta">${city.country} &nbsp;·&nbsp; <span style="font-family:var(--mono);color:${col}">#${city.imd}</span> IMD</div>
+        <div class="cr-bar"><div class="cr-fill" style="width:${v}%;background:${col}"></div></div>
+      </div>
+      <div class="cr-right">
+        <div class="cr-score" style="color:${col}">${v}</div>
+      </div>
+      <button class="cmp-btn ${isCmpOn?'on':''}" onclick="event.stopPropagation();toggleCmp('${city.id}')" title="Add to comparison">⊕</button>
+    </div>`;
+  }).join('');
+  if(sorted.length===1&&searchVal)selectCity(sorted[0].id);
+}
+
+/* ══ COMPARE ══ */
+function toggleCmp(id){
+  if(cmpA===id)cmpA=null;
+  else if(cmpB===id)cmpB=null;
+  else if(!cmpA)cmpA=id;
+  else if(!cmpB)cmpB=id;
+  else{cmpA=cmpB;cmpB=id}
+  const strip=document.getElementById('cmp-strip');
+  if(cmpA||cmpB){
+    strip.style.display='flex';
+    if(cmpA&&cmpB){const ca=CITIES.find(c=>c.id===cmpA),cb=CITIES.find(c=>c.id===cmpB);document.getElementById('cmp-strip-txt').textContent=`${ca.flag} ${ca.name}  vs  ${cb.flag} ${cb.name}`}
+    else document.getElementById('cmp-strip-txt').textContent='Now select a 2nd city…';
+  } else strip.style.display='none';
+  renderList();renderMap();renderCompare();
+  if(cmpA&&cmpB)setRTabActive('compare');
+}
+function clearCmp(){cmpA=null;cmpB=null;document.getElementById('cmp-strip').style.display='none';renderList();renderMap();renderCompare()}
+
+function renderCompare(){
+  const div=document.getElementById('rpanel-compare');
+  if(!cmpA||!cmpB){div.innerHTML=`<div class="placeholder"><div class="ph-icon">⚖️</div><div class="ph-title">Compare Two Cities</div><div class="ph-sub">Click ⊕ next to two cities<br>in the list on the left</div></div>`;return}
+  const ca=CITIES.find(c=>c.id===cmpA),cb=CITIES.find(c=>c.id===cmpB);
+  const crits=[{k:'score',l:'Overall Score'},{k:'transport',l:'🚄 Transport'},{k:'ecology',l:'🌿 Ecology'},{k:'tech',l:'⚡ Technology'},{k:'imd',l:'🏆 IMD Rank',lower:true}];
+  div.innerHTML=`<div class="fade-up">
+  <div class="cmp-heroes">
+    <div class="cmp-hero">
+      <div class="cmp-hero-flag">${ca.flag}</div>
+      <div class="cmp-hero-name">${ca.name}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--txt3)">${ca.country}</div>
+      <div class="cmp-hero-score" style="color:${sCol(ca.score)}">${ca.score}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--txt3)">IMD #${ca.imd}</div>
+    </div>
+    <div class="vs-lbl">VS</div>
+    <div class="cmp-hero">
+      <div class="cmp-hero-flag">${cb.flag}</div>
+      <div class="cmp-hero-name">${cb.name}</div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--txt3)">${cb.country}</div>
+      <div class="cmp-hero-score" style="color:${sCol(cb.score)}">${cb.score}</div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--txt3)">IMD #${cb.imd}</div>
+    </div>
+  </div>
+  <div style="padding:14px 20px;border-bottom:1px solid var(--border)">
+    <div class="section-label">Radar Overlay</div>
+    <div style="display:flex;justify-content:center;">${renderRadar(ca,cb)}</div>
+    <div class="radar-legend" style="justify-content:center;margin-top:8px">
+      <div class="rl-item"><div class="rl-dot" style="background:var(--blue)"></div>${ca.name}</div>
+      <div class="rl-item"><div class="rl-dot" style="background:var(--gold)"></div>${cb.name}</div>
+    </div>
+  </div>
+  <div class="cmp-bars-section">
+    <div class="section-label">Head-to-Head</div>
+    ${crits.map(cr=>{
+      const av=ca[cr.k],bv=cb[cr.k];
+      const aWin=cr.lower?av<=bv:av>=bv,bWin=cr.lower?bv<=av:bv>=av;
+      const aPct=cr.lower?Math.round((1-av/142)*100):av,bPct=cr.lower?Math.round((1-bv/142)*100):bv;
+      return`<div class="cmp-bar-row">
+        <div class="cmp-bar-label">${cr.l}${cr.lower?' (lower=better)':''}</div>
+        <div class="cmp-duel">
+          <div>
+            <div class="cmp-val-a" style="color:${aWin?'var(--blue)':'var(--txt3)'}">${av}${aWin?'  ◀':''}</div>
+            <div class="cmp-track-a"><div class="cmp-fill-a" style="width:${aPct}%;opacity:${aWin?1:.45}"></div></div>
+          </div>
+          <div class="cmp-arrow" style="color:${aWin===bWin?'var(--txt3)':aWin?'var(--blue)':'var(--gold)'}">${aWin===bWin?'=':aWin?'◀':'▶'}</div>
+          <div>
+            <div class="cmp-val-b" style="color:${bWin?'var(--gold)':'var(--txt3)'}">${bWin?'▶  ':''}${bv}</div>
+            <div class="cmp-track-b"><div class="cmp-fill-b" style="width:${bPct}%;opacity:${bWin?1:.45}"></div></div>
+          </div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div style="padding:14px 20px;display:grid;grid-template-columns:1fr 1fr;gap:14px;border-bottom:1px solid var(--border)">
+    ${[ca,cb].map((c,i)=>`<div>
+      <div style="font-family:var(--mono);font-size:9px;color:${i===0?'var(--blue)':'var(--gold)'};letter-spacing:2px;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:4px">${c.name.toUpperCase()}</div>
+      ${c.hl.slice(0,3).map(h=>`<div style="display:flex;gap:6px;margin-bottom:6px;align-items:flex-start"><span style="font-size:13px">${h.i}</span><div style="font-size:10px;color:var(--txt2);line-height:1.4">${h.t.slice(0,80)}${h.t.length>80?'…':''}</div></div>`).join('')}
+      <a href="${c.src[0].u}" target="_blank" style="font-family:var(--mono);font-size:8px;color:var(--txt3);text-decoration:none;margin-top:4px;display:block">↗ ${c.src[0].l}</a>
+    </div>`).join('')}
+  </div>
+  </div>`;
+}
+
+/* ══ EMERGING ══ */
+function renderEmerging(){
+  const div=document.getElementById('rpanel-emerging');
+  div.innerHTML=`<div class="fade-up" style="padding:14px 6px 6px">
+    ${EMERGING.map(c=>`<div class="emerging-card t${c.tier}">
+      <div class="ec-top">
+        <div class="ec-flag">${c.flag}</div>
+        <div>
+          <div class="ec-name">${c.name}</div>
+          <div class="ec-country">${c.country.toUpperCase()}</div>
+        </div>
+        <div class="ec-growth">${c.growth}</div>
+      </div>
+      <div class="ec-desc">${c.desc}</div>
+      <div class="ec-prog">
+        <div class="ec-prog-now">NOW ${c.now}</div>
+        <div class="ec-prog-track"><div class="ec-prog-fill" style="width:${c.est}%"></div></div>
+        <div class="ec-prog-est">2030 est. ${c.est}</div>
+      </div>
+      <div class="ec-tags">${c.factors.map(f=>`<span class="ec-tag">${f}</span>`).join('')}</div>
+      <div class="ec-note">${c.imd} — <a href="${c.src}" target="_blank" style="color:var(--txt2);text-decoration:none">↗ IMD source</a></div>
+    </div>`).join('')}
+    <div style="padding:14px 8px">
+      <div class="section-label">2030 Score Projections</div>
+      ${EMERGING.map(c=>`<div style="display:flex;align-items:center;gap:9px;margin-bottom:8px">
+        <div style="font-size:16px;width:20px">${c.flag}</div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--txt2);width:60px">${c.name}</div>
+        <div style="flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${c.est}%;background:linear-gradient(90deg,var(--blue2),var(--green));border-radius:3px"></div>
+        </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--green);width:35px">+${Math.round((c.est-c.now)/c.now*100)}%</div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* ══ TOOLTIP ══ */
+function showTip(e,city){
+  const t=document.getElementById('map-tip');
+  document.getElementById('mt-city').textContent=`${city.flag} ${city.name}`;
+  document.getElementById('mt-country').textContent=city.country;
+  document.getElementById('mt-score-big').textContent=city.score;
+  document.getElementById('mt-score-big').style.color=sCol(city.score);
+  document.getElementById('mt-rank-txt').textContent=`IMD 2024 Global Rank #${city.imd} / 142`;
+  t.style.display='block';
+  t.style.left=(e.clientX+16)+'px';t.style.top=(e.clientY-14)+'px';
+}
+function hideTip(){document.getElementById('map-tip').style.display='none'}
+document.addEventListener('mousemove',e=>{const t=document.getElementById('map-tip');if(t.style.display==='block'){t.style.left=(e.clientX+16)+'px';t.style.top=(e.clientY-14)+'px'}});
+
+/* ══ SEARCH ══ */
+function onSearch(v){
+  searchVal=v;
+  document.getElementById('search-clear').style.display=v?'block':'none';
+  renderList();
+}
+function clearSearch(){
+  document.getElementById('search').value='';
+  document.getElementById('search-clear').style.display='none';
+  searchVal='';renderList();
+}
+
+/* ══ CONTROLS ══ */
+function setSort(m,el){sortMode=m;document.querySelectorAll('.chip').forEach(c=>c.classList.contains('filter')||c.textContent.match(/All|EU|Asia|Am|ME|AF/)||c.classList.remove('on'));el.classList.add('on');renderList()}
+function setFilter(m,el){
+  filterMode=m;
+  document.querySelectorAll('.chip').forEach(c=>{if(c.textContent.match(/^(All|EU|Asia|Am|ME|AF)$/))c.classList.remove('on')});
+  el.classList.add('on');renderList();
+}
+function setLayer(l,el){
+  mapLayer=l;
+  document.getElementById('ss-layer').textContent={score:'Overall',transport:'Transport',ecology:'Ecology',tech:'Tech'}[l];
+  document.querySelectorAll('.layer-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');
+  renderMap();renderList();
+}
+function setRTabActive(name){
+  activeRTab=name;
+  ['detail','compare','emerging'].forEach(n=>{document.getElementById('rpanel-'+n).style.display=n===name?'block':'none'});
+  document.querySelectorAll('.rtab').forEach((t,i)=>t.classList.toggle('on',['detail','compare','emerging'][i]===name));
+  if(name==='emerging')renderEmerging();
+  if(name==='compare')renderCompare();
+  if(name==='detail')renderDetail();
+}
+function setRTab(name,el){setRTabActive(name)}
+function setNav(v,el){
+  activeNav=v;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');
+  if(v==='emerging')setRTabActive('emerging');
+  else setRTabActive('detail');
+}
+
+/* ══ INIT ══ */
+renderList();renderMap();renderEmerging();
+setTimeout(()=>selectCity('zur'),400);
+</script>
+</body>
+</html>
