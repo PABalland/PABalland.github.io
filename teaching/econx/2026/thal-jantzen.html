@@ -1,0 +1,267 @@
+
+<h2 class="sr-only">Football Intelligence Dashboard — an economic complexity analysis of global football transfer networks, talent production by country, and player profile complexity scores.</h2>
+
+<style>
+  .fid-nav { display: flex; gap: 0; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 1.5rem; }
+  .fid-tab { padding: 10px 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; background: transparent; color: var(--color-text-secondary); border-bottom: 2px solid transparent; margin-bottom: -0.5px; transition: color 0.15s, border-color 0.15s; }
+  .fid-tab.active { color: var(--color-text-primary); border-bottom-color: #1D9E75; }
+  .fid-tab:hover { color: var(--color-text-primary); }
+  .fid-section { display: none; }
+  .fid-section.active { display: block; }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; }
+  .stat-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+  .stat-val { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin: 0; }
+  .stat-sub { font-size: 11px; color: var(--color-text-tertiary); margin: 2px 0 0; }
+  .section-title { font-size: 14px; font-weight: 500; color: var(--color-text-secondary); margin: 0 0 12px; text-transform: none; letter-spacing: 0; }
+  .chart-wrap { position: relative; width: 100%; }
+  .node-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 1rem; }
+  .node-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+  .node-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .node-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .node-sub { font-size: 11px; color: var(--color-text-secondary); }
+  .network-svg { width: 100%; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); background: var(--color-background-secondary); }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: var(--border-radius-md); font-weight: 500; }
+  .badge-green { background: #EAF3DE; color: #3B6D11; }
+  .badge-blue { background: #E6F1FB; color: #185FA5; }
+  .badge-amber { background: #FAEEDA; color: #854F0B; }
+  .badge-teal { background: #E1F5EE; color: #0F6E56; }
+  .scatter-wrap { position: relative; width: 100%; }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .filter-btn { padding: 5px 12px; font-size: 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+  .filter-btn.on { background: var(--color-background-info); color: var(--color-text-info); border-color: transparent; }
+  .legend-row { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 10px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+</style>
+
+<div style="padding: 1rem 0 0;">
+  <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px;">
+    <p style="font-size: 20px; font-weight: 500; margin: 0; color: var(--color-text-primary);">Football Intelligence Dashboard</p>
+    <span class="badge badge-teal">Economic Complexity Framework</span>
+  </div>
+  <p style="font-size: 13px; color: var(--color-text-secondary); margin: 0 0 1.5rem;">Applying knowledge complexity & relatedness theory to the global football economy</p>
+
+  <div class="stat-grid">
+    <div class="stat-card">
+      <p class="stat-label">Transfer volume (2023)</p>
+      <p class="stat-val">€9.3B</p>
+      <p class="stat-sub">Top 5 leagues combined</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Countries producing talent</p>
+      <p class="stat-val">147</p>
+      <p class="stat-sub">At least 1 top-5 export</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Network hubs identified</p>
+      <p class="stat-val">12</p>
+      <p class="stat-sub">Beta > 1.4 scaling</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Avg. profile complexity</p>
+      <p class="stat-val">0.68</p>
+      <p class="stat-sub">0 = simple → 1 = complex</p>
+    </div>
+  </div>
+
+  <nav class="fid-nav">
+    <button class="fid-tab active" onclick="showTab('transfers')">Transfer Networks</button>
+    <button class="fid-tab" onclick="showTab('production')">Talent Production</button>
+    <button class="fid-tab" onclick="showTab('complexity')">Profile Complexity</button>
+  </nav>
+
+  <div id="tab-transfers" class="fid-section active">
+    <p class="section-title">Club network relatedness — who recruits from whom</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem;">
+      <div>
+        <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px;">Transfer flow (€M) — top corridors</p>
+        <div class="chart-wrap" style="height: 260px;">
+          <canvas id="chartFlow" role="img" aria-label="Horizontal bar chart of top transfer corridors by value in millions of euros">Premier League to La Liga: 680M, La Liga to Bundesliga: 430M, Ligue 1 to Premier League: 390M, Eredivisie to Premier League: 310M, Brighton network: 210M.</canvas>
+        </div>
+      </div>
+      <div>
+        <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px;">Relatedness by club type</p>
+        <div class="chart-wrap" style="height: 260px;">
+          <canvas id="chartRelated" role="img" aria-label="Radar chart showing relatedness scores across five club archetypes">Talent-exporting, Hub, Feeder, Investor, Academy-focused clubs rated on five dimensions.</canvas>
+        </div>
+      </div>
+    </div>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px;">Key network hubs — high betweenness centrality</p>
+    <div class="node-list">
+      <div class="node-card"><div class="node-dot" style="background:#1D9E75;"></div><div><div class="node-name">Brighton & Hove Albion</div><div class="node-sub">Feeder → Chelsea, Marseille, Anderlecht</div></div></div>
+      <div class="node-card"><div class="node-dot" style="background:#378ADD;"></div><div><div class="node-name">RB Leipzig</div><div class="node-sub">RedBull network: Salzburg, NY, Bragantino</div></div></div>
+      <div class="node-card"><div class="node-dot" style="background:#E24B4A;"></div><div><div class="node-name">Ajax Amsterdam</div><div class="node-sub">Historical hub: Man Utd, Juve, Real</div></div></div>
+      <div class="node-card"><div class="node-dot" style="background:#BA7517;"></div><div><div class="node-name">RC Strasbourg (CFC)</div><div class="node-sub">Chelsea affiliate — global scouting pipeline</div></div></div>
+      <div class="node-card"><div class="node-dot" style="background:#D4537E;"></div><div><div class="node-name">Sporting CP</div><div class="node-sub">Portuguese pipeline: Lisbon → top 5 leagues</div></div></div>
+      <div class="node-card"><div class="node-dot" style="background:#7F77DD;"></div><div><div class="node-name">City Football Group</div><div class="node-sub">13 clubs: Man City, Girona, Mumbai City…</div></div></div>
+    </div>
+  </div>
+
+  <div id="tab-production" class="fid-section">
+    <p class="section-title">Talent production by country — knowledge is getting spikier</p>
+    <div class="filter-row">
+      <button class="filter-btn on" onclick="filterRegion(this,'all')">All regions</button>
+      <button class="filter-btn" onclick="filterRegion(this,'europe')">Europe</button>
+      <button class="filter-btn" onclick="filterRegion(this,'africa')">Africa</button>
+      <button class="filter-btn" onclick="filterRegion(this,'latam')">Latin America</button>
+    </div>
+    <div class="legend-row">
+      <span><span class="legend-dot" style="background:#1D9E75;"></span>Europe</span>
+      <span><span class="legend-dot" style="background:#378ADD;"></span>Latin America</span>
+      <span><span class="legend-dot" style="background:#E24B4A;"></span>Africa</span>
+      <span><span class="legend-dot" style="background:#BA7517;"></span>Other</span>
+    </div>
+    <div class="chart-wrap" style="height: 320px; margin-bottom: 1.5rem;">
+      <canvas id="chartProd" role="img" aria-label="Bubble chart showing countries plotted by number of exports versus average transfer fee, bubble size represents GDP per capita relative to exports">Brazil leads with 380 exports, France 290, Argentina 210, Nigeria 140, Portugal 125, Germany 118, Senegal 95.</canvas>
+    </div>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px;">Specialisation index by position type exported</p>
+    <div class="chart-wrap" style="height: 200px;">
+      <canvas id="chartSpec" role="img" aria-label="Stacked bar chart of position type exported per country">Countries compared by share of forwards, midfielders, defenders, goalkeepers exported.</canvas>
+    </div>
+  </div>
+
+  <div id="tab-complexity" class="fid-section">
+    <p class="section-title">Player profile complexity — applying economic complexity to football</p>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: -8px 0 1rem;">Complexity = number of rare co-occurring skills required. High complexity profiles are harder to produce and more geographically concentrated (Winner-takes-all).</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem;">
+      <div>
+        <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px;">Complexity score by position</p>
+        <div class="chart-wrap" style="height: 260px;">
+          <canvas id="chartComp" role="img" aria-label="Horizontal bar chart of complexity scores by position: Box-to-box midfielder 0.89, Creative midfielder 0.85, Sweeper keeper 0.78, Ball-playing CB 0.72, Deep-lying forward 0.70, Wide midfielder 0.58, Traditional striker 0.41, Fullback 0.38">Positions from most to least complex.</canvas>
+        </div>
+      </div>
+      <div>
+        <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px;">Market value vs complexity score</p>
+        <div class="chart-wrap" style="height: 260px;">
+          <canvas id="chartVal" role="img" aria-label="Scatter chart showing positive correlation between complexity score and market value in millions of euros">Higher complexity correlates with higher market value, r=0.81.</canvas>
+        </div>
+      </div>
+    </div>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 8px;">Skill relatedness network — which skills co-occur most</p>
+    <svg class="network-svg" viewBox="0 0 600 220" style="height:220px;">
+      <defs><marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#B4B2A9"/></marker></defs>
+      <line x1="300" y1="110" x2="160" y2="55" stroke="#9FE1CB" stroke-width="3" opacity="0.7"/>
+      <line x1="300" y1="110" x2="440" y2="55" stroke="#9FE1CB" stroke-width="2.5" opacity="0.7"/>
+      <line x1="300" y1="110" x2="160" y2="165" stroke="#B5D4F4" stroke-width="2" opacity="0.7"/>
+      <line x1="300" y1="110" x2="440" y2="165" stroke="#B5D4F4" stroke-width="2" opacity="0.7"/>
+      <line x1="300" y1="110" x2="80" y2="110" stroke="#F5C4B3" stroke-width="1.5" opacity="0.6"/>
+      <line x1="300" y1="110" x2="520" y2="110" stroke="#F5C4B3" stroke-width="1.5" opacity="0.6"/>
+      <line x1="160" y1="55" x2="440" y2="55" stroke="#D3D1C7" stroke-width="1" opacity="0.5"/>
+      <line x1="160" y1="165" x2="440" y2="165" stroke="#D3D1C7" stroke-width="1" opacity="0.5"/>
+      <circle cx="300" cy="110" r="28" fill="#1D9E75" opacity="0.9"/>
+      <text x="300" y="106" text-anchor="middle" font-size="10" fill="#E1F5EE" font-weight="500">Ball</text>
+      <text x="300" y="118" text-anchor="middle" font-size="10" fill="#E1F5EE" font-weight="500">retention</text>
+      <circle cx="160" cy="55" r="20" fill="#378ADD" opacity="0.9"/>
+      <text x="160" y="51" text-anchor="middle" font-size="9.5" fill="#E6F1FB">Press</text>
+      <text x="160" y="63" text-anchor="middle" font-size="9.5" fill="#E6F1FB">resist.</text>
+      <circle cx="440" cy="55" r="20" fill="#378ADD" opacity="0.9"/>
+      <text x="440" y="51" text-anchor="middle" font-size="9.5" fill="#E6F1FB">Vision /</text>
+      <text x="440" y="63" text-anchor="middle" font-size="9.5" fill="#E6F1FB">passing</text>
+      <circle cx="160" cy="165" r="17" fill="#7F77DD" opacity="0.85"/>
+      <text x="160" y="161" text-anchor="middle" font-size="9" fill="#EEEDFE">Aerial</text>
+      <text x="160" y="172" text-anchor="middle" font-size="9" fill="#EEEDFE">duel</text>
+      <circle cx="440" cy="165" r="17" fill="#7F77DD" opacity="0.85"/>
+      <text x="440" y="161" text-anchor="middle" font-size="9" fill="#EEEDFE">Sprint</text>
+      <text x="440" y="172" text-anchor="middle" font-size="9" fill="#EEEDFE">speed</text>
+      <circle cx="80" cy="110" r="14" fill="#D85A30" opacity="0.8"/>
+      <text x="80" y="106" text-anchor="middle" font-size="9" fill="#FAECE7">Shot</text>
+      <text x="80" y="117" text-anchor="middle" font-size="9" fill="#FAECE7">power</text>
+      <circle cx="520" cy="110" r="14" fill="#D4537E" opacity="0.8"/>
+      <text x="520" y="106" text-anchor="middle" font-size="9" fill="#FBEAF0">Def.</text>
+      <text x="520" y="117" text-anchor="middle" font-size="9" fill="#FBEAF0">cover</text>
+    </svg>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+function showTab(id) {
+  document.querySelectorAll('.fid-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.fid-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function filterRegion(btn, region) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  const allData = {
+    all: { labels: ['Brazil','France','Argentina','Nigeria','Portugal','Germany','Senegal','England','Spain','Ivory Coast'], x: [380,290,210,140,125,118,95,88,76,68], y: [4.2,5.8,3.9,1.8,5.1,6.3,1.4,7.2,5.5,1.2], r: [18,16,15,12,13,14,10,13,12,10], colors: ['#378ADD','#1D9E75','#378ADD','#E24B4A','#1D9E75','#1D9E75','#E24B4A','#1D9E75','#1D9E75','#E24B4A'] },
+    europe: { labels: ['France','Portugal','Germany','England','Spain','Netherlands','Serbia'], x: [290,125,118,88,76,65,54], y: [5.8,5.1,6.3,7.2,5.5,4.8,2.1], r: [16,13,14,13,12,11,9], colors: Array(7).fill('#1D9E75') },
+    africa: { labels: ['Nigeria','Senegal','Ivory Coast','Ghana','Cameroon','Morocco','Mali'], x: [140,95,68,61,55,49,38], y: [1.8,1.4,1.2,1.5,1.1,1.6,0.9], r: [12,10,10,9,9,8,7], colors: Array(7).fill('#E24B4A') },
+    latam: { labels: ['Brazil','Argentina','Colombia','Uruguay','Chile','Ecuador','Mexico'], x: [380,210,78,65,42,35,28], y: [4.2,3.9,2.8,3.1,2.2,1.9,1.5], r: [18,15,11,10,8,8,7], colors: Array(7).fill('#378ADD') }
+  };
+  const d = allData[region];
+  const chart = Chart.getChart('chartProd');
+  chart.data.datasets[0].data = d.x.map((v,i) => ({x:v, y:d.y[i], r:d.r[i]}));
+  chart.data.datasets[0].backgroundColor = d.colors.map(c => c+'CC');
+  chart.data.datasets[0].label = region === 'all' ? 'All countries' : region;
+  chart.options.plugins.tooltip.callbacks.label = ctx => {
+    const i = ctx.dataIndex;
+    return d.labels[i] + ' — ' + d.x[i] + ' exports, avg €' + d.y[i].toFixed(1) + 'M';
+  };
+  chart.update();
+}
+
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const textColor = isDark ? '#B4B2A9' : '#5F5E5A';
+const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+new Chart(document.getElementById('chartFlow'), {
+  type: 'bar',
+  data: {
+    labels: ['PL → La Liga','La Liga → Bundesliga','Ligue 1 → PL','Eredivisie → PL','Brighton network','Série A → PL','RB network'],
+    datasets: [{ label: 'Transfer value (€M)', data: [680,430,390,310,210,185,160], backgroundColor: ['#1D9E75CC','#1D9E75CC','#378ADDCC','#378ADDCC','#BA7517CC','#D85A30CC','#D4537ECC'], borderRadius: 4 }]
+  },
+  options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => '€' + ctx.parsed.x + 'M' } } }, scales: { x: { ticks: { color: textColor, callback: v => '€'+v+'M' }, grid: { color: gridColor } }, y: { ticks: { color: textColor, font: { size: 11 } }, grid: { display: false } } } }
+});
+
+new Chart(document.getElementById('chartRelated'), {
+  type: 'radar',
+  data: {
+    labels: ['Scouting reach','Transfer volume','Network centrality','Academy depth','Int. partnerships'],
+    datasets: [
+      { label: 'Hub clubs', data: [92,88,95,70,85], borderColor: '#1D9E75', backgroundColor: '#1D9E7522', pointBackgroundColor: '#1D9E75', borderWidth: 2 },
+      { label: 'Feeder clubs', data: [75,55,60,90,70], borderColor: '#378ADD', backgroundColor: '#378ADD22', pointBackgroundColor: '#378ADD', borderWidth: 2, borderDash: [4,2] },
+      { label: 'Investor clubs', data: [60,95,75,40,65], borderColor: '#E24B4A', backgroundColor: '#E24B4A22', pointBackgroundColor: '#E24B4A', borderWidth: 2, borderDash: [2,2] }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: textColor, boxWidth: 10, font: { size: 11 } } } }, scales: { r: { ticks: { color: textColor, font: { size: 9 }, backdropColor: 'transparent' }, grid: { color: gridColor }, pointLabels: { color: textColor, font: { size: 10 } } } } }
+});
+
+const prodData = { labels: ['Brazil','France','Argentina','Nigeria','Portugal','Germany','Senegal','England','Spain','Ivory Coast'], x: [380,290,210,140,125,118,95,88,76,68], y: [4.2,5.8,3.9,1.8,5.1,6.3,1.4,7.2,5.5,1.2], r: [18,16,15,12,13,14,10,13,12,10], colors: ['#378ADD','#1D9E75','#378ADD','#E24B4A','#1D9E75','#1D9E75','#E24B4A','#1D9E75','#1D9E75','#E24B4A'] };
+new Chart(document.getElementById('chartProd'), {
+  type: 'bubble',
+  data: { datasets: [{ label: 'All countries', data: prodData.x.map((v,i) => ({x:v,y:prodData.y[i],r:prodData.r[i]})), backgroundColor: prodData.colors.map(c=>c+'CC') }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => { const i = ctx.dataIndex; return prodData.labels[i] + ' — ' + prodData.x[i] + ' exports, avg €' + prodData.y[i].toFixed(1)+'M'; } } } }, scales: { x: { title: { display: true, text: 'Number of exports to top 5 leagues', color: textColor, font:{size:11} }, ticks: { color: textColor }, grid: { color: gridColor }, min: 0, max: 430 }, y: { title: { display: true, text: 'Avg transfer fee (€M)', color: textColor, font:{size:11} }, ticks: { color: textColor, callback: v => '€'+v+'M' }, grid: { color: gridColor }, min: 0, max: 8.5 } } }
+});
+
+new Chart(document.getElementById('chartSpec'), {
+  type: 'bar',
+  data: {
+    labels: ['Brazil','France','Argentina','Nigeria','Portugal','Senegal'],
+    datasets: [
+      { label: 'Forwards', data: [42,28,38,35,22,40], backgroundColor: '#1D9E75CC' },
+      { label: 'Midfielders', data: [30,35,32,25,38,28], backgroundColor: '#378ADDCC' },
+      { label: 'Defenders', data: [20,28,22,30,30,25], backgroundColor: '#7F77DDCC' },
+      { label: 'Goalkeepers', data: [8,9,8,10,10,7], backgroundColor: '#D85A30CC' }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: textColor, boxWidth: 10, font:{size:11} } } }, scales: { x: { stacked: true, ticks: { color: textColor }, grid: { display: false } }, y: { stacked: true, ticks: { color: textColor, callback: v => v+'%' }, grid: { color: gridColor } } } }
+});
+
+new Chart(document.getElementById('chartComp'), {
+  type: 'bar',
+  data: {
+    labels: ['Box-to-box MF','Creative MF','Sweeper keeper','Ball-playing CB','Deep-lying FW','Wide MF','Traditional ST','Fullback'],
+    datasets: [{ label: 'Complexity score', data: [0.89,0.85,0.78,0.72,0.70,0.58,0.41,0.38], backgroundColor: ['#0F6E56','#1D9E75','#5DCAA5','#9FE1CB','#9FE1CB','#B4B2A9','#D3D1C7','#D3D1C7'], borderRadius: 3 }]
+  },
+  options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'Score: ' + ctx.parsed.x.toFixed(2) } } }, scales: { x: { min: 0, max: 1, ticks: { color: textColor }, grid: { color: gridColor } }, y: { ticks: { color: textColor, font:{size:11} }, grid: { display: false } } } }
+});
+
+new Chart(document.getElementById('chartVal'), {
+  type: 'scatter',
+  data: { datasets: [{ label: 'Players', data: [{x:0.89,y:82},{x:0.85,y:95},{x:0.78,y:68},{x:0.72,y:55},{x:0.70,y:48},{x:0.58,y:32},{x:0.41,y:18},{x:0.38,y:14},{x:0.80,y:110},{x:0.65,y,y:42},{x:0.90,y:130},{x:0.55,y:28}], backgroundColor: '#1D9E7599', pointRadius: 6 }, { label: 'Trend (r=0.81)', data: [{x:0.3,y:5},{x:1.0,y:140}], type: 'line', borderColor: '#E24B4A', borderWidth: 1.5, borderDash: [5,3], pointRadius: 0, fill: false }] },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'bottom', labels: { color: textColor, boxWidth: 10, font:{size:11} } }, tooltip: { callbacks: { label: ctx => ctx.dataset.label === 'Trend (r=0.81)' ? '' : 'Score: ' + ctx.parsed.x.toFixed(2) + ' — €' + Math.round(ctx.parsed.y) + 'M' } } }, scales: { x: { min: 0.2, max: 1.05, title: { display: true, text: 'Complexity score', color: textColor, font:{size:11} }, ticks: { color: textColor }, grid: { color: gridColor } }, y: { title: { display: true, text: 'Market value (€M)', color: textColor, font:{size:11} }, ticks: { color: textColor, callback: v => '€'+v+'M' }, grid: { color: gridColor } } } }
+});
+</script>

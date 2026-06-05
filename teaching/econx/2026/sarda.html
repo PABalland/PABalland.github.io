@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dark Kitchen Viability Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.10);
+    --text: #1a1a18;
+    --muted: #6b6b67;
+    --accent: #1d4ed8;
+    --accent-light: #eff6ff;
+    --green: #166534;
+    --green-bg: #dcfce7;
+    --red: #991b1b;
+    --red-bg: #fee2e2;
+    --amber: #92400e;
+    --amber-bg: #fef3c7;
+    --teal: #0f6e56;
+    --teal-bg: #e1f5ee;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.6; }
+
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header h1 { font-size: 20px; font-weight: 600; color: var(--text); }
+  .nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  .nav a { font-size: 13px; padding: 5px 12px; border-radius: 20px; background: var(--bg); color: var(--muted); text-decoration: none; border: 1px solid var(--border); transition: all 0.2s; cursor: pointer; }
+  .nav a:hover, .nav a.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .section { display: none; padding: 32px; max-width: 1200px; margin: 0 auto; }
+  .section.visible { display: block; }
+
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+  .metric-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .metric-card .value { font-size: 26px; font-weight: 600; color: var(--text); }
+  .metric-card .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .metric-card.green { border-left: 3px solid #22c55e; }
+  .metric-card.red { border-left: 3px solid #ef4444; }
+  .metric-card.blue { border-left: 3px solid var(--accent); }
+  .metric-card.amber { border-left: 3px solid #f59e0b; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; margin-bottom: 20px; }
+  .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+  @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } .header { flex-direction: column; gap: 12px; } }
+
+  .badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 12px; }
+  .badge.green { background: var(--green-bg); color: var(--green); }
+  .badge.red { background: var(--red-bg); color: var(--red); }
+  .badge.amber { background: var(--amber-bg); color: var(--amber); }
+  .badge.blue { background: var(--accent-light); color: var(--accent); }
+  .badge.teal { background: var(--teal-bg); color: var(--teal); }
+
+  .sim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+  @media (max-width: 700px) { .sim-grid { grid-template-columns: 1fr; } }
+  .slider-row { margin-bottom: 16px; }
+  .slider-row label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; color: var(--muted); }
+  .slider-row label span { font-weight: 600; color: var(--text); }
+  input[type=range] { -webkit-appearance: none; width: 100%; height: 5px; border-radius: 3px; background: #e2e8f0; outline: none; }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+  .result-box { background: var(--bg); border-radius: var(--radius-sm); padding: 18px; }
+  .result-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .result-row:last-child { border-bottom: none; }
+  .result-row.total { font-weight: 600; font-size: 16px; padding-top: 12px; }
+  .result-row .pos { color: var(--green); font-weight: 600; }
+  .result-row .neg { color: var(--red); font-weight: 600; }
+  .profit-bar-wrap { height: 14px; background: #e2e8f0; border-radius: 7px; overflow: hidden; margin-top: 10px; }
+  .profit-bar { height: 100%; border-radius: 7px; background: #22c55e; transition: width 0.4s ease; }
+
+  .pro-con-list li { list-style: none; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 14px; display: flex; align-items: flex-start; gap: 8px; }
+  .pro-con-list li:last-child { border-bottom: none; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+  .dot.green { background: #22c55e; }
+  .dot.red { background: #ef4444; }
+
+  .chart-wrap { position: relative; width: 100%; }
+
+  .toggle-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .toggle-btn { padding: 7px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 13px; transition: all 0.2s; color: var(--text); }
+  .toggle-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .footnote { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+  .footnote a { color: var(--accent); }
+
+  .section-title { font-size: 22px; font-weight: 600; margin-bottom: 28px; }
+
+  /* RISK SECTION */
+  .adv-strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .adv-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid #22c55e; border-radius: var(--radius-sm); padding: 16px; }
+  .adv-card .adv-val { font-size: 22px; font-weight: 700; color: var(--green); margin-bottom: 2px; }
+  .adv-card .adv-label { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .adv-card .adv-desc { font-size: 12px; color: var(--muted); }
+
+  .filter-row { display: flex; gap: 8px; margin-bottom: 18px; flex-wrap: wrap; align-items: center; }
+  .filter-row span { font-size: 12px; color: var(--muted); }
+  .filter-btn { padding: 4px 13px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); cursor: pointer; font-size: 12px; color: var(--muted); transition: all 0.15s; }
+  .filter-btn.active { background: #1a1a18; color: #fff; border-color: #1a1a18; }
+  .filter-btn.f-high.active { background: #ef4444; border-color: #ef4444; color: #fff; }
+  .filter-btn.f-med.active { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+  .filter-btn.f-low.active { background: #22c55e; border-color: #22c55e; color: #fff; }
+
+  .risk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .risk-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; transition: transform 0.15s, box-shadow 0.15s; }
+  .risk-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.07); }
+  .risk-card.sev-high { border-top: 3px solid #ef4444; }
+  .risk-card.sev-med { border-top: 3px solid #f59e0b; }
+  .risk-card.sev-low { border-top: 3px solid #22c55e; }
+  .risk-tag { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+  .risk-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .risk-stat { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  .risk-desc { font-size: 13px; color: var(--muted); line-height: 1.55; }
+  .risk-bar-bg { height: 4px; border-radius: 2px; background: #e2e8f0; margin-top: 14px; }
+  .risk-bar-fill { height: 4px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Dark Kitchen Viability Dashboard</h1>
+  <nav class="nav">
+    <a class="active" onclick="show('overview')">Overview</a>
+    <a onclick="show('comparison')">vs. Traditional</a>
+    <a onclick="show('simulator')">P&amp;L Simulator</a>
+    <a onclick="show('risks')">Risks &amp; Challenges</a>
+  </nav>
+</div>
+
+<!-- OVERVIEW -->
+<div id="overview" class="section visible">
+  <p class="section-title">Global Dark Kitchen Market</p>
+
+  <div class="metrics">
+    <div class="metric-card blue">
+      <div class="label">Global market size (2024)</div>
+      <div class="value">$72B</div>
+      <div class="sub">USD · Credence Research 2025</div>
+    </div>
+    <div class="metric-card green">
+      <div class="label">Projected size by 2032</div>
+      <div class="value">$184B</div>
+      <div class="sub">CAGR 11.59% · Credence Research</div>
+    </div>
+    <div class="metric-card amber">
+      <div class="label">Ghost kitchens in the US</div>
+      <div class="value">7,500+</div>
+      <div class="sub">Up from 3,500 in 2021</div>
+    </div>
+    <div class="metric-card red">
+      <div class="label">Delivery platform commission</div>
+      <div class="value">15–30%</div>
+      <div class="sub">Per order (UberEats, DoorDash…)</div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2>Market growth trajectory ($B)</h2>
+      <div class="chart-wrap" style="height:240px">
+        <canvas id="growthChart" role="img" aria-label="Bar chart showing dark kitchen market growth from $39B in 2018 to projected $184B in 2032">Market grew from $39B (2018) to $72B (2024), projected $184B by 2032.</canvas>
+      </div>
+      <p class="footnote">Source: <a href="https://www.credenceresearch.com/report/dark-kitchens-ghost-kitchens-cloud-kitchens-market/" target="_blank">Credence Research, 2025</a></p>
+    </div>
+    <div class="card">
+      <h2>Regional market share (2024)</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <span class="badge blue">North America 42%</span>
+        <span class="badge teal">Asia-Pacific 30%</span>
+        <span class="badge amber">Europe 19%</span>
+        <span class="badge green">Rest of world 9%</span>
+      </div>
+      <div class="chart-wrap" style="height:210px">
+        <canvas id="regionChart" role="img" aria-label="Doughnut chart of regional market share">North America 42%, Asia-Pacific 30%, Europe 19%, Other 9%.</canvas>
+      </div>
+      <p class="footnote">Source: <a href="https://www.credenceresearch.com/report/dark-kitchens-ghost-kitchens-cloud-kitchens-market/" target="_blank">Credence Research, 2025</a></p>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2>Ghost kitchen types (2024 share)</h2>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="typesChart" role="img" aria-label="Horizontal bar chart of ghost kitchen types">Delivery-only 41%, Full-service ghost 36%, Shared kitchens 23%.</canvas>
+      </div>
+      <p class="footnote">Source: <a href="https://www.credenceresearch.com/report/dark-kitchens-ghost-kitchens-cloud-kitchens-market/" target="_blank">Credence Research, 2025</a></p>
+    </div>
+    <div class="card">
+      <h2>Key drivers of adoption</h2>
+      <ul class="pro-con-list" style="margin-top:4px">
+        <li><span class="dot green"></span><span>Explosion of food delivery apps: 2.85B+ users globally (2023)</span></li>
+        <li><span class="dot green"></span><span>53% of adults consider takeout "essential" (double pre-pandemic)</span></li>
+        <li><span class="dot green"></span><span>Rising urbanisation &amp; smartphone penetration</span></li>
+        <li><span class="dot green"></span><span>30–50% lower startup costs vs. traditional restaurant</span></li>
+        <li><span class="dot green"></span><span>Multi-brand operations: 5–10 brands from a single kitchen</span></li>
+        <li><span class="dot green"></span><span>AI, IoT, and automation reducing operational waste</span></li>
+        <li><span class="dot green"></span><span>Asia-Pacific fastest growing region (China: 7,500+ kitchens)</span></li>
+      </ul>
+      <p class="footnote">Sources: <a href="https://www.globalmarketstatistics.com/market-reports/dark-kitchen-and-virtual-kitchens-market-13834" target="_blank">Global Market Statistics</a> · <a href="https://www.restaurantgrowth.com/blog/ghost-kitchen-vs-cloud-kitchen/" target="_blank">Restaurant Growth</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- COMPARISON -->
+<div id="comparison" class="section">
+  <p class="section-title">Dark Kitchen vs. Traditional Restaurant</p>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2>Profit margin comparison (%)</h2>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="marginChart" role="img" aria-label="Bar chart comparing profit margins">Dark kitchen: 10-25%. Traditional restaurant: 3-6%.</canvas>
+      </div>
+      <p class="footnote">Source: <a href="https://www.restauranttimes.com/blogs/insights/are-dark-kitchens-profitable/" target="_blank">Restaurant Times</a> · <a href="https://methodarchitecture.com/food-from-the-cloud-kitchen/" target="_blank">Method Architecture</a></p>
+    </div>
+    <div class="card">
+      <h2>Startup cost comparison ($K)</h2>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="costChart" role="img" aria-label="Bar chart comparing startup costs">Dark kitchen $30K–$200K. Traditional restaurant $180K–$1M+.</canvas>
+      </div>
+      <p class="footnote">Source: <a href="https://clarifycapital.com/blog/ghost-kitchen" target="_blank">Clarify Capital</a> · <a href="https://www.restroworks.com/blog/ghost-kitchen-startup-cost/" target="_blank">Restroworks</a></p>
+    </div>
+  </div>
+  <div class="card">
+    <h2>Cost structure breakdown — dark kitchen vs. traditional (% of revenue)</h2>
+    <div class="chart-wrap" style="height:260px">
+      <canvas id="structureChart" role="img" aria-label="Grouped bar chart comparing cost structures">Breakdown of typical cost categories.</canvas>
+    </div>
+    <p class="footnote">Illustrative breakdown based on industry averages. Sources: <a href="https://www.restaurantgrowth.com/blog/ghost-kitchen-vs-cloud-kitchen/" target="_blank">Restaurant Growth</a> · <a href="https://dojobusiness.com/blogs/news/ghost-kitchen-worth-it" target="_blank">BusinessDojo</a></p>
+  </div>
+</div>
+
+<!-- SIMULATOR -->
+<div id="simulator" class="section">
+  <p class="section-title">P&amp;L Simulator</p>
+
+  <div class="toggle-row">
+    <button class="toggle-btn active" onclick="switchMode('dark')">Dark Kitchen</button>
+    <button class="toggle-btn" onclick="switchMode('trad')">Traditional Restaurant</button>
+  </div>
+
+  <div class="sim-grid">
+    <div class="card">
+      <h2 id="sim-title">Dark Kitchen — inputs</h2>
+      <div class="slider-row">
+        <label>Monthly orders <span id="orders-val">800</span></label>
+        <input type="range" id="orders" min="100" max="3000" step="50" value="800" oninput="calcSim()">
+      </div>
+      <div class="slider-row">
+        <label>Average order value ($) <span id="aov-val">25</span></label>
+        <input type="range" id="aov" min="10" max="80" step="1" value="25" oninput="calcSim()">
+      </div>
+      <div class="slider-row">
+        <label id="rent-label">Monthly rent ($) <span id="rent-val">5,000</span></label>
+        <input type="range" id="rent" min="1000" max="25000" step="500" value="5000" oninput="calcSim()">
+      </div>
+      <div class="slider-row">
+        <label>Food cost (% of revenue) <span id="food-val">30</span>%</label>
+        <input type="range" id="food" min="20" max="50" step="1" value="30" oninput="calcSim()">
+      </div>
+      <div class="slider-row">
+        <label>Labor cost (% of revenue) <span id="labor-val">20</span>%</label>
+        <input type="range" id="labor" min="5" max="40" step="1" value="20" oninput="calcSim()">
+      </div>
+      <div id="commission-row" class="slider-row">
+        <label>Platform commission (%) <span id="commission-val">25</span>%</label>
+        <input type="range" id="commission" min="0" max="35" step="1" value="25" oninput="calcSim()">
+      </div>
+      <div id="dine-row" class="slider-row" style="display:none">
+        <label>Dine-in revenue share (%) <span id="dine-val">60</span>%</label>
+        <input type="range" id="dine" min="10" max="90" step="5" value="60" oninput="calcSim()">
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Monthly results</h2>
+      <div class="result-box">
+        <div class="result-row"><span>Gross revenue</span><span id="r-revenue" class="pos">—</span></div>
+        <div class="result-row"><span id="r-comm-label">Platform fees paid</span><span id="r-commission" class="neg">—</span></div>
+        <div class="result-row"><span>Net revenue after fees</span><span id="r-net-rev">—</span></div>
+        <div class="result-row"><span>Food &amp; ingredients</span><span id="r-food" class="neg">—</span></div>
+        <div class="result-row"><span>Labor</span><span id="r-labor" class="neg">—</span></div>
+        <div class="result-row"><span>Rent</span><span id="r-rent" class="neg">—</span></div>
+        <div id="pkg-row" class="result-row"><span>Packaging (est. $0.75/order)</span><span id="r-pkg" class="neg">—</span></div>
+        <div class="result-row"><span>Marketing &amp; other (est.)</span><span id="r-mkt" class="neg">—</span></div>
+        <div class="result-row total"><span>Net profit / loss</span><span id="r-profit">—</span></div>
+        <div class="result-row"><span>Net profit margin</span><span id="r-margin">—</span></div>
+      </div>
+      <p id="sim-verdict" style="margin-top:14px;font-size:13px;padding:10px;border-radius:8px;background:var(--bg)"></p>
+      <div class="profit-bar-wrap" style="margin-top:10px">
+        <div class="profit-bar" id="profit-bar" style="width:0%"></div>
+      </div>
+      <p class="footnote" style="margin-top:6px">Typical dark kitchen margin: 10–25%. Traditional restaurant: 3–6%.<br>Sources: <a href="https://www.restauranttimes.com/blogs/insights/are-dark-kitchens-profitable/" target="_blank">Restaurant Times</a> · <a href="https://www.restroworks.com/blog/ghost-kitchen-startup-cost/" target="_blank">Restroworks</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- RISKS & CHALLENGES -->
+<div id="risks" class="section">
+  <p class="section-title">Risks &amp; Challenges</p>
+
+  <div class="adv-strip">
+    <div class="adv-card">
+      <div class="adv-val">10–25%</div>
+      <div class="adv-label">Net profit margin</div>
+      <div class="adv-desc">vs. 3–6% for traditional restaurants</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-val">10–18 mo</div>
+      <div class="adv-label">Break-even timeline</div>
+      <div class="adv-desc">vs. 2–4 years for brick-and-mortar</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-val">30–50%</div>
+      <div class="adv-label">Lower startup costs</div>
+      <div class="adv-desc">$30K–$200K vs. $180K–$1M+</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-val">5–10x</div>
+      <div class="adv-label">Brand multiplication</div>
+      <div class="adv-desc">Multiple brands from a single kitchen</div>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <span>Filter by severity:</span>
+    <button class="filter-btn active" onclick="filterRisks('all',this)">All risks</button>
+    <button class="filter-btn f-high" onclick="filterRisks('high',this)">High</button>
+    <button class="filter-btn f-med" onclick="filterRisks('med',this)">Medium</button>
+    <button class="filter-btn f-low" onclick="filterRisks('low',this)">Lower</button>
+  </div>
+
+  <div class="risk-grid" id="risk-grid">
+
+    <div class="risk-card sev-high" data-sev="high">
+      <div class="risk-tag" style="color:#ef4444">High severity</div>
+      <div class="risk-title">Platform commission drain</div>
+      <div class="risk-stat" style="color:#ef4444">15–30%</div>
+      <div class="risk-desc">Every order through UberEats or DoorDash costs 15–30% off the top. At 30% on a $25 order, $7.50 is gone before food, labor, or rent. Deliveroo Editions can reach 40%.</div>
+      <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:90%;background:#ef4444"></div></div>
+      <p class="footnote" style="margin-top:10px">Source: <a href="https://www.opentable.co.uk/restaurant-solutions/resources/open-dark-kitchen/" target="_blank">OpenTable</a> · <a href="https://www.sciencedirect.com/science/article/pii/S1878450X25000435" target="_blank">ScienceDirect 2025</a></p>
+    </div>
+
+    <div class="risk-card sev-high" data-sev="high">
+      <div class="risk-tag" style="color:#ef4444">High severity</div>
+      <div class="risk-title">Year-one failure rate</div>
+      <div class="risk-stat" style="color:#ef4444">~60%</div>
+      <div class="risk-desc">Up to 60% of ghost kitchens fail in their first year — driven by poor branding, inadequate market research, and underestimated ramp-up costs. Only ~40% survive year one.</div>
+      <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:85%;background:#ef4444"></div></div>
+      <p class="footnote" style="margin-top:10px">Source: <a href="https://www.restroworks.com/blog/ghost-kitchen-startup-cost/" target="_blank">Restroworks</a></p>
+    </div>
+
+    <div class="risk-card sev-high" data-sev="high">
+      <div class="risk-tag" style="color:#ef4444">High severity</div>
+      <div class="risk-title">Algorithm dependency</div>
+      <div class="risk-stat" style="color:#ef4444">Instant impact</div>
+      <div class="risk-desc">A single platform ranking change can halve order volume overnight. With no physical storefront to fall back on, dark kitchens are entirely exposed to third-party rule changes.</div>
+      <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:80%;background:#ef4444"></div></div>
+      <p class="footnote" style="margin-top:10px">Source: <a href="https://plasticcontainercity.com/blog/post/ghost-kitchens-the-future-is-here-are-you" target="_blank">Plastic Container City</a></p>
+    </div>
+
+    <div class="risk-card sev-med" data-sev="med">
+      <div class="risk-tag" style="color:#d97706">Medium severity</div>
+      <div class="risk-title">Brand invisibility</div>
+      <div class="risk-stat" style="color:#d97706">No storefront</div>
+      <div class="risk-desc">Without a physical presence, building customer loyalty is an uphill battle. Operators depend entirely on platform reviews, social media, and digital marketing to remain visible.</div>
+      <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:60%;background:#f59e0b"></div></div>
+      <p class="footnote" style="margin-top:10px">Source: <a href="https://www.opentable.co.uk/restaurant-solutions/resources/open-dark-kitchen/" target="_blank">OpenTable</a></p>
+    </div>
+
+    <div class="risk-card sev-med" data-sev="med">
+      <div class="risk-tag" style="color:#d97706">Medium severity</div>
+      <div class="risk-title">8–10 week cash-burn period</div>
+      <div class="risk-stat" style="color:#d97706">€8,000+ needed</div>
+      <div class="risk-desc">Dark kitchens typically lose money for 8–10 weeks while building platform visibility and review scores. At least €8,000 in working capital is recommended before launch.</div>
+      <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:55%;background:#f59e0b"></div></div>
+      <p class="footnote" style="margin-top:10px">Source: <a href="https://kitchennmbrs.app/en/knowledge-base/delivery-dark-kitchen/how-do-i-calculate-the-startup-costs-of-a-dark-kitchen" target="_blank">KitchenNmbrs</a></p>
+    </div>
+
+    <div class="risk-card sev-med" data-sev="med">
+      <div class="risk-tag" style="color:#d97706">Medium severity</div>
+      <div class="risk-title">Food quality in transit</div>
+      <div class="risk-stat" style="color:#d97706">$0.50–$1.50/order</div>
+      <div class="risk-desc">Packaging costs add up, and quality degrades during delivery. Poor packaging damages ratings, which then hurts platform ranking — a compounding loop that's hard to escape.</div>
+      <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:50%;background:#f59e0b"></div></div>
+      <p class="footnote" style="margin-top:10px">Source: <a href="https://kitchennmbrs.app/en/knowledge-base/delivery-dark-kitchen/how-do-i-calculate-the-startup-costs-of-a-dark-kitchen" target="_blank">KitchenNmbrs</a></p>
+    </div>
+
+    <div class="risk-card sev-low" data-sev="low">
+      <div class="risk-tag" style="color:#16a34a">Lower severity</div>
+      <div class="risk-title">Regulatory ambiguity</div>
+      <div class="risk-stat" style="color:#16a34a">Varies by city</div>
+      <div class="risk-desc">Many cities lack clear rules for delivery-only operators. Permits, zoning, and food safety inspections are required but inconsistently enforced across online aggregators.</div>
+      <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:35%;background:#22c55e"></div></div>
+      <p class="footnote" style="margin-top:10px">Source: <a href="https://www.sciencedirect.com/science/article/pii/S1878450X25000435" target="_blank">ScienceDirect 2025</a></p>
+    </div>
+
+    <div class="risk-card sev-low" data-sev="low">
+      <div class="risk-tag" style="color:#16a34a">Lower severity</div>
+      <div class="risk-title">Market saturation</div>
+      <div class="risk-stat" style="color:#16a34a">Metro areas</div>
+      <div class="risk-desc">Major cities see growing competition from established restaurants pivoting to delivery, virtual brands from large chains, and a steady wave of new ghost kitchen entrants.</div>
+      <div class="risk-bar-bg"><div class="risk-bar-fill" style="width:40%;background:#22c55e"></div></div>
+      <p class="footnote" style="margin-top:10px">Source: <a href="https://plasticcontainercity.com/blog/post/ghost-kitchens-the-future-is-here-are-you" target="_blank">Plastic Container City</a></p>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <h2>Platform commission impact on net margin</h2>
+    <div class="chart-wrap" style="height:240px">
+      <canvas id="commissionChart" role="img" aria-label="Line chart showing net margin versus platform commission rate">Net margin falls as platform commission rises.</canvas>
+    </div>
+    <p class="footnote">Assumes: avg order $25 · food cost 30% · labor 20% · rent+other $6,000/month · 800 orders/month. Commission range 0–35%.<br>Source: <a href="https://www.sciencedirect.com/science/article/pii/S1878450X25000435" target="_blank">ScienceDirect (2025)</a> · <a href="https://dojobusiness.com/blogs/news/dark-kitchen-complete-guide" target="_blank">BusinessDojo</a></p>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.getElementById(id).classList.add('visible');
+  document.querySelectorAll('.nav a').forEach((a,i) => {
+    a.classList.remove('active');
+    if(['overview','comparison','simulator','risks'][i] === id) a.classList.add('active');
+  });
+}
+
+function filterRisks(sev, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.risk-card').forEach(c => {
+    c.style.display = (sev === 'all' || c.dataset.sev === sev) ? '' : 'none';
+  });
+}
+
+let simMode = 'dark';
+function switchMode(m) {
+  simMode = m;
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  const isDark = m === 'dark';
+  document.getElementById('sim-title').textContent = isDark ? 'Dark Kitchen — inputs' : 'Traditional Restaurant — inputs';
+  document.getElementById('commission-row').style.display = isDark ? '' : 'none';
+  document.getElementById('dine-row').style.display = isDark ? 'none' : '';
+  document.getElementById('pkg-row').style.display = isDark ? '' : 'none';
+  document.getElementById('r-comm-label').textContent = isDark ? 'Platform fees paid' : 'N/A (no platform fees)';
+  document.getElementById('rent-label').childNodes[0].textContent = isDark ? 'Monthly rent ($) ' : 'Monthly rent (prime, $) ';
+  if (!isDark) { document.getElementById('rent').value = 12000; document.getElementById('rent-val').textContent = '12,000'; }
+  else { document.getElementById('rent').value = 5000; document.getElementById('rent-val').textContent = '5,000'; }
+  calcSim();
+}
+
+function calcSim() {
+  const orders = +document.getElementById('orders').value;
+  const aov = +document.getElementById('aov').value;
+  const rent = +document.getElementById('rent').value;
+  const foodPct = +document.getElementById('food').value / 100;
+  const laborPct = +document.getElementById('labor').value / 100;
+  const commPct = +document.getElementById('commission').value / 100;
+
+  document.getElementById('orders-val').textContent = orders;
+  document.getElementById('aov-val').textContent = aov;
+  document.getElementById('rent-val').textContent = rent.toLocaleString();
+  document.getElementById('food-val').textContent = Math.round(document.getElementById('food').value);
+  document.getElementById('labor-val').textContent = Math.round(document.getElementById('labor').value);
+  document.getElementById('commission-val').textContent = Math.round(document.getElementById('commission').value);
+  document.getElementById('dine-val').textContent = Math.round(document.getElementById('dine').value);
+
+  const isDark = simMode === 'dark';
+  const grossRev = orders * aov;
+  const commFees = isDark ? grossRev * commPct : 0;
+  const netRev = grossRev - commFees;
+  const foodCost = grossRev * foodPct;
+  const laborCost = grossRev * laborPct;
+  const pkgCost = isDark ? orders * 0.75 : 0;
+  const mktCost = grossRev * 0.05;
+  const totalCosts = foodCost + laborCost + rent + pkgCost + mktCost + commFees;
+  const profit = grossRev - totalCosts;
+  const margin = (profit / grossRev) * 100;
+
+  const fmt = v => '$' + Math.round(Math.abs(v)).toLocaleString();
+  document.getElementById('r-revenue').textContent = fmt(grossRev);
+  document.getElementById('r-commission').textContent = isDark ? '-' + fmt(commFees) : 'N/A';
+  document.getElementById('r-net-rev').textContent = fmt(netRev);
+  document.getElementById('r-food').textContent = '-' + fmt(foodCost);
+  document.getElementById('r-labor').textContent = '-' + fmt(laborCost);
+  document.getElementById('r-rent').textContent = '-' + fmt(rent);
+  document.getElementById('r-pkg').textContent = isDark ? '-' + fmt(pkgCost) : 'N/A';
+  document.getElementById('r-mkt').textContent = '-' + fmt(mktCost);
+  const profEl = document.getElementById('r-profit');
+  profEl.textContent = (profit >= 0 ? '' : '-') + fmt(profit);
+  profEl.className = profit >= 0 ? 'pos' : 'neg';
+  const margEl = document.getElementById('r-margin');
+  margEl.textContent = margin.toFixed(1) + '%';
+  margEl.className = margin >= 10 ? 'pos' : margin >= 0 ? '' : 'neg';
+
+  const v = document.getElementById('sim-verdict');
+  if (margin < 0) { v.style.background = '#fee2e2'; v.style.color = '#991b1b'; v.textContent = 'Unprofitable — adjust pricing, reduce costs, or increase order volume.'; }
+  else if (margin < 8) { v.style.background = '#fef3c7'; v.style.color = '#92400e'; v.textContent = 'Below typical range — dark kitchens usually aim for 10–25% net margin.'; }
+  else { v.style.background = '#dcfce7'; v.style.color = '#166534'; v.textContent = 'Healthy margin — within expected range for a well-run dark kitchen.'; }
+
+  const barPct = Math.max(0, Math.min(100, margin * 4));
+  document.getElementById('profit-bar').style.width = barPct + '%';
+  document.getElementById('profit-bar').style.background = margin < 0 ? '#ef4444' : margin < 8 ? '#f59e0b' : '#22c55e';
+}
+
+window.addEventListener('load', () => {
+
+  new Chart(document.getElementById('growthChart'), {
+    type: 'bar',
+    data: { labels: ['2018','2020','2022','2024','2026 (est)','2028 (est)','2032 (proj)'], datasets: [{ label: 'Market size ($B)', data: [39.4,46,58.6,72.1,92,128,184], backgroundColor: ['#93c5fd','#93c5fd','#93c5fd','#3b82f6','#94a3b8','#94a3b8','#64748b'], borderRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v + 'B' } } } }
+  });
+
+  new Chart(document.getElementById('regionChart'), {
+    type: 'doughnut',
+    data: { labels: ['North America','Asia-Pacific','Europe','Rest of World'], datasets: [{ data: [42.19,30.24,18.79,8.78], backgroundColor: ['#3b82f6','#14b8a6','#f59e0b','#a855f7'], borderWidth: 2, borderColor: '#fff' }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.label + ': ' + ctx.parsed + '%' } } } }
+  });
+
+  new Chart(document.getElementById('typesChart'), {
+    type: 'bar',
+    data: { labels: ['Delivery-only','Full-service ghost','Shared kitchens'], datasets: [{ label: 'Market share %', data: [41,36,23], backgroundColor: ['#3b82f6','#6366f1','#8b5cf6'], borderRadius: 6 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, max: 50, ticks: { callback: v => v + '%' } } } }
+  });
+
+  new Chart(document.getElementById('marginChart'), {
+    type: 'bar',
+    data: { labels: ['Dark Kitchen (min)','Dark Kitchen (avg)','Dark Kitchen (max)','Traditional (min)','Traditional (avg)','Traditional (max)'], datasets: [{ label: 'Net profit margin %', data: [10,15,25,3,4.5,6], backgroundColor: ['#86efac','#22c55e','#15803d','#fca5a5','#ef4444','#b91c1c'], borderRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => v + '%' } } } }
+  });
+
+  new Chart(document.getElementById('costChart'), {
+    type: 'bar',
+    data: { labels: ['Dark Kitchen (low)','Dark Kitchen (high)','Traditional (low)','Traditional (high)'], datasets: [{ label: 'Startup cost ($K)', data: [30,200,180,1000], backgroundColor: ['#86efac','#22c55e','#fca5a5','#b91c1c'], borderRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { callback: v => '$' + v + 'K' } } } }
+  });
+
+  new Chart(document.getElementById('structureChart'), {
+    type: 'bar',
+    data: { labels: ['Food cost','Labor','Rent','Platform fees','Packaging','Marketing & other'], datasets: [{ label: 'Dark Kitchen', data: [30,20,10,22,3,5], backgroundColor: '#3b82f6', borderRadius: 3 }, { label: 'Traditional Restaurant', data: [32,35,18,0,0,5], backgroundColor: '#f87171', borderRadius: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'rect' } }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ~' + ctx.parsed.y + '% of revenue' } } }, scales: { y: { beginAtZero: true, ticks: { callback: v => v + '%' } } } }
+  });
+
+  const commRates = [0,5,10,15,20,25,30,35];
+  const baseRev = 800 * 25;
+  const fixedCosts = 800*25*0.30 + 800*25*0.20 + 6000 + 800*0.75 + 800*25*0.05;
+  const margins = commRates.map(r => { const f = baseRev*(r/100); return +((baseRev-fixedCosts-f)/baseRev*100).toFixed(1); });
+  new Chart(document.getElementById('commissionChart'), {
+    type: 'line',
+    data: { labels: commRates.map(r => r + '%'), datasets: [{ label: 'Net margin', data: margins, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.3, pointRadius: 5, pointBackgroundColor: margins.map(m => m < 0 ? '#ef4444' : m < 8 ? '#f59e0b' : '#22c55e') }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => 'Net margin: ' + ctx.parsed.y + '%' } } }, scales: { y: { ticks: { callback: v => v + '%' }, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { title: { display: true, text: 'Platform commission rate' } } } }
+  });
+
+  calcSim();
+});
+</script>
+</body>
+</html>

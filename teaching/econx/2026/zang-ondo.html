@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vulnerability Detector — Sectoral Concentration</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.6;background:#f5f4f0;color:#1a1916;min-height:100vh}
+@media(prefers-color-scheme:dark){body{background:#111110;color:#e5e3dc}}
+
+/* ── tokens ── */
+:root{
+  --sur:#fff;--sur2:#f5f4f0;--sur3:#eceae3;
+  --bd:rgba(0,0,0,0.09);--bd2:rgba(0,0,0,0.16);
+  --tx:#1a1916;--tx2:#5c5a54;--tx3:#8a8880;
+  --r50:#fcebeb;--r400:#e24b4a;--r600:#a32d2d;--r800:#791f1f;
+  --a50:#faeeda;--a400:#ef9f27;--a600:#854f0b;--a800:#633806;
+  --b50:#e6f1fb;--b400:#378add;--b600:#185fa5;--b800:#0c447c;
+  --t50:#e1f5ee;--t400:#1d9e75;--t600:#0f6e56;--t800:#085041;
+  --p50:#eeedfe;--p400:#7f77dd;--p600:#534ab7;--p800:#3c3489;
+  --g50:#f1efe8;--g400:#888780;--g600:#5f5e5a;--g800:#444441;
+  --rad-sm:6px;--rad:10px;--rad-lg:14px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --sur:#1c1b18;--sur2:#111110;--sur3:#242320;
+  --bd:rgba(255,255,255,0.08);--bd2:rgba(255,255,255,0.15);
+  --tx:#e5e3dc;--tx2:#9a9890;--tx3:#606058;
+  --r50:#2a1010;--r400:#e24b4a;--r600:#f09595;--r800:#f7c1c1;
+  --a50:#231708;--a400:#ba7517;--a600:#ef9f27;--a800:#fac775;
+  --b50:#081827;--b400:#378add;--b600:#85b7eb;--b800:#b5d4f4;
+  --t50:#071a14;--t400:#1d9e75;--t600:#5dcaa5;--t800:#9fe1cb;
+  --p50:#12102a;--p400:#7f77dd;--p600:#afa9ec;--p800:#cecbf6;
+  --g50:#1e1d1a;--g400:#888780;--g600:#b4b2a9;--g800:#d3d1c7;
+}}
+
+/* ── layout ── */
+.shell{display:grid;grid-template-columns:264px 1fr;min-height:100vh}
+@media(max-width:780px){.shell{grid-template-columns:1fr}}
+.sidebar{background:var(--sur);border-right:0.5px solid var(--bd);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.content{overflow-x:hidden;display:flex;flex-direction:column}
+
+/* ── sidebar ── */
+.sb-head{padding:20px 18px 14px;border-bottom:0.5px solid var(--bd)}
+.sb-eyebrow{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--r400);margin-bottom:5px}
+.sb-title{font-size:16px;font-weight:500;color:var(--tx);line-height:1.3}
+.sb-sub{font-size:11px;color:var(--tx3);margin-top:3px}
+
+.sb-sect{padding:10px 18px 4px;font-size:10px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--tx3)}
+.rb{display:flex;align-items:center;gap:9px;padding:8px 14px 8px 18px;cursor:pointer;border:none;background:transparent;width:100%;text-align:left;border-left:2.5px solid transparent;transition:background .12s,border-color .12s}
+.rb:hover{background:var(--sur3)}
+.rb.on{background:var(--b50);border-left-color:var(--b400)}
+.rb.on .rbn{color:var(--b600)}
+.rbn{font-size:13px;font-weight:500;color:var(--tx);transition:color .12s}
+.rbc{font-size:11px;color:var(--tx3)}
+.badge{margin-left:auto;font-size:10px;font-weight:500;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.bc{background:var(--r50);color:var(--r600)}
+.bh{background:var(--a50);color:var(--a600)}
+.bm{background:var(--b50);color:var(--b600)}
+.bl{background:var(--t50);color:var(--t600)}
+
+.sb-div{height:0.5px;background:var(--bd);margin:6px 0}
+
+.sb-builder{padding:14px 18px;border-top:0.5px solid var(--bd);margin-top:auto}
+.sb-builder-title{font-size:10px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--tx3);margin-bottom:12px}
+.form-row{margin-bottom:10px}
+.form-lbl{font-size:11px;color:var(--tx2);margin-bottom:4px;display:flex;justify-content:space-between}
+.form-lbl span{font-weight:500;color:var(--tx)}
+input[type=text]{width:100%;padding:6px 9px;border:0.5px solid var(--bd2);border-radius:var(--rad-sm);background:var(--sur2);color:var(--tx);font-size:12px;outline:none}
+input[type=text]:focus{border-color:var(--b400)}
+input[type=range]{width:100%;accent-color:var(--b400);margin-top:2px}
+.btn-build{width:100%;padding:7px 12px;border:0.5px solid var(--bd2);border-radius:var(--rad-sm);background:var(--sur2);color:var(--tx);font-size:12px;font-weight:500;cursor:pointer;margin-top:6px;transition:background .12s}
+.btn-build:hover{background:var(--sur3)}
+
+/* ── content header ── */
+.c-head{padding:22px 26px 18px;border-bottom:0.5px solid var(--bd);background:var(--sur)}
+.c-city{font-size:22px;font-weight:500;color:var(--tx)}
+.c-meta{font-size:12px;color:var(--tx3);margin-top:3px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.c-summary{font-size:13px;color:var(--tx2);margin-top:10px;line-height:1.6;max-width:720px}
+.tag{font-size:10px;padding:2px 8px;border-radius:10px;border:0.5px solid var(--bd2);color:var(--tx2)}
+
+/* ── kpi strip ── */
+.kpi-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-bottom:0.5px solid var(--bd)}
+.kpi{padding:16px 20px;border-right:0.5px solid var(--bd);background:var(--sur)}
+.kpi:last-child{border-right:none}
+.kpi-lbl{font-size:11px;color:var(--tx3);margin-bottom:5px}
+.kpi-val{font-size:24px;font-weight:500;line-height:1;color:var(--tx)}
+.kpi-unit{font-size:13px;font-weight:400;color:var(--tx3)}
+.kpi-note{font-size:11px;color:var(--tx3);margin-top:4px}
+
+/* ── sections ── */
+.body-grid{padding:20px 26px;display:flex;flex-direction:column;gap:18px}
+
+.card{background:var(--sur);border:0.5px solid var(--bd);border-radius:var(--rad-lg);overflow:hidden}
+.card-head{padding:13px 16px 10px;border-bottom:0.5px solid var(--bd);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--tx3)}
+.card-body{padding:16px}
+
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:860px){.two-col{grid-template-columns:1fr}}
+
+/* ── sector bars ── */
+.sec-row{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+.sec-row:last-child{margin-bottom:0}
+.sec-name{width:130px;flex-shrink:0;font-size:12px;font-weight:500;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sec-track{flex:1;height:8px;background:var(--sur3);border-radius:4px;overflow:hidden;position:relative}
+.sec-fill{height:100%;border-radius:4px;transition:width .5s ease}
+.sec-pct{width:34px;text-align:right;font-size:12px;font-weight:500;color:var(--tx2);flex-shrink:0}
+.sec-client{width:90px;flex-shrink:0;font-size:11px;color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:right}
+.sec-client-pct{width:38px;flex-shrink:0;text-align:right;font-size:11px;font-weight:500}
+
+/* ── HHI meter ── */
+.hhi-meter{display:flex;flex-direction:column;gap:6px}
+.hhi-track{height:10px;background:var(--sur3);border-radius:5px;overflow:hidden;position:relative}
+.hhi-fill{height:100%;border-radius:5px;transition:width .5s}
+.hhi-ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--tx3);margin-top:2px}
+
+/* ── shock simulator ── */
+.shock-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.shock-kpi{padding:12px 14px;border-radius:var(--rad);border:0.5px solid var(--bd);background:var(--sur2)}
+.shock-kpi-lbl{font-size:11px;color:var(--tx3);margin-bottom:4px}
+.shock-kpi-val{font-size:20px;font-weight:500}
+.shock-kpi-sub{font-size:11px;color:var(--tx3);margin-top:2px}
+.slider-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.slider-lbl{font-size:12px;color:var(--tx2);width:160px;flex-shrink:0}
+.slider-val{width:44px;font-size:12px;font-weight:500;color:var(--tx);text-align:right;flex-shrink:0}
+.insight-strip{margin-top:12px;padding:10px 13px;border-radius:var(--rad-sm);border-left:3px solid var(--a400);background:var(--a50);font-size:12px;color:var(--a600);line-height:1.6}
+
+/* ── bubble chart area ── */
+.chart-outer{position:relative;width:100%}
+.legend-row{display:flex;flex-wrap:wrap;gap:12px;font-size:11px;color:var(--tx3);margin-bottom:10px}
+.ld{width:10px;height:10px;border-radius:2px;display:inline-block;vertical-align:middle;margin-right:3px}
+
+/* ── scrollbar ── */
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+
+.warn-strip{margin-top:10px;padding:9px 12px;border-left:3px solid var(--r400);background:var(--r50);border-radius:0;font-size:12px;color:var(--r600);line-height:1.55}
+.safe-strip{margin-top:10px;padding:9px 12px;border-left:3px solid var(--t400);background:var(--t50);border-radius:0;font-size:12px;color:var(--t600);line-height:1.55}
+
+.footnote{padding:14px 26px;font-size:11px;color:var(--tx3);border-top:0.5px solid var(--bd);line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <nav class="sidebar" aria-label="Region selector">
+    <div class="sb-head">
+      <div class="sb-eyebrow">Economic fragility</div>
+      <div class="sb-title">Vulnerability detector</div>
+      <div class="sb-sub">Sectoral &amp; client concentration</div>
+    </div>
+
+    <div class="sb-sect">Critical</div>
+    <button class="rb" onclick="load('detroit')" id="rb-detroit"><div><div class="rbn">Detroit</div><div class="rbc">USA — Michigan</div></div><span class="badge bc">Critical</span></button>
+    <button class="rb" onclick="load('riyadh')" id="rb-riyadh"><div><div class="rbn">Riyadh</div><div class="rbc">Saudi Arabia</div></div><span class="badge bc">Critical</span></button>
+    <div class="sb-div"></div>
+    <div class="sb-sect">High</div>
+    <button class="rb" onclick="load('toulouse')" id="rb-toulouse"><div><div class="rbn">Toulouse</div><div class="rbc">France — Occitanie</div></div><span class="badge bh">High</span></button>
+    <button class="rb" onclick="load('riviera')" id="rb-riviera"><div><div class="rbn">French Riviera</div><div class="rbc">France — PACA</div></div><span class="badge bh">High</span></button>
+    <button class="rb" onclick="load('saarland')" id="rb-saarland"><div><div class="rbn">Saarland</div><div class="rbc">Germany</div></div><span class="badge bh">High</span></button>
+    <button class="rb" onclick="load('jakarta')" id="rb-jakarta"><div><div class="rbn">Jakarta</div><div class="rbc">Indonesia</div></div><span class="badge bh">High</span></button>
+    <div class="sb-div"></div>
+    <div class="sb-sect">Moderate</div>
+    <button class="rb" onclick="load('shannon')" id="rb-shannon"><div><div class="rbn">Shannon</div><div class="rbc">Ireland — Mid-West</div></div><span class="badge bm">Moderate</span></button>
+    <button class="rb" onclick="load('reims')" id="rb-reims"><div><div class="rbn">Reims</div><div class="rbc">France — Grand Est</div></div><span class="badge bm">Moderate</span></button>
+    <div class="sb-div"></div>
+    <div class="sb-sect">Low</div>
+    <button class="rb" onclick="load('austin')" id="rb-austin"><div><div class="rbn">Austin</div><div class="rbc">USA — Texas</div></div><span class="badge bl">Low</span></button>
+
+    <!-- BUILDER -->
+    <div class="sb-builder">
+      <div class="sb-builder-title">Custom region</div>
+      <div class="form-row">
+        <div class="form-lbl">Name</div>
+        <input type="text" id="cname" placeholder="My region" value="My region">
+      </div>
+      <div class="form-row">
+        <div class="form-lbl">Top sector share <span id="lv1">55%</span></div>
+        <input type="range" id="cv1" min="10" max="85" value="55" step="1" oninput="document.getElementById('lv1').textContent=this.value+'%'">
+      </div>
+      <div class="form-row">
+        <div class="form-lbl">2nd sector share <span id="lv2">20%</span></div>
+        <input type="range" id="cv2" min="5" max="50" value="20" step="1" oninput="document.getElementById('lv2').textContent=this.value+'%'">
+      </div>
+      <div class="form-row">
+        <div class="form-lbl">Top client controls <span id="lv3">65%</span> of sector 1</div>
+        <input type="range" id="cv3" min="10" max="100" value="65" step="1" oninput="document.getElementById('lv3').textContent=this.value+'%'">
+      </div>
+      <button class="btn-build" onclick="buildCustom()">Analyse ↗</button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="content" id="main"></main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const PALETTE = ['#e24b4a','#378add','#7f77dd','#1d9e75','#ba7517','#888780'];
+
+const DB = {
+  detroit:{
+    name:'Detroit metro', country:'USA — Michigan', gdp:55, jobs:1.7, taxB:3.2,
+    tier:'bc', tierLabel:'Critical',
+    summary:'Classic single-sector trap. Automotive manufacturing concentrates over half of private employment. A GM or Stellantis production decision ripples through the entire supply chain within weeks — there is effectively no firewall.',
+    insight:'GM\'s 2019 Hamtramck closure eliminated 1,500 direct jobs and an estimated 6,000 indirect — one decision, one client, six thousand families.',
+    sectors:[
+      {n:'Automotive mfg',s:54,client:'General Motors',cp:68},
+      {n:'Healthcare',s:14,client:'Henry Ford Health',cp:34},
+      {n:'Financial services',s:10,client:'Quicken Loans',cp:52},
+      {n:'Retail & logistics',s:12,client:'Amazon',cp:29},
+      {n:'Other',s:10,client:'Various',cp:12},
+    ]
+  },
+  riyadh:{
+    name:'Riyadh', country:'Saudi Arabia', gdp:340, jobs:7.2, taxB:28,
+    tier:'bc', tierLabel:'Critical',
+    summary:'Despite Vision 2030, oil and public-sector procurement still underpin 70%+ of the private economy. Saudi Aramco is simultaneously the top employer, top taxpayer and top infrastructure contractor — a single entity straddling every apparent sector.',
+    insight:'A sustained $40/bbl oil price would eliminate Aramco\'s dividend and ~60% of the state budget. One commodity, acting as one client, for the entire economy.',
+    sectors:[
+      {n:'Oil & gas',s:45,client:'Saudi Aramco',cp:95},
+      {n:'Government services',s:22,client:'Saudi state',cp:100},
+      {n:'Construction',s:14,client:'NEOM/ROSHN',cp:62},
+      {n:'Retail & F&B',s:12,client:'PIF portfolio',cp:38},
+      {n:'Other',s:7,client:'Various',cp:20},
+    ]
+  },
+  toulouse:{
+    name:'Toulouse metro', country:'France — Occitanie', gdp:71, jobs:0.78, taxB:2.4,
+    tier:'bh', tierLabel:'High',
+    summary:'France\'s aerospace capital looks diversified: universities, medtech, digital services, agribusiness. But Airbus employs 25,000 directly and supports ~100,000 indirectly. The ICT sector\'s largest client? Airbus Digital. One production rate cut cascades through everything.',
+    insight:'The 2020 Airbus production crisis triggered layoff plans for 15,000 workers spread across 12 "different" companies — all tracing back to one order book.',
+    sectors:[
+      {n:'Aerospace & defence',s:36,client:'Airbus',cp:82},
+      {n:'Higher ed & research',s:16,client:'Univ. Paul Sabatier',cp:31},
+      {n:'ICT & digital',s:14,client:'Airbus Digital',cp:44},
+      {n:'Agri & food',s:12,client:'ARTERRIS',cp:28},
+      {n:'Other',s:22,client:'Various',cp:14},
+    ]
+  },
+  riviera:{
+    name:'French Riviera', country:'France — PACA', gdp:62, jobs:0.9, taxB:2.1,
+    tier:'bh', tierLabel:'High',
+    summary:'Tourism, luxury retail, real estate and construction appear as four distinct sectors. They share one demand source: the summer HNW visitor. When travel stops, all four collapse simultaneously — as 2020 demonstrated with brutal clarity.',
+    insight:'COVID-19 eliminated 90% of foreign tourist revenue in 2020. All five apparent "sectors" fell in unison because they share the same underlying demand.',
+    sectors:[
+      {n:'Tourism & hospitality',s:38,client:'Summer HNW visitors',cp:71},
+      {n:'Real estate',s:22,client:'Seasonal buyers',cp:60},
+      {n:'Luxury retail',s:16,client:'Tourist spend',cp:65},
+      {n:'Construction',s:14,client:'Developers',cp:41},
+      {n:'Other',s:10,client:'Various',cp:18},
+    ]
+  },
+  saarland:{
+    name:'Saarland', country:'Germany', gdp:38, jobs:0.5, taxB:1.4,
+    tier:'bh', tierLabel:'High',
+    summary:'Germany\'s smallest industrial state never fully transitioned after coal exit. Steel and auto parts remain dominant, with Dillinger Hütte and ZF as hidden single-points-of-failure. Germany\'s highest per-capita debt ratio is the fiscal legacy of structural lock-in.',
+    insight:'Saarland carries Germany\'s highest debt ratio — structural dependence on carbon-intensive industry created fiscal fragility that long preceded the sector\'s global decline.',
+    sectors:[
+      {n:'Steel & metals',s:31,client:'Dillinger Hütte',cp:74},
+      {n:'Auto parts mfg',s:26,client:'ZF Friedrichshafen',cp:55},
+      {n:'Engineering services',s:18,client:'Saarschmiede',cp:38},
+      {n:'Public sector',s:15,client:'State government',cp:100},
+      {n:'Other',s:10,client:'Various',cp:15},
+    ]
+  },
+  jakarta:{
+    name:'Jakarta', country:'Indonesia', gdp:180, jobs:10.6, taxB:12,
+    tier:'bh', tierLabel:'High',
+    summary:'Beyond its physical sinking, Jakarta\'s economy has a deep structural concentration: the public sector and state-owned enterprises (BUMN) backstop demand across construction, banking, logistics and retail. Losing central-government spending (partly migrating to Nusantara) exposes that hidden dependency.',
+    insight:'Indonesia moved its capital to Nusantara — a tacit admission that Jakarta\'s trajectory is unsustainable. Government contractor demand may fall 20–30% over the next decade.',
+    sectors:[
+      {n:'Public admin & BUMN',s:30,client:'Indonesian state',cp:100},
+      {n:'Finance & banking',s:22,client:'Bank Mandiri/BRI',cp:58},
+      {n:'Trade & logistics',s:18,client:'Gojek/Tokopedia',cp:41},
+      {n:'Manufacturing',s:16,client:'Astra International',cp:35},
+      {n:'Other',s:14,client:'Various',cp:19},
+    ]
+  },
+  shannon:{
+    name:'Shannon region', country:'Ireland — Mid-West', gdp:18, jobs:0.09, taxB:0.6,
+    tier:'bm', tierLabel:'Moderate',
+    summary:'Shannon\'s FDI success is real but rootless: US pharma and medtech firms have no local supply chains. One US tax policy shift — or an OECD minimum-tax arbitrage reversal — could trigger relocations with no local substitutes. The apparent diversity of sectors masks a single origin: US corporate tax strategy.',
+    insight:'Ireland\'s 2023 OECD minimum tax adoption risked immediate relocation of US multinationals. The Shannon zone GDP would fall 18–28% in an adverse scenario.',
+    sectors:[
+      {n:'Pharma & medtech',s:28,client:'Johnson & Johnson',cp:51},
+      {n:'ICT & data centres',s:22,client:'Amazon AWS',cp:48},
+      {n:'Aviation MRO',s:18,client:'Lufthansa Technik',cp:55},
+      {n:'Agri & food',s:18,client:'Kerry Group',cp:32},
+      {n:'Other',s:14,client:'Various',cp:18},
+    ]
+  },
+  reims:{
+    name:'Reims / Champagne', country:'France — Grand Est', gdp:22, jobs:0.21, taxB:0.8,
+    tier:'bm', tierLabel:'Moderate',
+    summary:'Champagne production anchors the regional brand, but the industry is oligopolistically controlled by a few maisons (LVMH, Lanson-BCC, Laurent-Perrier). Climate change is already altering grape phenology; export-market shifts compound the risk.',
+    insight:'A 10% drop in global Champagne exports (as in 2009) erases ~4% of regional GDP immediately, magnified by LVMH\'s outsized grip on grape-price negotiations.',
+    sectors:[
+      {n:'Champagne & wine',s:32,client:'LVMH (Moët & Chandon)',cp:58},
+      {n:'Agri & beet sugar',s:24,client:'Tereos / Saint-Louis',cp:46},
+      {n:'Logistics & transport',s:18,client:'ID Logistics',cp:29},
+      {n:'Public sector',s:16,client:'Grand Est region',cp:70},
+      {n:'Other',s:10,client:'Various',cp:12},
+    ]
+  },
+  austin:{
+    name:'Austin metro', country:'USA — Texas', gdp:168, jobs:1.18, taxB:5.1,
+    tier:'bl', tierLabel:'Low',
+    summary:'Austin\'s tech boom produced genuinely broad diversification: semiconductors, federal government, university medical centre, EV manufacturing, and a thick layer of professional services. No single client controls more than 31% of any major sector.',
+    insight:'Even "low" rated regions carry risk: a simultaneous Apple + Samsung exit would still cause a meaningful shock. Resilience is relative, never absolute.',
+    sectors:[
+      {n:'Tech & semiconductors',s:24,client:'Apple / Samsung',cp:26},
+      {n:'Government & defence',s:18,client:'Federal / Texas state',cp:45},
+      {n:'Healthcare',s:16,client:'Ascension Seton',cp:22},
+      {n:'Manufacturing',s:14,client:'Tesla Gigafactory',cp:31},
+      {n:'Other',s:28,client:'Distributed',cp:12},
+    ]
+  }
+};
+
+function hhi(sectors){ return Math.round(sectors.reduce((s,r)=>s+r.s*r.s,0)); }
+function ece(sectors){ return Math.round(sectors.reduce((s,r)=>s+(r.s/100)*(r.cp/100)*100,0)*10)/10; }
+function vscore(r){ return Math.round((hhi(r.sectors)/10000)*50+(ece(r.sectors)/100)*50); }
+
+function scoreColor(v){ return v>=70?'#e24b4a':v>=50?'#ba7517':v>=35?'#378add':'#1d9e75'; }
+function hhiLabel(h){ return h>2500?'Highly concentrated':h>1500?'Moderate':'Diversified'; }
+function hhiColor(h){ return h>2500?'#e24b4a':h>1500?'#ba7517':'#1d9e75'; }
+function clientColor(cp){ return cp>=65?'#e24b4a':cp>=40?'#ba7517':'#1d9e75'; }
+
+let activeId = 'toulouse';
+let charts = {};
+
+function destroyCharts(){
+  Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});
+  charts={};
+}
+
+function load(id){
+  activeId = id;
+  document.querySelectorAll('.rb').forEach(b=>b.classList.remove('on'));
+  const btn = document.getElementById('rb-'+id);
+  if(btn) btn.classList.add('on');
+  renderMain(DB[id]);
+}
+
+function buildCustom(){
+  const s1 = parseInt(document.getElementById('cv1').value);
+  const s2 = Math.min(parseInt(document.getElementById('cv2').value), 100-s1-10);
+  const cp = parseInt(document.getElementById('cv3').value);
+  const rem = 100-s1-s2;
+  const r = {
+    name: document.getElementById('cname').value||'Custom region',
+    country:'Custom', gdp:50, jobs:0.5, taxB:1.5,
+    tier:'bm', tierLabel:'Custom',
+    summary:`Top sector at ${s1}% share, with its primary client controlling ${cp}% of that sector. Effective single-client exposure: ${Math.round(s1/100*cp)}% of GDP.`,
+    insight:`At ${cp}% client concentration within a ${s1}% sector, one actor controls ${Math.round(s1/100*cp)}% of the entire regional economy — regardless of how many sector labels appear on the org chart.`,
+    sectors:[
+      {n:'Primary sector',s:s1,client:'Top client',cp:cp},
+      {n:'Secondary sector',s:s2,client:'2nd client',cp:40},
+      {n:'Other',s:rem,client:'Various',cp:15},
+    ]
+  };
+  const cid='custom';
+  DB[cid]=r;
+  document.querySelectorAll('.rb').forEach(b=>b.classList.remove('on'));
+  activeId=cid;
+  renderMain(r);
+}
+
+function renderMain(r){
+  destroyCharts();
+  const h = hhi(r.sectors);
+  const e = ece(r.sectors);
+  const vs = vscore(r);
+  const sc = scoreColor(vs);
+  const hc = hhiColor(h);
+  const topSec = r.sectors[0];
+  const showWarn = topSec.cp>=60;
+
+  document.getElementById('main').innerHTML = `
+    <div class="c-head">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div>
+          <div class="c-city">${r.name}</div>
+          <div class="c-meta">
+            <span>${r.country}</span>
+            <span style="color:var(--bd2)">|</span>
+            <span>GDP $${r.gdp}B</span>
+            <span style="color:var(--bd2)">|</span>
+            <span>${r.jobs}M jobs</span>
+            <span style="color:var(--bd2)">|</span>
+            <span class="badge ${r.tier}">${r.tierLabel} vulnerability</span>
+          </div>
+          <div class="c-summary">${r.summary}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:11px;color:var(--tx3);margin-bottom:4px">Vulnerability score</div>
+          <div style="font-size:42px;font-weight:500;color:${sc};line-height:1">${vs}<span style="font-size:16px;color:var(--tx3)">/100</span></div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:3px">100 = single-client economy</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="kpi-strip">
+      <div class="kpi">
+        <div class="kpi-lbl">HHI concentration</div>
+        <div class="kpi-val" style="color:${hc}">${h.toLocaleString()}</div>
+        <div class="kpi-note" style="color:${hc}">${hhiLabel(h)}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Effective client exposure</div>
+        <div class="kpi-val" style="color:${e>=30?'#e24b4a':e>=20?'#ba7517':'#1d9e75'}">${e}<span class="kpi-unit">%</span></div>
+        <div class="kpi-note">of GDP via top clients</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Top sector share</div>
+        <div class="kpi-val">${topSec.s}<span class="kpi-unit">%</span></div>
+        <div class="kpi-note">${topSec.n}</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-lbl">Top client controls</div>
+        <div class="kpi-val" style="color:${clientColor(topSec.cp)}">${topSec.cp}<span class="kpi-unit">%</span></div>
+        <div class="kpi-note">of ${topSec.n}</div>
+      </div>
+    </div>
+
+    <div class="body-grid">
+
+      <div class="two-col">
+        <!-- Sector bars -->
+        <div class="card">
+          <div class="card-head">Sector composition &amp; client lock-in</div>
+          <div class="card-body">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:10px;color:var(--tx3)">
+              <span style="width:130px">Sector</span>
+              <span style="flex:1">GDP share</span>
+              <span style="width:34px;text-align:right">%</span>
+              <span style="width:90px;text-align:right">Top client</span>
+              <span style="width:38px;text-align:right">Client%</span>
+            </div>
+            ${r.sectors.map((sec,i)=>`
+              <div class="sec-row">
+                <div class="sec-name" title="${sec.n}">${sec.n}</div>
+                <div class="sec-track"><div class="sec-fill" style="width:${sec.s}%;background:${PALETTE[i%PALETTE.length]}"></div></div>
+                <div class="sec-pct">${sec.s}%</div>
+                <div class="sec-client" title="${sec.client}">${sec.client}</div>
+                <div class="sec-client-pct" style="color:${clientColor(sec.cp)}">${sec.cp}%</div>
+              </div>`).join('')}
+            ${showWarn?`<div class="warn-strip"><strong style="color:var(--r600)">${topSec.client}</strong> controls ${topSec.cp}% of the top sector — a single exit cascades through the entire economy.</div>`:`<div class="safe-strip">No single client controls over 60% of any major sector. Shock absorption is materially better.</div>`}
+          </div>
+        </div>
+
+        <!-- Donut + HHI -->
+        <div class="card">
+          <div class="card-head">Concentration breakdown</div>
+          <div class="card-body">
+            <div class="legend-row" id="donut-leg"></div>
+            <div class="chart-outer" style="height:190px"><canvas id="donutC" role="img" aria-label="Donut chart: sector composition of ${r.name}">${r.sectors.map(s=>s.n+' '+s.s+'%').join(', ')}</canvas></div>
+            <div style="margin-top:16px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--tx2);margin-bottom:6px">
+                <span>HHI index <strong style="color:var(--tx)">${h.toLocaleString()}</strong></span>
+                <span style="color:${hc};font-weight:500">${hhiLabel(h)}</span>
+              </div>
+              <div class="hhi-track"><div class="hhi-fill" style="width:${Math.min(100,h/100)}%;background:${hc}"></div></div>
+              <div class="hhi-ticks"><span>0</span><span>1,500</span><span>2,500</span><span>10,000</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shock simulator -->
+      <div class="card">
+        <div class="card-head">Shock simulator — what if the top client leaves?</div>
+        <div class="card-body">
+          <div class="slider-row">
+            <span class="slider-lbl">Exit magnitude</span>
+            <input type="range" style="flex:1" min="10" max="100" value="100" step="10" id="sl-exit" oninput="updateShock()">
+            <span class="slider-val" id="sv-exit">100%</span>
+          </div>
+          <div class="slider-row">
+            <span class="slider-lbl">Multiplier (indirect jobs)</span>
+            <input type="range" style="flex:1" min="10" max="30" value="16" step="1" id="sl-mult" oninput="updateShock()">
+            <span class="slider-val" id="sv-mult">1.6×</span>
+          </div>
+          <div class="shock-grid" id="shock-grid"></div>
+          <div class="insight-strip">${r.insight}</div>
+        </div>
+      </div>
+
+      <!-- Bubble comparison -->
+      <div class="card">
+        <div class="card-head">All regions — HHI vs effective client exposure (bubble = GDP)</div>
+        <div class="card-body">
+          <div class="legend-row">
+            <span><span class="ld" style="background:#e24b4a"></span>Critical</span>
+            <span><span class="ld" style="background:#ba7517"></span>High</span>
+            <span><span class="ld" style="background:#378add"></span>Moderate</span>
+            <span><span class="ld" style="background:#1d9e75"></span>Low</span>
+            <span style="margin-left:auto;color:var(--tx3)">Active region outlined</span>
+          </div>
+          <div class="chart-outer" style="height:280px"><canvas id="bubbleC" role="img" aria-label="Bubble chart comparing HHI and client exposure for all regions">All regions plotted: HHI on x-axis, effective client exposure % on y-axis, bubble size proportional to GDP.</canvas></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="footnote">HHI = Herfindahl-Hirschman Index (sum of squared sector shares; &gt;2,500 = highly concentrated). Effective client exposure = weighted average of top-client share across all sectors by GDP weight. Data profiles are illustrative archetypes grounded in published regional economic research (OECD, Eurostat, US BLS). Multiplier default 1.6× reflects OECD regional employment multiplier estimates.</div>
+  `;
+
+  renderDonut(r);
+  renderBubble(r);
+  updateShock();
+}
+
+function renderDonut(r){
+  const ctx = document.getElementById('donutC');
+  if(!ctx) return;
+  document.getElementById('donut-leg').innerHTML = r.sectors.map((s,i)=>
+    `<span><span class="ld" style="background:${PALETTE[i%PALETTE.length]}"></span>${s.n} ${s.s}%</span>`).join('');
+  const isDark = matchMedia('(prefers-color-scheme:dark)').matches;
+  charts.donut = new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:r.sectors.map(s=>s.n),
+      datasets:[{
+        data:r.sectors.map(s=>s.s),
+        backgroundColor:PALETTE.slice(0,r.sectors.length),
+        borderWidth:2,
+        borderColor:isDark?'#1c1b18':'#ffffff'
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.label}: ${c.parsed}%`}}}}
+  });
+}
+
+function renderBubble(active){
+  const ctx = document.getElementById('bubbleC');
+  if(!ctx) return;
+  const tierColor = {bc:'#e24b4a',bh:'#ba7517',bm:'#378add',bl:'#1d9e75'};
+  const datasets = Object.entries(DB).map(([id,r])=>{
+    const h = hhi(r.sectors);
+    const e = ece(r.sectors);
+    const col = tierColor[r.tier]||'#888780';
+    const isMe = id===activeId;
+    return {
+      label:r.name,
+      data:[{x:h,y:e,r:Math.max(7,Math.min(26,Math.round(r.gdp/9)))}],
+      backgroundColor:col+(isMe?'ee':'66'),
+      borderColor:isMe?col:'transparent',
+      borderWidth:isMe?2.5:0
+    };
+  });
+  charts.bubble = new Chart(ctx,{
+    type:'bubble',
+    data:{datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      layout:{padding:{top:14,right:14,bottom:6,left:6}},
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{
+          title:c=>c[0].dataset.label,
+          label:c=>[`HHI: ${c.parsed.x.toLocaleString()}`,`Client exposure: ${c.parsed.y}%`]
+        }}
+      },
+      scales:{
+        x:{min:400,max:6500,title:{display:true,text:'HHI (concentration index)',color:'#8a8880',font:{size:11}},ticks:{color:'#8a8880',font:{size:10},callback:v=>v.toLocaleString()},grid:{color:'rgba(128,128,120,0.12)'}},
+        y:{min:8,max:55,title:{display:true,text:'Effective client exposure (%)',color:'#8a8880',font:{size:11}},ticks:{color:'#8a8880',font:{size:10},callback:v=>v+'%'},grid:{color:'rgba(128,128,120,0.12)'}}
+      }
+    }
+  });
+}
+
+function updateShock(){
+  const r = DB[activeId];
+  if(!r) return;
+  const exitEl=document.getElementById('sl-exit'), multEl=document.getElementById('sl-mult');
+  if(!exitEl) return;
+  const pct=parseInt(exitEl.value), mult=parseInt(multEl.value)/10;
+  document.getElementById('sv-exit').textContent=pct+'%';
+  document.getElementById('sv-mult').textContent=mult.toFixed(1)+'×';
+  const s1=r.sectors[0];
+  const direct=(s1.s/100)*(s1.cp/100)*(pct/100)*r.gdp;
+  const total=Math.round(direct*mult*10)/10;
+  const jobPct=Math.round((s1.s/100)*(s1.cp/100)*pct);
+  const taxLoss=Math.round(total/r.gdp*r.taxB*10)/10;
+  const gdpPct=Math.round(total/r.gdp*100);
+  const col=gdpPct>=15?'#e24b4a':gdpPct>=8?'#ba7517':'#378add';
+  const bg=gdpPct>=15?'var(--r50)':gdpPct>=8?'var(--a50)':'var(--sur2)';
+  document.getElementById('shock-grid').innerHTML=`
+    <div class="shock-kpi" style="background:${bg}">
+      <div class="shock-kpi-lbl">GDP at risk</div>
+      <div class="shock-kpi-val" style="color:${col}">-$${total.toFixed(1)}B</div>
+      <div class="shock-kpi-sub">-${gdpPct}% of regional GDP</div>
+    </div>
+    <div class="shock-kpi">
+      <div class="shock-kpi-lbl">Jobs at risk</div>
+      <div class="shock-kpi-val" style="color:${col}">-${jobPct}%</div>
+      <div class="shock-kpi-sub">~${(r.jobs*jobPct/100).toFixed(2)}M positions</div>
+    </div>
+    <div class="shock-kpi">
+      <div class="shock-kpi-lbl">Tax revenue loss</div>
+      <div class="shock-kpi-val" style="color:${col}">-$${taxLoss.toFixed(1)}B</div>
+      <div class="shock-kpi-sub">fiscal shock estimate</div>
+    </div>
+  `;
+}
+
+load('toulouse');
+</script>
+</body>
+</html>

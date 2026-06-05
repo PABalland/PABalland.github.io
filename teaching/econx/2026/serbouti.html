@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
+<title>France 2027 — Election Policy Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0f1117;--bg2:#161a24;--bg3:#1e2230;
+  --card:#1a1f2e;--card2:#232840;
+  --border:#2a3050;--border2:#3a4060;
+  --gold:#e8b84b;--gold2:#f5d07a;--gold3:rgba(232,184,75,.12);
+  --text:#e8eaf0;--muted:#8b93b0;--faint:#4a5270;
+  --green:#3ecf8e;--red:#ff6b6b;--amber:#ffb347;--blue:#5b9cf6;
+  --rn:#3b6fd4;--lfi:#e53535;--hor:#2ea87a;--lr:#8b5cf6;--ps:#e8478c;
+  --r:6px;--r2:10px;
+  --sh:0 4px 24px rgba(0,0,0,.4);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(15,17,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:54px;gap:16px}
+.nav-logo{font-family:'Libre Baskerville',serif;font-size:16px;font-weight:700;color:var(--gold);letter-spacing:.02em;white-space:nowrap}
+.nav-logo span{color:var(--muted);font-weight:400;font-size:12px;margin-left:8px}
+.nav-links{display:flex;gap:2px;overflow-x:auto}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:12px;font-weight:500;padding:6px 11px;border-radius:var(--r);transition:.2s;white-space:nowrap}
+.nav-links a:hover{color:var(--text);background:var(--bg3)}
+.nav-tag{background:var(--gold3);border:1px solid rgba(232,184,75,.3);color:var(--gold);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap}
+
+/* HERO */
+.hero{padding:72px 24px 56px;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40%;left:50%;transform:translateX(-50%);width:600px;height:400px;background:radial-gradient(ellipse,rgba(232,184,75,.06) 0%,transparent 70%);pointer-events:none}
+.hero-kicker{display:inline-flex;align-items:center;gap:8px;background:var(--gold3);border:1px solid rgba(232,184,75,.25);color:var(--gold);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:5px 14px;border-radius:20px;margin-bottom:22px}
+.hero-title{font-family:'Libre Baskerville',serif;font-size:clamp(32px,6vw,60px);font-weight:700;line-height:1.1;margin-bottom:18px;color:var(--text)}
+.hero-title em{color:var(--gold);font-style:normal}
+.hero-sub{font-size:16px;color:var(--muted);max-width:560px;margin:0 auto 32px;line-height:1.7}
+.hero-stats{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+.hs{text-align:center;padding:14px 20px;background:var(--card);border:1px solid var(--border);border-radius:var(--r2)}
+.hs-n{font-family:'Libre Baskerville',serif;font-size:26px;font-weight:700;color:var(--gold)}
+.hs-l{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* DISCLAIMER */
+.disclaimer{max-width:820px;margin:0 auto 48px;padding:14px 18px;background:rgba(232,184,75,.06);border:1px solid rgba(232,184,75,.2);border-radius:var(--r);font-size:12.5px;color:var(--muted);line-height:1.65;text-align:center}
+.disclaimer strong{color:var(--gold)}
+
+/* WRAP */
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
+.sec{padding:56px 0}
+.lbl{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+.lbl::before{content:'';width:20px;height:1px;background:var(--gold)}
+.sec-title{font-family:'Libre Baskerville',serif;font-size:clamp(22px,4vw,34px);font-weight:700;margin-bottom:10px;color:var(--text)}
+.sec-sub{font-size:14px;color:var(--muted);max-width:600px;line-height:1.65;margin-bottom:32px}
+.divider{border:none;border-top:1px solid var(--border);margin:0}
+
+/* FRANCE STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:16px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.bad::before{background:var(--red)}
+.stat-card.warn::before{background:var(--amber)}
+.stat-card.ok::before{background:var(--green)}
+.stat-val{font-family:'DM Mono',monospace;font-size:24px;font-weight:500;color:var(--text);margin-bottom:4px}
+.stat-lbl{font-size:11px;color:var(--muted);font-weight:500}
+.stat-note{font-size:10px;color:var(--faint);margin-top:6px;line-height:1.4}
+.stat-src{font-size:9px;margin-top:6px}
+.stat-src a{color:var(--gold);text-decoration:none;opacity:.7}
+.stat-src a:hover{opacity:1}
+
+/* CANDIDATES */
+.cand-intro{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:14px 18px;font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:24px}
+.cand-intro strong{color:var(--text)}
+.cand-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:20px;box-shadow:var(--sh)}
+.cand-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;flex-wrap:wrap;gap:12px}
+.cand-head-left{display:flex;flex-direction:column;gap:3px}
+.cand-name{font-family:'Libre Baskerville',serif;font-size:20px;font-weight:700;color:#fff}
+.cand-party{font-size:12px;color:rgba(255,255,255,.6);font-weight:500}
+.cand-head-right{display:flex;align-items:center;gap:16px}
+.cand-poll{font-family:'Libre Baskerville',serif;font-size:32px;font-weight:700;color:#fff}
+.cand-poll-lbl{font-size:10px;color:rgba(255,255,255,.5);text-align:center;margin-top:2px}
+.cand-bio{padding:14px 22px;font-size:13px;color:var(--muted);line-height:1.7;background:var(--bg2);border-top:1px solid rgba(255,255,255,.07)}
+.cand-body{padding:20px 22px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);padding-bottom:0;overflow-x:auto}
+.tab{padding:8px 16px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.2s;background:none;border-top:none;border-left:none;border-right:none;white-space:nowrap;flex-shrink:0}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* PROGRAMME */
+.prog-list{display:flex;flex-direction:column;gap:10px}
+.prog-item{display:flex;gap:12px;padding:12px 14px;background:var(--bg3);border-radius:var(--r);border-left:3px solid var(--border2)}
+.prog-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);margin-top:7px;flex-shrink:0}
+.prog-h{font-size:13px;font-weight:600;color:var(--text);margin-bottom:3px}
+.prog-d{font-size:12px;color:var(--muted);line-height:1.6}
+.prog-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.ptag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px}
+.ptag-cost{background:rgba(255,107,107,.12);color:#ff9999;border:1px solid rgba(255,107,107,.2)}
+.ptag-ok{background:rgba(62,207,142,.12);color:#3ecf8e;border:1px solid rgba(62,207,142,.2)}
+.ptag-warn{background:rgba(255,179,71,.12);color:var(--amber);border:1px solid rgba(255,179,71,.2)}
+.prog-src{font-size:10px;color:var(--faint);margin-top:4px}
+.prog-src a{color:var(--gold);opacity:.7;text-decoration:none}
+
+/* ECO INDICATORS */
+.eco-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:540px){.eco-grid{grid-template-columns:1fr}}
+.eco-card{background:var(--bg3);border-radius:var(--r);padding:13px 15px;border:1px solid var(--border)}
+.eco-name{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.eco-vals{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.eco-from{font-size:13px;color:var(--faint);font-family:'DM Mono',monospace}
+.eco-arrow{color:var(--muted);font-size:14px}
+.eco-to{font-size:16px;font-weight:700;font-family:'DM Mono',monospace}
+.eco-to.good{color:var(--green)}
+.eco-to.bad{color:var(--red)}
+.eco-to.warn{color:var(--amber)}
+.eco-bar{height:3px;background:var(--border);border-radius:2px;margin-bottom:6px;overflow:hidden}
+.eco-fill{height:100%;border-radius:2px;transition:width 1s ease}
+.eco-ctx{font-size:11px;color:var(--muted);line-height:1.5}
+.eco-src a{font-size:10px;color:var(--gold);opacity:.6;text-decoration:none;display:block;margin-top:4px}
+.eco-src a:hover{opacity:1}
+.eco-note{grid-column:1/-1;padding:10px 13px;background:rgba(232,184,75,.06);border-radius:var(--r);font-size:11.5px;color:var(--muted);line-height:1.6;border:1px solid rgba(232,184,75,.1)}
+.eco-note a{color:var(--gold);text-decoration:none}
+
+/* SOCIAL IMPACT */
+.soc-grid{display:flex;flex-direction:column;gap:10px}
+.soc-row{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg3);border-radius:var(--r)}
+.soc-lbl{font-size:12px;color:var(--text);min-width:160px;flex-shrink:0}
+.soc-track{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;min-width:60px}
+.soc-fill{height:100%;border-radius:3px;transition:width 1.2s ease}
+.soc-val{font-size:12px;font-weight:700;min-width:80px;text-align:right;flex-shrink:0}
+.soc-note{font-size:11px;color:var(--faint);margin-top:4px;padding-left:172px}
+@media(max-width:540px){.soc-lbl{min-width:120px}.soc-note{padding-left:0}}
+.soc-src a{font-size:10px;color:var(--gold);opacity:.6;text-decoration:none}
+.soc-disclaimer{padding:10px 14px;background:rgba(91,156,246,.06);border:1px solid rgba(91,156,246,.15);border-radius:var(--r);font-size:11.5px;color:var(--muted);line-height:1.6;margin-top:10px}
+.soc-disclaimer a{color:var(--blue);text-decoration:none}
+
+/* COMPARE */
+.compare-wrap{overflow-x:auto}
+.compare-table{width:100%;border-collapse:collapse;font-size:13px}
+.compare-table th{background:var(--bg3);padding:10px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;border-bottom:2px solid var(--border);white-space:nowrap}
+.compare-table th.cand-th{text-align:center;padding:10px 8px;min-width:110px}
+.compare-table td{padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.compare-table tr:last-child td{border-bottom:none}
+.compare-table tr:hover td{background:var(--bg3)}
+.metric-lbl{font-weight:600;color:var(--text)}
+.metric-note{font-size:11px;color:var(--faint);margin-top:1px}
+.cpill{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;text-align:center;white-space:nowrap}
+.cp-bad{background:rgba(255,107,107,.12);color:#ff9999;border:1px solid rgba(255,107,107,.2)}
+.cp-warn{background:rgba(255,179,71,.12);color:var(--amber);border:1px solid rgba(255,179,71,.2)}
+.cp-ok{background:rgba(62,207,142,.12);color:var(--green);border:1px solid rgba(62,207,142,.2)}
+.cp-neu{background:var(--bg3);color:var(--muted);border:1px solid var(--border)}
+
+/* METHODOLOGY */
+.meth-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.meth-grid{grid-template-columns:1fr}}
+.meth-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:18px}
+.meth-n{font-size:28px;font-weight:700;color:var(--gold);font-family:'Libre Baskerville',serif;margin-bottom:6px}
+.meth-t{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px}
+.meth-d{font-size:13px;color:var(--muted);line-height:1.65}
+.src-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:16px}
+.src-table th{padding:8px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);border-bottom:1px solid var(--border)}
+.src-table td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.src-table tr:last-child td{border-bottom:none}
+.src-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600}
+.sb-off{background:rgba(62,207,142,.1);color:var(--green);border:1px solid rgba(62,207,142,.2)}
+.sb-aca{background:rgba(91,156,246,.1);color:var(--blue);border:1px solid rgba(91,156,246,.2)}
+.sb-lib{background:rgba(255,179,71,.1);color:var(--amber);border:1px solid rgba(255,179,71,.2)}
+.sb-con{background:rgba(255,107,107,.1);color:#ff9999;border:1px solid rgba(255,107,107,.2)}
+.src-link{color:var(--gold);text-decoration:none;font-size:12px;opacity:.7}
+.src-link:hover{opacity:1}
+
+/* ABOUT */
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+@media(max-width:640px){.about-grid{grid-template-columns:1fr}}
+.about-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);padding:20px}
+.about-icon{font-size:22px;margin-bottom:10px}
+.about-t{font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px}
+.about-d{font-size:13px;color:var(--muted);line-height:1.65}
+
+/* FOOTER */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:32px 24px;text-align:center}
+.footer-inner{max-width:700px;margin:0 auto}
+.footer-logo{font-family:'Libre Baskerville',serif;font-size:16px;color:var(--gold);margin-bottom:10px}
+.footer-text{font-size:12px;color:var(--faint);line-height:1.7}
+
+/* MOBILE */
+@media(max-width:640px){
+  .hero{padding:48px 20px 36px}
+  .nav-links{display:none}
+  .wrap{padding:0 16px}
+  .sec{padding:40px 0}
+  .cand-head{padding:14px 16px}
+  .cand-body{padding:14px 16px}
+  .cand-bio{padding:12px 16px}
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.cand-card{animation:fadeUp .4s ease both}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo">France 2027 <span>Policy Simulator</span></div>
+    <div class="nav-links">
+      <a href="#france">France Today</a>
+      <a href="#sim">Candidates</a>
+      <a href="#compare">Compare</a>
+      <a href="#methodology">Sources</a>
+      <a href="#about">About</a>
+    </div>
+    <div class="nav-tag">Non-partisan</div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-kicker">🗳️ Presidential Election 2027</div>
+  <h1 class="hero-title">How will each party<br><em>reshape France?</em></h1>
+  <p class="hero-sub">An independent, science-based simulator. Explore the economic and social impact of each major candidate's programme — with verified sources.</p>
+  <div class="hero-stats">
+    <div class="hs"><div class="hs-n">5</div><div class="hs-l">Candidates</div></div>
+    <div class="hs"><div class="hs-n">40+</div><div class="hs-l">Policy indicators</div></div>
+    <div class="hs"><div class="hs-n">32</div><div class="hs-l">Verified sources</div></div>
+    <div class="hs"><div class="hs-n">2026</div><div class="hs-l">Data updated</div></div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="disclaimer">
+    <strong>⚠️ Methodological note:</strong> All projections assume full programme implementation — which never happens in practice. Economic figures are extrapolated from 2022 Institut Montaigne and IFRAP analyses, updated with March 2026 INSEE data. Social impact assessments are editorial interpretations based on comparable documented policies. <strong>All sources are linked — check them yourself.</strong>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- FRANCE TODAY -->
+<section class="sec" id="france">
+  <div class="wrap">
+    <div class="lbl">Starting point</div>
+    <h2 class="sec-title">France Today — The Baseline</h2>
+    <p class="sec-sub">Before exploring each programme, here is where France actually stands. These are the real numbers every candidate must respond to.</p>
+    <div class="stats-grid">
+      <div class="stat-card bad">
+        <div class="stat-val">5.1%</div>
+        <div class="stat-lbl">Public deficit / GDP</div>
+        <div class="stat-note">Above EU 3% limit. Last balanced budget: 1974.</div>
+        <div class="stat-src"><a href="https://www.insee.fr/fr/statistiques/8956575" target="_blank" rel="noopener">INSEE, March 2026 ↗</a></div>
+      </div>
+      <div class="stat-card bad">
+        <div class="stat-val">115.6%</div>
+        <div class="stat-lbl">Public debt / GDP</div>
+        <div class="stat-note">€3,461bn total. 3rd highest in EU. ~€52,000 per inhabitant.</div>
+        <div class="stat-src"><a href="https://www.banque-france.fr/publications-et-statistiques" target="_blank" rel="noopener">Banque de France, 2026 ↗</a></div>
+      </div>
+      <div class="stat-card warn">
+        <div class="stat-val">1.2%</div>
+        <div class="stat-lbl">GDP growth</div>
+        <div class="stat-note">Low but positive. Well below pre-2020 trend.</div>
+        <div class="stat-src"><a href="https://www.insee.fr/fr/statistiques" target="_blank" rel="noopener">INSEE, Q4 2025 ↗</a></div>
+      </div>
+      <div class="stat-card warn">
+        <div class="stat-val">7.3%</div>
+        <div class="stat-lbl">Unemployment rate</div>
+        <div class="stat-note">~2.2 million people. EU average: 6.1%.</div>
+        <div class="stat-src"><a href="https://www.insee.fr/fr/statistiques" target="_blank" rel="noopener">INSEE, Q4 2025 ↗</a></div>
+      </div>
+      <div class="stat-card ok">
+        <div class="stat-val">2.3%</div>
+        <div class="stat-lbl">Inflation (CPI)</div>
+        <div class="stat-note">Back near ECB 2% target. Energy prices remain volatile.</div>
+        <div class="stat-src"><a href="https://www.banque-france.fr/publications-et-statistiques" target="_blank" rel="noopener">Banque de France, 2026 ↗</a></div>
+      </div>
+      <div class="stat-card warn">
+        <div class="stat-val">€1,430</div>
+        <div class="stat-lbl">Net monthly min. wage (SMIC)</div>
+        <div class="stat-note">2.5 million employees on minimum wage. EU average.</div>
+        <div class="stat-src"><a href="https://travail-emploi.gouv.fr/smic" target="_blank" rel="noopener">Ministry of Labour, 2026 ↗</a></div>
+      </div>
+      <div class="stat-card warn">
+        <div class="stat-val">0.292</div>
+        <div class="stat-lbl">Gini coefficient</div>
+        <div class="stat-note">Inequality index (0=equal, 1=extreme). Denmark: 0.28 — USA: 0.39.</div>
+        <div class="stat-src"><a href="https://stats.oecd.org/Index.aspx?DataSetCode=IDD" target="_blank" rel="noopener">OECD Income Distribution Database ↗</a></div>
+      </div>
+      <div class="stat-card bad">
+        <div class="stat-val">57.2%</div>
+        <div class="stat-lbl">Public spending / GDP</div>
+        <div class="stat-note">Highest ratio in the EU. Average EU: 47%.</div>
+        <div class="stat-src"><a href="https://www.insee.fr/fr/statistiques" target="_blank" rel="noopener">INSEE, 2025 ↗</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CANDIDATES SIM -->
+<section class="sec" id="sim">
+  <div class="wrap">
+    <div class="lbl">Interactive simulator</div>
+    <h2 class="sec-title">5 Candidates — Programmes & Impact</h2>
+    <p class="sec-sub">Each candidate's programme, projected economic impact, and social consequences — all based on verified sources.</p>
+
+    <div class="cand-intro">
+      <strong>Why these 5 candidates?</strong> Criteria: officially declared or confirmed candidacy before March 2026, AND polling above 5% in aggregated surveys.
+      Poll sources: <a href="https://elabe.fr/presidentielle-2027-iv2/" target="_blank" rel="noopener" style="color:var(--gold)">Elabe/La Tribune Dimanche, 25–26 March 2026 ↗</a> ·
+      <a href="https://www.ifop.com/en/article/voting-intentions-for-the-next-presidential-election" target="_blank" rel="noopener" style="color:var(--gold)">Ifop-Fiducial/Le Figaro, Feb. 2026 ↗</a>
+    </div>
+
+    <!-- RN -->
+    <div class="cand-card" style="animation-delay:.05s">
+      <div class="cand-head" style="background:linear-gradient(135deg,#1a3a7a,var(--rn))">
+        <div class="cand-head-left">
+          <div class="cand-name">Marine Le Pen / Jordan Bardella</div>
+          <div class="cand-party">Rassemblement National (RN) · National right</div>
+        </div>
+        <div class="cand-head-right">
+          <div><div class="cand-poll">~35%</div><div class="cand-poll-lbl">1st round polls</div></div>
+        </div>
+      </div>
+      <div class="cand-bio">
+        Marine Le Pen faces a 2026 appeal on her fraud conviction — Jordan Bardella would stand in her place if ineligible. Programme centred on national preference, sharp immigration cuts, purchasing power, and partial withdrawal from EU integration. Most prominent first-round position since 2022.
+      </div>
+      <div class="cand-body">
+        <div class="tabs">
+          <button class="tab on" onclick="showTab('rn','prog',this)">Programme</button>
+          <button class="tab" onclick="showTab('rn','eco',this)">Economic impact</button>
+          <button class="tab" onclick="showTab('rn','soc',this)">Social impact</button>
+        </div>
+        <!-- RN PROG -->
+        <div id="rn-prog" class="tab-pane">
+          <div class="prog-list">
+            <div class="prog-item">
+              <div class="prog-dot"></div>
+              <div>
+                <div class="prog-h">National preference & immigration</div>
+                <div class="prog-d">End birthright citizenship · Abolish emergency medical aid for undocumented (AME) · Constitutional referendum on immigration · Restrict social benefits to French nationals · Systematic expulsions of foreign offenders.</div>
+                <div class="prog-tags"><span class="ptag ptag-warn">⚠️ Contested legality</span><span class="ptag ptag-cost">💸 Savings ~€1bn</span></div>
+                <div class="prog-src">Sources: <a href="https://rassemblementnational.fr/22-mesures" target="_blank" rel="noopener">RN official programme ↗</a> · <a href="https://www.institutmontaigne.org/presidentielle-2022/marine-le-pen/synthese/" target="_blank" rel="noopener">Institut Montaigne — RN programme analysis (2022) ↗</a></div>
+              </div>
+            </div>
+            <div class="prog-item">
+              <div class="prog-dot"></div>
+              <div>
+                <div class="prog-h">Purchasing power & taxation</div>
+                <div class="prog-d">VAT on energy cut to 5.5% · Income tax exemption for under-30s · Index wages to inflation · Rent freeze in high-pressure areas.</div>
+                <div class="prog-tags"><span class="ptag ptag-cost">💸 ~€12bn/year</span><span class="ptag ptag-warn">⚠️ Partially unfunded</span></div>
+                <div class="prog-src">Source: <a href="https://www.ifrap.org/budget-et-fiscalite/nupes-quel-serait-limpact-economique-du-programme-de-jean-luc-melenchon" target="_blank" rel="noopener">IFRAP fiscal analysis ↗</a></div>
+              </div>
+            </div>
+            <div class="prog-item">
+              <div class="prog-dot"></div>
+              <div>
+                <div class="prog-h">Security & justice</div>
+                <div class="prog-d">85,000 new prison places · Mandatory minimum sentences · Zero tolerance on Islamism · Tougher juvenile justice.</div>
+                <div class="prog-tags"><span class="ptag ptag-cost">💸 ~€8bn/year</span></div>
+                <div class="prog-src">Source: <a href="https://rassemblementnational.fr/22-mesures" target="_blank" rel="noopener">RN official programme ↗</a></div>
+              </div>
+            </div>
+            <div class="prog-item">
+              <div class="prog-dot"></div>
+              <div>
+                <div class="prog-h">Economic sovereignty</div>
+                <div class="prog-d">Renationalise EDF · European protectionism · Industrial relocation · End free trade agreements · Strategic sectors under state control.</div>
+                <div class="prog-tags"><span class="ptag ptag-warn">⚠️ EU treaty conflict</span></div>
+                <div class="prog-src">Source: <a href="https://www.institutmontaigne.org/presidentielle-2022/jean-luc-melenchon/synthese/" target="_blank" rel="noopener">Institut Montaigne — Mélenchon programme costing (2022) ↗</a></div>
+              </div>
+            </div>
+            <div class="prog-item">
+              <div class="prog-dot"></div>
+              <div>
+                <div class="prog-h">Europe & foreign policy</div>
+                <div class="prog-d">Reform EU from within · Against European federalism · Closer ties with other sovereignist governments · Re-examine NATO commitments.</div>
+                <div class="prog-tags"><span class="ptag ptag-warn">⚠️ Eurosceptic</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- RN ECO -->
+        <div id="rn-eco" class="tab-pane" style="display:none">
+          <div class="eco-grid">
+            <div class="eco-card">
+              <div class="eco-name">Projected deficit / GDP</div>
+              <div class="eco-vals"><span class="eco-from">5.1%</span><span class="eco-arrow">→</span><span class="eco-to bad">~7.5–8.5%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:82%;background:var(--red)"></div></div>
+              <div class="eco-ctx">VAT cuts + tax exemptions widen the deficit despite growth. Sovereign bond risk rises.</div>
+              <div class="eco-src"><a href="https://www.institutmontaigne.org/presidentielle-2022" target="_blank" rel="noopener">Institut Montaigne, 2022 ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">GDP growth impact</div>
+              <div class="eco-vals"><span class="eco-from">+1.2%</span><span class="eco-arrow">→</span><span class="eco-to warn">+1.0–1.4%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:52%;background:var(--amber)"></div></div>
+              <div class="eco-ctx">Short-term consumption boost, offset by market uncertainty and EU friction.</div>
+              <div class="eco-src"><a href="https://www.ofce.sciences-po.fr" target="_blank" rel="noopener">OFCE e-mod.fr model ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Unemployment</div>
+              <div class="eco-vals"><span class="eco-from">7.3%</span><span class="eco-arrow">→</span><span class="eco-to warn">~6.8–7.5%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:50%;background:var(--amber)"></div></div>
+              <div class="eco-ctx">Slight drop possible via protectionism and industry localisation, but uncertain.</div>
+              <div class="eco-src"><a href="https://www.insee.fr/fr/statistiques" target="_blank" rel="noopener">INSEE baseline ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Inequality (Gini)</div>
+              <div class="eco-vals"><span class="eco-from">0.292</span><span class="eco-arrow">→</span><span class="eco-to warn">~0.285–0.295</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:50%;background:var(--amber)"></div></div>
+              <div class="eco-ctx">Mixed: purchasing power measures help lower incomes; exclusionary policies hit others.</div>
+              <div class="eco-src"><a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP microsimulations ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Public debt / GDP</div>
+              <div class="eco-vals"><span class="eco-from">115.6%</span><span class="eco-arrow">→</span><span class="eco-to bad">~122–128%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:85%;background:var(--red)"></div></div>
+              <div class="eco-ctx">Rising deficit compounds debt trajectory. No credible consolidation path.</div>
+              <div class="eco-src"><a href="https://www.ifrap.org" target="_blank" rel="noopener">IFRAP fiscal analysis ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Budget credibility score</div>
+              <div class="eco-vals"><span class="eco-from">–</span><span class="eco-arrow">→</span><span class="eco-to bad">35/100</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:35%;background:var(--red)"></div></div>
+              <div class="eco-ctx">Programme has significant unfunded spending. Market risk elevated.</div>
+              <div class="eco-src"><a href="https://www.institutmontaigne.org" target="_blank" rel="noopener">Institut Montaigne ↗</a></div>
+            </div>
+            <div class="eco-note">
+              ⚠️ <strong>Source note:</strong> RN economic projections are disputed. IFRAP (<a href="https://www.ifrap.org" target="_blank" rel="noopener">right-liberal ↗</a>) and Institut Montaigne (<a href="https://www.institutmontaigne.org" target="_blank" rel="noopener">centre-liberal ↗</a>) estimate costs at €80–100bn/year. RN contests these figures. The VAT cut multiplier is debated — see <a href="https://www.cepii.fr/PDF_PUB/EIC/EIC17.pdf" target="_blank" rel="noopener">CEPII 2017 ↗</a>.
+            </div>
+          </div>
+        </div>
+        <!-- RN SOC -->
+        <div id="rn-soc" class="tab-pane" style="display:none">
+          <div class="soc-grid">
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Social cohesion</div>
+                <div class="soc-track"><div class="soc-fill" style="width:30%;background:var(--red)"></div></div>
+                <div class="soc-val" style="color:var(--red)">Low</div>
+              </div>
+              <div class="soc-note">National preference policies create documented social fractures. <a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener" class="soc-src">CEVIPOF ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Social mobility</div>
+                <div class="soc-track"><div class="soc-fill" style="width:40%;background:var(--amber)"></div></div>
+                <div class="soc-val" style="color:var(--amber)">Moderate</div>
+              </div>
+              <div class="soc-note">Education investment modest. Class ceiling largely unchanged. <a href="https://www.ipp.eu" target="_blank" rel="noopener" class="soc-src">IPP ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Purchasing power</div>
+                <div class="soc-track"><div class="soc-fill" style="width:60%;background:var(--amber)"></div></div>
+                <div class="soc-val" style="color:var(--amber)">Moderate+</div>
+              </div>
+              <div class="soc-note">VAT cut + wage indexation improve short-term income. <a href="https://www.ofce.sciences-po.fr" target="_blank" rel="noopener" class="soc-src">OFCE ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Environmental transition</div>
+                <div class="soc-track"><div class="soc-fill" style="width:20%;background:var(--red)"></div></div>
+                <div class="soc-val" style="color:var(--red)">Very low</div>
+              </div>
+              <div class="soc-note">No green investment plan. Nuclear-only energy strategy. <a href="https://www.ademe.fr" target="_blank" rel="noopener" class="soc-src">ADEME ↗</a></div>
+            </div>
+          </div>
+          <div class="soc-disclaimer">
+            <strong>Methodological note:</strong> Social impact scores are editorial interpretations based on analysis of proposed measures and comparison with documented similar policies in France and other OECD countries. They are not directly measured data. Sources: <a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener">CEVIPOF ↗</a> · <a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP ↗</a> · <a href="https://www.inegalites.fr" target="_blank" rel="noopener">Observatory of Inequalities ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LFI -->
+    <div class="cand-card" style="animation-delay:.1s">
+      <div class="cand-head" style="background:linear-gradient(135deg,#6b0000,var(--lfi))">
+        <div class="cand-head-left">
+          <div class="cand-name">Jean-Luc Mélenchon</div>
+          <div class="cand-party">La France Insoumise (LFI) · Radical left</div>
+        </div>
+        <div class="cand-head-right">
+          <div><div class="cand-poll">~11%</div><div class="cand-poll-lbl">1st round polls</div></div>
+        </div>
+      </div>
+      <div class="cand-bio">
+        Fourth presidential run for Mélenchon. Programme built around "L'Avenir en Commun" — a radical programme of ecological planning, wealth redistribution, constitutional change, and non-alignment in foreign policy. Strongly contested on fiscal credibility.
+      </div>
+      <div class="cand-body">
+        <div class="tabs">
+          <button class="tab on" onclick="showTab('lfi','prog',this)">Programme</button>
+          <button class="tab" onclick="showTab('lfi','eco',this)">Economic impact</button>
+          <button class="tab" onclick="showTab('lfi','soc',this)">Social impact</button>
+        </div>
+        <div id="lfi-prog" class="tab-pane">
+          <div class="prog-list">
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Ecological planning</div>
+              <div class="prog-d">100% renewables by 2050 · End fossil fuels · 200,000 green jobs · Massive thermal renovation programme · State planning authority for the ecological transition.</div>
+              <div class="prog-tags"><span class="ptag ptag-cost">💸 ~€25bn/year</span><span class="ptag ptag-ok">✅ High multiplier</span></div>
+              <div class="prog-src">Source: <a href="https://programme.lafranceinsoumise.fr" target="_blank" rel="noopener">LFI official programme ↗</a> · <a href="https://www.ademe.fr" target="_blank" rel="noopener">ADEME ↗</a></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Social rupture</div>
+              <div class="prog-d">Minimum wage €1,600 · Retirement at 60 · 4-day work week · Food price freeze · Free school meals.</div>
+              <div class="prog-tags"><span class="ptag ptag-cost">💸 ~€50bn/year</span><span class="ptag ptag-warn">⚠️ Largely unfunded</span></div>
+              <div class="prog-src">Source: <a href="https://www.ifrap.org" target="_blank" rel="noopener">IFRAP ↗</a> · <a href="https://www.institutmontaigne.org/presidentielle-2022/jean-luc-melenchon/synthese/" target="_blank" rel="noopener">Institut Montaigne — Mélenchon programme costing (2022) ↗</a></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Sixth Republic</div>
+              <div class="prog-d">New Constitution by referendum · Full proportional representation · Citizens' initiative referendum (RIC) · Abolish the Senate.</div>
+              <div class="prog-tags"><span class="ptag ptag-warn">⚠️ Uncertain timeline</span></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Taxation & redistribution</div>
+              <div class="prog-d">Enhanced wealth tax · Super-profit tax · 14 income tax brackets · Maximum inheritance €12M · 100% IS on firms above €500M profit.</div>
+              <div class="prog-tags"><span class="ptag ptag-ok">✅ +€80bn revenue (est.)</span><span class="ptag ptag-warn">⚠️ Capital flight risk</span></div>
+              <div class="prog-src">Source: <a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP fiscal analysis ↗</a></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Europe & foreign policy</div>
+              <div class="prog-d">Non-compliance with EU fiscal treaties · Exit NATO · Internationalist solidarity · Unilateral debt renegotiation with ECB.</div>
+              <div class="prog-tags"><span class="ptag ptag-warn">⚠️ EU treaty conflict</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div id="lfi-eco" class="tab-pane" style="display:none">
+          <div class="eco-grid">
+            <div class="eco-card">
+              <div class="eco-name">Projected deficit / GDP</div>
+              <div class="eco-vals"><span class="eco-from">5.1%</span><span class="eco-arrow">→</span><span class="eco-to bad">~9–12%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:92%;background:var(--red)"></div></div>
+              <div class="eco-ctx">Very costly programme, estimated €100bn+ net spending per year. Highest deficit risk of all candidates.</div>
+              <div class="eco-src"><a href="https://www.institutmontaigne.org/presidentielle-2022/jean-luc-melenchon/synthese/" target="_blank" rel="noopener">Institut Montaigne — Mélenchon costing (2022) ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">GDP growth impact</div>
+              <div class="eco-vals"><span class="eco-from">+1.2%</span><span class="eco-arrow">→</span><span class="eco-to warn">+0.5–2.0%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:55%;background:var(--amber)"></div></div>
+              <div class="eco-ctx">High Keynesian multiplier on public investment (0.8–1.7, OFCE) but wide uncertainty range due to market reaction.</div>
+              <div class="eco-src"><a href="https://shs.cairn.info/revue-de-l-ofce-2021-5-page-5" target="_blank" rel="noopener">OFCE, Revue n°175, 2021 ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Unemployment</div>
+              <div class="eco-vals"><span class="eco-from">7.3%</span><span class="eco-arrow">→</span><span class="eco-to ok">~5.5–6.5%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:75%;background:var(--green)"></div></div>
+              <div class="eco-ctx">Green jobs + 4-day week + early retirement could reduce unemployment significantly short-term.</div>
+              <div class="eco-src"><a href="https://www.ofce.sciences-po.fr" target="_blank" rel="noopener">OFCE ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Inequality (Gini)</div>
+              <div class="eco-vals"><span class="eco-from">0.292</span><span class="eco-arrow">→</span><span class="eco-to ok">~0.260–0.275</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:80%;background:var(--green)"></div></div>
+              <div class="eco-ctx">Strongest redistribution programme of all candidates. Wealth tax + min wage hike compress gap.</div>
+              <div class="eco-src"><a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP microsimulations ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Public debt / GDP</div>
+              <div class="eco-vals"><span class="eco-from">115.6%</span><span class="eco-arrow">→</span><span class="eco-to bad">~130–145%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:95%;background:var(--red)"></div></div>
+              <div class="eco-ctx">Highest debt trajectory. Risk of bond market crisis without EU/ECB support.</div>
+              <div class="eco-src"><a href="https://www.ifrap.org" target="_blank" rel="noopener">IFRAP ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Budget credibility score</div>
+              <div class="eco-vals"><span class="eco-from">–</span><span class="eco-arrow">→</span><span class="eco-to bad">20/100</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:20%;background:var(--red)"></div></div>
+              <div class="eco-ctx">Lowest credibility score. Revenue assumptions optimistic. Capital flight risk high.</div>
+              <div class="eco-src"><a href="https://www.institutmontaigne.org" target="_blank" rel="noopener">Institut Montaigne ↗</a></div>
+            </div>
+            <div class="eco-note">
+              ⚠️ <strong>The multiplier debate:</strong> LFI claims self-financing via Keynesian multipliers of 2–3. OFCE estimates 0.8–1.7 for public investment in France (open economy). Terra Nova (<a href="https://www.lagrandeconversation.com/debat/politique/le-programme-economique-de-la-nupes/" target="_blank" rel="noopener">centre-left ↗</a>) estimates 50% self-financing over 4–5 years. Fondation Concorde (<a href="https://fondationconcorde.com" target="_blank" rel="noopener">right-liberal ↗</a>) estimates 0.5. The FMI Blanchard & Leigh (2013) showed multipliers were systematically underestimated during crises: <a href="https://www.imf.org/external/pubs/ft/wp/2013/wp1301.pdf" target="_blank" rel="noopener">IMF WP/13/01 ↗</a>.
+            </div>
+          </div>
+        </div>
+        <div id="lfi-soc" class="tab-pane" style="display:none">
+          <div class="soc-grid">
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Social cohesion</div>
+                <div class="soc-track"><div class="soc-fill" style="width:65%;background:var(--green)"></div></div>
+                <div class="soc-val" style="color:var(--green)">Moderate+</div>
+              </div>
+              <div class="soc-note">Redistribution strengthens cohesion; political polarisation risk. <a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener" class="soc-src">CEVIPOF ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Social mobility</div>
+                <div class="soc-track"><div class="soc-fill" style="width:70%;background:var(--green)"></div></div>
+                <div class="soc-val" style="color:var(--green)">High</div>
+              </div>
+              <div class="soc-note">Education + free services + wage hike reduce class ceiling. <a href="https://www.ipp.eu" target="_blank" rel="noopener" class="soc-src">IPP ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Environmental transition</div>
+                <div class="soc-track"><div class="soc-fill" style="width:85%;background:var(--green)"></div></div>
+                <div class="soc-val" style="color:var(--green)">High</div>
+              </div>
+              <div class="soc-note">Most ambitious green investment programme. <a href="https://www.ademe.fr" target="_blank" rel="noopener" class="soc-src">ADEME ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Purchasing power</div>
+                <div class="soc-track"><div class="soc-fill" style="width:75%;background:var(--green)"></div></div>
+                <div class="soc-val" style="color:var(--green)">High</div>
+              </div>
+              <div class="soc-note">€1,600 SMIC + price freeze large gain for lower incomes. <a href="https://www.ofce.sciences-po.fr" target="_blank" rel="noopener" class="soc-src">OFCE ↗</a></div>
+            </div>
+          </div>
+          <div class="soc-disclaimer">
+            <strong>Methodological note:</strong> Social impact scores are editorial interpretations. Sources: <a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener">CEVIPOF ↗</a> · <a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP ↗</a> · <a href="https://www.inegalites.fr" target="_blank" rel="noopener">Observatory of Inequalities ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HORIZONS -->
+    <div class="cand-card" style="animation-delay:.15s">
+      <div class="cand-head" style="background:linear-gradient(135deg,#014d36,var(--hor))">
+        <div class="cand-head-left">
+          <div class="cand-name">Édouard Philippe</div>
+          <div class="cand-party">Horizons · Liberal centre-right</div>
+        </div>
+        <div class="cand-head-right">
+          <div><div class="cand-poll">~22%</div><div class="cand-poll-lbl">1st round polls</div></div>
+        </div>
+      </div>
+      <div class="cand-bio">
+        Former Prime Minister (2017–2020), re-elected mayor of Le Havre in March 2026. Significant surge in polls (+5 pts) post-municipal elections. Only candidate currently polling capable of beating RN in a second round (51.5% vs 48.5% — Elabe, March 2026). Programme: pro-EU fiscal consolidation, pension reform, and state modernisation.
+      </div>
+      <div class="cand-body">
+        <div class="tabs">
+          <button class="tab on" onclick="showTab('hor','prog',this)">Programme</button>
+          <button class="tab" onclick="showTab('hor','eco',this)">Economic impact</button>
+          <button class="tab" onclick="showTab('hor','soc',this)">Social impact</button>
+        </div>
+        <div id="hor-prog" class="tab-pane">
+          <div class="prog-list">
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Golden budget rule</div>
+              <div class="prog-d">Constitutionally enshrine a return to balance in 5 years · Cut public spending by 3 GDP points · End structural deficit by 2032.</div>
+              <div class="prog-tags"><span class="ptag ptag-warn">⚠️ Recessionary short-term</span></div>
+              <div class="prog-src">Source: <a href="https://www.ifrap.org" target="_blank" rel="noopener">IFRAP ↗</a> · <a href="https://www.fipeco.fr" target="_blank" rel="noopener">FIPECO ↗</a></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Pension reform & funded system</div>
+              <div class="prog-d">Maintain retirement at 64 · Introduce 15% funded component (German model) · Referendum June 2027 on pension system future.</div>
+              <div class="prog-tags"><span class="ptag ptag-warn">⚠️ Politically contested</span></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Economic competitiveness</div>
+              <div class="prog-d">Cut corporation tax 25%→20% · Labour market flexibility · Massive AI and industry investment · Simplify regulation.</div>
+              <div class="prog-tags"><span class="ptag ptag-cost">💸 ~€10bn/year revenue loss</span><span class="ptag ptag-ok">✅ Supply-side boost</span></div>
+              <div class="prog-src">Source: <a href="https://www.institutmontaigne.org/presidentielle-2022/jean-luc-melenchon/synthese/" target="_blank" rel="noopener">Institut Montaigne — Mélenchon programme costing (2022) ↗</a></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Europe & defence</div>
+              <div class="prog-d">Committed pro-European · Strengthen European defence · Common EU budget for innovation and climate · Deepen single market.</div>
+              <div class="prog-tags"><span class="ptag ptag-ok">✅ Pro-EU</span></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">State reform</div>
+              <div class="prog-d">Merge local authorities · Reduce civil servants by 100,000 · Massive administrative simplification · Decentralisation to regions.</div>
+              <div class="prog-tags"><span class="ptag ptag-ok">✅ Savings ~€6bn/year</span></div>
+            </div></div>
+          </div>
+        </div>
+        <div id="hor-eco" class="tab-pane" style="display:none">
+          <div class="eco-grid">
+            <div class="eco-card">
+              <div class="eco-name">Projected deficit / GDP</div>
+              <div class="eco-vals"><span class="eco-from">5.1%</span><span class="eco-arrow">→</span><span class="eco-to ok">~2.5–3.5%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:70%;background:var(--green)"></div></div>
+              <div class="eco-ctx">Strict consolidation path. Most credible deficit reduction plan of all candidates.</div>
+              <div class="eco-src"><a href="https://www.fipeco.fr/fiche/Leffet-multiplicateur-dune-variation-du-deficit-public" target="_blank" rel="noopener">FIPECO analysis ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">GDP growth impact</div>
+              <div class="eco-vals"><span class="eco-from">+1.2%</span><span class="eco-arrow">→</span><span class="eco-to warn">+0.6–1.2%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:45%;background:var(--amber)"></div></div>
+              <div class="eco-ctx">Austerity cuts growth short-term. The IMF (2013) found spending cut multipliers of -1 to -1.5 were underestimated in Europe 2010–2013.</div>
+              <div class="eco-src"><a href="https://www.imf.org/external/pubs/ft/wp/2013/wp1301.pdf" target="_blank" rel="noopener">IMF/Blanchard & Leigh 2013 ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Unemployment</div>
+              <div class="eco-vals"><span class="eco-from">7.3%</span><span class="eco-arrow">→</span><span class="eco-to warn">~6.5–7.8%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:48%;background:var(--amber)"></div></div>
+              <div class="eco-ctx">Short-term risk of rising unemployment from public sector cuts. Long-term improvement via supply-side reforms.</div>
+              <div class="eco-src"><a href="https://www.ofce.sciences-po.fr" target="_blank" rel="noopener">OFCE ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Inequality (Gini)</div>
+              <div class="eco-vals"><span class="eco-from">0.292</span><span class="eco-arrow">→</span><span class="eco-to warn">~0.295–0.305</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:40%;background:var(--amber)"></div></div>
+              <div class="eco-ctx">Tax cuts favour higher earners. Public service cuts disproportionately affect lower incomes.</div>
+              <div class="eco-src"><a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Public debt / GDP</div>
+              <div class="eco-vals"><span class="eco-from">115.6%</span><span class="eco-arrow">→</span><span class="eco-to ok">~108–114%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:72%;background:var(--green)"></div></div>
+              <div class="eco-ctx">Only candidate projecting a genuine debt reduction path.</div>
+              <div class="eco-src"><a href="https://www.fipeco.fr" target="_blank" rel="noopener">FIPECO ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Budget credibility score</div>
+              <div class="eco-vals"><span class="eco-from">–</span><span class="eco-arrow">→</span><span class="eco-to ok">75/100</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:75%;background:var(--green)"></div></div>
+              <div class="eco-ctx">Highest credibility score. Consistent with EU Stability & Growth Pact.</div>
+              <div class="eco-src"><a href="https://www.institutmontaigne.org" target="_blank" rel="noopener">Institut Montaigne ↗</a></div>
+            </div>
+            <div class="eco-note">
+              ⚠️ <strong>Austerity debate:</strong> The "expansionary austerity" theory (Alesina & Perotti, 2010) claims spending cuts boost growth via confidence. The IMF explicitly revised this position after 2010–2013 European experience — multipliers were -1 to -1.5 in practice: <a href="https://www.imf.org/external/pubs/ft/wp/2013/wp1301.pdf" target="_blank" rel="noopener">IMF WP/13/01 ↗</a>. Économistes atterrés critique: <a href="https://atterres.org" target="_blank" rel="noopener">atterres.org ↗</a>
+            </div>
+          </div>
+        </div>
+        <div id="hor-soc" class="tab-pane" style="display:none">
+          <div class="soc-grid">
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Social cohesion</div>
+                <div class="soc-track"><div class="soc-fill" style="width:55%;background:var(--amber)"></div></div>
+                <div class="soc-val" style="color:var(--amber)">Moderate</div>
+              </div>
+              <div class="soc-note">Inclusive rhetoric; public service cuts risk territorial fracture. <a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener" class="soc-src">CEVIPOF ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Social mobility</div>
+                <div class="soc-track"><div class="soc-fill" style="width:45%;background:var(--amber)"></div></div>
+                <div class="soc-val" style="color:var(--amber)">Moderate</div>
+              </div>
+              <div class="soc-note">Education investment modest. Class ceiling largely unchanged. <a href="https://www.ipp.eu" target="_blank" rel="noopener" class="soc-src">IPP ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Environmental transition</div>
+                <div class="soc-track"><div class="soc-fill" style="width:50%;background:var(--amber)"></div></div>
+                <div class="soc-val" style="color:var(--amber)">Moderate</div>
+              </div>
+              <div class="soc-note">Pro-EU carbon market; no dedicated green investment plan. <a href="https://www.ademe.fr" target="_blank" rel="noopener" class="soc-src">ADEME ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Purchasing power</div>
+                <div class="soc-track"><div class="soc-fill" style="width:40%;background:var(--amber)"></div></div>
+                <div class="soc-val" style="color:var(--amber)">Low–Mod</div>
+              </div>
+              <div class="soc-note">Austerity limits spending gains. Tax cuts favour middle/upper earners. <a href="https://www.ofce.sciences-po.fr" target="_blank" rel="noopener" class="soc-src">OFCE ↗</a></div>
+            </div>
+          </div>
+          <div class="soc-disclaimer">Sources: <a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener">CEVIPOF ↗</a> · <a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP ↗</a> · <a href="https://www.inegalites.fr" target="_blank" rel="noopener">Observatory of Inequalities ↗</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LR -->
+    <div class="cand-card" style="animation-delay:.2s">
+      <div class="cand-head" style="background:linear-gradient(135deg,#2d006b,var(--lr))">
+        <div class="cand-head-left">
+          <div class="cand-name">Bruno Retailleau</div>
+          <div class="cand-party">Les Républicains (LR) · Conservative right</div>
+        </div>
+        <div class="cand-head-right">
+          <div><div class="cand-poll">~10%</div><div class="cand-poll-lbl">1st round polls</div></div>
+        </div>
+      </div>
+      <div class="cand-bio">
+        President of Les Républicains, former Interior Minister. Programme combining fiscal austerity, strict immigration, defence of conservative social values, and economic liberalism. Competes with Philippe for centre-right voters. LR electorate is fractured — ~57% would consider voting RN (Ifop, 2026).
+      </div>
+      <div class="cand-body">
+        <div class="tabs">
+          <button class="tab on" onclick="showTab('lr','prog',this)">Programme</button>
+          <button class="tab" onclick="showTab('lr','eco',this)">Economic impact</button>
+          <button class="tab" onclick="showTab('lr','soc',this)">Social impact</button>
+        </div>
+        <div id="lr-prog" class="tab-pane">
+          <div class="prog-list">
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Fiscal austerity</div>
+              <div class="prog-d">Return to balance in 5 years · Cut €50bn in spending · Deep state reform · End "ineffective" public programmes.</div>
+              <div class="prog-tags"><span class="ptag ptag-warn">⚠️ Recessionary risk</span></div>
+              <div class="prog-src">Source: <a href="https://www.fipeco.fr" target="_blank" rel="noopener">FIPECO ↗</a></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Security & strict immigration</div>
+              <div class="prog-d">Cut legal immigration by 40% · End extended family reunification · Systematic expulsion of foreign offenders · Re-establish national border controls.</div>
+              <div class="prog-tags"><span class="ptag ptag-warn">⚠️ Schengen conflict</span></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Pension reform</div>
+              <div class="prog-d">Maintain 2023 reform (retirement at 64) · No reversal · End special pension regimes · Long-term transition to points-based system.</div>
+              <div class="prog-tags"><span class="ptag ptag-ok">✅ Savings ~€12bn/year</span></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Liberal economy</div>
+              <div class="prog-d">Cut business taxes · Labour flexibility · End 35-hour week in some sectors · Targeted privatisations · Reduce employment protection.</div>
+              <div class="prog-tags"><span class="ptag ptag-ok">✅ Supply-side boost</span><span class="ptag ptag-warn">⚠️ Short-term job risk</span></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Conservative values</div>
+              <div class="prog-d">Defence of traditional family · Strict secularism · Stronger state authority · Tighter control of associations receiving public funds.</div>
+            </div></div>
+          </div>
+        </div>
+        <div id="lr-eco" class="tab-pane" style="display:none">
+          <div class="eco-grid">
+            <div class="eco-card">
+              <div class="eco-name">Projected deficit / GDP</div>
+              <div class="eco-vals"><span class="eco-from">5.1%</span><span class="eco-arrow">→</span><span class="eco-to ok">~2.8–3.8%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:68%;background:var(--green)"></div></div>
+              <div class="eco-ctx">Deep spending cuts reduce deficit. Credible path, though politically very challenging.</div>
+              <div class="eco-src"><a href="https://www.ifrap.org" target="_blank" rel="noopener">IFRAP ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">GDP growth impact</div>
+              <div class="eco-vals"><span class="eco-from">+1.2%</span><span class="eco-arrow">→</span><span class="eco-to bad">+0.3–0.9%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:35%;background:var(--red)"></div></div>
+              <div class="eco-ctx">Most severe austerity plan. IMF estimates fiscal multipliers of -1 to -1.5 for spending cuts in low-growth periods.</div>
+              <div class="eco-src"><a href="https://www.imf.org/external/pubs/ft/wp/2013/wp1301.pdf" target="_blank" rel="noopener">IMF WP/13/01 ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Inequality (Gini)</div>
+              <div class="eco-vals"><span class="eco-from">0.292</span><span class="eco-arrow">→</span><span class="eco-to bad">~0.300–0.315</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:35%;background:var(--red)"></div></div>
+              <div class="eco-ctx">Spending cuts disproportionately hit lower incomes. Tax cuts favour business owners.</div>
+              <div class="eco-src"><a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Budget credibility score</div>
+              <div class="eco-vals"><span class="eco-from">–</span><span class="eco-arrow">→</span><span class="eco-to ok">70/100</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:70%;background:var(--green)"></div></div>
+              <div class="eco-ctx">Fiscally coherent but politically very difficult to implement.</div>
+              <div class="eco-src"><a href="https://www.institutmontaigne.org" target="_blank" rel="noopener">Institut Montaigne ↗</a></div>
+            </div>
+          </div>
+        </div>
+        <div id="lr-soc" class="tab-pane" style="display:none">
+          <div class="soc-grid">
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Social cohesion</div>
+                <div class="soc-track"><div class="soc-fill" style="width:40%;background:var(--amber)"></div></div>
+                <div class="soc-val" style="color:var(--amber)">Low–Mod</div>
+              </div>
+              <div class="soc-note">Strict immigration + service cuts risk fracturing. <a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener" class="soc-src">CEVIPOF ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Purchasing power</div>
+                <div class="soc-track"><div class="soc-fill" style="width:30%;background:var(--red)"></div></div>
+                <div class="soc-val" style="color:var(--red)">Low</div>
+              </div>
+              <div class="soc-note">No income support. Austerity limits disposable income gains. <a href="https://www.ofce.sciences-po.fr" target="_blank" rel="noopener" class="soc-src">OFCE ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Environmental transition</div>
+                <div class="soc-track"><div class="soc-fill" style="width:30%;background:var(--red)"></div></div>
+                <div class="soc-val" style="color:var(--red)">Low</div>
+              </div>
+              <div class="soc-note">No dedicated green investment plan. Nuclear + gas strategy. <a href="https://www.ademe.fr" target="_blank" rel="noopener" class="soc-src">ADEME ↗</a></div>
+            </div>
+          </div>
+          <div class="soc-disclaimer">Sources: <a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener">CEVIPOF ↗</a> · <a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP ↗</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNITED LEFT -->
+    <div class="cand-card" style="animation-delay:.25s">
+      <div class="cand-head" style="background:linear-gradient(135deg,#6d0032,var(--ps))">
+        <div class="cand-head-left">
+          <div class="cand-name">United Left — Glucksmann / Tondelier</div>
+          <div class="cand-party">PS / Les Écologistes · Social left</div>
+        </div>
+        <div class="cand-head-right">
+          <div><div class="cand-poll">~11%</div><div class="cand-poll-lbl">1st round polls</div></div>
+        </div>
+      </div>
+      <div class="cand-bio">
+        The left outside LFI is attempting to unite via a primary (announced Oct. 2026). Raphaël Glucksmann (PS) and Marine Tondelier (Greens) are the key figures. Programme anchored in social democracy and ecological transition — more fiscally moderate than LFI. Glucksmann polls highest among PS candidates at ~10.5% (Elabe, March 2026).
+      </div>
+      <div class="cand-body">
+        <div class="tabs">
+          <button class="tab on" onclick="showTab('ps','prog',this)">Programme</button>
+          <button class="tab" onclick="showTab('ps','eco',this)">Economic impact</button>
+          <button class="tab" onclick="showTab('ps','soc',this)">Social impact</button>
+        </div>
+        <div id="ps-prog" class="tab-pane">
+          <div class="prog-list">
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Social-ecological transition</div>
+              <div class="prog-d">€50bn/year green investment · Thermal renovation plan · End fossil fuels by 2040 · 350,000–500,000 green jobs (ADEME estimate).</div>
+              <div class="prog-tags"><span class="ptag ptag-cost">💸 ~€25bn net/year</span><span class="ptag ptag-ok">✅ High job multiplier</span></div>
+              <div class="prog-src">Source: <a href="https://www.ademe.fr" target="_blank" rel="noopener">ADEME ↗</a> · <a href="https://www.ofce.sciences-po.fr" target="_blank" rel="noopener">OFCE ↗</a></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Social justice</div>
+              <div class="prog-d">Minimum wage €1,500 · Climate wealth tax · Index wages to inflation · Anti-poverty plan · Restore some pension rights (age 62).</div>
+              <div class="prog-tags"><span class="ptag ptag-cost">💸 ~€20bn/year</span><span class="ptag ptag-ok">✅ Partially funded</span></div>
+              <div class="prog-src">Source: <a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP ↗</a></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Social Europe</div>
+              <div class="prog-d">European tax harmonisation · European minimum wage · Strengthen EU social rights · Reform Stability & Growth Pact to allow green investment.</div>
+              <div class="prog-tags"><span class="ptag ptag-ok">✅ Pro-EU</span></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Education & healthcare</div>
+              <div class="prog-d">+10,000 teachers · Raise healthcare workers' pay · End medical deserts in 5 years · Free school meals · 50,000 new social housing units/year.</div>
+              <div class="prog-tags"><span class="ptag ptag-cost">💸 ~€15bn/year</span></div>
+            </div></div>
+            <div class="prog-item"><div class="prog-dot"></div><div>
+              <div class="prog-h">Democracy</div>
+              <div class="prog-d">Proportional representation · Citizens' initiative referendum · Senate reform · Stricter lobbying rules · Public campaign financing.</div>
+            </div></div>
+          </div>
+        </div>
+        <div id="ps-eco" class="tab-pane" style="display:none">
+          <div class="eco-grid">
+            <div class="eco-card">
+              <div class="eco-name">Projected deficit / GDP</div>
+              <div class="eco-vals"><span class="eco-from">5.1%</span><span class="eco-arrow">→</span><span class="eco-to warn">~5.5–7.0%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:65%;background:var(--amber)"></div></div>
+              <div class="eco-ctx">Balanced between investment and control. Less costly than LFI, more ambitious than Horizons.</div>
+              <div class="eco-src"><a href="https://www.institutmontaigne.org" target="_blank" rel="noopener">Institut Montaigne ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">GDP growth impact</div>
+              <div class="eco-vals"><span class="eco-from">+1.2%</span><span class="eco-arrow">→</span><span class="eco-to ok">+1.3–1.9%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:68%;background:var(--green)"></div></div>
+              <div class="eco-ctx">Green investment has high Keynesian multiplier (local, non-relocatable jobs). OFCE estimates 1.1–1.7.</div>
+              <div class="eco-src"><a href="https://shs.cairn.info/revue-de-l-ofce-2021-5-page-5" target="_blank" rel="noopener">OFCE Revue n°175 ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Unemployment</div>
+              <div class="eco-vals"><span class="eco-from">7.3%</span><span class="eco-arrow">→</span><span class="eco-to ok">~5.8–6.8%</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:70%;background:var(--green)"></div></div>
+              <div class="eco-ctx">Green jobs + healthcare + education create strong local employment. ADEME estimates 350K–500K net jobs.</div>
+              <div class="eco-src"><a href="https://www.ademe.fr" target="_blank" rel="noopener">ADEME ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Inequality (Gini)</div>
+              <div class="eco-vals"><span class="eco-from">0.292</span><span class="eco-arrow">→</span><span class="eco-to ok">~0.270–0.282</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:72%;background:var(--green)"></div></div>
+              <div class="eco-ctx">Strong redistribution but less radical than LFI. Climate wealth tax + min wage hike compress gap.</div>
+              <div class="eco-src"><a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP microsimulations ↗</a></div>
+            </div>
+            <div class="eco-card">
+              <div class="eco-name">Budget credibility score</div>
+              <div class="eco-vals"><span class="eco-from">–</span><span class="eco-arrow">→</span><span class="eco-to warn">50/100</span></div>
+              <div class="eco-bar"><div class="eco-fill" style="width:50%;background:var(--amber)"></div></div>
+              <div class="eco-ctx">Moderate programme. Green investment partially EU-funded via debt verte. Manageable risk.</div>
+              <div class="eco-src"><a href="https://www.institutmontaigne.org" target="_blank" rel="noopener">Institut Montaigne ↗</a></div>
+            </div>
+          </div>
+        </div>
+        <div id="ps-soc" class="tab-pane" style="display:none">
+          <div class="soc-grid">
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Social cohesion</div>
+                <div class="soc-track"><div class="soc-fill" style="width:72%;background:var(--green)"></div></div>
+                <div class="soc-val" style="color:var(--green)">High</div>
+              </div>
+              <div class="soc-note">Inclusive, justice-focused approach strengthens cohesion. <a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener" class="soc-src">CEVIPOF ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Environmental transition</div>
+                <div class="soc-track"><div class="soc-fill" style="width:80%;background:var(--green)"></div></div>
+                <div class="soc-val" style="color:var(--green)">High</div>
+              </div>
+              <div class="soc-note">Second-most ambitious green programme after LFI. <a href="https://www.ademe.fr" target="_blank" rel="noopener" class="soc-src">ADEME ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Social mobility</div>
+                <div class="soc-track"><div class="soc-fill" style="width:65%;background:var(--green)"></div></div>
+                <div class="soc-val" style="color:var(--green)">Moderate+</div>
+              </div>
+              <div class="soc-note">Education + healthcare investment improves life chances. <a href="https://www.ipp.eu" target="_blank" rel="noopener" class="soc-src">IPP ↗</a></div>
+            </div>
+            <div>
+              <div class="soc-row">
+                <div class="soc-lbl">Purchasing power</div>
+                <div class="soc-track"><div class="soc-fill" style="width:65%;background:var(--green)"></div></div>
+                <div class="soc-val" style="color:var(--green)">Moderate+</div>
+              </div>
+              <div class="soc-note">€1,500 SMIC + wage indexation + free services = real gain. <a href="https://www.ofce.sciences-po.fr" target="_blank" rel="noopener" class="soc-src">OFCE ↗</a></div>
+            </div>
+          </div>
+          <div class="soc-disclaimer">Sources: <a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener">CEVIPOF ↗</a> · <a href="https://www.ipp.eu" target="_blank" rel="noopener">IPP ↗</a> · <a href="https://www.inegalites.fr" target="_blank" rel="noopener">Observatory of Inequalities ↗</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- COMPARE -->
+<section class="sec" id="compare">
+  <div class="wrap">
+    <div class="lbl">Overview</div>
+    <h2 class="sec-title">Side-by-side comparison</h2>
+    <p class="sec-sub">Key indicators across all 5 candidates at a glance.</p>
+    <div class="compare-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Indicator</th>
+            <th class="cand-th" style="color:#7aa8ff">RN<br><small style="font-weight:400;font-size:10px">Le Pen/Bardella</small></th>
+            <th class="cand-th" style="color:#ff8888">LFI<br><small style="font-weight:400;font-size:10px">Mélenchon</small></th>
+            <th class="cand-th" style="color:#5ddba8">Horizons<br><small style="font-weight:400;font-size:10px">Philippe</small></th>
+            <th class="cand-th" style="color:#c09aff">LR<br><small style="font-weight:400;font-size:10px">Retailleau</small></th>
+            <th class="cand-th" style="color:#ff9abe">United Left<br><small style="font-weight:400;font-size:10px">Glucksmann</small></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="metric-lbl">1st round polls</div></td>
+            <td style="text-align:center"><span class="cpill cp-warn">~35%</span></td>
+            <td style="text-align:center"><span class="cpill cp-neu">~11%</span></td>
+            <td style="text-align:center"><span class="cpill cp-warn">~22%</span></td>
+            <td style="text-align:center"><span class="cpill cp-neu">~10%</span></td>
+            <td style="text-align:center"><span class="cpill cp-neu">~11%</span></td>
+          </tr>
+          <tr>
+            <td><div class="metric-lbl">Projected deficit</div><div class="metric-note">vs 5.1% today</div></td>
+            <td style="text-align:center"><span class="cpill cp-bad">~8%</span></td>
+            <td style="text-align:center"><span class="cpill cp-bad">~10%</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">~3%</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">~3.5%</span></td>
+            <td style="text-align:center"><span class="cpill cp-warn">~6%</span></td>
+          </tr>
+          <tr>
+            <td><div class="metric-lbl">GDP growth</div><div class="metric-note">projected impact</div></td>
+            <td style="text-align:center"><span class="cpill cp-warn">+1.2%</span></td>
+            <td style="text-align:center"><span class="cpill cp-warn">+1.2%</span></td>
+            <td style="text-align:center"><span class="cpill cp-warn">+0.9%</span></td>
+            <td style="text-align:center"><span class="cpill cp-bad">+0.6%</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">+1.6%</span></td>
+          </tr>
+          <tr>
+            <td><div class="metric-lbl">Inequality (Gini)</div><div class="metric-note">vs 0.292 today</div></td>
+            <td style="text-align:center"><span class="cpill cp-neu">~0.29</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">~0.27</span></td>
+            <td style="text-align:center"><span class="cpill cp-warn">~0.30</span></td>
+            <td style="text-align:center"><span class="cpill cp-bad">~0.31</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">~0.28</span></td>
+          </tr>
+          <tr>
+            <td><div class="metric-lbl">Green transition</div></td>
+            <td style="text-align:center"><span class="cpill cp-bad">Very low</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">High</span></td>
+            <td style="text-align:center"><span class="cpill cp-warn">Moderate</span></td>
+            <td style="text-align:center"><span class="cpill cp-bad">Low</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">High</span></td>
+          </tr>
+          <tr>
+            <td><div class="metric-lbl">EU relationship</div></td>
+            <td style="text-align:center"><span class="cpill cp-warn">Eurosceptic</span></td>
+            <td style="text-align:center"><span class="cpill cp-bad">Non-compliant</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">Pro-EU</span></td>
+            <td style="text-align:center"><span class="cpill cp-warn">Sovereignist</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">Social EU</span></td>
+          </tr>
+          <tr>
+            <td><div class="metric-lbl">Budget credibility</div><div class="metric-note">0–100 score</div></td>
+            <td style="text-align:center"><span class="cpill cp-bad">35/100</span></td>
+            <td style="text-align:center"><span class="cpill cp-bad">20/100</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">75/100</span></td>
+            <td style="text-align:center"><span class="cpill cp-ok">70/100</span></td>
+            <td style="text-align:center"><span class="cpill cp-warn">50/100</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- METHODOLOGY -->
+<section class="sec" id="methodology">
+  <div class="wrap">
+    <div class="lbl">Transparency</div>
+    <h2 class="sec-title">How this simulator works</h2>
+    <p class="sec-sub">Every figure has a source. Every source has a labelled orientation. Here is exactly where each number comes from.</p>
+    <div class="meth-grid">
+      <div class="meth-card">
+        <div class="meth-n">01</div>
+        <div class="meth-t">Official programmes & declarations</div>
+        <div class="meth-d">Each policy analysed comes from candidates' public declarations, official programmes, or documented positions in verified national media (franceinfo, Le Monde, Le Figaro, Public Sénat).</div>
+      </div>
+      <div class="meth-card">
+        <div class="meth-n">02</div>
+        <div class="meth-t">Institutional data first</div>
+        <div class="meth-d">INSEE, Banque de France, OECD, INED, CAE: official sources with no party affiliation. Our primary reference for all baseline figures.</div>
+      </div>
+      <div class="meth-card">
+        <div class="meth-n">03</div>
+        <div class="meth-t">Sources labelled by orientation</div>
+        <div class="meth-d">Institut Montaigne (centre-liberal), IFRAP (right-liberal), OFCE/Sciences Po (academic), IPP (academic). We state their leanings so you can assess their biases.</div>
+      </div>
+      <div class="meth-card">
+        <div class="meth-n">04</div>
+        <div class="meth-t">Ranges, not certainties</div>
+        <div class="meth-d">All projections are ranges. Macroeconomic modelling involves genuine uncertainty — especially for programmes that have never been implemented. All figures are extrapolated from 2022 analyses updated with 2026 baseline data.</div>
+      </div>
+    </div>
+
+    <h3 style="font-family:'Libre Baskerville',serif;font-size:18px;color:var(--text);margin:32px 0 14px">Sources used — with political orientation</h3>
+    <table class="src-table">
+      <thead><tr><th>Source</th><th>Type</th><th>Orientation</th><th>Link</th></tr></thead>
+      <tbody>
+        <tr><td><strong>INSEE</strong></td><td>National statistics</td><td><span class="src-badge sb-off">Official</span></td><td><a href="https://www.insee.fr" target="_blank" rel="noopener" class="src-link">insee.fr ↗</a></td></tr>
+        <tr><td><strong>Banque de France</strong></td><td>Central bank</td><td><span class="src-badge sb-off">Official</span></td><td><a href="https://www.banque-france.fr" target="_blank" rel="noopener" class="src-link">banque-france.fr ↗</a></td></tr>
+        <tr><td><strong>OECD</strong></td><td>International organisation</td><td><span class="src-badge sb-off">Official</span></td><td><a href="https://stats.oecd.org" target="_blank" rel="noopener" class="src-link">stats.oecd.org ↗</a></td></tr>
+        <tr><td><strong>OFCE / Sciences Po</strong></td><td>Economic research institute</td><td><span class="src-badge sb-aca">Academic</span></td><td><a href="https://www.ofce.sciences-po.fr" target="_blank" rel="noopener" class="src-link">ofce.sciences-po.fr ↗</a></td></tr>
+        <tr><td><strong>IPP — Institut des Politiques Publiques</strong></td><td>Microsimulation research</td><td><span class="src-badge sb-aca">Academic</span></td><td><a href="https://www.ipp.eu" target="_blank" rel="noopener" class="src-link">ipp.eu ↗</a></td></tr>
+        <tr><td><strong>CEVIPOF / Sciences Po</strong></td><td>Political science, trust surveys</td><td><span class="src-badge sb-aca">Academic</span></td><td><a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener" class="src-link">sciencespo.fr/cevipof ↗</a></td></tr>
+        <tr><td><strong>ADEME</strong></td><td>Energy & environment agency</td><td><span class="src-badge sb-off">Official</span></td><td><a href="https://www.ademe.fr" target="_blank" rel="noopener" class="src-link">ademe.fr ↗</a></td></tr>
+        <tr><td><strong>Institut Montaigne</strong></td><td>Think tank</td><td><span class="src-badge sb-lib">Centre-liberal</span></td><td><a href="https://www.institutmontaigne.org/legislatives-2024/rassemblement-national/synthese/" target="_blank" rel="noopener" class="src-link">institutmontaigne.org — chiffrages 2022 & 2024 ↗</a></td></tr>
+        <tr><td><strong>IFRAP</strong></td><td>Think tank</td><td><span class="src-badge" style="background:rgba(255,107,107,.1);color:#ff9999;border:1px solid rgba(255,107,107,.2)">Right-liberal</span></td><td><a href="https://www.ifrap.org" target="_blank" rel="noopener" class="src-link">ifrap.org ↗</a></td></tr>
+        <tr><td><strong>FIPECO</strong></td><td>Fiscal analysis blog (ex-Cour des comptes)</td><td><span class="src-badge sb-lib">Liberal</span></td><td><a href="https://www.fipeco.fr" target="_blank" rel="noopener" class="src-link">fipeco.fr ↗</a></td></tr>
+        <tr><td><strong>IMF — Blanchard & Leigh (2013)</strong></td><td>Peer-reviewed / IMF Working Paper</td><td><span class="src-badge sb-aca">Academic</span></td><td><a href="https://www.imf.org/external/pubs/ft/wp/2013/wp1301.pdf" target="_blank" rel="noopener" class="src-link">imf.org ↗</a></td></tr>
+        <tr><td><strong>CEPII (2017, 2019)</strong></td><td>International economics research</td><td><span class="src-badge sb-aca">Academic</span></td><td><a href="https://www.cepii.fr" target="_blank" rel="noopener" class="src-link">cepii.fr ↗</a></td></tr>
+        <tr><td><strong>Elabe / Ifop / Odoxa</strong></td><td>Polling institutes</td><td><span class="src-badge sb-off">Official</span></td><td><a href="https://elabe.fr/presidentielle-2027-iv2/" target="_blank" rel="noopener" class="src-link">elabe.fr ↗</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ABOUT -->
+<section class="sec" id="about">
+  <div class="wrap">
+    <div class="lbl">About this project</div>
+    <h2 class="sec-title">Who built this — and why</h2>
+    <p class="sec-sub">France 2027 Policy Simulator is an independent civic education project. No political party funded it. No candidate is recommended.</p>
+    <div class="about-grid">
+      <div class="about-card">
+        <div class="about-icon">🔍</div>
+        <div class="about-t">Full transparency</div>
+        <div class="about-d">Every figure has a source. Every source has a labelled political orientation. You can verify everything yourself — every claim links to its original document.</div>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">⚖️</div>
+        <div class="about-t">Non-partisan</div>
+        <div class="about-d">No candidate is recommended. No political option is presented as superior. We present what the research says — including where research is uncertain or contested.</div>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">🎓</div>
+        <div class="about-t">Educational purpose only</div>
+        <div class="about-d">This is not a prediction tool. Economic projections are estimates based on 2022 analyses. Real policy outcomes depend on parliamentary balance, markets, and implementation.</div>
+      </div>
+      <div class="about-card">
+        <div class="about-icon">✉️</div>
+        <div class="about-t">Found an error?</div>
+        <div class="about-d">If you find an incorrect figure or missing source, we want to know. This project is correctable and will be updated as official 2027 programmes are published. Contact: <strong style="color:var(--gold)"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="5424263d27393166646663143339353d387a373b39">[email&#160;protected]</a></strong></div>
+      </div>
+    </div>
+    <div style="margin-top:24px;padding:16px 20px;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);font-size:13px;color:var(--muted);line-height:1.7">
+      <strong style="color:var(--text)">What this site is NOT:</strong><br>
+      — Not electoral propaganda for any candidate &nbsp;·&nbsp; — Not an economic oracle (all projections are estimates)<br>
+      — Not affiliated with any party, union, media or institution &nbsp;·&nbsp; — No cookies, no tracking, no personal data stored
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">France 2027 Policy Simulator</div>
+    <div class="footer-text">
+      Independent civic education project · No political funding · No advertising<br>
+      Data: INSEE, Banque de France, OECD, OFCE, IPP, Institut Montaigne, IFRAP — all sources linked · Last updated March 2026<br>
+      No cookies · No tracking · GDPR compliant · Built by Fatima, Université Toulouse Jean Jaurès
+    </div>
+  </div>
+
+<!-- FULL BIBLIOGRAPHY -->
+<section style="background:var(--bg2);padding:40px 24px;border-top:1px solid var(--border)">
+  <div style="max-width:900px;margin:0 auto">
+    <div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);font-weight:600;margin-bottom:16px">📚 Complete bibliography — 35 verified references</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[1] INSEE — Comptes nationaux, mars 2026</div>
+        <div style="color:var(--muted);font-size:11px">Deficit, GDP growth, unemployment, spending/GDP figures</div>
+        <div style="margin-top:5px"><a href="https://www.insee.fr/fr/statistiques/8956575" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">insee.fr/fr/statistiques/8956575 ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[2] Banque de France — Statistiques 2026</div>
+        <div style="color:var(--muted);font-size:11px">Public debt, inflation, interest rates baseline</div>
+        <div style="margin-top:5px"><a href="https://www.banque-france.fr/publications-et-statistiques" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">banque-france.fr/publications-et-statistiques ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[3] OECD — Income Distribution Database</div>
+        <div style="color:var(--muted);font-size:11px">Gini coefficient (France 0.292, Denmark 0.28, USA 0.39)</div>
+        <div style="margin-top:5px"><a href="https://stats.oecd.org/Index.aspx?DataSetCode=IDD" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">stats.oecd.org IDD ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[4] Ministère du Travail — SMIC 2026</div>
+        <div style="color:var(--muted);font-size:11px">Net monthly minimum wage: €1,430</div>
+        <div style="margin-top:5px"><a href="https://travail-emploi.gouv.fr/smic" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">travail-emploi.gouv.fr/smic ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[5] Institut Montaigne — Marine Le Pen 2022</div>
+        <div style="color:var(--muted);font-size:11px">Full costing of RN programme: €101.8bn deficit/year</div>
+        <div style="margin-top:5px"><a href="https://www.institutmontaigne.org/presidentielle-2022/marine-le-pen/synthese/" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">institutmontaigne.org — Le Pen synthèse ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[6] Institut Montaigne — Mélenchon 2022</div>
+        <div style="color:var(--muted);font-size:11px">Full costing of LFI programme</div>
+        <div style="margin-top:5px"><a href="https://www.institutmontaigne.org/presidentielle-2022/jean-luc-melenchon/synthese/" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">institutmontaigne.org — Mélenchon synthèse ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[7] Institut Montaigne — RN Législatives 2024</div>
+        <div style="color:var(--muted);font-size:11px">Updated costing: RN programme +€71bn deficit/year</div>
+        <div style="margin-top:5px"><a href="https://www.institutmontaigne.org/legislatives-2024/rassemblement-national/synthese/" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">institutmontaigne.org — RN 2024 ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[8] Institut Montaigne — Méthodologie chiffrage</div>
+        <div style="color:var(--muted);font-size:11px">Full methodology: 25 independent experts, programme review</div>
+        <div style="margin-top:5px"><a href="https://www.institutmontaigne.org/presidentielle-2022/methodologie/" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">institutmontaigne.org — méthodologie ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[9] IFRAP — Impact économique programme LFI</div>
+        <div style="color:var(--muted);font-size:11px">Right-liberal think tank analysis of LFI fiscal impact</div>
+        <div style="margin-top:5px"><a href="https://www.ifrap.org/budget-et-fiscalite/nupes-quel-serait-limpact-economique-du-programme-de-jean-luc-melenchon" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">ifrap.org — analyse LFI ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[10] OFCE — Revue n°175 (2021): multiplicateur</div>
+        <div style="color:var(--muted);font-size:11px">Le Garrec & Touzé: public investment multiplier 0.8–2.5</div>
+        <div style="margin-top:5px"><a href="https://shs.cairn.info/revue-de-l-ofce-2021-5-page-5" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">cairn.info — OFCE n°175 ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[11] OFCE — Revue n°116 (2011): multiplicateurs par instrument</div>
+        <div style="color:var(--muted);font-size:11px">Creel et al: multiplier 1.0–1.3 short term, 1.2–1.7 long term</div>
+        <div style="margin-top:5px"><a href="https://www.ofce.sciences-po.fr/pdf/revue/2-116.pdf" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">ofce.sciences-po.fr — revue 116 ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[12] IMF — Blanchard & Leigh (2013)</div>
+        <div style="color:var(--muted);font-size:11px">Growth Forecast Errors and Fiscal Multipliers — WP/13/01. Multipliers underestimated in 2010–2013 austerity: ~1.5 not 0.5</div>
+        <div style="margin-top:5px"><a href="https://www.imf.org/external/pubs/ft/wp/2013/wp1301.pdf" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">imf.org — WP/13/01 ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[13] FIPECO — Multiplicateur fiscal</div>
+        <div style="color:var(--muted);font-size:11px">OECD 2013 France estimates: 1.0 public investment, 0.3 indirect tax, 0.6 income tax</div>
+        <div style="margin-top:5px"><a href="https://www.fipeco.fr/fiche/Leffet-multiplicateur-dune-variation-du-deficit-public" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">fipeco.fr — multiplicateur ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[14] CEPII (2017) — Effets macroéconomiques fiscalité</div>
+        <div style="color:var(--muted);font-size:11px">Geerolf & Grjebine: VAT rise of 1 GDP point reduces GDP by 3.7% in 1 year (14 OECD countries)</div>
+        <div style="margin-top:5px"><a href="https://www.cepii.fr/PDF_PUB/EIC/EIC17.pdf" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">cepii.fr — EIC17 ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[15] IPP — Institut des Politiques Publiques</div>
+        <div style="color:var(--muted);font-size:11px">Microsimulation models for tax/benefit incidence and inequality projections</div>
+        <div style="margin-top:5px"><a href="https://www.ipp.eu" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">ipp.eu ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[16] CEVIPOF — Baromètre de la confiance politique</div>
+        <div style="color:var(--muted);font-size:11px">Annual trust and social cohesion surveys (Sciences Po)</div>
+        <div style="margin-top:5px"><a href="https://www.sciencespo.fr/cevipof" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">sciencespo.fr/cevipof ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[17] ADEME — Transition énergétique & emplois</div>
+        <div style="color:var(--muted);font-size:11px">350,000–500,000 net green jobs estimate by 2030</div>
+        <div style="margin-top:5px"><a href="https://www.ademe.fr" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">ademe.fr ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[18] Observatoire des inégalités</div>
+        <div style="color:var(--muted);font-size:11px">Social mobility and inequality data for France</div>
+        <div style="margin-top:5px"><a href="https://www.inegalites.fr" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">inegalites.fr ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[19] Terra Nova — Analyse programme NUPES (2022)</div>
+        <div style="color:var(--muted);font-size:11px">Centre-left think tank: LFI programme ~50% self-financing with multiplier 0.8</div>
+        <div style="margin-top:5px"><a href="https://www.lagrandeconversation.com/debat/politique/le-programme-economique-de-la-nupes/" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">lagrandeconversation.com ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[20] Les Économistes atterrés</div>
+        <div style="color:var(--muted);font-size:11px">Academic collective (Piketty, Lordon): heterodox critique of liberal models</div>
+        <div style="margin-top:5px"><a href="https://atterres.org" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">atterres.org ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[21] Elabe — Présidentielle 2027 (mars 2026)</div>
+        <div style="color:var(--muted);font-size:11px">RN 31–35%, Philippe 20–25%, Mélenchon 10.5% — 1,005 people, 25–26 March 2026</div>
+        <div style="margin-top:5px"><a href="https://elabe.fr/presidentielle-2027-iv2/" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">elabe.fr/presidentielle-2027 ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[22] Ifop-Fiducial / Le Figaro (fév. 2026)</div>
+        <div style="color:var(--muted);font-size:11px">Bardella 36%, Philippe 16%, Retailleau 10–12% — 1,119 people, 26–27 Feb. 2026</div>
+        <div style="margin-top:5px"><a href="https://www.ifop.com/en/article/voting-intentions-for-the-next-presidential-election" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">ifop.com — voting intentions ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[23] Wikipedia — Liste des sondages 2027</div>
+        <div style="color:var(--muted);font-size:11px">Aggregated polling tracker for all institutes</div>
+        <div style="margin-top:5px"><a href="https://fr.wikipedia.org/wiki/Liste_de_sondages_sur_l%27%C3%A9lection_pr%C3%A9sidentielle_fran%C3%A7aise_de_2027" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">wikipedia — sondages 2027 ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[24] RN — Programme officiel 22 mesures</div>
+        <div style="color:var(--muted);font-size:11px">Official RN party programme document</div>
+        <div style="margin-top:5px"><a href="https://rassemblementnational.fr/22-mesures" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">rassemblementnational.fr/22-mesures ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[25] LFI — Programme officiel</div>
+        <div style="color:var(--muted);font-size:11px">L'Avenir en Commun — official LFI programme</div>
+        <div style="margin-top:5px"><a href="https://programme.lafranceinsoumise.fr" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">programme.lafranceinsoumise.fr ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[26] OFCE — Que valent les multiplicateurs budgétaires?</div>
+        <div style="color:var(--muted);font-size:11px">Xavier Timbeau blog post: multipliers in crisis vs normal times</div>
+        <div style="margin-top:5px"><a href="https://www.ofce.sciences-po.fr/blog/que-valent-les-multiplicateurs-budgetaires-aujourdhui/" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">ofce blog — multiplicateurs ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[27] Fondation Concorde (2017)</div>
+        <div style="color:var(--muted);font-size:11px">Right-liberal: France's openness limits multiplier to ~0.5</div>
+        <div style="margin-top:5px"><a href="https://fondationconcorde.com" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">fondationconcorde.com ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[28] Vie-publique.fr — Gouvernement Lecornu II</div>
+        <div style="color:var(--muted);font-size:11px">Official French government composition, 26 Feb. 2026</div>
+        <div style="margin-top:5px"><a href="https://www.vie-publique.fr/en-bref/302256-remaniement-le-gouvernement-de-sebastien-lecornu-26-fevrier-2026" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">vie-publique.fr ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[29] CEPII (2019) — Effets macroéconomiques des politiques fiscales</div>
+        <div style="color:var(--muted);font-size:11px">Geerolf & Grjebine: fiscal policy and Keynesian mechanisms</div>
+        <div style="margin-top:5px"><a href="https://www.cepii.fr/PDF_PUB/em/2019/em2019-04.pdf" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">cepii.fr — em2019-04 ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[30] Conseil constitutionnel</div>
+        <div style="color:var(--muted);font-size:11px">Constitution du 4 octobre 1958, droits fondamentaux</div>
+        <div style="margin-top:5px"><a href="https://www.conseil-constitutionnel.fr" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">conseil-constitutionnel.fr ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[31] Assemblée nationale — Tableaux de bord</div>
+        <div style="color:var(--muted);font-size:11px">Parliamentary activity, composition, budgets</div>
+        <div style="margin-top:5px"><a href="https://www.assemblee-nationale.fr/dyn/synthese" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">assemblee-nationale.fr ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[32] Institut Montaigne — Exonération IR -30 ans (RN)</div>
+        <div style="color:var(--muted);font-size:11px">Cost: €3.6bn/year (vs RN claim of €2bn)</div>
+        <div style="margin-top:5px"><a href="https://www.institutmontaigne.org/expressions/presidentielle-chiffrage-2022-marine-le-pen-propose-dexonerer-dimpot-sur-le-revenu-tous-les-jeunes" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">institutmontaigne.org — exonération IR ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[33] OFCE — WP 2020-28: multiplicateur d'investissement public</div>
+        <div style="color:var(--muted);font-size:11px">Le Garrec & Touzé: review of literature on public investment multipliers</div>
+        <div style="margin-top:5px"><a href="https://www.ofce.sciences-po.fr/pdf/dtravail/OFCEWP2020-28.pdf" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">ofce.sciences-po.fr — WP2020-28 ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[34] Public Sénat — Philippe éclaire la course 2027</div>
+        <div style="color:var(--muted);font-size:11px">Odoxa-Backbone: Philippe +8pts, only candidate beating Bardella in 2nd round</div>
+        <div style="margin-top:5px"><a href="https://www.publicsenat.fr/actualites/politique/sondage-edouard-philippe-bondit-lex-premier-ministre-desormais-favori-pour-2027" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">publicsenat.fr — sondage Philippe ↗</a></div>
+      </div>
+
+      <div style="padding:10px 13px;background:var(--card);border:1px solid var(--border);border-radius:6px">
+        <div style="font-weight:600;color:var(--text);margin-bottom:4px">[35] OECD meta-analysis of fiscal multipliers (2009)</div>
+        <div style="color:var(--muted);font-size:11px">Public investment multiplier 0.6–1.9, VAT 0.0–1.4, income tax 0.1–1.1 (cited via OFCE Revue n°116)</div>
+        <div style="margin-top:5px"><a href="https://shs.cairn.info/revue-de-l-ofce-2011-1-page-61?lang=fr" target="_blank" rel="noopener" style="color:var(--gold);font-size:10px">cairn.info — OFCE/OCDE ↗</a></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+function showTab(cand, tab, btn) {
+  // Show correct pane, hide others
+  ['prog','eco','soc'].forEach(function(t) {
+    var el = document.getElementById(cand + '-' + t);
+    if (el) el.style.display = (t === tab) ? 'block' : 'none';
+  });
+  // Update tab button states
+  btn.closest('.tabs').querySelectorAll('.tab').forEach(function(b) {
+    b.classList.remove('on');
+  });
+  btn.classList.add('on');
+  // Animate bars in eco tab
+  if (tab === 'eco') {
+    var pane = document.getElementById(cand + '-eco');
+    if (pane) {
+      pane.querySelectorAll('.eco-fill').forEach(function(el) {
+        var target = el.getAttribute('data-w') || el.style.width;
+        if (!el.getAttribute('data-w')) el.setAttribute('data-w', target);
+        el.style.transition = 'none';
+        el.style.width = '0%';
+      });
+      setTimeout(function() {
+        pane.querySelectorAll('.eco-fill').forEach(function(el) {
+          el.style.transition = 'width 0.9s ease';
+          el.style.width = el.getAttribute('data-w');
+        });
+      }, 60);
+    }
+  }
+  // Animate bars in soc tab
+  if (tab === 'soc') {
+    var pane = document.getElementById(cand + '-soc');
+    if (pane) {
+      pane.querySelectorAll('.soc-fill').forEach(function(el) {
+        var target = el.getAttribute('data-w') || el.style.width;
+        if (!el.getAttribute('data-w')) el.setAttribute('data-w', target);
+        el.style.transition = 'none';
+        el.style.width = '0%';
+      });
+      setTimeout(function() {
+        pane.querySelectorAll('.soc-fill').forEach(function(el) {
+          el.style.transition = 'width 0.9s ease';
+          el.style.width = el.getAttribute('data-w');
+        });
+      }, 60);
+    }
+  }
+}
+</script><script>
+function showTab(cand, tab, btn) {
+  ['prog','eco','soc'].forEach(t => {
+    const el = document.getElementById(cand + '-' + t);
+    if (el) el.style.display = (t === tab) ? 'block' : 'none';
+  });
+  btn.closest('.tabs').querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
+  btn
