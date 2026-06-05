@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI DNA — Evolution Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0b0f;
+    --bg2: #111318;
+    --bg3: #181c24;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8eaf0;
+    --text2: #9095a8;
+    --text3: #555c70;
+    --accent-blue: #4a9eff;
+    --accent-purple: #9b6dff;
+    --accent-teal: #2dd4a8;
+    --accent-amber: #f5a623;
+    --accent-red: #ff5c5c;
+    --accent-green: #4ade80;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(74,158,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(74,158,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .header {
+    position: relative;
+    z-index: 1;
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(10,11,15,0.9);
+    backdrop-filter: blur(8px);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .dna-icon {
+    width: 36px;
+    height: 36px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
+
+  .header-sub {
+    font-size: 12px;
+    color: var(--text3);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 1px;
+  }
+
+  .status-pill {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent-teal);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .main {
+    position: relative;
+    z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 28px 24px;
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .header { padding: 16px 20px; }
+  }
+
+  .panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .panel-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  .panel-body {
+    padding: 20px;
+  }
+
+  .slider-group {
+    margin-bottom: 24px;
+  }
+
+  .slider-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .slider-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .slider-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .slider-value {
+    font-size: 20px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
+  }
+
+  .slider-desc {
+    font-size: 11px;
+    color: var(--text3);
+    margin-bottom: 10px;
+    margin-top: -4px;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid var(--bg2);
+    transition: transform 0.15s;
+    box-shadow: 0 0 8px rgba(0,0,0,0.4);
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  #sliderLC { background: linear-gradient(to right, #1a3a5c, var(--accent-blue)); }
+  #sliderLC::-webkit-slider-thumb { background: var(--accent-blue); }
+
+  #sliderMR { background: linear-gradient(to right, #2d1a5c, var(--accent-purple)); }
+  #sliderMR::-webkit-slider-thumb { background: var(--accent-purple); }
+
+  #sliderEP { background: linear-gradient(to right, #1a3d31, var(--accent-teal)); }
+  #sliderEP::-webkit-slider-thumb { background: var(--accent-teal); }
+
+  .val-lc { color: var(--accent-blue); }
+  .val-mr { color: var(--accent-purple); }
+  .val-ep { color: var(--accent-teal); }
+
+  .icon-lc { background: rgba(74,158,255,0.12); color: var(--accent-blue); }
+  .icon-mr { background: rgba(155,109,255,0.12); color: var(--accent-purple); }
+  .icon-ep { background: rgba(45,212,168,0.12); color: var(--accent-teal); }
+
+  .mutation-btn {
+    width: 100%;
+    padding: 13px;
+    background: transparent;
+    border: 1px solid rgba(155,109,255,0.4);
+    border-radius: var(--radius-sm);
+    color: var(--accent-purple);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .mutation-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(155,109,255,0.08);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .mutation-btn:hover::before { opacity: 1; }
+  .mutation-btn:active { transform: scale(0.98); }
+
+  .mutation-btn.shocking {
+    animation: shockBtn 0.6s ease;
+    border-color: rgba(245,166,35,0.6);
+    color: var(--accent-amber);
+  }
+
+  @keyframes shockBtn {
+    0% { transform: scale(1); }
+    25% { transform: scale(1.03); }
+    50% { transform: scale(0.97); }
+    75% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+
+  .btn-icon {
+    font-size: 16px;
+  }
+
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .metric-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 700px) {
+    .metric-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .metric-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    transition: border-color 0.3s;
+  }
+
+  .metric-card:hover {
+    border-color: var(--border2);
+  }
+
+  .metric-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 8px;
+  }
+
+  .metric-value {
+    font-size: 26px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 4px;
+    transition: color 0.4s;
+  }
+
+  .metric-bar {
+    height: 3px;
+    border-radius: 2px;
+    background: var(--border);
+    margin-top: 8px;
+    overflow: hidden;
+  }
+
+  .metric-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1), background 0.4s;
+  }
+
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 700px) {
+    .charts-row { grid-template-columns: 1fr; }
+  }
+
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 220px;
+  }
+
+  .insight-panel {
+    background: var(--bg3);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+    border-left: 3px solid var(--accent-blue);
+    transition: border-color 0.4s;
+  }
+
+  .insight-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    transition: color 0.4s;
+  }
+
+  .insight-text {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    transition: color 0.3s;
+  }
+
+  .insight-headline {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 5px;
+    transition: color 0.3s;
+  }
+
+  .dna-helix {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .helix-strand {
+    width: 3px;
+    border-radius: 2px;
+    transition: height 0.4s ease, background 0.4s;
+  }
+
+  .shock-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    background: radial-gradient(ellipse at center, rgba(155,109,255,0.15) 0%, transparent 70%);
+    transition: opacity 0.3s;
+  }
+
+  .shock-overlay.active {
+    animation: shockFlash 1.2s ease-out forwards;
+  }
+
+  @keyframes shockFlash {
+    0% { opacity: 0; }
+    15% { opacity: 1; }
+    40% { opacity: 0.6; }
+    100% { opacity: 0; }
+  }
+
+  .ticker {
+    display: flex;
+    gap: 8px;
+    overflow: hidden;
+    align-items: center;
+  }
+
+  .tick-item {
+    font-size: 11px;
+    color: var(--text3);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .tick-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+  }
+
+  .genome-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    gap: 1px;
+    margin-top: 8px;
+  }
+
+  .genome-seg {
+    border-radius: 1px;
+    transition: flex 0.5s cubic-bezier(0.4,0,0.2,1), background 0.4s;
+  }
+
+  .separator {
+    height: 1px;
+    background: var(--border);
+    margin: 0 0 18px;
+  }
+
+  .phase-indicator {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  .phase-chip {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    border: 1px solid;
+    transition: all 0.3s;
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="shock-overlay" id="shockOverlay"></div>
+
+<header class="header">
+  <div class="header-left">
+    <svg class="dna-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 4 C12 4 24 9 24 18 C24 27 12 32 12 32" stroke="#4a9eff" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <path d="M24 4 C24 4 12 9 12 18 C12 27 24 32 24 32" stroke="#9b6dff" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+      <line x1="12" y1="10" x2="24" y2="10" stroke="#2dd4a8" stroke-width="1" opacity="0.7"/>
+      <line x1="14" y1="14" x2="22" y2="14" stroke="#2dd4a8" stroke-width="1" opacity="0.5"/>
+      <line x1="12" y1="18" x2="24" y2="18" stroke="#2dd4a8" stroke-width="1" opacity="0.7"/>
+      <line x1="14" y1="22" x2="22" y2="22" stroke="#2dd4a8" stroke-width="1" opacity="0.5"/>
+      <line x1="12" y1="26" x2="24" y2="26" stroke="#2dd4a8" stroke-width="1" opacity="0.7"/>
+    </svg>
+    <div>
+      <div class="header-title">AI DNA Dashboard</div>
+      <div class="header-sub">Evolutionary complexity modeling</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <div class="ticker">
+      <div class="tick-item"><span class="tick-dot" style="background:var(--accent-blue)"></span>Evolution</div>
+      <div class="tick-item"><span class="tick-dot" style="background:var(--accent-teal)"></span>Stability</div>
+      <div class="tick-item"><span class="tick-dot" style="background:var(--accent-purple)"></span>Innovation</div>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot"></div>
+      <span>Simulation running</span>
+    </div>
+  </div>
+</header>
+
+<main class="main">
+  <!-- Left: Controls -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Genome Parameters</span>
+        <div class="dna-helix" id="helixViz">
+          <div class="helix-strand" style="height:16px;background:var(--accent-blue)"></div>
+          <div class="helix-strand" style="height:24px;background:var(--accent-purple)"></div>
+          <div class="helix-strand" style="height:12px;background:var(--accent-teal)"></div>
+          <div class="helix-strand" style="height:20px;background:var(--accent-blue)"></div>
+          <div class="helix-strand" style="height:16px;background:var(--accent-purple)"></div>
+        </div>
+      </div>
+      <div class="panel-body">
+
+        <div class="slider-group">
+          <div class="slider-label-row">
+            <span class="slider-name">
+              <span class="slider-icon icon-lc">LC</span>
+              Learning Capacity
+            </span>
+            <span class="slider-value val-lc" id="valLC">65</span>
+          </div>
+          <div class="slider-desc">Ability to acquire and integrate new knowledge</div>
+          <input type="range" id="sliderLC" min="0" max="100" step="1" value="65">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label-row">
+            <span class="slider-name">
+              <span class="slider-icon icon-mr">MR</span>
+              Mutation Rate
+            </span>
+            <span class="slider-value val-mr" id="valMR">40</span>
+          </div>
+          <div class="slider-desc">Degree of algorithmic change and innovation</div>
+          <input type="range" id="sliderMR" min="0" max="100" step="1" value="40">
+        </div>
+
+        <div class="slider-group">
+          <div class="slider-label-row">
+            <span class="slider-name">
+              <span class="slider-icon icon-ep">EP</span>
+              Environmental Pressure
+            </span>
+            <span class="slider-value val-ep" id="valEP">50</span>
+          </div>
+          <div class="slider-desc">External constraints: data, regulation, competition</div>
+          <input type="range" id="sliderEP" min="0" max="100" step="1" value="50">
+        </div>
+
+        <div class="separator"></div>
+
+        <button class="mutation-btn" id="btnShock" onclick="triggerShock()">
+          <span class="btn-icon">⚡</span>
+          MUTATION SHOCK
+          <span class="btn-icon">⚡</span>
+        </button>
+        <div style="font-size:11px;color:var(--text3);text-align:center;margin-top:8px;">Simulate sudden algorithmic disruption event</div>
+
+      </div>
+    </div>
+
+    <!-- Insight Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">System Insight</span>
+        <span id="insightMode" style="font-size:10px;font-weight:700;letter-spacing:0.8px;padding:3px 9px;border-radius:20px;border:1px solid;transition:all 0.3s;">ADAPTIVE</span>
+      </div>
+      <div class="panel-body" style="padding:16px 20px;">
+        <div class="insight-headline" id="insightHead">Adaptive AI: Balanced and Efficient</div>
+        <div class="insight-text" id="insightBody">
+          The system exhibits balanced evolutionary pressure with moderate learning capacity. Algorithmic mutations are occurring at a sustainable rate, allowing the AI to innovate without sacrificing stability. Expect robust performance across varied environments.
+        </div>
+        <div class="phase-indicator" id="phaseIndicator">
+          <span class="phase-chip" style="border-color:rgba(74,158,255,0.4);color:var(--accent-blue)">Learning Active</span>
+          <span class="phase-chip" style="border-color:rgba(155,109,255,0.4);color:var(--accent-purple)">Mutating</span>
+        </div>
+        <div class="genome-bar" id="genomeBar" style="margin-top:14px;">
+          <div class="genome-seg" style="flex:65;background:var(--accent-blue)"></div>
+          <div class="genome-seg" style="flex:40;background:var(--accent-purple)"></div>
+          <div class="genome-seg" style="flex:50;background:var(--accent-teal)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Metrics + Charts -->
+  <div class="right-col">
+
+    <!-- Metric Cards -->
+    <div class="metric-row">
+      <div class="metric-card">
+        <div class="metric-label">Evolution Level</div>
+        <div class="metric-value" id="mEvo" style="color:var(--accent-blue)">0</div>
+        <div style="font-size:10px;color:var(--text3)">/ 100</div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="mEvoBar" style="background:var(--accent-blue);width:0%"></div></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Stability</div>
+        <div class="metric-value" id="mStab" style="color:var(--accent-teal)">0</div>
+        <div style="font-size:10px;color:var(--text3)">/ 100</div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="mStabBar" style="background:var(--accent-teal);width:0%"></div></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Innovation</div>
+        <div class="metric-value" id="mInn" style="color:var(--accent-purple)">0</div>
+        <div style="font-size:10px;color:var(--text3)">/ 100</div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="mInnBar" style="background:var(--accent-purple);width:0%"></div></div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Adaptability</div>
+        <div class="metric-value" id="mAdapt" style="color:var(--accent-amber)">0</div>
+        <div style="font-size:10px;color:var(--text3)">/ 100</div>
+        <div class="metric-bar"><div class="metric-bar-fill" id="mAdaptBar" style="background:var(--accent-amber);width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Evolution Timeline</span>
+          <span style="font-size:11px;color:var(--text3)">Last 20 ticks</span>
+        </div>
+        <div class="panel-body" style="padding:16px;">
+          <div style="display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap;">
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)">
+              <span style="width:20px;height:2px;border-radius:1px;background:var(--accent-blue);display:inline-block"></span>Evolution
+            </span>
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)">
+              <span style="width:12px;height:2px;display:inline-block;border-top:2px dashed var(--accent-teal)"></span>Stability
+            </span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="lineChart" role="img" aria-label="Line chart showing AI Evolution Level and System Stability over the last 20 simulation ticks. Values update in real time as parameters change.">Evolution and stability trend lines over time.</canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Genome Profile</span>
+          <span style="font-size:11px;color:var(--text3)">Trait breakdown</span>
+        </div>
+        <div class="panel-body" style="padding:16px;">
+          <div style="display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap;">
+            <span style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2)">
+              <span style="width:10px;height:10px;border-radius:2px;background:rgba(74,158,255,0.6);display:inline-block"></span>Profile
+            </span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="radarChart" role="img" aria-label="Radar chart showing five AI genome traits: Adaptability, Robustness, Innovation Potential, Learning Efficiency, and Pressure Resistance. Values update in real time.">Radar chart of AI genome traits.</canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stability Risk Bar -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Risk & Stability Analysis</span>
+        <span id="riskLabel" style="font-size:10px;font-weight:700;letter-spacing:0.8px;padding:3px 10px;border-radius:20px;border:1px solid rgba(45,212,168,0.4);color:var(--accent-teal);transition:all 0.3s;">LOW RISK</span>
+      </div>
+      <div class="panel-body">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.6px;">Instability Index</div>
+            <div id="instabilityVal" style="font-size:22px;font-weight:700;color:var(--accent-teal);transition:color 0.4s;">0%</div>
+            <div class="metric-bar" style="margin-top:6px;"><div class="metric-bar-fill" id="instabilityBar" style="background:var(--accent-teal);width:0%;transition:width 0.5s,background 0.4s;"></div></div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.6px;">Robustness Score</div>
+            <div id="robustnessVal" style="font-size:22px;font-weight:700;color:var(--accent-green);transition:color 0.4s;">0</div>
+            <div class="metric-bar" style="margin-top:6px;"><div class="metric-bar-fill" id="robustnessBar" style="background:var(--accent-green);width:0%;transition:width 0.5s,background 0.4s;"></div></div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.6px;">Mutation Pressure</div>
+            <div id="mutPressureVal" style="font-size:22px;font-weight:700;color:var(--accent-amber);transition:color 0.4s;">0</div>
+            <div class="metric-bar" style="margin-top:6px;"><div class="metric-bar-fill" id="mutPressureBar" style="background:var(--accent-amber);width:0%;transition:width 0.5s,background 0.4s;"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const HISTORY_LEN = 20;
+let history = { evo: [], stab: [] };
+for (let i = 0; i < HISTORY_LEN; i++) { history.evo.push(0); history.stab.push(0); }
+
+let isShocking = false;
+let shockTimeout = null;
+let tickInterval = null;
+
+const lineCtx = document.getElementById('lineChart').getContext('2d');
+const radarCtx = document.getElementById('radarChart').getContext('2d');
+
+const lineChart = new Chart(lineCtx, {
+  type: 'line',
+  data: {
+    labels: Array.from({length: HISTORY_LEN}, (_,i) => i === HISTORY_LEN-1 ? 'Now' : `-${HISTORY_LEN-1-i}`),
+    datasets: [
+      {
+        label: 'Evolution Level',
+        data: [...history.evo],
+        borderColor: '#4a9eff',
+        backgroundColor: 'rgba(74,158,255,0.07)',
+        borderWidth: 2,
+        tension: 0.4,
+        fill: true,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: '#4a9eff',
+      },
+      {
+        label: 'Stability',
+        data: [...history.stab],
+        borderColor: '#2dd4a8',
+        backgroundColor: 'rgba(45,212,168,0.04)',
+        borderWidth: 2,
+        borderDash: [5,4],
+        tension: 0.4,
+        fill: true,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        pointHoverBackgroundColor: '#2dd4a8',
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
+    plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false, backgroundColor: '#181c24', titleColor: '#9095a8', bodyColor: '#e8eaf0', borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1 } },
+    scales: {
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#555c70', font: { size: 10 }, maxTicksLimit: 5 } },
+      y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#555c70', font: { size: 10 } } }
+    }
+  }
+});
+
+const radarChart = new Chart(radarCtx, {
+  type: 'radar',
+  data: {
+    labels: ['Adaptability', 'Robustness', 'Innovation', 'Learning Eff.', 'Pressure Res.'],
+    datasets: [{
+      label: 'AI Genome',
+      data: [0, 0, 0, 0, 0],
+      borderColor: '#4a9eff',
+      backgroundColor: 'rgba(74,158,255,0.12)',
+      borderWidth: 1.5,
+      pointBackgroundColor: '#4a9eff',
+      pointRadius: 3,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
+    plugins: { legend: { display: false } },
+    scales: {
+      r: {
+        min: 0, max: 100,
+        grid: { color: 'rgba(255,255,255,0.05)' },
+        angleLines: { color: 'rgba(255,255,255,0.06)' },
+        pointLabels: { color: '#9095a8', font: { size: 10 } },
+        ticks: { display: false }
+      }
+    }
+  }
+});
+
+function getValues() {
+  return {
+    lc: parseInt(document.getElementById('sliderLC').value),
+    mr: parseInt(document.getElementById('sliderMR').value),
+    ep: parseInt(document.getElementById('sliderEP').value),
+  };
+}
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function compute(lc, mr, ep, shockBoost) {
+  const lcN = lc / 100, mrN = mr / 100, epN = ep / 100;
+
+  const evo = clamp(
+    (lcN * 0.45 + mrN * 0.35 + epN * 0.2) * 100
+    + Math.pow(lcN, 1.3) * mrN * 20
+    + Math.sin(lcN * Math.PI) * 8
+    + (shockBoost || 0),
+    0, 100
+  );
+
+  const instabilityRaw = Math.pow(mrN, 1.5) * epN * 60 + mrN * epN * 20 + Math.pow(mrN, 2) * 25;
+  const stab = clamp(
+    100 - instabilityRaw - (shockBoost ? shockBoost * 0.7 : 0),
+    0, 100
+  );
+
+  const innovation = clamp(mrN * 55 + lcN * 25 + epN * 15 + Math.pow(mrN, 1.2) * 15 + (shockBoost || 0) * 0.5, 0, 100);
+  const adaptability = clamp(lcN * 40 + epN * 35 + (1 - Math.abs(mrN - 0.5) * 1.4) * 30, 0, 100);
+  const robustness = clamp(stab * 0.6 + (1 - mrN) * 30 + lcN * 15, 0, 100);
+  const learningEff = clamp(lcN * 60 + (1 - epN * 0.5) * 30 + (1 - mrN * 0.3) * 15, 0, 100);
+  const pressureRes = clamp((1 - epN) * 50 + robustness * 0.35 + stab * 0.15, 0, 100);
+  const instability = clamp(instabilityRaw + (shockBoost ? shockBoost * 0.7 : 0), 0, 100);
+  const mutPressure = clamp(mrN * epN * 100 + mrN * 30, 0, 100);
+
+  return { evo, stab, innovation, adaptability, robustness, learningEff, pressureRes, instability, mutPressure };
+}
+
+function getInsight(lc, mr, ep) {
+  const score = (lc + mr + ep) / 3;
+  const highMut = mr > 70;
+  const highPress = ep > 70;
+  const lowAll = score < 33;
+  const highAll = score > 66;
+
+  if (lowAll) return {
+    head: 'Static AI: Predictable but Limited',
+    body: 'Low parameter activity produces a rigid, deterministic system. The AI maintains strict behavioural patterns with minimal adaptation. Useful for controlled environments requiring high predictability, but unable to respond to novel challenges.',
+    mode: 'STATIC',
+    modeColor: 'var(--accent-teal)',
+    borderColor: 'var(--accent-teal)',
+    phases: [{ label: 'Stable', c: 'var(--accent-teal)' }, { label: 'Constrained', c: 'var(--text3)' }]
+  };
+  if (highMut && highPress) return {
+    head: 'Chaotic AI: High Risk, High Reward',
+    body: 'Extreme mutation rate combined with severe environmental pressure is driving rapid, uncontrolled evolution. The system is innovating aggressively but stability is compromised. Expect unpredictable behaviour and potential cascade failures.',
+    mode: 'CHAOTIC',
+    modeColor: 'var(--accent-red)',
+    borderColor: 'var(--accent-red)',
+    phases: [{ label: 'Unstable', c: 'var(--accent-red)' }, { label: 'Hyper-mutating', c: 'var(--accent-amber)' }, { label: 'High risk', c: 'var(--accent-red)' }]
+  };
+  if (highAll) return {
+    head: 'Evolving AI: Innovative but Unpredictable',
+    body: 'High activity across all parameters is generating rapid evolutionary cycles. The system demonstrates remarkable innovation capacity and adaptation speed. However, the high mutation rate is eroding structural stability — monitor for emergent, unintended behaviours.',
+    mode: 'EVOLVING',
+    modeColor: 'var(--accent-purple)',
+    borderColor: 'var(--accent-purple)',
+    phases: [{ label: 'Innovating', c: 'var(--accent-purple)' }, { label: 'Evolving', c: 'var(--accent-blue)' }, { label: 'Monitor stability', c: 'var(--accent-amber)' }]
+  };
+  return {
+    head: 'Adaptive AI: Balanced and Efficient',
+    body: 'The system exhibits balanced evolutionary pressure with moderate learning capacity. Algorithmic mutations are occurring at a sustainable rate, allowing the AI to innovate without sacrificing stability. Expect robust performance across varied environments.',
+    mode: 'ADAPTIVE',
+    modeColor: 'var(--accent-blue)',
+    borderColor: 'var(--accent-blue)',
+    phases: [{ label: 'Learning Active', c: 'var(--accent-blue)' }, { label: 'Mutating', c: 'var(--accent-purple)' }]
+  };
+}
+
+let shockBoost = 0;
+
+function updateAll() {
+  const { lc, mr, ep } = getValues();
+  const c = compute(lc, mr, ep, shockBoost);
+
+  document.getElementById('valLC').textContent = lc;
+  document.getElementById('valMR').textContent = mr;
+  document.getElementById('valEP').textContent = ep;
+
+  const evo = Math.round(c.evo);
+  const stab = Math.round(c.stab);
+  const inn = Math.round(c.innovation);
+  const adapt = Math.round(c.adaptability);
+
+  document.getElementById('mEvo').textContent = evo;
+  document.getElementById('mEvoBar').style.width = evo + '%';
+  document.getElementById('mStab').textContent = stab;
+  document.getElementById('mStabBar').style.width = stab + '%';
+  const stabColor = stab > 60 ? 'var(--accent-teal)' : stab > 35 ? 'var(--accent-amber)' : 'var(--accent-red)';
+  document.getElementById('mStab').style.color = stabColor;
+  document.getElementById('mStabBar').style.background = stabColor;
+  document.getElementById('mInn').textContent = inn;
+  document.getElementById('mInnBar').style.width = inn + '%';
+  document.getElementById('mAdapt').textContent = Math.round(adapt);
+  document.getElementById('mAdaptBar').style.width = adapt + '%';
+
+  const inst = Math.round(c.instability);
+  const rob = Math.round(c.robustness);
+  const mp = Math.round(c.mutPressure);
+  document.getElementById('instabilityVal').textContent = inst + '%';
+  document.getElementById('instabilityBar').style.width = inst + '%';
+  const instColor = inst < 30 ? 'var(--accent-teal)' : inst < 60 ? 'var(--accent-amber)' : 'var(--accent-red)';
+  document.getElementById('instabilityVal').style.color = instColor;
+  document.getElementById('instabilityBar').style.background = instColor;
+  document.getElementById('robustnessVal').textContent = rob;
+  document.getElementById('robustnessBar').style.width = rob + '%';
+  document.getElementById('mutPressureVal').textContent = mp;
+  document.getElementById('mutPressureBar').style.width = mp + '%';
+
+  const riskEl = document.getElementById('riskLabel');
+  if (inst < 30) { riskEl.textContent = 'LOW RISK'; riskEl.style.color = 'var(--accent-teal)'; riskEl.style.borderColor = 'rgba(45,212,168,0.4)'; }
+  else if (inst < 60) { riskEl.textContent = 'MODERATE'; riskEl.style.color = 'var(--accent-amber)'; riskEl.style.borderColor = 'rgba(245,166,35,0.4)'; }
+  else { riskEl.textContent = 'HIGH RISK'; riskEl.style.color = 'var(--accent-red)'; riskEl.style.borderColor = 'rgba(255,92,92,0.4)'; }
+
+  radarChart.data.datasets[0].data = [
+    Math.round(c.adaptability),
+    Math.round(c.robustness),
+    Math.round(c.innovation),
+    Math.round(c.learningEff),
+    Math.round(c.pressureRes)
+  ];
+  radarChart.update();
+
+  const insight = getInsight(lc, mr, ep);
+  document.getElementById('insightHead').textContent = insight.head;
+  document.getElementById('insightBody').textContent = insight.body;
+  const modeEl = document.getElementById('insightMode');
+  modeEl.textContent = insight.mode;
+  modeEl.style.color = insight.modeColor;
+  modeEl.style.borderColor = insight.modeColor + '55';
+  document.querySelector('.insight-panel').style.borderLeftColor = insight.borderColor;
+
+  const phaseEl = document.getElementById('phaseIndicator');
+  phaseEl.innerHTML = insight.phases.map(p =>
+    `<span class="phase-chip" style="border-color:${p.c}55;color:${p.c}">${p.label}</span>`
+  ).join('');
+
+  document.getElementById('genomeBar').innerHTML =
+    `<div class="genome-seg" style="flex:${lc};background:var(--accent-blue)"></div>` +
+    `<div class="genome-seg" style="flex:${mr};background:var(--accent-purple)"></div>` +
+    `<div class="genome-seg" style="flex:${ep};background:var(--accent-teal)"></div>`;
+
+  const strands = document.querySelectorAll('.helix-strand');
+  const heights = [lc, mr, ep, (lc+mr)/2, (mr+ep)/2].map(v => Math.round(8 + v * 0.22));
+  strands.forEach((s, i) => { s.style.height = heights[i] + 'px'; });
+}
+
+function pushHistory() {
+  const { lc, mr, ep } = getValues();
+  const c = compute(lc, mr, ep, shockBoost);
+  history.evo.push(Math.round(c.evo));
+  history.stab.push(Math.round(c.stab));
+  if (history.evo.length > HISTORY_LEN) { history.evo.shift(); history.stab.shift(); }
+  lineChart.data.datasets[0].data = [...history.evo];
+  lineChart.data.datasets[1].data = [...history.stab];
+  lineChart.update();
+}
+
+function triggerShock() {
+  if (isShocking) return;
+  isShocking = true;
+  const btn = document.getElementById('btnShock');
+  btn.classList.add('shocking');
+  btn.disabled = true;
+  document.getElementById('shockOverlay').classList.add('active');
+
+  let t = 0;
+  const shockDur = 2000;
+  const maxBoost = 35;
+  const start = Date.now();
+
+  const shockAnim = setInterval(() => {
+    const elapsed = Date.now() - start;
+    const progress = elapsed / shockDur;
+    if (progress >= 1) {
+      clearInterval(shockAnim);
+      shockBoost = 0;
+      isShocking = false;
+      btn.classList.remove('shocking');
+      btn.disabled = false;
+      document.getElementById('shockOverlay').classList.remove('active');
+      updateAll();
+      return;
+    }
+    const wave = Math.sin(progress * Math.PI);
+    shockBoost = Math.round(wave * maxBoost);
+    updateAll();
+  }, 50);
+}
+
+['sliderLC','sliderMR','sliderEP'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updateAll);
+});
+
+updateAll();
+setInterval(pushHistory, 1200);
+</script>
+</body>
+</html>

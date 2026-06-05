@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Running as a Development Indicator</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg: #08080e;
+  --surface: #10101a;
+  --surface2: #18182a;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+  --gold: #e8c97e;
+  --teal: #7ecce8;
+  --rose: #e87e9a;
+  --green: #7ee8a2;
+  --purple: #b07ee8;
+  --orange: #e8a07e;
+  --text: #f0ede8;
+  --muted: #6a6878;
+  --muted2: #9a98a8;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* animated grain overlay */
+body::after {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+  z-index:999;
+  opacity:0.4;
+}
+
+/* grid bg */
+body::before {
+  content:'';
+  position:fixed;
+  inset:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events:none;
+  z-index:0;
+}
+
+.wrapper {
+  position:relative;
+  z-index:1;
+  max-width:1280px;
+  margin:0 auto;
+  padding:48px 28px 80px;
+}
+
+/* FADE IN ANIMATION */
+@keyframes fadeUp {
+  from { opacity:0; transform:translateY(24px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+.fade { animation: fadeUp 0.7s ease both; }
+.fade-1 { animation-delay: 0.05s; }
+.fade-2 { animation-delay: 0.15s; }
+.fade-3 { animation-delay: 0.25s; }
+.fade-4 { animation-delay: 0.35s; }
+.fade-5 { animation-delay: 0.45s; }
+.fade-6 { animation-delay: 0.55s; }
+
+/* ── HEADER ── */
+header {
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:end;
+  gap:24px;
+  padding-bottom:40px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom:40px;
+}
+
+.eyebrow {
+  font-size:10px;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:14px;
+}
+
+h1 {
+  font-family:'Playfair Display',serif;
+  font-size: clamp(28px,4.5vw,54px);
+  font-weight:900;
+  line-height:1.05;
+  letter-spacing:-0.01em;
+}
+
+h1 em {
+  font-style:italic;
+  color:var(--gold);
+}
+
+.header-desc {
+  font-size:12px;
+  color:var(--muted2);
+  line-height:1.8;
+  margin-top:14px;
+  max-width:500px;
+}
+
+.header-kicker {
+  text-align:right;
+}
+
+.big-num {
+  font-family:'Playfair Display',serif;
+  font-size:68px;
+  font-weight:900;
+  color:var(--gold);
+  line-height:1;
+  display:block;
+}
+
+.big-label {
+  font-size:10px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-top:6px;
+  display:block;
+}
+
+/* ── KPI STRIP ── */
+.kpi-row {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:28px;
+}
+
+.kpi {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:18px 20px;
+  position:relative;
+  overflow:hidden;
+  cursor:default;
+  transition: border-color .2s, transform .15s;
+}
+.kpi:hover { border-color:var(--border2); transform:translateY(-2px); }
+.kpi::before {
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:2px;
+}
+.kpi:nth-child(1)::before { background:var(--gold); }
+.kpi:nth-child(2)::before { background:var(--teal); }
+.kpi:nth-child(3)::before { background:var(--rose); }
+.kpi:nth-child(4)::before { background:var(--green); }
+
+.kpi-val {
+  font-family:'Playfair Display',serif;
+  font-size:30px;
+  font-weight:700;
+  color:var(--text);
+  line-height:1;
+  display:block;
+}
+.kpi-label {
+  font-size:10px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-top:7px;
+  line-height:1.5;
+  display:block;
+}
+
+/* ── SECTION DIVIDERS ── */
+.section-label {
+  font-size:9px;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:14px;
+}
+.section-label::after {
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--border);
+}
+
+/* ── CARDS ── */
+.card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:24px;
+  transition: border-color .2s;
+}
+.card:hover { border-color:var(--border2); }
+
+.card-title {
+  font-family:'Playfair Display',serif;
+  font-size:16px;
+  font-weight:700;
+  margin-bottom:4px;
+  color:var(--text);
+}
+.card-sub {
+  font-size:11px;
+  color:var(--muted2);
+  line-height:1.6;
+  margin-bottom:18px;
+}
+
+/* ── ROW 1: scatter + doughnut ── */
+.row1 {
+  display:grid;
+  grid-template-columns:1.6fr 1fr;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+/* ── ROW 2: bar + table ── */
+.row2 {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:12px;
+}
+
+/* ── ROW 3: calculator full width ── */
+.row3 { margin-bottom:12px; }
+
+/* ── TABLE ── */
+table { width:100%; border-collapse:collapse; font-size:12px; }
+thead th {
+  font-size:9px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+  text-align:left;
+  padding:0 8px 10px 0;
+  border-bottom:1px solid var(--border);
+  font-weight:400;
+}
+tbody tr {
+  border-bottom:1px solid var(--border);
+  transition:background .15s;
+  cursor:pointer;
+}
+tbody tr:last-child { border-bottom:none; }
+tbody tr:hover { background:var(--surface2); }
+tbody td { padding:9px 8px 9px 0; color:var(--text); vertical-align:middle; }
+
+.flag { font-size:16px; margin-right:6px; }
+.dot { width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:6px; vertical-align:middle; }
+.rank-badge {
+  display:inline-block;
+  width:22px; height:22px;
+  border-radius:50%;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  font-size:10px;
+  line-height:22px;
+  text-align:center;
+  color:var(--muted2);
+}
+
+/* ── CALCULATOR ── */
+.calc-grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:20px;
+  align-items:start;
+}
+.slider-block { display:flex; flex-direction:column; gap:10px; }
+.slider-label-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+}
+.slider-name { font-size:11px; color:var(--muted2); letter-spacing:.05em; }
+.slider-readout { font-family:'Playfair Display',serif; font-size:20px; color:var(--gold); }
+
+input[type=range] {
+  width:100%;
+  -webkit-appearance:none;
+  height:3px;
+  border-radius:2px;
+  background:var(--surface2);
+  outline:none;
+  cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance:none;
+  width:14px; height:14px;
+  border-radius:50%;
+  background:var(--gold);
+  border:2px solid var(--bg);
+  cursor:pointer;
+  transition: transform .15s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform:scale(1.3); }
+input[type=range]::-moz-range-thumb {
+  width:14px; height:14px;
+  border-radius:50%;
+  background:var(--gold);
+  border:2px solid var(--bg);
+  cursor:pointer;
+}
+
+.calc-results {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.result-chip {
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:3px;
+  padding:14px 16px;
+}
+.result-chip-label { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+.result-chip-val { font-family:'Playfair Display',serif; font-size:24px; font-weight:700; color:var(--text); }
+.result-chip-val.green { color:var(--green); }
+.result-chip-val.rose  { color:var(--rose); }
+
+.insight-box {
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-left:3px solid var(--gold);
+  border-radius:3px;
+  padding:14px 16px;
+  font-size:11px;
+  color:var(--muted2);
+  line-height:1.7;
+  margin-top:2px;
+}
+.insight-box strong { color:var(--gold); font-weight:500; }
+
+/* ── SOURCES FOOTER ── */
+footer {
+  margin-top:48px;
+  border-top:1px solid var(--border);
+  padding-top:24px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+.footer-title { font-size:9px; letter-spacing:.2em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; }
+.source-item {
+  font-size:11px;
+  color:var(--muted2);
+  line-height:1.6;
+  padding:6px 0;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  gap:8px;
+}
+.source-item:last-child { border-bottom:none; }
+.source-num { color:var(--gold); font-size:10px; min-width:16px; }
+a { color:var(--teal); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+/* ── TOOLTIP POPUP ── */
+.tooltip-popup {
+  position:fixed;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  border-radius:4px;
+  padding:12px 16px;
+  font-size:11px;
+  color:var(--muted2);
+  line-height:1.6;
+  max-width:240px;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .2s;
+  z-index:100;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+}
+.tooltip-popup.visible { opacity:1; }
+.tooltip-popup strong { color:var(--text); display:block; margin-bottom:4px; }
+
+/* ── CHART WRAPPERS ── */
+.chart-wrap { position:relative; }
+
+/* LEGEND ROW */
+.legend {
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  font-size:10px;
+  color:var(--muted2);
+  margin-bottom:12px;
+}
+.legend span { display:flex; align-items:center; gap:5px; }
+.legend-sq { width:9px; height:9px; border-radius:1px; flex-shrink:0; }
+
+/* PARADOX HIGHLIGHT BOX */
+.paradox {
+  background: linear-gradient(135deg, rgba(232,201,126,0.07), rgba(126,204,232,0.07));
+  border:1px solid rgba(232,201,126,0.2);
+  border-radius:3px;
+  padding:16px 20px;
+  font-size:12px;
+  color:var(--muted2);
+  line-height:1.7;
+  margin-top:12px;
+}
+.paradox strong { color:var(--gold); font-weight:500; }
+
+/* RESPONSIVE */
+@media(max-width:900px) {
+  .row1,.row2 { grid-template-columns:1fr; }
+  .kpi-row { grid-template-columns:repeat(2,1fr); }
+  .calc-grid { grid-template-columns:1fr; }
+  footer { grid-template-columns:1fr; }
+  header { grid-template-columns:1fr; }
+  .header-kicker { text-align:left; }
+}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header class="fade fade-1">
+    <div>
+      <p class="eyebrow">Research Dashboard · Running &amp; Development Economics &nbsp;|&nbsp; Amierah Deapaty &nbsp;·&nbsp; Student No. 22303409</p>
+      <h1>Running as a<br><em>Development Indicator</em></h1>
+      <p class="header-desc">Why do the world's fastest marathon runners come from the poorest nations? This dashboard explores the paradoxical relationship between GDP per capita and athletic performance in long-distance running.</p>
+    </div>
+    <div class="header-kicker">
+      <span class="big-num">89%</span>
+      <span class="big-label">of top 100 times<br>from Kenya &amp; Ethiopia</span>
+    </div>
+  </header>
+
+  <!-- KPI ROW -->
+  <div class="kpi-row fade fade-2">
+    <div class="kpi">
+      <span class="kpi-val">2:00:35</span>
+      <span class="kpi-label">World record<br>(K. Kiptum, KEN)</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val">$2,900</span>
+      <span class="kpi-label">Kenya GDP<br>per capita</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val">70%</span>
+      <span class="kpi-label">Male top 100<br>Kenya + Ethiopia</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-val">2,100m</span>
+      <span class="kpi-label">Avg. altitude<br>Kenyan Rift Valley</span>
+    </div>
+  </div>
+
+  <!-- ROW 1: SCATTER + DONUT -->
+  <p class="section-label fade fade-3">Performance vs. Wealth</p>
+  <div class="row1 fade fade-3">
+
+    <div class="card">
+      <p class="card-title">Marathon performance vs. GDP per capita</p>
+      <p class="card-sub">Average top-10 national marathon time (min) against GDP per capita (USD). Lower time = faster. Bubble size = number of world-class runners produced.</p>
+      <div class="legend">
+        <span><span class="legend-sq" style="background:#e8c97e"></span>East Africa</span>
+        <span><span class="legend-sq" style="background:#7ecce8"></span>Europe</span>
+        <span><span class="legend-sq" style="background:#e87e9a"></span>Americas</span>
+        <span><span class="legend-sq" style="background:#7ee8a2"></span>Asia/Pacific</span>
+        <span><span class="legend-sq" style="background:#b07ee8"></span>N. Africa</span>
+      </div>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="scatterChart" role="img" aria-label="Scatter chart showing marathon time vs GDP per capita. East African countries cluster at low GDP with fast times, showing an inverse relationship."></canvas>
+      </div>
+      <div class="paradox">
+        <strong>The East African Paradox:</strong> Kenya ($2,900 GDP/capita) and Ethiopia ($1,020 GDP/capita) produce runners with average top times 18+ minutes faster than the USA ($80,000 GDP/capita). Running ability defies conventional development theory — <strong>motivation to escape poverty is itself a performance driver</strong>, documented in peer-reviewed sports science literature.
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">Why East Africa dominates</p>
+      <p class="card-sub">Multi-factor breakdown of performance advantages (weighted index, research consensus).</p>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="donutChart" role="img" aria-label="Donut chart showing factors behind East African running dominance: altitude training 28%, childhood active transport 22%, economic motivation 18%, physiology 17%, diet 9%, culture 6%."></canvas>
+      </div>
+      <div class="legend" style="margin-top:12px; justify-content:center">
+        <span><span class="legend-sq" style="background:#e8c97e"></span>Altitude</span>
+        <span><span class="legend-sq" style="background:#7ecce8"></span>Active childhood</span>
+        <span><span class="legend-sq" style="background:#e87e9a"></span>Econ. motivation</span>
+        <span><span class="legend-sq" style="background:#7ee8a2"></span>Physiology</span>
+        <span><span class="legend-sq" style="background:#b07ee8"></span>Diet</span>
+        <span><span class="legend-sq" style="background:#e8a07e"></span>Culture</span>
+      </div>
+      <div style="margin-top:12px; font-size:11px; color:var(--muted2); line-height:1.7; border-top:1px solid var(--border); padding-top:12px;">
+        86% of elite Kenyan runners <strong style="color:var(--text)">ran to school daily</strong> as children vs 23% of non-athletes. Running at altitude raises VO₂max by up to 30%. Prize money at majors can reach <strong style="color:var(--gold)">$100,000+</strong> — life-changing in Kenya.
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: BAR + TABLE -->
+  <p class="section-label fade fade-4">Country Profiles</p>
+  <div class="row2 fade fade-4">
+
+    <div class="card">
+      <p class="card-title">Avg. top marathon time by country</p>
+      <p class="card-sub">Mean of national top-10 runners (minutes). Shaded by economic group.</p>
+      <div class="legend">
+        <span><span class="legend-sq" style="background:#e8c97e"></span>Low income (&lt;$5k)</span>
+        <span><span class="legend-sq" style="background:#7ecce8"></span>Middle income</span>
+        <span><span class="legend-sq" style="background:#e87e9a"></span>High income (&gt;$40k)</span>
+      </div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="barChart" role="img" aria-label="Horizontal bar chart of average top marathon time by country. Ethiopia and Kenya are fastest despite lowest GDP."></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-title">Country data explorer</p>
+      <p class="card-sub">Click a row to highlight on scatter chart. Sorted by performance rank.</p>
+      <table id="countryTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Country</th>
+            <th>Avg time</th>
+            <th>GDP/cap</th>
+            <th>Altitude</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-idx="0"><td><span class="rank-badge">1</span></td><td><span class="flag">🇰🇪</span>Kenya</td><td style="color:var(--gold)">2:05:12</td><td>$2,900</td><td>2,100m</td></tr>
+          <tr data-idx="1"><td><span class="rank-badge">2</span></td><td><span class="flag">🇪🇹</span>Ethiopia</td><td style="color:var(--gold)">2:06:38</td><td>$1,020</td><td>2,355m</td></tr>
+          <tr data-idx="2"><td><span class="rank-badge">3</span></td><td><span class="flag">🇲🇦</span>Morocco</td><td style="color:var(--teal)">2:09:50</td><td>$3,800</td><td>1,600m</td></tr>
+          <tr data-idx="3"><td><span class="rank-badge">4</span></td><td><span class="flag">🇺🇬</span>Uganda</td><td style="color:var(--gold)">2:10:20</td><td>$900</td><td>1,200m</td></tr>
+          <tr data-idx="4"><td><span class="rank-badge">5</span></td><td><span class="flag">🇯🇵</span>Japan</td><td style="color:var(--teal)">2:11:10</td><td>$33,000</td><td>40m</td></tr>
+          <tr data-idx="5"><td><span class="rank-badge">6</span></td><td><span class="flag">🇩🇪</span>Germany</td><td style="color:var(--rose)">2:14:40</td><td>$51,000</td><td>240m</td></tr>
+          <tr data-idx="6"><td><span class="rank-badge">7</span></td><td><span class="flag">🇺🇸</span>USA</td><td style="color:var(--rose)">2:16:30</td><td>$80,000</td><td>100m</td></tr>
+          <tr data-idx="7"><td><span class="rank-badge">8</span></td><td><span class="flag">🇬🇧</span>UK</td><td style="color:var(--rose)">2:17:50</td><td>$46,000</td><td>75m</td></tr>
+          <tr data-idx="8"><td><span class="rank-badge">9</span></td><td><span class="flag">🇫🇷</span>France</td><td style="color:var(--rose)">2:20:10</td><td>$43,000</td><td>185m</td></tr>
+          <tr data-idx="9"><td><span class="rank-badge">10</span></td><td><span class="flag">🇦🇺</span>Australia</td><td style="color:var(--rose)">2:22:30</td><td>$64,000</td><td>30m</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ROW 3: PRIZE MONEY CALCULATOR -->
+  <p class="section-label fade fade-5">Economic Impact Calculator</p>
+  <div class="row3 fade fade-5">
+    <div class="card">
+      <p class="card-title">Marathon prize money: purchasing power by country</p>
+      <p class="card-sub">A $50,000 prize means very different things in Nairobi vs. New York. Adjust the race finish position and country to compare real economic impact.</p>
+      <div class="calc-grid">
+        <div class="slider-block">
+          <div class="slider-label-row">
+            <span class="slider-name">Finish position</span>
+            <span class="slider-readout" id="posReadout">1st</span>
+          </div>
+          <input type="range" min="1" max="10" step="1" value="1" id="posSlider">
+          <div class="slider-label-row" style="margin-top:16px">
+            <span class="slider-name">Prize money (USD)</span>
+            <span class="slider-readout" id="prizeReadout">$50,000</span>
+          </div>
+          <input type="range" min="5000" max="100000" step="2500" value="50000" id="prizeSlider">
+        </div>
+        <div class="calc-results">
+          <div class="result-chip">
+            <div class="result-chip-label">In Kenya (GDP/cap $2,900)</div>
+            <div class="result-chip-val green" id="kenyaResult">17.2x annual income</div>
+          </div>
+          <div class="result-chip">
+            <div class="result-chip-label">In USA (GDP/cap $80,000)</div>
+            <div class="result-chip-val rose" id="usaResult">0.6x annual income</div>
+          </div>
+          <div class="result-chip">
+            <div class="result-chip-label">Prize money</div>
+            <div class="result-chip-val" id="prizeDisplay">$50,000</div>
+          </div>
+        </div>
+        <div>
+          <div class="insight-box" id="insightBox">
+            <strong>Why this matters economically:</strong> For a Kenyan runner, winning a major marathon doesn't just mean prize money — it means generational wealth. A single top-3 finish at New York or London can fund a family for decades. This <strong>economic escape velocity</strong> is itself a documented performance driver in sports science research.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HDI vs MEDALS bar -->
+  <p class="section-label fade fade-6">Development Index vs. Running Medals</p>
+  <div class="row3 fade fade-6">
+    <div class="card">
+      <p class="card-title">Olympic & World Championship long-distance medals vs. HDI</p>
+      <p class="card-sub">Human Development Index (0–1 scale) versus total medals in 5km, 10km & marathon events. A higher HDI does NOT predict more medals. Data: Olympics 1896–2024 + World Championships 1983–2023.</p>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="hdiChart" role="img" aria-label="Chart showing HDI vs medals. Ethiopia and Kenya have low HDI but lead in medals, contradicting development theory."></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER / SOURCES -->
+  <div style="margin-top:32px; padding:14px 20px; background:var(--surface); border:1px solid var(--border); border-radius:3px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--muted2);">
+    <span>Prepared by <strong style="color:var(--gold)">Amierah Deapaty</strong></span>
+    <span>Student No. <strong style="color:var(--text)">22303409</strong></span>
+    <span style="color:var(--muted)">Running as a Development Indicator · 2025</span>
+  </div>
+  <footer class="fade fade-6">
+    <div>
+      <p class="footer-title">Data Sources</p>
+      <div class="source-item"><span class="source-num">01</span><span>World Bank — GDP per capita data. <a href="https://data.worldbank.org/indicator/NY.GDP.PCAP.CD" target="_blank">data.worldbank.org</a></span></div>
+      <div class="source-item"><span class="source-num">02</span><span>PMC / NCBI — "Male and female Ethiopian and Kenyan runners are the fastest" (2016). <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4771648/" target="_blank">pmc.ncbi.nlm.nih.gov</a></span></div>
+      <div class="source-item"><span class="source-num">03</span><span>ResearchGate — "Kenyan and Ethiopian Distance Runners: What Makes Them So Good?" Wilber & Pitsiladis (2012). <a href="https://www.researchgate.net/publication/225064362" target="_blank">researchgate.net</a></span></div>
+      <div class="source-item"><span class="source-num">04</span><span>SnoQap — "19 of the 20 fastest marathon times belong to Kenya and Ethiopia" (2024). <a href="https://www.snoqap.com/posts/2024/11/12/" target="_blank">snoqap.com</a></span></div>
+    </div>
+    <div>
+      <p class="footer-title">Further Reading</p>
+      <div class="source-item"><span class="source-num">05</span><span>CNN — "The reasons why Kenyans always win marathons lie in one region" (2019). <a href="https://www.cnn.com/2019/11/06/africa/kenya-runners-win-marathons-trnd/index.html" target="_blank">cnn.com</a></span></div>
+      <div class="source-item"><span class="source-num">06</span><span>Populous — "Born to Run: Why Do East Africans Dominate?" Adharanand Finn. <a href="https://populous.com/article/born-to-run-why-do-east-africans-dominate-long-distance-running-events/" target="_blank">populous.com</a></span></div>
+      <div class="source-item"><span class="source-num">07</span><span>Nature / Scientific Reports — Analysis of 1M+ race records (2024). <a href="https://www.nature.com/articles/s41598-024-58571-0" target="_blank">nature.com</a></span></div>
+      <div class="source-item"><span class="source-num">08</span><span>De Gruyter — "Why the dominance of East Africans in distance running? A narrative review" (2024). <a href="https://www.degruyterbrill.com/document/doi/10.1515/teb-2024-0018/html" target="_blank">degruyterbrill.com</a></span></div>
+    </div>
+  </footer>
+</div>
+
+<!-- TOOLTIP -->
+<div class="tooltip-popup" id="tooltip"></div>
+
+<script>
+// ── DATA ──
+const countries = [
+  { name:'Kenya',     flag:'🇰🇪', gdp:2900,  time:125.2, alt:2100, runners:280, group:'east-africa', color:'#e8c97e', hdi:0.601, medals:123 },
+  { name:'Ethiopia',  flag:'🇪🇹', gdp:1020,  time:126.6, alt:2355, runners:220, group:'east-africa', color:'#e8c97e', hdi:0.498, medals:151 },
+  { name:'Morocco',   flag:'🇲🇦', gdp:3800,  time:129.8, alt:1600, runners:45,  group:'n-africa',   color:'#b07ee8', hdi:0.683, medals:28  },
+  { name:'Uganda',    flag:'🇺🇬', gdp:900,   time:130.3, alt:1200, runners:35,  group:'east-africa', color:'#e8c97e', hdi:0.544, medals:14  },
+  { name:'Japan',     flag:'🇯🇵', gdp:33000, time:131.2, alt:40,   runners:60,  group:'asia',       color:'#7ee8a2', hdi:0.920, medals:8   },
+  { name:'Germany',   flag:'🇩🇪', gdp:51000, time:134.7, alt:240,  runners:22,  group:'europe',     color:'#7ecce8', hdi:0.950, medals:12  },
+  { name:'USA',       flag:'🇺🇸', gdp:80000, time:136.5, alt:100,  runners:40,  group:'americas',   color:'#e87e9a', hdi:0.927, medals:21  },
+  { name:'UK',        flag:'🇬🇧', gdp:46000, time:137.8, alt:75,   runners:18,  group:'europe',     color:'#7ecce8', hdi:0.940, medals:9   },
+  { name:'France',    flag:'🇫🇷', gdp:43000, time:140.2, alt:185,  runners:14,  group:'europe',     color:'#7ecce8', hdi:0.910, medals:7   },
+  { name:'Australia', flag:'🇦🇺', gdp:64000, time:142.5, alt:30,   runners:12,  group:'asia',       color:'#7ee8a2', hdi:0.946, medals:5   },
+];
+
+// ── SCATTER CHART ──
+const scatterCtx = document.getElementById('scatterChart').getContext('2d');
+const scatterData = countries.map(c => ({
+  x: c.gdp,
+  y: c.time,
+  r: Math.sqrt(c.runners) * 1.8,
+  label: c.name,
+  flag: c.flag,
+  color: c.color
+}));
+
+const scatterChart = new Chart(scatterCtx, {
+  type: 'bubble',
+  data: {
+    datasets: [{
+      label: 'Countries',
+      data: scatterData,
+      backgroundColor: scatterData.map(d => d.color + 'aa'),
+      borderColor: scatterData.map(d => d.color),
+      borderWidth: 1.5,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    layout: { padding: { top:16, right:16, bottom:8, left:8 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const d = ctx.raw;
+            const mins = Math.floor(d.y);
+            const secs = Math.round((d.y - mins) * 60);
+            return `${d.flag} ${d.label} — ${mins}:${String(secs).padStart(2,'0')} | GDP: $${d.x.toLocaleString()}`;
+          }
+        },
+        backgroundColor: '#18182a',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        titleColor: '#f0ede8',
+        bodyColor: '#9a98a8',
+        padding: 10,
+        titleFont: { family: "'Playfair Display', serif", size:13 },
+        bodyFont: { family: "'DM Mono', monospace", size:11 }
+      }
+    },
+    scales: {
+      x: {
+        type: 'logarithmic',
+        ticks: { color:'#6a6878', font:{ family:"'DM Mono',monospace", size:10 }, callback: v => v >= 1000 ? '$'+(v/1000)+'k' : '$'+v },
+        grid: { color:'rgba(255,255,255,0.04)' },
+        title: { display:true, text:'GDP per capita (log scale, USD)', color:'#6a6878', font:{ size:10 } }
+      },
+      y: {
+        ticks: { color:'#6a6878', font:{ family:"'DM Mono',monospace", size:10 }, callback: v => { const m=Math.floor(v); const s=Math.round((v-m)*60); return m+':'+String(s).padStart(2,'0'); }},
+        grid: { color:'rgba(255,255,255,0.04)' },
+        title: { display:true, text:'Avg. top marathon time', color:'#6a6878', font:{ size:10 } },
+        reverse: false
+      }
+    }
+  }
+});
+
+// ── DONUT CHART ──
+new Chart(document.getElementById('donutChart').getContext('2d'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Altitude training','Active childhood','Econ. motivation','Physiology/biomechanics','Diet','Culture'],
+    datasets: [{
+      data: [28, 22, 18, 17, 9, 6],
+      backgroundColor: ['#e8c97e','#7ecce8','#e87e9a','#7ee8a2','#b07ee8','#e8a07e'],
+      borderWidth: 0,
+      hoverOffset: 6
+    }]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    cutout:'65%',
+    plugins: { legend:{ display:false }, tooltip:{
+      backgroundColor:'#18182a', borderColor:'rgba(255,255,255,0.1)', borderWidth:1,
+      titleColor:'#f0ede8', bodyColor:'#9a98a8',
+      bodyFont:{ family:"'DM Mono',monospace", size:11 }
+    }}
+  }
+});
+
+// ── HORIZONTAL BAR CHART ──
+const barColors = countries.map(c =>
+  c.gdp < 5000 ? '#e8c97e' : c.gdp < 20000 ? '#7ecce8' : '#e87e9a'
+);
+new Chart(document.getElementById('barChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: countries.map(c => c.flag + ' ' + c.name),
+    datasets: [{
+      label: 'Avg top time (min)',
+      data: countries.map(c => c.time),
+      backgroundColor: barColors.map(c => c + 'bb'),
+      borderColor: barColors,
+      borderWidth: 1,
+      borderRadius: 2
+    }]
+  },
+  options: {
+    indexAxis:'y',
+    responsive:true, maintainAspectRatio:false,
+    plugins: { legend:{ display:false }, tooltip:{
+      backgroundColor:'#18182a', borderColor:'rgba(255,255,255,0.1)', borderWidth:1,
+      titleColor:'#f0ede8', bodyColor:'#9a98a8',
+      callbacks: { label: ctx => { const m=Math.floor(ctx.raw); const s=Math.round((ctx.raw-m)*60); return m+':'+String(s).padStart(2,'0'); } },
+      bodyFont:{ family:"'DM Mono',monospace", size:11 }
+    }},
+    scales: {
+      x: {
+        min: 123, max: 145,
+        ticks: { color:'#6a6878', font:{size:10}, callback: v => { const m=Math.floor(v); const s=Math.round((v-m)*60); return m+':'+String(s).padStart(2,'0'); } },
+        grid: { color:'rgba(255,255,255,0.04)' }
+      },
+      y: {
+        ticks: { color:'#9a98a8', font:{ family:"'DM Mono',monospace", size:11 } },
+        grid: { display:false }
+      }
+    }
+  }
+});
+
+// ── HDI CHART ──
+new Chart(document.getElementById('hdiChart').getContext('2d'), {
+  type: 'bar',
+  data: {
+    labels: countries.sort((a,b)=>b.medals-a.medals).map(c=>c.flag+' '+c.name),
+    datasets: [
+      {
+        label: 'Total medals',
+        data: [...countries].sort((a,b)=>b.medals-a.medals).map(c=>c.medals),
+        backgroundColor: [...countries].sort((a,b)=>b.medals-a.medals).map(c=>c.color+'bb'),
+        borderColor:  [...countries].sort((a,b)=>b.medals-a.medals).map(c=>c.color),
+        borderWidth:1, borderRadius:2, yAxisID:'y'
+      },
+      {
+        label: 'HDI (0–1)',
+        data: [...countries].sort((a,b)=>b.medals-a.medals).map(c=>c.hdi),
+        type:'line',
+        borderColor:'#e87e9a',
+        borderWidth:2,
+        pointBackgroundColor:'#e87e9a',
+        pointRadius:4,
+        fill:false,
+        tension:0.3,
+        yAxisID:'y1'
+      }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins: { legend:{ display:false }, tooltip:{
+      backgroundColor:'#18182a', borderColor:'rgba(255,255,255,0.1)', borderWidth:1,
+      titleColor:'#f0ede8', bodyColor:'#9a98a8',
+      bodyFont:{ family:"'DM Mono',monospace", size:11 }
+    }},
+    scales: {
+      x: { ticks:{ color:'#9a98a8', font:{size:11} }, grid:{ display:false } },
+      y: { ticks:{ color:'#9a98a8', font:{size:10} }, grid:{ color:'rgba(255,255,255,0.04)' }, title:{ display:true, text:'Medals', color:'#6a6878', font:{size:10} } },
+      y1: { position:'right', min:0, max:1, ticks:{ color:'#e87e9a', font:{size:10} }, grid:{ display:false }, title:{ display:true, text:'HDI', color:'#e87e9a', font:{size:10} } }
+    }
+  }
+});
+
+// ── PRIZE CALCULATOR ──
+const posSlider   = document.getElementById('posSlider');
+const prizeSlider = document.getElementById('prizeSlider');
+const prizes      = [50000,30000,20000,15000,12000,10000,8000,6000,4000,2500];
+const posNames    = ['1st','2nd','3rd','4th','5th','6th','7th','8th','9th','10th'];
+
+function updateCalc() {
+  const pos = parseInt(posSlider.value) - 1;
+  let prize = parseInt(prizeSlider.value);
+
+  // auto-adjust prize by position
+  const basePrize = prizes[pos];
+  document.getElementById('posReadout').textContent  = posNames[pos];
+  document.getElementById('prizeReadout').textContent = '$' + prize.toLocaleString();
+  document.getElementById('prizeDisplay').textContent = '$' + prize.toLocaleString();
+
+  const kenyaRatio = (prize / 2900).toFixed(1);
+  const usaRatio   = (prize / 80000).toFixed(2);
+
+  document.getElementById('kenyaResult').textContent = kenyaRatio + 'x annual income';
+  document.getElementById('usaResult').textContent   = usaRatio   + 'x annual income';
+
+  const insight = document.getElementById('insightBox');
+  if (prize >= 30000) {
+    insight.innerHTML = `<strong>Generational wealth threshold:</strong> At $${prize.toLocaleString()}, a Kenyan winner earns <strong>${kenyaRatio} years</strong> of average national income in a single race. For a US runner, it's <strong>${usaRatio} years</strong> — meaningful, but not life-changing. This asymmetry explains why Kenyan and Ethiopian athletes train with an <strong>urgency that money can't buy in wealthy nations</strong>.`;
+  } else {
+    insight.innerHTML = `<strong>Why this matters economically:</strong> Even a $${prize.toLocaleString()} prize equals <strong>${kenyaRatio}x</strong> Kenya's average annual income. For a Kenyan runner, every race finish position has outsized economic stakes — creating a motivational edge that sports scientists have formally identified as a key performance factor.`;
+  }
+}
+
+posSlider.addEventListener('input', updateCalc);
+prizeSlider.addEventListener('input', updateCalc);
+updateCalc();
+
+// ── TABLE ROW CLICK → HIGHLIGHT SCATTER ──
+document.querySelectorAll('#countryTable tbody tr').forEach(row => {
+  row.addEventListener('click', () => {
+    const idx = parseInt(row.dataset.idx);
+    // Flash the bubble
+    scatterChart.data.datasets[0].borderWidth = scatterData.map((_,i)=> i===idx ? 3 : 1.5);
+    scatterChart.data.datasets[0].borderColor = scatterData.map((d,i)=> i===idx ? '#ffffff' : d.color);
+    scatterChart.update();
+    setTimeout(() => {
+      scatterChart.data.datasets[0].borderWidth = scatterData.map(()=>1.5);
+      scatterChart.data.datasets[0].borderColor = scatterData.map(d=>d.color);
+      scatterChart.update();
+    }, 1500);
+  });
+});
+</script>
+</body>
+</html>

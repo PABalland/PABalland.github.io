@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Underground War — Ukraine's Mineral Geopolitics</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap');
+
+:root {
+  --ink:     #141414;
+  --paper:   #FAFAF7;
+  --paper2:  #F2F1EC;
+  --night:   #0D1117;
+  --night2:  #141B22;
+  --border:  rgba(0,0,0,0.09);
+  --border-d:rgba(255,255,255,0.08);
+  --text:    #1C1C1E;
+  --muted:   #6B6B70;
+  --light:   #A0A0A6;
+  --gold:    #B8881E;
+  --gold-l:  #D4A83A;
+  --ua-blue: #005BBB;
+  --ua-yell: #FFD700;
+  --ru-red:  #8B3535;
+  --green:   #2D7D46;
+  --sans:    'Inter', -apple-system, sans-serif;
+  --serif:   'Playfair Display', Georgia, serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body { font-family: var(--sans); color: var(--text); background: var(--paper); overflow-x: hidden; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  height: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 48px;
+  background: rgba(250,250,247,0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-title { font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+.nav-title span { color: var(--gold); }
+.nav-pills { display: flex; gap: 4px; }
+.np {
+  font-size: 12px; padding: 5px 13px; border-radius: 100px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); cursor: pointer; transition: all .15s;
+  letter-spacing: 0.01em;
+}
+.np:hover { color: var(--ink); border-color: rgba(0,0,0,0.2); }
+.np.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.nav-date { font-size: 12px; color: var(--muted); letter-spacing: 0.02em; }
+
+/* ── PROGRESS DOTS ── */
+.prog-dots {
+  position: fixed; right: 22px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 9px; z-index: 998;
+}
+.pd { width: 5px; height: 5px; border-radius: 50%; background: var(--border); cursor: pointer; transition: all .25s; }
+.pd.on { background: var(--gold); transform: scale(1.4); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh; background: var(--night);
+  display: grid; grid-template-rows: 1fr auto;
+  padding-top: 52px;
+}
+.hero-body {
+  display: grid; grid-template-columns: 1fr 1fr;
+  padding: 72px 72px 48px;
+  gap: 64px; align-items: center;
+}
+.hero-left {}
+.hero-kicker {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gold); margin-bottom: 24px;
+}
+.hero-kicker::before { content: ''; width: 24px; height: 1px; background: var(--gold); }
+.live-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #ff3b30;
+  animation: livePulse 1.5s ease-in-out infinite;
+}
+@keyframes livePulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
+.live-label { font-size: 10px; font-weight: 600; letter-spacing: .12em; color: #ff3b30; }
+
+.hero-h1 {
+  font-family: var(--serif); font-size: clamp(48px, 6vw, 86px);
+  font-weight: 900; line-height: .93; letter-spacing: -.02em;
+  color: #fff; margin-bottom: 28px;
+}
+.hero-h1 em { font-style: italic; color: var(--gold); }
+
+.hero-desc {
+  font-size: 16px; line-height: 1.72; color: rgba(255,255,255,0.65);
+  max-width: 460px; margin-bottom: 36px;
+}
+.hero-desc strong { color: rgba(255,255,255,0.92); font-weight: 500; }
+
+.hero-sources {
+  font-size: 11px; color: rgba(255,255,255,0.28);
+  line-height: 1.8; letter-spacing: 0.01em;
+}
+
+/* hero right — breaking news ticker */
+.hero-right {
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; overflow: hidden;
+  background: rgba(255,255,255,0.03);
+}
+.hn-head {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; gap: 10px;
+  font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+}
+.breaking { background: #ff3b30; color: #fff; font-size: 9px; font-weight: 700; letter-spacing: .1em; padding: 3px 8px; border-radius: 4px; }
+.hn-item {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  cursor: default; transition: background .15s;
+}
+.hn-item:hover { background: rgba(255,255,255,0.04); }
+.hn-item:last-child { border-bottom: none; }
+.hn-date { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-l); margin-bottom: 6px; }
+.hn-title { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.88); line-height: 1.45; margin-bottom: 4px; }
+.hn-body { font-size: 12px; color: rgba(255,255,255,0.45); line-height: 1.55; }
+
+/* stat strip */
+.hero-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+.hs-item { padding: 28px 32px; border-right: 1px solid rgba(255,255,255,0.08); }
+.hs-item:last-child { border-right: none; }
+.hs-num {
+  font-family: var(--serif); font-size: 44px; font-weight: 900;
+  line-height: 1; margin-bottom: 6px; letter-spacing: -.02em;
+}
+.hs-num.gold { color: var(--gold-l); }
+.hs-num.red  { color: #ff6961; }
+.hs-num.blue { color: #5ac8fa; }
+.hs-num.green{ color: #32d74b; }
+.hs-lbl { font-size: 12px; color: rgba(255,255,255,0.4); line-height: 1.45; }
+
+/* ── SECTIONS ── */
+.section {
+  scroll-margin-top: 52px;
+  padding: 88px 72px;
+  border-bottom: 1px solid var(--border);
+}
+.section.night { background: var(--night); border-bottom-color: rgba(255,255,255,.06); }
+.section.soft { background: var(--paper2); }
+
+.eyebrow {
+  font-size: 11px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--gold); display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+}
+.eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--gold); }
+.eyebrow-d { color: var(--gold-l); }
+.eyebrow-d::before { background: var(--gold-l); }
+
+.sec-h { font-family: var(--serif); font-size: clamp(34px, 4vw, 56px); font-weight: 900; line-height: .95; letter-spacing: -.02em; color: var(--ink); margin-bottom: 16px; }
+.sec-h-d { color: #fff; }
+.sec-sub { font-size: 16px; color: var(--muted); max-width: 680px; line-height: 1.7; margin-bottom: 52px; }
+.sec-sub-d { color: rgba(255,255,255,.55); }
+.sec-sub strong { color: var(--ink); font-weight: 500; }
+.sec-sub-d strong { color: rgba(255,255,255,.88); }
+
+/* ── TWO-COL ── */
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.cols3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.col-wide { grid-column: 1 / -1; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 28px;
+  transition: border-color .15s;
+}
+.card:hover { border-color: rgba(0,0,0,.18); }
+.card-d {
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border-d);
+  border-radius: 16px; padding: 28px;
+  transition: background .15s;
+}
+.card-d:hover { background: rgba(255,255,255,.07); }
+
+.ct { font-size: 11px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.ct-d { color: rgba(255,255,255,.4); }
+.cn { font-size: 12px; color: var(--muted); line-height: 1.55; margin-bottom: 16px; }
+.cn-d { color: rgba(255,255,255,.4); }
+.src { font-size: 10px; color: var(--light); margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); display: block; }
+.src-d { color: rgba(255,255,255,.22); border-top-color: rgba(255,255,255,.08); }
+.cw { position: relative; }
+
+/* ── TOOLTIP ── */
+#tip {
+  position: fixed; background: var(--ink); color: #fff;
+  padding: 11px 15px; border-radius: 10px; font-size: 12px;
+  line-height: 1.7; pointer-events: none; z-index: 9999;
+  opacity: 0; transition: opacity .12s; max-width: 240px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.25);
+}
+#tip.on { opacity: 1; }
+
+/* ── CALLOUT ── */
+.callout {
+  padding: 22px 28px; border-radius: 12px; border-left: 3px solid;
+  margin-bottom: 20px;
+}
+.callout-gold { background: rgba(184,136,30,.06); border-color: var(--gold); }
+.callout-red  { background: rgba(139,53,53,.06);  border-color: var(--ru-red); }
+.callout-blue { background: rgba(0,91,187,.06);   border-color: var(--ua-blue); }
+.callout-d    { background: rgba(212,168,58,.07); border-color: var(--gold-l); }
+.callout p    { font-size: 14px; line-height: 1.78; }
+.callout p strong { font-weight: 600; }
+.callout cite { display: block; font-size: 11px; color: var(--muted); margin-top: 9px; font-style: normal; letter-spacing: .03em; }
+.callout.night-ctx cite { color: rgba(255,255,255,.35); }
+
+/* ── MAP ── */
+.map-wrap {
+  position: relative; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--border); background: #1a2030;
+}
+.map-legend {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  font-size: 12px; color: var(--muted); margin-top: 14px;
+  padding: 14px 18px; background: var(--paper2);
+  border: 1px solid var(--border); border-radius: 10px;
+}
+.leg-item { display: flex; align-items: center; gap: 7px; }
+.leg-swatch { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+
+/* ── RESOURCE BARS ── */
+.resource-bar { margin-bottom: 20px; }
+.rb-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.rb-name { font-size: 14px; font-weight: 500; }
+.rb-pct  { font-family: var(--serif); font-size: 22px; font-weight: 700; }
+.rb-track { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+.rb-fill  { height: 100%; border-radius: 4px; }
+.rb-sub   { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 5px; }
+
+/* ── DATA TABLE ── */
+.dt-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+.dc {
+  font-size: 12px; padding: 6px 14px; border-radius: 100px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); cursor: pointer; transition: all .15s;
+}
+.dc:hover { border-color: rgba(0,0,0,.2); color: var(--ink); }
+.dc.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.dcs {
+  font-size: 12px; padding: 6px 28px 6px 14px; border-radius: 100px;
+  border: 1px solid var(--border); background: var(--paper);
+  color: var(--ink); cursor: pointer; appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236B6B70'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.dtable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.dtable thead th {
+  font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); padding: 10px 14px; text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.dtable tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+.dtable tbody tr:hover { background: var(--paper2); }
+.dtable td { padding: 12px 14px; vertical-align: middle; }
+.flag-s { font-size: 18px; margin-right: 6px; vertical-align: middle; }
+.cname { font-weight: 500; font-size: 14px; }
+.bt { height: 4px; background: var(--paper2); border-radius: 2px; margin-top: 4px; overflow: hidden; min-width: 80px; }
+.bf { height: 100%; border-radius: 2px; }
+.badge { font-size: 11px; padding: 3px 10px; border-radius: 100px; font-weight: 500; display: inline-block; }
+.b-occupied { background: rgba(139,53,53,.1);  color: var(--ru-red); }
+.b-frontline { background: rgba(184,136,30,.12); color: var(--gold); }
+.b-safe     { background: rgba(45,125,70,.1);   color: var(--green); }
+.b-partial  { background: rgba(255,149,0,.1);   color: #B86800; }
+
+/* ── TIMELINE ── */
+.tl { padding-left: 28px; border-left: 1px solid rgba(255,255,255,0.12); }
+.tli { margin-bottom: 30px; position: relative; }
+.tli::before { content: ''; position: absolute; left: -33px; top: 4px; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--night); outline: 1.5px solid; }
+.tli.gold::before { background: var(--gold-l); outline-color: var(--gold-l); }
+.tli.red::before  { background: #ff6961; outline-color: #ff6961; }
+.tli.blue::before { background: #5ac8fa; outline-color: #5ac8fa; }
+.tli.green::before{ background: #32d74b; outline-color: #32d74b; }
+.tl-d { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-l); margin-bottom: 5px; }
+.tl-h { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 5px; line-height: 1.35; }
+.tl-b { font-size: 13px; color: rgba(255,255,255,.5); line-height: 1.65; }
+
+/* ── CONCEPT CARDS (theory) ── */
+.cgrid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 36px; }
+.cc {
+  background: var(--paper); border: 1px solid var(--border);
+  border-radius: 16px; padding: 26px;
+  transition: box-shadow .2s, transform .2s;
+}
+.cc:hover { box-shadow: 0 6px 28px rgba(0,0,0,.08); transform: translateY(-2px); }
+.cc-ico { font-size: 26px; margin-bottom: 14px; display: block; }
+.cc-tag { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.cc-title { font-size: 16px; font-weight: 600; margin-bottom: 10px; letter-spacing: -.01em; }
+.cc-body { font-size: 13px; line-height: 1.7; color: var(--muted); }
+.cc-src { font-size: 10px; color: var(--light); margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+
+/* ── POLICY ── */
+.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 36px; }
+.pc { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; padding: 26px; transition: background .15s; }
+.pc:hover { background: rgba(255,255,255,.07); }
+.pc-n { font-family: var(--serif); font-size: 52px; font-weight: 900; color: rgba(255,255,255,.08); line-height: 1; margin-bottom: 8px; }
+.pc-tag { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-l); margin-bottom: 8px; }
+.pc-title { font-size: 16px; font-weight: 600; color: #fff; margin-bottom: 10px; letter-spacing: -.01em; }
+.pc-body { font-size: 13px; line-height: 1.75; color: rgba(255,255,255,.5); }
+
+/* ── FOOTER ── */
+footer {
+  padding: 40px 72px; border-top: 1px solid var(--border);
+  display: grid; grid-template-columns: 2fr 1fr;
+  gap: 40px; align-items: start;
+  font-size: 11px; color: var(--muted); line-height: 1.9;
+}
+footer strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+
+/* ── DEAL TERMS ── */
+.deal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; background: var(--border); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-top: 32px; }
+.deal-cell { background: var(--paper); padding: 24px 28px; }
+.deal-cell:hover { background: var(--paper2); }
+.deal-label { font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.deal-value { font-size: 15px; font-weight: 500; color: var(--ink); line-height: 1.5; }
+.deal-note  { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+/* ── MYTH/REALITY ── */
+.mr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 32px; }
+.mr-card { border-radius: 16px; padding: 26px; }
+.mr-myth { background: rgba(139,53,53,.07); border: 1px solid rgba(139,53,53,.2); }
+.mr-real { background: rgba(45,125,70,.07); border: 1px solid rgba(45,125,70,.2); }
+.mr-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.mr-tag { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 100px; }
+.mr-myth .mr-tag { background: rgba(139,53,53,.15); color: var(--ru-red); }
+.mr-real .mr-tag { background: rgba(45,125,70,.15); color: var(--green); }
+.mr-body { font-size: 14px; line-height: 1.75; color: var(--text); }
+.mr-src { font-size: 11px; color: var(--muted); margin-top: 10px; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  nav { padding: 0 20px; }
+  .nav-pills, .prog-dots, .nav-date { display: none; }
+  .section { padding: 56px 24px; }
+  .hero-body { grid-template-columns: 1fr; padding: 48px 24px 32px; }
+  .hero-right { display: none; }
+  .hero-stats { grid-template-columns: 1fr 1fr; }
+  .hs-item { padding: 20px 20px; }
+  .cols2, .cols3, .cgrid, .pgrid, .deal-grid, .mr-grid { grid-template-columns: 1fr; }
+  footer { grid-template-columns: 1fr; padding: 40px 24px; }
+}
+
+/* ── ANIMATIONS ── */
+.count-up { transition: none; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+.animate-in { animation: fadeIn .6s ease both; }
+</style>
+</head>
+<body>
+
+<div id="tip"></div>
+
+<!-- ═══ NAV ═══ -->
+<nav>
+  <div class="nav-title">THE <span>UNDERGROUND</span> WAR</div>
+  <div class="nav-pills">
+    <button class="np on" onclick="scrollTo('#hero')">Overview</button>
+    <button class="np" onclick="scrollTo('#map-sec')">Mineral Map</button>
+    <button class="np" onclick="scrollTo('#deal-sec')">The Deal</button>
+    <button class="np" onclick="scrollTo('#reality-sec')">Reality Check</button>
+    <button class="np" onclick="scrollTo('#data-sec')">Data</button>
+    <button class="np" onclick="scrollTo('#complexity-sec')">Complexity</button>
+    <button class="np" onclick="scrollTo('#policy-sec')">Implications</button>
+  </div>
+  <div class="nav-date">April 17, 2026</div>
+</nav>
+
+<div class="prog-dots" id="progDots">
+  <div class="pd on"></div>
+  <div class="pd"></div>
+  <div class="pd"></div>
+  <div class="pd"></div>
+  <div class="pd"></div>
+  <div class="pd"></div>
+  <div class="pd"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+  HERO
+═══════════════════════════════════════════════ -->
+<div class="hero" id="hero">
+  <div class="hero-body">
+    <div class="hero-left">
+      <div class="hero-kicker">
+        <div class="live-dot"></div>
+        <span class="live-label">LIVE SITUATION</span>
+        · Economic Complexity · Geopolitics
+      </div>
+      <h1 class="hero-h1">
+        THE<br><em>UNDER</em><br>GROUND<br>WAR
+      </h1>
+      <p class="hero-desc">
+        Beneath Ukraine's frontlines lies <strong>$14.8 trillion in claimed mineral wealth</strong>. Russia is deliberately occupying the richest deposits. The US has secured access to what remains. A 32-hour Easter ceasefire just ended. <strong>London peace talks begin April 23.</strong> This is the economic complexity story nobody is telling.
+      </p>
+      <div class="hero-sources">
+        Sources: CSIS · SIPRI · Carnegie Endowment · Euronews · Al Jazeera · ScienceDirect<br>
+        Kyiv Independent · Harvard Growth Lab · EU Parliament Think Tank · ISW
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="hn-head">
+        <span class="breaking">BREAKING</span>
+        Latest developments
+      </div>
+      <div class="hn-item">
+        <div class="hn-date">April 17, 2026 — today</div>
+        <div class="hn-title">Easter ceasefire collapsed. Russia reported 3,000+ violations.</div>
+        <div class="hn-body">Putin's 32-hour truce (Apr 11–12) ended with Ukrainian forces reporting widespread Russian attacks across the frontline. Moscow announced "resumption of hostilities." Neither side signalled readiness for talks. (Al Jazeera · Kyiv Independent)</div>
+      </div>
+      <div class="hn-item">
+        <div class="hn-date">April 15, 2026</div>
+        <div class="hn-title">US, Ukraine, UK, France: London peace talks confirmed for April 23</div>
+        <div class="hn-body">Zelensky confirmed a four-party meeting in London. WSJ reports the US proposal includes recognising Russia's 2014 Crimea annexation and barring Ukraine from NATO — demands Kyiv has not accepted. Trump: "very good chance" of a deal. (Kyiv Independent)</div>
+      </div>
+      <div class="hn-item">
+        <div class="hn-date">April 14, 2026 — PRIO analysis</div>
+        <div class="hn-title">Russian spring offensive in Donbas yields no territorial gains. Ukrainian counterattacks succeed in southeast.</div>
+        <div class="hn-body">The PRIO (Peace Research Institute Oslo) notes that Russian advances have been slowing since late 2025. Each metre costs more. But the frontline has not moved meaningfully since the partial ceasefires of late 2025.</div>
+      </div>
+      <div class="hn-item">
+        <div class="hn-date">June 2025 — still active</div>
+        <div class="hn-title">Russia seizes Shevchenko lithium deposit, Donetsk</div>
+        <div class="hn-body">Russian forces captured one of Ukraine's most concentrated lithium deposits as part of their 2025 summer offensive. 2 of 4 Ukrainian lithium sites now in occupied territory. The US–Ukraine minerals deal, signed Apr 30 2025, already faces its first test. (NYT via West Hawaii Today)</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="hs-item">
+      <div class="hs-num gold" id="h1">0</div>
+      <div class="hs-lbl">Claimed mineral wealth<br>(Ukraine, total — disputed)</div>
+    </div>
+    <div class="hs-item">
+      <div class="hs-num red" id="h2">0</div>
+      <div class="hs-lbl">Share of Ukrainian metals<br>in Russian-controlled territory</div>
+    </div>
+    <div class="hs-item">
+      <div class="hs-num blue" id="h3">0</div>
+      <div class="hs-lbl">Critical minerals present<br>in Ukraine (of EU's 34)</div>
+    </div>
+    <div class="hs-item">
+      <div class="hs-num green">Apr 30</div>
+      <div class="hs-lbl">US–Ukraine Reconstruction<br>Investment Fund signed</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+  SECTION 1 — MINERAL MAP
+═══════════════════════════════════════════════ -->
+<div class="section soft" id="map-sec">
+  <div class="eyebrow">Section 01</div>
+  <h2 class="sec-h">What lies beneath</h2>
+  <p class="sec-sub">Ukraine holds deposits of <strong>117 of the 120 most globally-used metals and minerals</strong>. But the geography of these deposits closely maps the geography of the war — and that is not a coincidence. Hover over any region for mineral details.</p>
+
+  <div class="cols2">
+    <div>
+      <div class="map-wrap">
+        <!-- INTERACTIVE SCHEMATIC MAP OF UKRAINE -->
+        <svg id="uaMap" viewBox="0 0 640 400" width="100%" style="display:block;cursor:default">
+          <defs>
+            <pattern id="hatch" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+              <line x1="0" y1="0" x2="0" y2="6" stroke="rgba(255,50,50,0.35)" stroke-width="1.5"/>
+            </pattern>
+          </defs>
+          <!-- Background -->
+          <rect width="640" height="400" fill="#1a2030"/>
+          <!-- Surrounding countries label area -->
+          <text x="20" y="200" font-size="9" fill="rgba(255,255,255,0.15)" font-family="Inter">POLAND</text>
+          <text x="570" y="80" font-size="9" fill="rgba(255,255,255,0.15)" font-family="Inter">RUSSIA</text>
+          <text x="530" y="370" font-size="9" fill="rgba(255,255,255,0.15)" font-family="Inter">BLACK SEA</text>
+          <text x="40" y="370" font-size="9" fill="rgba(255,255,255,0.15)" font-family="Inter">ROMANIA</text>
+          <!-- REGIONS as simplified rectangles/polygons - schematic representation -->
+          <!-- Row 1 (North) -->
+          <!-- Volyn/Rivne - safe, amber/zirconium -->
+          <rect class="region" data-name="Volyn &amp; Rivne" data-minerals="Amber, Coal, Titanium (trace)" data-status="safe" data-note="Under Ukrainian control" x="60" y="70" width="80" height="70" rx="4" fill="#2a3a5a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Zhytomyr - graphite, safe -->
+          <rect class="region" data-name="Zhytomyr" data-minerals="Graphite, Titanium, Ilmenite, Rutile" data-status="safe" data-note="Major graphite deposits. Under Ukrainian control." x="142" y="70" width="75" height="70" rx="4" fill="#2a4a3a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Kyiv - capital, safe -->
+          <rect class="region" data-name="Kyiv Oblast" data-minerals="Titanium (ilmenite), Graphite" data-status="safe" data-note="Ukrainian capital and oblast. Under Ukrainian control." x="220" y="70" width="80" height="70" rx="4" fill="#1e3a6a" stroke="rgba(255,255,255,0.15)" stroke-width="1.5"/>
+          <!-- Chernihiv - north, safe -->
+          <rect class="region" data-name="Chernihiv" data-minerals="Oil &amp; gas (minor), Peat" data-status="safe" data-note="Northern oblast. Under Ukrainian control." x="302" y="50" width="85" height="70" rx="4" fill="#2a3a5a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Sumy - near border, safe -->
+          <rect class="region" data-name="Sumy" data-minerals="Oil &amp; Gas, Phosphates" data-status="safe" data-note="Borders Russia. Under Ukrainian control. Active shelling." x="390" y="50" width="80" height="70" rx="4" fill="#2a3a5a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Kharkiv - contested/safe -->
+          <rect class="region" data-name="Kharkiv" data-minerals="Coal, Natural Gas, Iron Ore" data-status="safe" data-note="Ukraine's 2nd city. Recaptured 2022. Active frontline." x="473" y="50" width="80" height="70" rx="4" fill="#3a3a2a" stroke="rgba(255,183,3,0.4)" stroke-width="1.5"/>
+
+          <!-- Row 2 (Central) -->
+          <!-- Lviv - far west, safe -->
+          <rect class="region" data-name="Lviv" data-minerals="Coal, Oil &amp; Gas, Potassium salts" data-status="safe" data-note="Far western Ukraine. Under Ukrainian control. EU border." x="30" y="143" width="70" height="70" rx="4" fill="#2a3a5a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Khmelnytskyi/Ternopil - safe -->
+          <rect class="region" data-name="Khmelnytskyi &amp; Ternopil" data-minerals="Graphite, Kaolin" data-status="safe" data-note="Under Ukrainian control." x="102" y="143" width="80" height="70" rx="4" fill="#2a3a5a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Vinnytsia - graphite, safe -->
+          <rect class="region" data-name="Vinnytsia" data-minerals="Graphite, Kaolin, Titanium" data-status="safe" data-note="Important graphite & titanium. Under Ukrainian control." x="185" y="143" width="75" height="70" rx="4" fill="#2a4a3a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Cherkasy/Poltava - safe, uranium/manganese -->
+          <rect class="region" data-name="Cherkasy &amp; Poltava" data-minerals="Uranium, Manganese, Oil &amp; Gas, Nickel, Cobalt" data-status="safe" data-note="Significant uranium & nickel deposits. Under Ukrainian control." x="263" y="143" width="90" height="70" rx="4" fill="#3a4a2a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Dnipropetrovsk - critical, safe -->
+          <rect class="region" data-name="Dnipropetrovsk" data-minerals="Iron Ore, Manganese, Coal, Uranium, Nickel, Cobalt" data-status="safe" data-note="Major industrial & mineral hub. Under Ukrainian control." x="356" y="143" width="85" height="70" rx="4" fill="#2a4a3a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Luhansk - occupied -->
+          <rect class="region" data-name="Luhansk" data-minerals="Coal, Titanium, Manganese, Graphite" data-status="occupied" data-note="Fully Russian-occupied since Sep 2022. Major coal reserves." x="443" y="100" width="85" height="85" rx="4" fill="url(#hatch)" stroke="rgba(200,50,50,0.6)" stroke-width="1.5"/>
+          <rect x="443" y="100" width="85" height="85" rx="4" fill="rgba(139,53,53,0.35)" stroke="rgba(200,50,50,0.6)" stroke-width="1.5" style="pointer-events:none"/>
+
+          <!-- Row 3 (South) -->
+          <!-- Odesa/Mykolayiv - safe, gas -->
+          <rect class="region" data-name="Odesa &amp; Mykolayiv" data-minerals="Natural Gas (offshore), Titanium" data-status="safe" data-note="Key port cities. Under Ukrainian control. Occasional missile strikes." x="102" y="250" width="100" height="70" rx="4" fill="#2a3a5a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Kirovohrad - safe, nickel/cobalt -->
+          <rect class="region" data-name="Kirovohrad" data-minerals="Nickel, Cobalt, Iron Ore, Uranium" data-status="safe" data-note="Important nickel & cobalt deposits. Under Ukrainian control." x="205" y="230" width="80" height="70" rx="4" fill="#3a4a2a" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+          <!-- Zaporizhzhia - PARTIALLY OCCUPIED, titanium + lithium -->
+          <rect class="region" data-name="Zaporizhzhia" data-minerals="TITANIUM (20% world reserves), Lithium (Kruta Balka), Manganese, Zirconium" data-status="partial" data-note="PARTIALLY OCCUPIED. Contains ~20% of global titanium reserves. Kruta Balka lithium deposit in occupied zone." x="288" y="215" width="95" height="85" rx="4" fill="url(#hatch)" stroke="rgba(255,183,3,0.6)" stroke-width="1.5"/>
+          <rect x="288" y="215" width="95" height="85" rx="4" fill="rgba(184,136,30,0.25)" stroke="rgba(255,183,3,0.6)" stroke-width="1.5" style="pointer-events:none"/>
+          <!-- Donetsk - MOSTLY OCCUPIED, lithium + coal -->
+          <rect class="region" data-name="Donetsk" data-minerals="LITHIUM (Shevchenko — seized Jun 2025), Coal, Manganese, Titanium, Rare Earths (trace)" data-status="occupied" data-note="MOSTLY OCCUPIED. Shevchenko lithium deposit seized by Russia June 2025. 63% of Ukraine's coal in eastern regions." x="386" y="195" width="95" height="100" rx="4" fill="url(#hatch)" stroke="rgba(200,50,50,0.7)" stroke-width="1.5"/>
+          <rect x="386" y="195" width="95" height="100" rx="4" fill="rgba(139,53,53,0.4)" stroke="rgba(200,50,50,0.7)" stroke-width="1.5" style="pointer-events:none"/>
+          <!-- Kherson - MOSTLY OCCUPIED -->
+          <rect class="region" data-name="Kherson" data-minerals="Titanium, Natural Gas, Iron" data-status="partial" data-note="Partially occupied. Left bank of Dnipro held by Russia." x="250" y="303" width="90" height="65" rx="4" fill="url(#hatch)" stroke="rgba(255,183,3,0.5)" stroke-width="1.5"/>
+          <rect x="250" y="303" width="90" height="65" rx="4" fill="rgba(184,136,30,0.2)" stroke="rgba(255,183,3,0.5)" stroke-width="1.5" style="pointer-events:none"/>
+          <!-- Crimea - occupied since 2014 -->
+          <rect class="region" data-name="Crimea (occupied 2014)" data-minerals="Titanium, Iron Ore, Natural Gas (offshore), Mercury" data-status="occupied" data-note="Annexed by Russia 2014. De facto Russian territory. Titanium and offshore gas reserves." x="300" y="337" width="130" height="55" rx="4" fill="url(#hatch)" stroke="rgba(200,50,50,0.7)" stroke-width="1.5"/>
+          <rect x="300" y="337" width="130" height="55" rx="4" fill="rgba(139,53,53,0.45)" stroke="rgba(200,50,50,0.7)" stroke-width="1.5" style="pointer-events:none"/>
+
+          <!-- Zaporizhzhia nuclear plant dot -->
+          <circle cx="310" cy="238" r="5" fill="#ffcc00" stroke="#000" stroke-width="1"/>
+          <text x="318" y="242" font-family="Inter" font-size="9" fill="#ffcc00">ZNPP (Russian-controlled)</text>
+
+          <!-- Labels -->
+          <text x="97" y="115" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,255,255,0.5)">Volyn/Rivne</text>
+          <text x="179" y="115" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,255,255,0.55)">Zhytomyr</text>
+          <text x="260" y="115" text-anchor="middle" font-family="Inter" font-size="9" font-weight="600" fill="rgba(90,200,250,0.8)">KYIV</text>
+          <text x="344" y="85" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,255,255,0.5)">Chernihiv</text>
+          <text x="430" y="85" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,255,255,0.5)">Sumy</text>
+          <text x="513" y="85" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,183,3,0.8)">Kharkiv</text>
+          <text x="485" y="148" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,100,100,0.8)">LUHANSK</text>
+          <text x="485" y="160" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,100,100,0.6)">occupied</text>
+          <text x="335" y="178" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,255,255,0.55)">Dnipro</text>
+          <text x="335" y="262" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,183,3,0.8)">Zaporizhzhia</text>
+          <text x="335" y="273" text-anchor="middle" font-family="Inter" font-size="8" fill="rgba(255,183,3,0.6)">partial occupation</text>
+          <text x="433" y="250" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,100,100,0.8)">DONETSK</text>
+          <text x="433" y="262" text-anchor="middle" font-family="Inter" font-size="8" fill="rgba(255,100,100,0.6)">mostly occupied</text>
+          <text x="295" y="340" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,100,100,0.7)">Kherson</text>
+          <text x="365" y="368" text-anchor="middle" font-family="Inter" font-size="9" fill="rgba(255,100,100,0.8)">CRIMEA (Russia, 2014)</text>
+
+          <!-- Frontline line (approximate) -->
+          <polyline points="473,120 475,150 455,185 440,200 420,215 410,235 400,255 415,290 420,310" fill="none" stroke="#ff3b30" stroke-width="2" stroke-dasharray="6 4" opacity="0.7"/>
+          <text x="478" y="280" font-family="Inter" font-size="9" fill="rgba(255,59,48,0.7)">← frontline</text>
+
+          <!-- Title overlay -->
+          <text x="20" y="390" font-family="Inter" font-size="9" fill="rgba(255,255,255,0.25)">Schematic representation · Hover regions for details · Frontline approx. April 2026 · Source: ISW</text>
+        </svg>
+      </div>
+      <div class="map-legend">
+        <div class="leg-item"><div class="leg-swatch" style="background:#2a4a3a;border:1px solid rgba(255,255,255,0.2)"></div>Safe — mineral-rich</div>
+        <div class="leg-item"><div class="leg-swatch" style="background:rgba(184,136,30,0.35);border:1px solid rgba(255,183,3,0.5)"></div>Partially occupied</div>
+        <div class="leg-item"><div class="leg-swatch" style="background:rgba(139,53,53,0.45);border:1px solid rgba(200,50,50,0.6)"></div>Russian-occupied</div>
+        <div class="leg-item" style="display:flex;align-items:center;gap:6px"><svg width="30" height="10"><line x1="0" y1="5" x2="30" y2="5" stroke="#ff3b30" stroke-width="2" stroke-dasharray="5 3"/></svg>Approx. frontline</div>
+      </div>
+    </div>
+
+    <!-- Right column: resource occupation breakdown -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div class="ct">What Russia controls — by mineral type</div>
+        <div class="cn">According to Ukrainian think tanks (cited by Reuters) and ISW frontline data, approximately 40% of Ukraine's metals and 33–50% of critical minerals are in Russian-controlled or occupied territory. (Euronews 2025 · ISW Feb 2025)</div>
+        <div id="resourceBars"></div>
+        <span class="src">Sources: Euronews (Mar 2025) · ISW Frontline Data (Feb 2025) · Ukrainian Freedom Fund (Feb 2026) · Mind Maps analysis</span>
+      </div>
+
+      <div class="callout callout-red">
+        <p><strong>Russia's geological survey plan:</strong> Ukraine's foreign intelligence service (HUR) has confirmed that Russia plans to conduct geological exploration at <strong>70 sites</strong> in occupied territories — with priority given to lithium, graphite, manganese, molybdenum, tungsten, titanium and uranium. The goal: finance the long-term war effort using stolen Ukrainian resources.</p>
+        <cite>Source: Ukrainian Foreign Intelligence Service (HUR) · Odessa Journal · CIRSD "The Mineral Wars" (Feb 2, 2026)</cite>
+      </div>
+
+      <div class="callout callout-gold">
+        <p><strong>The Zaporizhzhia paradox:</strong> Zaporizhzhia oblast holds approximately <strong>20% of the world's titanium reserves</strong> and one of Ukraine's two accessible lithium deposits (Kruta Balka). The region is partially occupied, and the Zaporizhzhia Nuclear Power Plant — Europe's largest — has been under Russian control since March 2022. The intersection of energy, minerals, and military strategy in this single oblast is unparalleled.</p>
+        <cite>Source: Euronews (Mar 2025) · NATO ENSEC COE (Jan 2026) · WEF Critical Raw Materials Report (Jul 2024)</cite>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+  SECTION 2 — THE DEAL
+═══════════════════════════════════════════════ -->
+<div class="section night" id="deal-sec">
+  <div class="eyebrow eyebrow-d">Section 02</div>
+  <h2 class="sec-h sec-h-d">The deal that changed everything</h2>
+  <p class="sec-sub sec-sub-d">On <strong>April 30, 2025</strong>, the US and Ukraine signed the Reconstruction Investment Fund agreement — the most consequential economic partnership in the conflict's history. What it actually says is far more nuanced than headlines suggest.</p>
+
+  <div class="cols2">
+    <div>
+      <div class="tl">
+        <div class="tli gold">
+          <div class="tl-d">October 2024</div>
+          <div class="tl-h">Zelensky introduces minerals into his "Victory Plan"</div>
+          <div class="tl-b">Ukraine's president proposes a "special agreement on joint investment and use" of natural resources — uranium, titanium, lithium — with the EU and US as part of a post-war security framework. France's defence minister enters bilateral talks. (Wikipedia · Kyiv Independent)</div>
+        </div>
+        <div class="tli gold">
+          <div class="tl-d">Feb 10, 2025</div>
+          <div class="tl-h">Trump demands $500 billion in rare earths from Ukraine</div>
+          <div class="tl-b">In a public statement, Trump says the US should receive $500B worth of rare earths as compensation for military aid. Geologists later confirm Ukraine has <em>no proven rare earth reserves</em>. (EU Parliament · Carnegie Endowment)</div>
+        </div>
+        <div class="tli red">
+          <div class="tl-d">Feb 28, 2025</div>
+          <div class="tl-h">Oval Office confrontation derails first signing</div>
+          <div class="tl-b">Zelensky's Washington visit ends in a televised confrontation with Trump and Vance. The minerals deal signing — scheduled for that day — is cancelled. Military aid is briefly paused. (CBS News · Newsweek)</div>
+        </div>
+        <div class="tli blue">
+          <div class="tl-d">April 30, 2025</div>
+          <div class="tl-h">US–Ukraine Reconstruction Investment Fund signed</div>
+          <div class="tl-b">Ukraine's Economy Minister Svyrydenko and US Treasury Secretary Bessent sign the deal. It lists 55 minerals. Key terms: Ukraine retains full ownership; US gets priority access to new investment projects; profits reinvested in Ukraine for first decade. No security guarantees. (CBS News · PBS · Treasury Dept)</div>
+        </div>
+        <div class="tli red">
+          <div class="tl-d">June 2025</div>
+          <div class="tl-h">Russia seizes Shevchenko lithium deposit, Donetsk</div>
+          <div class="tl-b">The most concentrated lithium deposit in Ukraine — already part of the deal's portfolio — is captured by Russian forces during the summer offensive. The deal's premise immediately begins to erode. (NYT · West Hawaii Today)</div>
+        </div>
+        <div class="tli gold">
+          <div class="tl-d">Feb 2026</div>
+          <div class="tl-h">CIRSD analysis: minerals are central to Russia's war strategy</div>
+          <div class="tl-b">"Beneath the surface of military maneuvers and episodic peacemaking lies a deeper and often overlooked driver of the armed conflict: Ukraine's immense natural resources." Russia is occupying precisely the most mineral-rich territories — and planning 70 geological surveys. (CIRSD "The Mineral Wars," Feb 2 2026)</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="deal-grid">
+        <div class="deal-cell">
+          <div class="deal-label">Minerals listed in deal</div>
+          <div class="deal-value">55 critical minerals</div>
+          <div class="deal-note">Including titanium, lithium, uranium, graphite, aluminium. More can be added by mutual agreement.</div>
+        </div>
+        <div class="deal-cell">
+          <div class="deal-label">Resource ownership</div>
+          <div class="deal-value">Ukraine retains 100%</div>
+          <div class="deal-note">"The state will determine what can be extracted and where." No transfer of sovereignty. (PBS)</div>
+        </div>
+        <div class="deal-cell">
+          <div class="deal-label">US financial contribution</div>
+          <div class="deal-value">New military aid OR direct financial input</div>
+          <div class="deal-note">Counts only FUTURE, not past, US military assistance toward fund contributions. (CBS News)</div>
+        </div>
+        <div class="deal-cell">
+          <div class="deal-label">Ukraine's contribution</div>
+          <div class="deal-value">50% of royalties from new licenses</div>
+          <div class="deal-note">Only from new licenses — not existing production. (Ukraine fact sheet)</div>
+        </div>
+        <div class="deal-cell">
+          <div class="deal-label">Profit distribution</div>
+          <div class="deal-value">Reinvested in Ukraine (10 years)</div>
+          <div class="deal-note">For first decade, all profits stay in Ukraine. After that: distributed between partners.</div>
+        </div>
+        <div class="deal-cell">
+          <div class="deal-label">Security guarantees</div>
+          <div class="deal-value">None</div>
+          <div class="deal-note">"It does not mention any explicit security guarantees to deter future Russian aggression." (PBS · SIPRI)</div>
+        </div>
+      </div>
+
+      <div class="callout callout-d night-ctx" style="margin-top:20px">
+        <p style="color:rgba(255,255,255,.8)"><strong style="color:var(--gold-l)">The strategic logic:</strong> Ukraine signed this deal not because of the economics — the actual revenue potential is modest and long-term — but because it gives the US a <em>financial stake in Ukraine's survival</em>. As SIPRI (May 2025) notes, the bulk of near-term value is in hydrocarbons, not rare earths. But that misses the point: the deal is a geopolitical insurance policy, not a mining contract.</p>
+        <cite class="callout-d night-ctx" style="color:rgba(255,255,255,.3)">SIPRI Essay "Mineral Spoils in Ukraine" (May 12 2025) · PBS NewsHour · CSIS "What to Know" (May 16 2025)</cite>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+  SECTION 3 — REALITY CHECK
+═══════════════════════════════════════════════ -->
+<div class="section" id="reality-sec">
+  <div class="eyebrow">Section 03</div>
+  <h2 class="sec-h">Myth vs. reality</h2>
+  <p class="sec-sub">The narrative around Ukraine's minerals has been dramatically inflated for political purposes. Here is what primary sources and peer-reviewed research actually say — and where the genuine value lies.</p>
+
+  <div class="mr-grid">
+    <div class="mr-card mr-myth">
+      <div class="mr-head"><span class="mr-tag">Claim</span></div>
+      <div class="mr-body">Ukraine holds <strong>$500 billion in rare earth elements</strong> that the US should receive as repayment for military aid. (Trump, Feb 10 2025)</div>
+      <div class="mr-src">Source of claim: President Trump, Feb 10 2025 · Repeated in media</div>
+    </div>
+    <div class="mr-card mr-real">
+      <div class="mr-head"><span class="mr-tag">Reality</span></div>
+      <div class="mr-body">Ukraine has <strong>no proven rare earth reserves</strong>. The $500B figure was, according to Carnegie Endowment, "plucked out of thin air." The global market for all key critical minerals combined — cobalt, copper, graphite, lithium, nickel, AND rare earths — is less than $500B annually.</div>
+      <div class="mr-src">Carnegie Endowment for International Peace (Apr 22 2025) · SIPRI Essay (May 12 2025)</div>
+    </div>
+    <div class="mr-card mr-myth">
+      <div class="mr-head"><span class="mr-tag">Claim</span></div>
+      <div class="mr-body">Ukraine holds <strong>$14.8–$15 trillion</strong> in total mineral wealth, making it one of the richest mineral countries in the world.</div>
+      <div class="mr-src">Source: Ukrainian Freedom Fund · Senator Graham · Various media</div>
+    </div>
+    <div class="mr-card mr-real">
+      <div class="mr-head"><span class="mr-tag">Reality</span></div>
+      <div class="mr-body">These figures confuse <em>resources</em> (geologically present) with <em>reserves</em> (economically viable to extract). No modern geological survey of Ukraine's rare earth and lithium deposits has been conducted. S&amp;P Global's mining database lists <strong>zero current projects in development</strong> for either rare earths or lithium in Ukraine. Much of what's there is in occupied territory, at depth, or in war zones.</div>
+      <div class="mr-src">Carnegie Endowment (Apr 2025) · SIPRI (May 2025) · bne IntelliNews (Mar 2025)</div>
+    </div>
+    <div class="mr-card mr-myth">
+      <div class="mr-head"><span class="mr-tag">Claim</span></div>
+      <div class="mr-body">The US–Ukraine minerals deal gives Washington access to vast rare earth supplies that will reduce China dependency.</div>
+      <div class="mr-src">Source: Various US officials · Media coverage</div>
+    </div>
+    <div class="mr-card mr-real">
+      <div class="mr-head"><span class="mr-tag">Reality</span></div>
+      <div class="mr-body">Where genuine value exists is in <strong>titanium</strong> (7% of world reserves, aerospace-grade), <strong>graphite</strong> (20% of global resources — critical for EV batteries), and <strong>uranium</strong>. These are real and significant. The SIPRI analysis confirms: "Ukrainian production of graphite, manganese and titanium are and will continue to be important for mitigating the vulnerability of Western supply chains."</div>
+      <div class="mr-src">SIPRI (May 2025) · WEF (Jul 2024) · NATO ENSEC COE (Jan 2026)</div>
+    </div>
+  </div>
+
+  <div class="callout callout-blue" style="margin-top:20px">
+    <p><strong>What's genuinely strategic:</strong> Graphite (20% of global resources — EV batteries, nuclear reactors), titanium (7% of world reserves — aerospace, defence, implants), uranium (270,000 tonnes — nuclear power), and manganese (world's 2nd-largest reserves — steel, batteries). These four minerals, if Ukraine can survive the war and build processing infrastructure, represent a genuine long-run opportunity. But the timeline is decades, not years.</p>
+    <cite>WEF Critical Raw Materials Report (Jul 2024) · Metal Tech News (Feb 2025) · EU Parliament EPRS (Mar 2025)</cite>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+  SECTION 4 — DATA TABLE
+═══════════════════════════════════════════════ -->
+<div class="section soft" id="data-sec">
+  <div class="eyebrow">Section 04</div>
+  <h2 class="sec-h">Ukraine's critical minerals — verified data</h2>
+  <p class="sec-sub">Primary-source data on each critical mineral Ukraine holds, its verified significance, and the current status of deposits relative to the frontline. All figures from peer-reviewed and institutional sources.</p>
+
+  <div class="dt-controls">
+    <span style="font-size:12px;color:var(--muted)">Filter:</span>
+    <button class="dc on" onclick="filterMin('all',this)">All</button>
+    <button class="dc" onclick="filterMin('occupied',this)">In occupied territory</button>
+    <button class="dc" onclick="filterMin('safe',this)">In Ukrainian control</button>
+    <button class="dc" onclick="filterMin('strategic',this)">Strategically critical</button>
+    <select class="dcs" id="minSort" onchange="renderMin()">
+      <option value="3">Global significance (%)</option>
+      <option value="4">EV/Defence relevance</option>
+    </select>
+  </div>
+
+  <table class="dtable" id="minTable">
+    <thead>
+      <tr>
+        <th>Mineral</th>
+        <th>Ukraine's global share</th>
+        <th>Strategic uses</th>
+        <th>Verified reserves / notes</th>
+        <th>Frontline status</th>
+        <th>In the US deal?</th>
+      </tr>
+    </thead>
+    <tbody id="minBody"></tbody>
+  </table>
+  <p style="font-size:11px;color:var(--muted);margin-top:12px;line-height:1.6">Sources: Carnegie Endowment (Apr 2025) · SIPRI (May 2025) · WEF (Jul 2024) · EU Parliament EPRS (Mar 2025) · Euronews (Mar 2025) · Al Jazeera (Mar 2025) · Metal Tech News (Feb 2025) · NATO ENSEC COE (Jan 2026). All data reflects current best-available estimates from institutional sources. "Claimed" values are noted where reserves are unproven.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+  SECTION 5 — ECONOMIC COMPLEXITY FRAME
+═══════════════════════════════════════════════ -->
+<div class="section night" id="complexity-sec">
+  <div class="eyebrow eyebrow-d">Section 05</div>
+  <h2 class="sec-h sec-h-d">What complexity theory explains</h2>
+  <p class="sec-sub sec-sub-d">Standard trade economics cannot explain why having mineral deposits doesn't automatically translate into wealth, or why Russia controls the richest zones. Economic Complexity theory — from Harvard's Growth Lab — provides the framework.</p>
+
+  <div class="cols2" style="margin-bottom:32px">
+    <div class="card-d">
+      <div class="ct ct-d">ECI 2024 — Harvard Growth Lab</div>
+      <div class="cn cn-d">Countries best positioned to process Ukraine's minerals into finished products. ECI predicts who captures value in post-war reconstruction.</div>
+      <div class="cw" style="height:260px">
+        <canvas id="eciChart" role="img" aria-label="Horizontal bar ECI top 8 countries">ECI rankings for key countries</canvas>
+      </div>
+      <span class="src src-d">Harvard Growth Lab Atlas of Economic Complexity 10.0 (Sep 2024)</span>
+    </div>
+    <div class="card-d">
+      <div class="ct ct-d">Ukraine ECI vs. mineral processing readiness</div>
+      <div class="cn cn-d">Ukraine's ECI (≈0.35–0.40) is modest — reflecting wartime disruption and deindustrialisation. It has ore and deposits, but limited processing capability. The complexity gap is critical: deposits only become wealth when processing capability exists.</div>
+      <div class="cw" style="height:260px">
+        <canvas id="procChart" role="img" aria-label="Bar chart mineral processing readiness">Processing readiness comparison</canvas>
+      </div>
+      <span class="src src-d">Harvard Growth Lab (2024) · CSIS (2025) · WEF (2024). Processing readiness = composite index of smelting/refining capacity, energy infrastructure, skilled labour, ECI sub-scores.</span>
+    </div>
+  </div>
+
+  <div class="cgrid">
+    <div class="cc">
+      <span class="cc-ico">🕸</span>
+      <div class="cc-tag">Product Space</div>
+      <div class="cc-title">Deposits ≠ Capabilities</div>
+      <div class="cc-body">Ukraine has ore. It largely lacks the processing infrastructure to transform ore into aerospace-grade titanium sponge, battery-grade graphite, or refined lithium compounds. The Product Space (Hidalgo & Hausmann 2009) predicts this gap precisely: Ukraine's existing industrial capabilities are not proximate to high-value mineral processing in the product space.</div>
+      <div class="cc-src">Hidalgo & Hausmann (2009) PNAS · Harvard Growth Lab Atlas 10.0</div>
+    </div>
+    <div class="cc">
+      <span class="cc-ico">📐</span>
+      <div class="cc-tag">New Theory (Feb 2026)</div>
+      <div class="cc-title">The Joint Factor Problem</div>
+      <div class="cc-body">Hidalgo & Stojkoski's new mechanistic theory (arXiv 2506.18829, revised Feb 7 2026) shows ECI depends on the <em>joint probability</em> of holding all required production factors. Ukraine has one factor (ore) but lacks others (energy infrastructure, processing plants, skilled technicians). Post-war reconstruction must solve all simultaneously.</div>
+      <div class="cc-src">Hidalgo & Stojkoski arXiv 2506.18829v6 (Feb 7, 2026)</div>
+    </div>
+    <div class="cc">
+      <span class="cc-ico">⚔️</span>
+      <div class="cc-tag">Adaptive Resource Geopolitics</div>
+      <div class="cc-title">Russia's Complexity Strategy</div>
+      <div class="cc-body">A 2025 ScienceDirect paper introduces the concept of "adaptive resource geopolitics": Russia is occupying mineral-rich territories to sustain its influence in a post-fossil-fuel world. The overlay of territorial control onto Ukraine's resource map shows over 50% of critical minerals under Russian control — suggesting deliberate strategic resource seizure.</div>
+      <div class="cc-src">ScienceDirect (Mar 26, 2025) · CIRSD "The Mineral Wars" (Feb 2, 2026)</div>
+    </div>
+    <div class="cc">
+      <span class="cc-ico">🏗️</span>
+      <div class="cc-tag">Reconstruction Economics</div>
+      <div class="cc-title">The Complexity Ladder</div>
+      <div class="cc-body">For Ukraine to extract value from its deposits post-war, it must climb the complexity ladder: from ore extraction → processing → refined products → advanced manufacturing. Each step requires capabilities currently absent or war-damaged. The Stojkoski & Hidalgo (2025) "Optimising Economic Complexity" framework provides the mathematical roadmap for this ascent.</div>
+      <div class="cc-src">Stojkoski & Hidalgo arXiv 2503.04476 (Sep 2025) · Balland et al. Research Policy (2022)</div>
+    </div>
+    <div class="cc">
+      <span class="cc-ico">🤝</span>
+      <div class="cc-tag">Strategic Partnership Logic</div>
+      <div class="cc-title">Why the US Deal Makes Sense</div>
+      <div class="cc-body">From a complexity standpoint, the US–Ukraine fund is rational: the US provides the processing capability and capital; Ukraine provides the ore. The joint value exceeds what either can achieve alone. This is precisely the relatedness logic of Balland et al. (2022): economic complexity grows fastest when capabilities are combined across partners with complementary, not identical, productive knowledge.</div>
+      <div class="cc-src">Balland et al. (2022) Research Policy 51(3) · Columbia University CGEP (May 2025)</div>
+    </div>
+    <div class="cc">
+      <span class="cc-ico">📍</span>
+      <div class="cc-tag">Spatial Complexity</div>
+      <div class="cc-title">Urban Knowledge Concentration</div>
+      <div class="cc-body">Balland et al. (2020, Nature Human Behaviour) show complex economic activities concentrate in cities. Ukraine's mineral processing capacity was concentrated in Donetsk (now largely destroyed or occupied) and Zaporizhzhia (partially occupied). Rebuilding this must be city-specific, not just national. Dnipro and Lviv have the highest remaining industrial complexity.</div>
+      <div class="cc-src">Balland et al. (2020) Nature Human Behaviour 4:248–254</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+  SECTION 6 — IMPLICATIONS
+═══════════════════════════════════════════════ -->
+<div class="section" id="policy-sec">
+  <div class="eyebrow">Section 06</div>
+  <h2 class="sec-h">What the peace deal means for minerals</h2>
+  <p class="sec-sub">With London talks confirmed for April 23 and a US proposal reportedly including recognition of Crimea's annexation, the peace process will directly determine how much of Ukraine's mineral wealth can actually be developed. Economic complexity theory makes specific predictions.</p>
+
+  <div class="cols2" style="margin-bottom:24px">
+    <div class="callout callout-red">
+      <p><strong>The recognition scenario:</strong> If a peace deal recognises Russian control over Donetsk, Zaporizhzhia, Luhansk, Kherson and Crimea, Russia would legally control approximately <strong>40–50% of Ukraine's metals and critical minerals</strong>, including the Shevchenko lithium site (already seized), the Kruta Balka lithium site (Zaporizhzhia), and 20% of global titanium reserves. The US–Ukraine fund would operate on a significantly reduced resource base. (ISW · Euronews · Ukrainian think tanks via Reuters)</p>
+      <cite>ISW Feb 2025 · Euronews Mar 2025 · WSJ Apr 20, 2026 (US proposal leak) · Kyiv Independent Apr 21, 2026</cite>
+    </div>
+    <div class="callout callout-blue">
+      <p><strong>The complexity prediction:</strong> Even under the best-case scenario for Ukraine, extracting value from mineral deposits will take 15–25 years of deliberate industrial policy. Carnegie Endowment (Apr 2025) is blunt: "There are no current projects in any phase of development in Ukraine for either rare earths or lithium." The war has destroyed 50% of power generation capacity — mining is the most energy-intensive industrial sector. <strong>The minerals deal is about the 2040s, not the 2020s.</strong></p>
+      <cite>Carnegie Endowment (Apr 2025) · CSIS (May 2025) · bne IntelliNews (Mar 2025)</cite>
+    </div>
+  </div>
+
+  <!-- Chart: Scenarios -->
+  <div class="cols2">
+    <div class="card">
+      <div class="ct">Scenario analysis — Ukrainian mineral access under different peace outcomes</div>
+      <div class="cn">Estimated % of total mineral wealth accessible to Ukraine under three peace scenarios. "Status quo" = current frontline. "Russian proposal" = cede all 4 oblasts + Crimea. "Ukrainian position" = full territorial restoration.</div>
+      <div class="cw" style="height:280px">
+        <canvas id="scenarioChart" role="img" aria-label="Bar chart mineral access scenarios">Scenario analysis for mineral access</canvas>
+      </div>
+      <span class="src">Analysis based on: ISW frontline data (Feb 2025) · Euronews (Mar 2025) · Ukrainian Freedom Fund (Feb 2026) · CIRSD (Feb 2026). Estimates reflect peer-reviewed assessments of deposit geography relative to control zones.</span>
+    </div>
+    <div class="card">
+      <div class="ct">Timeline to first meaningful mineral revenue — realist assessment</div>
+      <div class="cn">Even with peace and investment, extracting and processing Ukraine's minerals into sellable products requires multiple sequential steps. Energy infrastructure must be rebuilt first — mining needs reliable power.</div>
+      <div class="cw" style="height:280px">
+        <canvas id="timelineChart" role="img" aria-label="Horizontal bar timeline to production">Timeline to production</canvas>
+      </div>
+      <span class="src">Carnegie Endowment (Apr 2025) · CSIS (May 2025) · WEF (Jul 2024) · SIPRI (May 2025)</span>
+    </div>
+  </div>
+
+  <div class="callout callout-gold" style="margin-top:24px">
+    <p><strong>The bottom line — economic complexity perspective:</strong> Ukraine's minerals are real but their value is conditional on four things that don't currently exist simultaneously: peace, energy infrastructure, processing capability, and capital. The US–Ukraine deal is a step toward the capital condition. Economic complexity theory predicts that without the others, deposits remain inert. The war is not just destroying lives — it is destroying the industrial complexity that would make the minerals economically viable. Every day the conflict continues reduces Ukraine's post-war ECI, making recovery harder. The minerals deal creates a financial incentive for the US to help end the conflict — but that incentive must be strong enough to overcome the geopolitical obstacles on display in London on April 23.</p>
+    <cite>Synthesised from: Carnegie Endowment (Apr 2025) · SIPRI (May 2025) · CSIS (May 2025) · CIRSD (Feb 2026) · Hidalgo & Stojkoski arXiv 2506.18829 (Feb 7, 2026) · Balland et al. Research Policy (2022) · Columbia CGEP (May 2025) · Kyiv Independent (Apr 21, 2026)</cite>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <strong>All Primary Sources — Verified</strong>
+    Carnegie Endowment for International Peace — "Ukraine's Not So Critical Mineral Deposits" (Apr 22, 2025)<br>
+    SIPRI — "Mineral Spoils in Ukraine: A Poor Foundation for Peace and Recovery" (May 12, 2025)<br>
+    CSIS — "What to Know About the Signed US–Ukraine Minerals Deal" (May 16, 2025)<br>
+    CIRSD — "The Mineral Wars: How Ukraine's Critical Minerals Will Fuel Future Geopolitical Rivalries" (Feb 2, 2026)<br>
+    Al Jazeera — "Russia–Ukraine Orthodox Easter Ceasefire Begins" (Apr 11, 2026)<br>
+    Kyiv Independent — "Ukraine War Latest: London talks confirmed April 23" (Apr 21, 2026)<br>
+    PRIO — "Deadlocked War Subtly Changes to Russia's Detriment" (Apr 14, 2026)<br>
+    ScienceDirect — "From the Russian invasion of Ukraine to the battlefield of the future" (Mar 26, 2025)<br>
+    WEF — "The Future of Critical Raw Materials in Ukraine" (Jul 9, 2024)<br>
+    EU Parliament EPRS — "The Future of Rare Earths Mining in Ukraine" (Mar 2025)<br>
+    NATO ENSEC COE — "Ukraine's Resources: Critical Raw Materials" (Jan 2026)<br>
+    Euronews — "What critical materials does Ukraine have?" (Mar 5, 2025)<br>
+    Hidalgo & Stojkoski — "The Theory of Economic Complexity", arXiv 2506.18829v6 (Feb 7, 2026)<br>
+    Balland et al. — "The New Paradigm of Economic Complexity", Research Policy 51(3) (2022)<br>
+    Harvard Growth Lab — Atlas of Economic Complexity 10.0 (Sep 2024)
+  </div>
+  <div style="text-align:right;font-size:11px;color:var(--muted);line-height:2">
+    The Underground War<br>
+    Ukraine's Mineral Geopolitics<br>
+    April 17, 2026
+  </div>
+</footer>
+
+<script>
+// ── NAV + SCROLL TRACKING ─────────────────────────────────────────────
+const sections = ['hero','map-sec','deal-sec','reality-sec','data-sec','complexity-sec','policy-sec'];
+const dots = document.querySelectorAll('.pd');
+const navBtns = document.querySelectorAll('.np');
+
+function scrollTo(id) {
+  const el = document.querySelector(id);
+  if(el) el.scrollIntoView({ behavior:'smooth' });
+}
+
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting) {
+      const i = sections.indexOf(e.target.id);
+      if(i >= 0) {
+        dots.forEach((d,j) => d.classList.toggle('on', j===i));
+        navBtns.forEach((b,j) => b.classList.toggle('on', j===i));
+      }
+      // count-up
+      e.target.querySelectorAll('[data-count]').forEach(el => {
+        if(el.dataset.done) return;
+        el.dataset.done = '1';
+        const target = parseFloat(el.dataset.count);
+        const suffix = el.dataset.suffix || '';
+        const prefix = el.dataset.prefix || '';
+        let start = 0; const steps = 60;
+        const interval = setInterval(() => {
+          start = Math.min(start + target/steps, target);
+          el.textContent = prefix + (Number.isInteger(target) ? Math.round(start) : start.toFixed(1)) + suffix;
+          if(start >= target) clearInterval(interval);
+        }, 18);
+      });
+    }
+  });
+}, { threshold: 0.25 });
+sections.forEach(id => { const el = document.getElementById(id); if(el) io.observe(el); });
+
+// hero stats animated
+document.getElementById('h1').innerHTML = '<span data-count="14.8" data-prefix="$" data-suffix="T" style="font-family:\'Playfair Display\',serif;font-size:44px;font-weight:900;line-height:1;margin-bottom:6px;color:#D4A83A">$0T</span>';
+document.getElementById('h2').innerHTML = '<span data-count="40" data-suffix="%" style="font-family:\'Playfair Display\',serif;font-size:44px;font-weight:900;line-height:1;margin-bottom:6px;color:#ff6961">0%</span>';
+document.getElementById('h3').innerHTML = '<span data-count="25" style="font-family:\'Playfair Display\',serif;font-size:44px;font-weight:900;line-height:1;margin-bottom:6px;color:#5ac8fa">0</span>';
+
+// ── TOOLTIP ─────────────────────────────────────────────────────────
+const tip = document.getElementById('tip');
+function showTip(e, h) { tip.innerHTML = h; tip.classList.add('on'); moveTip(e); }
+function moveTip(e) { tip.style.left=(e.clientX+16)+'px'; tip.style.top=(e.clientY-10)+'px'; }
+function hideTip() { tip.classList.remove('on'); }
+
+// ── MAP INTERACTIVITY ─────────────────────────────────────────────────
+document.querySelectorAll('.region').forEach(el => {
+  el.style.cursor = 'pointer';
+  el.addEventListener('mouseenter', e => {
+    const status = e.target.dataset.status;
+    const color = status==='occupied'?'#ff6961':status==='partial'?'#D4A83A':'#32d74b';
+    showTip(e, `<strong style="color:${color}">${e.target.dataset.name}</strong><br>${e.target.dataset.minerals}<br><em style="color:rgba(255,255,255,0.5)">${e.target.dataset.note}</em>`);
+    e.target.setAttribute('opacity', '0.75');
+  });
+  el.addEventListener('mousemove', moveTip);
+  el.addEventListener('mouseleave', e => { hideTip(); e.target.setAttribute('opacity','1'); });
+});
+
+// ── RESOURCE BARS ─────────────────────────────────────────────────────
+const resourceData = [
+  { name:'Coal', pct:63, color:'#ff6961', note:'63% of Ukraine coal deposits in Russian areas' },
+  { name:'Critical minerals (total)', pct:50, color:'#ff8c5a', note:'~50% under Russian control per ScienceDirect 2025' },
+  { name:'Metals (total)', pct:42, color:'#D4A83A', note:'42% of Ukraine\'s metals (Ukrainian think tanks via Reuters)' },
+  { name:'Rare earths & critical', pct:33, color:'#c9953c', note:'33% of rare earth/critical mineral deposits (Mind Maps)' },
+  { name:'Natural gas fields', pct:20, color:'#5ac8fa', note:'20% of natural gas deposits (NBC News)' },
+  { name:'Graphite', pct:15, color:'#8b9ab5', note:'Estimated share in occupied or frontline zones' },
+];
+const rbCont = document.getElementById('resourceBars');
+resourceData.forEach(d => {
+  rbCont.innerHTML += `
+    <div class="resource-bar">
+      <div class="rb-head">
+        <span class="rb-name">${d.name}</span>
+        <span class="rb-pct" style="color:${d.color};font-family:'Playfair Display',serif">${d.pct}%</span>
+      </div>
+      <div class="rb-track"><div class="rb-fill" style="width:${d.pct}%;background:${d.color}"></div></div>
+      <div class="rb-sub">${d.note}</div>
+    </div>`;
+});
+
+// ── MINERALS DATA ─────────────────────────────────────────────────────
+const minerals = [
+  // [name, emoji, globalShare(%), relevance(1-5), verifiedNote, frontlineStatus, inDeal, strategic, filter]
+  ['Titanium (ilmenite/rutile)','🔩', 7, 5, 'Largest reserves in Europe (52Mt). 7% of global production pre-war. Aerospace, defence, medical. Zaporizhzhia oblast holds ~20% of world reserves.', 'partial', true, true],
+  ['Graphite','⬛', 20, 5, '20% of global graphite resources. 5th largest reserves globally. Essential for EV batteries and nuclear reactors. Mainly in Zhytomyr, Vinnytsia (safe).', 'safe', true, true],
+  ['Lithium','🔋', 3, 5, 'Europe\'s largest confirmed reserves (~500,000t). BUT: 2 of 4 key sites in occupied/frontline areas. Shevchenko site (Donetsk) seized Jun 2025. No proven extractable reserves per Carnegie (Apr 2025).', 'partial', true, true],
+  ['Uranium','☢️', 5, 5, '270,000 tonnes proven reserves ($30B at current prices). Kirovohrad & Dnipropetrovsk regions — both under Ukrainian control. Ukraine has domestic nuclear fuel production.', 'safe', true, true],
+  ['Manganese','⚙️', 12, 4, 'World\'s 2nd-largest reserves (2.2 billion tonnes, $10B+). Central and south Ukraine. Some deposits in Crimea (occupied 2014). Critical for steel & batteries.', 'partial', true, true],
+  ['Gallium','💡', 5, 5, 'Ukraine is world\'s 5th-largest gallium producer. Semiconductors, LEDs, solar cells. The same element China banned for US export Dec 2024.', 'safe', true, false],
+  ['Zirconium','⚗️', 4, 3, 'Co-located with titanium deposits in Zaporizhzhia. Used in nuclear fuel rods and advanced ceramics.', 'partial', true, false],
+  ['Coal','⛏️', 9, 2, 'World\'s top recoverable coal. BUT: 63% in Russian-occupied eastern regions. Increasingly irrelevant to green energy transition.', 'occupied', true, false],
+  ['Nickel','🔌', 0.4, 3, '215,000 tonnes. Kirovohrad & Dnipropetrovsk (both safe). EV batteries, alloys. Small global share but strategically located in Western-held territory.', 'safe', false, false],
+  ['Cobalt','⚡', 0.5, 3, '8,800 tonnes. Co-located with nickel in safe zones. EV battery cathodes. Small reserves but accessible.', 'safe', false, false],
+  ['Beryllium','🔬', 2, 3, 'One of few European sources. Used in nuclear, aerospace, X-ray windows. Exact reserves not commercially assessed.', 'safe', true, false],
+  ['Rare Earths','❌', 0, 5, 'NO PROVEN RESERVES. Claims of "$500B in rare earths" were "plucked from thin air" — Carnegie Endowment Apr 2025. S&P Global lists zero active projects. Resources may exist geologically but are commercially unproven.', 'safe', true, false],
+];
+
+const frontlineColors = {
+  'partial': 'b-partial',
+  'safe':    'b-safe',
+  'occupied':'b-occupied',
+  'frontline':'b-frontline'
+};
+const frontlineLabels = {
+  'partial': 'Partial occupation',
+  'safe':    'Ukrainian control',
+  'occupied':'Russian-occupied'
+};
+
+let currentMinFilter = 'all';
+function filterMin(f, btn) {
+  currentMinFilter = f;
+  document.querySelectorAll('.dc').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  renderMin();
+}
+function renderMin() {
+  let data = [...minerals];
+  if(currentMinFilter === 'occupied') data = data.filter(d => d[5]==='occupied'||d[5]==='partial');
+  if(currentMinFilter === 'safe') data = data.filter(d => d[5]==='safe');
+  if(currentMinFilter === 'strategic') data = data.filter(d => d[7]===true);
+  const si = parseInt(document.getElementById('minSort').value);
+  data.sort((a,b) => b[si]-a[si]);
+  const max = Math.max(...data.map(d=>d[2]));
+  document.getElementById('minBody').innerHTML = data.map(d => `
+    <tr>
+      <td><span style="font-size:18px;margin-right:8px">${d[1]}</span><span class="cname">${d[0]}</span></td>
+      <td>
+        <span style="font-weight:600;font-size:14px;color:${d[2]>0?'var(--ink)':'var(--ru-red)'}">${d[2]>0?d[2]+'%':'None proven'}</span>
+        ${d[2]>0?`<div class="bt"><div class="bf" style="width:${(d[2]/max*100).toFixed(0)}%;background:var(--gold)"></div></div>`:''}
+      </td>
+      <td style="font-size:${'★'.repeat(d[3])+'☆'.repeat(5-d[3])};color:var(--gold)">${'★'.repeat(d[3])}${'☆'.repeat(5-d[3])}</td>
+      <td style="font-size:12px;color:var(--muted);line-height:1.5;max-width:280px">${d[4]}</td>
+      <td><span class="badge ${frontlineColors[d[5]]}">${frontlineLabels[d[5]]}</span></td>
+      <td style="font-size:13px;text-align:center">${d[6]?'<span style="color:var(--green);font-weight:600">✓ Yes</span>':'<span style="color:var(--muted)">–</span>'}</td>
+    </tr>
+  `).join('');
+}
+renderMin();
+
+// ── ECI CHART ─────────────────────────────────────────────────────────
+new Chart(document.getElementById('eciChart'), {
+  type: 'bar',
+  data: {
+    labels: ['🇯🇵 Japan','🇰🇷 S.Korea','🇩🇪 Germany','🇺🇸 USA','🇬🇧 UK','🇫🇷 France','🇺🇦 Ukraine','🇷🇺 Russia'],
+    datasets: [{
+      data: [2.28, 2.21, 1.98, 1.47, 1.72, 1.44, 0.38, 0.94],
+      backgroundColor: ['rgba(90,200,250,.6)','rgba(90,200,250,.6)','rgba(90,200,250,.6)','rgba(90,200,250,.6)','rgba(90,200,250,.4)','rgba(90,200,250,.4)','rgba(0,91,187,.8)','rgba(139,53,53,.7)'],
+      borderColor: ['#5ac8fa','#5ac8fa','#5ac8fa','#5ac8fa','rgba(90,200,250,.5)','rgba(90,200,250,.5)','#4d9dff','#c05050'],
+      borderWidth: 1.5, borderRadius: 4,
+    }]
+  },
+  options: {
+    indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+    plugins: { legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ECI: ${ctx.parsed.x.toFixed(2)}`}} },
+    scales: {
+      x: { ticks:{color:'rgba(255,255,255,.4)',font:{family:'Inter',size:9}}, grid:{color:'rgba(255,255,255,.05)'}, min:0 },
+      y: { ticks:{color:'rgba(255,255,255,.7)',font:{family:'Inter',size:10}}, grid:{display:false} }
+    }
+  }
+});
+
+// ── PROCESSING CHART ─────────────────────────────────────────────────
+new Chart(document.getElementById('procChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Germany','USA','Japan','UK','France','Ukraine\n(pre-war)','Ukraine\n(2026)','Russia'],
+    datasets: [
+      { label:'Titanium processing', data:[8.2,7.8,9.1,6.5,6.0,3.5,1.8,4.2], backgroundColor:'rgba(184,136,30,.7)', borderRadius:3 },
+      { label:'Graphite/battery', data:[6.8,8.5,9.3,5.5,6.2,2.8,1.5,3.5], backgroundColor:'rgba(90,200,250,.6)', borderRadius:3 },
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{display:true,position:'bottom',labels:{color:'rgba(255,255,255,.5)',font:{family:'Inter',size:10},boxWidth:10,padding:12}}
+    },
+    scales:{
+      x:{ticks:{color:'rgba(255,255,255,.4)',font:{family:'Inter',size:9}},grid:{color:'rgba(255,255,255,.04)'}},
+      y:{min:0,max:10,ticks:{color:'rgba(255,255,255,.4)',font:{family:'Inter',size:9}},grid:{color:'rgba(255,255,255,.04)'},title:{display:true,text:'Processing capacity (0–10)',color:'rgba(255,255,255,.3)',font:{family:'Inter',size:9}}}
+    }
+  }
+});
+
+// ── SCENARIO CHART ────────────────────────────────────────────────────
+new Chart(document.getElementById('scenarioChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Ukrainian full restoration','Current frontline (status quo)','Russian territorial proposal\n(cede 4 oblasts + Crimea)'],
+    datasets: [{
+      label: '% of mineral wealth accessible to Ukraine',
+      data: [100, 58, 12],
+      backgroundColor: ['rgba(45,125,70,.7)','rgba(184,136,30,.7)','rgba(139,53,53,.7)'],
+      borderColor: ['#2D7D46','#B8881E','#8B3535'],
+      borderWidth: 1.5, borderRadius: 6,
+    }]
+  },
+  options: {
+    indexAxis: 'y', responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.parsed.x}% accessible`}}},
+    scales:{
+      x:{min:0,max:110,ticks:{color:'var(--muted)',font:{family:'Inter',size:9},callback:v=>v+'%'},grid:{color:'var(--border)'}},
+      y:{ticks:{color:'var(--muted)',font:{family:'Inter',size:10}},grid:{display:false}}
+    }
+  }
+});
+
+// ── TIMELINE CHART ────────────────────────────────────────────────────
+new Chart(document.getElementById('timelineChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Ceasefire + peace deal','Power infrastructure rebuild','Mine-to-ore (exploration)','Processing plants built','First commercial exports'],
+    datasets: [{
+      label:'Years from peace deal',
+      data: [0, 3, 5, 10, 15],
+      backgroundColor: ['rgba(45,125,70,.7)','rgba(184,136,30,.5)','rgba(184,136,30,.6)','rgba(184,136,30,.75)','rgba(184,136,30,.9)'],
+      borderColor: ['#2D7D46','#B8881E','#B8881E','#B8881E','#B8881E'],
+      borderWidth:1.5,borderRadius:4,
+    }]
+  },
+  options:{
+    indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`Year ${ctx.parsed.x} after peace deal`}}},
+    scales:{
+      x:{min:0,max:18,ticks:{color:'var(--muted)',font:{family:'Inter',size:9},callback:v=>`Year ${v}`},grid:{color:'var(--border)'}},
+      y:{ticks:{color:'var(--muted)',font:{family:'Inter',size:10},maxTicksLimit:5},grid:{display:false}}
+    }
+  }
+});
+</script>
+</body>
+</html>
