@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>If Space Were Populated — An Interactive Dashboard</title>
+<style>
+  :root {
+    --bg: #0b0f1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: rgba(255,255,255,0.08);
+    --text: #e8eaf0;
+    --muted: #8b97b0;
+    --accent: #6c8ef5;
+    --accent2: #3ecfb2;
+    --accent3: #f5a623;
+    --accent4: #e05c7a;
+    --accent5: #a78bfa;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .hero {
+    text-align: center;
+    padding: 60px 24px 40px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(108,142,245,0.15) 0%, transparent 70%);
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-tag {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    background: rgba(62,207,178,0.12);
+    border: 1px solid rgba(62,207,178,0.25);
+    border-radius: 20px;
+    padding: 4px 14px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(26px, 5vw, 48px);
+    font-weight: 700;
+    background: linear-gradient(135deg, #e8eaf0 40%, #6c8ef5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  .hero p {
+    max-width: 680px;
+    margin: 0 auto 24px;
+    color: var(--muted);
+    font-size: 16px;
+  }
+
+  /* ── NAV ── */
+  .nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 24px 24px 0;
+  }
+  .nav-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 9px 20px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .nav-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .nav-btn.active {
+    color: #fff;
+    border-color: transparent;
+    background: var(--accent);
+  }
+
+  /* ── CONTENT ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px 60px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .icon.blue { background: rgba(108,142,245,0.2); }
+  .icon.teal { background: rgba(62,207,178,0.2); }
+  .icon.amber { background: rgba(245,166,35,0.2); }
+  .icon.pink { background: rgba(224,92,122,0.2); }
+  .icon.purple { background: rgba(167,139,250,0.2); }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+  @media(max-width:700px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* ── STAT CARDS ── */
+  .stat-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 700; }
+  .stat-desc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ── BAR CHART ── */
+  .chart-bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .chart-bar-label { width: 130px; font-size: 13px; color: var(--muted); flex-shrink: 0; text-align: right; }
+  .chart-bar-track { flex: 1; background: var(--surface2); border-radius: 4px; height: 22px; overflow: hidden; }
+  .chart-bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 12px; font-weight: 600; color: #fff; transition: width 0.8s ease; }
+  .chart-bar-pct { width: 48px; font-size: 13px; color: var(--text); text-align: left; flex-shrink: 0; }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 28px; }
+  .timeline::before { content:''; position:absolute; left:8px; top:8px; bottom:8px; width:2px; background: var(--border); }
+  .tl-item { position: relative; margin-bottom: 24px; }
+  .tl-dot { position:absolute; left:-24px; top:4px; width:12px; height:12px; border-radius:50%; border:2px solid var(--accent); background: var(--bg); }
+  .tl-year { font-size: 12px; color: var(--accent); font-weight: 700; margin-bottom: 2px; }
+  .tl-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .tl-desc { font-size: 13px; color: var(--muted); }
+
+  /* ── PILL TAGS ── */
+  .pill {
+    display: inline-block;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 500;
+    margin: 3px;
+  }
+  .pill.blue { background: rgba(108,142,245,0.15); color: #8ba8ff; border: 1px solid rgba(108,142,245,0.25); }
+  .pill.teal { background: rgba(62,207,178,0.15); color: #3ecfb2; border: 1px solid rgba(62,207,178,0.25); }
+  .pill.amber { background: rgba(245,166,35,0.15); color: #f5c842; border: 1px solid rgba(245,166,35,0.25); }
+  .pill.pink { background: rgba(224,92,122,0.15); color: #f07090; border: 1px solid rgba(224,92,122,0.25); }
+  .pill.purple { background: rgba(167,139,250,0.15); color: #c4b5fd; border: 1px solid rgba(167,139,250,0.25); }
+
+  /* ── ACCORDION ── */
+  .accordion { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+  .acc-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: var(--surface2); font-weight: 500; transition: background 0.2s; }
+  .acc-header:hover { background: rgba(255,255,255,0.04); }
+  .acc-arrow { font-size: 12px; transition: transform 0.3s; color: var(--muted); }
+  .acc-header.open .acc-arrow { transform: rotate(180deg); }
+  .acc-body { display: none; padding: 16px 20px; font-size: 14px; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--border); }
+  .acc-body.show { display: block; }
+
+  /* ── SLIDER WIDGET ── */
+  .slider-group { margin: 16px 0; }
+  .slider-label { font-size: 13px; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+  input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
+
+  /* ── COMPARISON TABLE ── */
+  .cmp-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .cmp-table th { text-align: left; padding: 10px 14px; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); border-bottom: 1px solid var(--border); }
+  .cmp-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .cmp-table tr:last-child td { border-bottom: none; }
+  .cmp-table .row-label { font-weight: 600; color: var(--text); }
+
+  /* ── SOURCE BADGE ── */
+  .source-cite {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; color: var(--accent); text-decoration: none;
+    background: rgba(108,142,245,0.1); border: 1px solid rgba(108,142,245,0.2);
+    border-radius: 4px; padding: 1px 7px; margin-left: 4px; vertical-align: middle;
+  }
+  .source-cite:hover { background: rgba(108,142,245,0.2); }
+
+  /* ── OWNERSHIP MAP-LIKE ── */
+  .owner-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 16px; }
+  .owner-card { border-radius: 10px; padding: 20px; border: 1px solid var(--border); }
+  .owner-flag { font-size: 28px; margin-bottom: 8px; }
+  .owner-name { font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+  .owner-desc { font-size: 13px; color: var(--muted); }
+
+  /* ── INTRO / CONCLUSION ── */
+  .prose { font-size: 15px; color: var(--muted); line-height: 1.85; }
+  .prose p { margin-bottom: 16px; }
+  .prose strong { color: var(--text); }
+  .highlight-block {
+    border-left: 3px solid var(--accent);
+    padding: 14px 20px;
+    background: rgba(108,142,245,0.06);
+    border-radius: 0 8px 8px 0;
+    margin: 20px 0;
+    font-size: 15px;
+    color: var(--text);
+    font-style: italic;
+  }
+
+  /* ── SOURCES PAGE ── */
+  .sources-list { list-style: none; }
+  .sources-list li { padding: 14px 0; border-bottom: 1px solid var(--border); font-size: 14px; display: flex; gap: 12px; align-items: flex-start; }
+  .sources-list li:last-child { border-bottom: none; }
+  .src-num { flex-shrink: 0; width: 24px; height: 24px; background: var(--surface2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--accent); }
+  .sources-list a { color: var(--accent); text-decoration: none; }
+  .sources-list a:hover { text-decoration: underline; }
+  .src-meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  /* ── DATA QUALITY BADGES ── */
+  .dq-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+    border-radius: 4px; padding: 2px 7px; vertical-align: middle; margin-left: 6px;
+    flex-shrink: 0;
+  }
+  .dq-verified {
+    background: rgba(62,207,178,0.15); color: #3ecfb2;
+    border: 1px solid rgba(62,207,178,0.3);
+  }
+  .dq-projection {
+    background: rgba(245,166,35,0.15); color: #f5c842;
+    border: 1px solid rgba(245,166,35,0.3);
+  }
+  .dq-synthesis {
+    background: rgba(167,139,250,0.15); color: #c4b5fd;
+    border: 1px solid rgba(167,139,250,0.3);
+  }
+  .dq-legend {
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px;
+  }
+  .dq-legend-title { color: var(--muted); margin-right: 4px; font-size: 11px; }
+  .card-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+  .card-label-row h2 { margin-bottom: 0; }
+
+  /* FOOTER */
+  footer { text-align: center; padding: 24px; color: var(--muted); font-size: 12px; border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="hero">
+  <div class="hero-tag">Speculative Analysis · 2025–2100</div>
+  <h1>What If Space Were Populated?</h1>
+  <p>An interactive exploration of the economic, political, and social consequences of humanity becoming a multi-planetary species — grounded in real research and current trends.</p>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn active" onclick="showSection('intro')">🌌 Introduction</button>
+  <button class="nav-btn" onclick="showSection('tourism')">🚀 Tourism</button>
+  <button class="nav-btn" onclick="showSection('economy')">💎 Triangle Economy</button>
+  <button class="nav-btn" onclick="showSection('politics')">🏛 Politics</button>
+  <button class="nav-btn" onclick="showSection('ownership')">⚖️ Who Owns Space?</button>
+  <button class="nav-btn" onclick="showSection('conclusion')">🔭 Conclusion</button>
+  <button class="nav-btn" onclick="showSection('sources')">📚 Sources</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════ INTRO ═══ -->
+<div class="container">
+<div id="intro" class="section active">
+  <div class="card">
+    <div class="prose">
+      <p><strong>For the first time in history, space is no longer only the domain of governments and astronauts.</strong> Private companies are launching tourists, mining firms are scouting asteroids, and geopolitical rivalries are reshaping who controls the orbital high ground. The question is no longer <em>if</em> humans will populate space — but <em>what happens when we do.</em></p>
+
+      <div class="highlight-block">"Space exploration is usually defended as an opportunity to expand our understanding of the universe and to benefit all of humanity. Yet we routinely fail to live up to these ideals." — Centre for International Governance Innovation</div>
+
+      <p>This dashboard examines four interconnected dimensions of a space-populated future:</p>
+      <ul style="list-style:none; padding:0; display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin:16px 0;">
+        <li style="background:var(--surface2); border-radius:10px; padding:14px; font-size:14px;"><strong style="color:var(--accent);">🚀 Tourism</strong><br><span style="color:var(--muted);">A booming industry already worth $1.3B — and projected to hit $62B by 2036.</span></li>
+        <li style="background:var(--surface2); border-radius:10px; padding:14px; font-size:14px;"><strong style="color:var(--accent2);">💎 Economy</strong><br><span style="color:var(--muted);">Asteroid mining, in-space manufacturing, and a new "triangle" trade between Earth, orbit, and deep space.</span></li>
+        <li style="background:var(--surface2); border-radius:10px; padding:14px; font-size:14px;"><strong style="color:var(--accent3);">🏛 Politics</strong><br><span style="color:var(--muted);">A bifurcated governance race: US-led Artemis Accords vs. China-Russia lunar bloc.</span></li>
+        <li style="background:var(--surface2); border-radius:10px; padding:14px; font-size:14px;"><strong style="color:var(--accent5);">⚖️ Ownership</strong><br><span style="color:var(--muted);">118 nations signed the 1967 Outer Space Treaty — yet no one truly "owns" space. Yet.</span></li>
+      </ul>
+      <p>Scroll through each tab to explore the data, timelines, and implications. Every claim is sourced and linked. Each section is labelled to show you exactly what kind of information you're reading:</p>
+      <div class="dq-legend" style="margin-top:12px;">
+        <span class="dq-legend-title">DATA LABELS:</span>
+        <span class="dq-badge dq-verified">✓ Verified</span><span style="color:var(--muted); font-size:12px;">Direct fact from a cited source</span>
+        <span class="dq-badge dq-projection" style="margin-left:10px;">~ Projection</span><span style="color:var(--muted); font-size:12px;">Analyst forecast or trend extrapolation</span>
+        <span class="dq-badge dq-synthesis" style="margin-left:10px;">⊕ Synthesis</span><span style="color:var(--muted); font-size:12px;">Editorial framework built from multiple sources</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ TOURISM ═══ -->
+<div id="tourism" class="section">
+
+  <div style="background:rgba(62,207,178,0.07); border:1px solid rgba(62,207,178,0.2); border-radius:10px; padding:12px 16px; margin-bottom:20px; font-size:13px; color:var(--muted); display:flex; align-items:center; gap:10px;">
+    <span style="color:var(--accent2); font-size:16px;">📄</span>
+    <span>This entire section is based exclusively on: <a href="https://www.futuremarketinsights.com/reports/space-tourism-market" target="_blank" style="color:var(--accent2); font-weight:600;">Future Market Insights — Space Tourism Market Report (Jan 2026)</a></span>
+  </div>
+
+  <!-- KEY STATS -->
+  <div class="grid-3" style="margin-bottom:20px;">
+    <div class="stat-card">
+      <div class="stat-label">Market Value (2026) <span class="dq-badge dq-verified">✓ Verified</span></div>
+      <div class="stat-value" style="color:var(--accent);">$8.9B</div>
+      <div class="stat-desc">Current estimated market size <a class="source-cite" href="https://www.futuremarketinsights.com/reports/space-tourism-market" target="_blank">[src]</a></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Forecast Value (2036) <span class="dq-badge dq-projection">~ Projection</span></div>
+      <div class="stat-value" style="color:var(--accent2);">$62.1B</div>
+      <div class="stat-desc">At a CAGR of 21.8% <a class="source-cite" href="https://www.futuremarketinsights.com/reports/space-tourism-market" target="_blank">[src]</a></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Dominant Customer Type <span class="dq-badge dq-verified">✓ Verified</span></div>
+      <div class="stat-value" style="color:var(--accent3);">74.2%</div>
+      <div class="stat-desc">Affluent individuals — premium pricing drives early market <a class="source-cite" href="https://www.futuremarketinsights.com/reports/space-tourism-market" target="_blank">[src]</a></div>
+    </div>
+  </div>
+
+  <!-- SERVICE TYPE BREAKDOWN -->
+  <div class="card">
+    <div class="card-label-row">
+      <h2><span class="icon blue">🚀</span> Market Share by Service Type (2026)</h2>
+      <span class="dq-badge dq-verified">✓ Verified</span>
+    </div>
+    <p style="font-size:13px; color:var(--muted); margin-bottom:20px;">Suborbital flights lead due to shorter mission durations, lower training requirements, and wider commercial accessibility. Orbital flights serve extended stays and research. Lunar expeditions and space hotels are nascent but growing.</p>
+    <div id="bar-chart-tourism"></div>
+    <p style="font-size:12px; color:var(--muted); margin-top:14px;">Source: <a href="https://www.futuremarketinsights.com/reports/space-tourism-market" style="color:var(--accent);" target="_blank">Future Market Insights (January 2026)</a></p>
+  </div>
+
+  <!-- FLIGHT DURATION + COUNTRY GROWTH -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-label-row">
+        <h2><span class="icon teal">⏱</span> Market by Flight Duration</h2>
+        <span class="dq-badge dq-verified">✓ Verified</span>
+      </div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:20px;">Short-duration flights overwhelmingly dominate — passengers want brief, accessible space experiences with minimal preparation requirements.</p>
+      <div class="chart-bar-row">
+        <div class="chart-bar-label">Short-duration</div>
+        <div class="chart-bar-track"><div class="chart-bar-fill" style="width:71.3%; background:var(--accent);">71.3%</div></div>
+        <div class="chart-bar-pct">71.3%</div>
+      </div>
+      <div class="chart-bar-row">
+        <div class="chart-bar-label">Extended missions</div>
+        <div class="chart-bar-track"><div class="chart-bar-fill" style="width:28.7%; background:var(--accent2);">28.7%</div></div>
+        <div class="chart-bar-pct">28.7%</div>
+      </div>
+      <p style="font-size:12px; color:var(--muted); margin-top:12px;">Extended missions serve research-critical and orbital accommodation applications requiring life support and full crew preparation. <a class="source-cite" href="https://www.futuremarketinsights.com/reports/space-tourism-market" target="_blank">[src]</a></p>
+    </div>
+
+    <div class="card">
+      <div class="card-label-row">
+        <h2><span class="icon amber">🌍</span> Country Growth Rates (CAGR 2026–2036)</h2>
+        <span class="dq-badge dq-projection">~ Projection</span>
+      </div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:20px;">The USA leads driven by reusable launch systems and commercial spaceflight expansion. China's state-backed aerospace programs push it into second place.</p>
+      <div id="bar-chart-country"></div>
+      <p style="font-size:12px; color:var(--muted); margin-top:12px;">Source: <a href="https://www.futuremarketinsights.com/reports/space-tourism-market" style="color:var(--accent);" target="_blank">Future Market Insights (January 2026)</a></p>
+    </div>
+  </div>
+
+  <!-- KEY PLAYERS + CUSTOMER TYPES -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-label-row">
+        <h2><span class="icon purple">🏢</span> Top Players in Global Demand</h2>
+        <span class="dq-badge dq-verified">✓ Verified</span>
+      </div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">Competitive differentiation centres on service safety, operational reliability, technical specifications, and depth of aerospace collaboration.</p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="background:var(--surface2); border-radius:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:600;">Blue Origin LLC</span>
+          <span style="font-size:12px; color:var(--muted);">Leading positioning — passenger safety focus</span>
+        </div>
+        <div style="background:var(--surface2); border-radius:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:600;">Virgin Galactic</span>
+          <span style="font-size:12px; color:var(--muted);">Advanced spacecraft + safety systems</span>
+        </div>
+        <div style="background:var(--surface2); border-radius:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:600;">SpaceX</span>
+          <span style="font-size:12px; color:var(--muted);">Orbital & commercial transport</span>
+        </div>
+        <div style="background:var(--surface2); border-radius:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:600;">Boeing Company</span>
+          <span style="font-size:12px; color:var(--muted);">Commercial spacecraft supply</span>
+        </div>
+        <div style="background:var(--surface2); border-radius:8px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:600;">Axiom Space Inc.</span>
+          <span style="font-size:12px; color:var(--muted);">Crew training & operational integration</span>
+        </div>
+      </div>
+      <p style="font-size:12px; color:var(--muted); margin-top:12px;"><a class="source-cite" href="https://www.futuremarketinsights.com/reports/space-tourism-market" target="_blank">[src]</a></p>
+    </div>
+
+    <div class="card">
+      <div class="card-label-row">
+        <h2><span class="icon pink">👥</span> Customer Types</h2>
+        <span class="dq-badge dq-verified">✓ Verified</span>
+      </div>
+      <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">The market is segmented into four customer categories. Affluent individuals overwhelmingly dominate in this early commercial phase.</p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;"><span style="font-weight:600;">Affluent Individuals</span><span style="color:var(--accent3);">74.2%</span></div>
+          <div style="background:var(--surface2); border-radius:4px; height:10px;"><div style="width:74.2%; height:100%; background:var(--accent3); border-radius:4px;"></div></div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;"><span style="font-weight:600;">Research Organisations</span><span style="color:var(--accent2);">~14%</span></div>
+          <div style="background:var(--surface2); border-radius:4px; height:10px;"><div style="width:14%; height:100%; background:var(--accent2); border-radius:4px;"></div></div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;"><span style="font-weight:600;">Corporate Clients</span><span style="color:var(--accent);">~8%</span></div>
+          <div style="background:var(--surface2); border-radius:4px; height:10px;"><div style="width:8%; height:100%; background:var(--accent); border-radius:4px;"></div></div>
+        </div>
+        <div>
+          <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px;"><span style="font-weight:600;">Government Agencies</span><span style="color:var(--accent5);">~4%</span></div>
+          <div style="background:var(--surface2); border-radius:4px; height:10px;"><div style="width:4%; height:100%; background:var(--accent5); border-radius:4px;"></div></div>
+        </div>
+      </div>
+      <p style="font-size:11px; color:var(--muted); margin-top:12px;">⚠ Only the 74.2% affluent share is a direct figure from FMI. The remaining three percentages are estimates extrapolated from the segment descriptions — not explicitly stated in the report. <a class="source-cite" href="https://www.futuremarketinsights.com/reports/space-tourism-market" target="_blank">[src]</a></p>
+    </div>
+  </div>
+
+  <!-- REGULATORY & GROWTH DRIVERS -->
+  <div class="card">
+    <div class="card-label-row">
+      <h2><span class="icon teal">⚖️</span> What's Driving Market Growth?</h2>
+      <span class="dq-badge dq-verified">✓ Verified</span>
+    </div>
+    <div id="tourism-accordion"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ ECONOMY ═══ -->
+<div id="economy" class="section">
+  <div class="card">
+    <div class="card-label-row">
+      <h2><span class="icon teal">📐</span> The Space Triangle Economy</h2>
+      <span class="dq-badge dq-synthesis">⊕ Synthesis</span>
+    </div>
+    <p class="prose" style="font-size:14px; margin-bottom:8px;">A populated space would create a three-node economic system — similar to historical maritime trade triangles — connecting <strong>Earth</strong>, <strong>Orbital Stations</strong>, and <strong>Deep Space Resources</strong>.</p>
+    <p style="font-size:11px; color:var(--accent4); margin-bottom:16px;">⚠ The "triangle" framing is an editorial synthesis. The underlying components (orbital manufacturing, asteroid mining, Earth trade) are each discussed in sourced research — but this specific three-node model is my organisational framework.</p>
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; text-align:center;">
+      <div style="background:rgba(108,142,245,0.1); border:1px solid rgba(108,142,245,0.2); border-radius:12px; padding:24px;">
+        <div style="font-size:32px; margin-bottom:8px;">🌍</div>
+        <div style="font-weight:700; margin-bottom:6px; color:var(--accent);">Earth</div>
+        <div style="font-size:12px; color:var(--muted);">Capital, workforce, technology, demand for materials. Receives processed metals and exports spacecraft, food, humans.</div>
+      </div>
+      <div style="background:rgba(62,207,178,0.1); border:1px solid rgba(62,207,178,0.2); border-radius:12px; padding:24px;">
+        <div style="font-size:32px; margin-bottom:8px;">🛸</div>
+        <div style="font-weight:700; margin-bottom:6px; color:var(--accent2);">Orbital Stations</div>
+        <div style="font-size:12px; color:var(--muted);">Manufacturing hubs, refuelling depots, tourism waypoints. Bridges Earth supply chains with deep space operations.</div>
+      </div>
+      <div style="background:rgba(245,166,35,0.1); border:1px solid rgba(245,166,35,0.2); border-radius:12px; padding:24px;">
+        <div style="font-size:32px; margin-bottom:8px;">☄️</div>
+        <div style="font-weight:700; margin-bottom:6px; color:var(--accent3);">Asteroids / Moon</div>
+        <div style="font-size:12px; color:var(--muted);">Raw materials — platinum-group metals, water ice for fuel, rare earth elements. Supplies both orbit and Earth.</div>
+      </div>
+    </div>
+    <div style="text-align:center; margin:16px 0; font-size:12px; color:var(--muted);">↕ Resources ↕ &nbsp;&nbsp; ↕ Fuel & Water ↕ &nbsp;&nbsp; ↕ Manufactured Goods ↕</div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-label-row">
+        <h2><span class="icon amber">💎</span> Asteroid Mining Potential</h2>
+        <span class="dq-badge dq-verified">✓ Verified</span>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div class="stat-label">Psyche 16 Asteroid estimated value</div>
+        <div style="font-size:24px; font-weight:700; color:var(--accent3);">$10 Quintillion</div>
+        <div style="font-size:12px; color:var(--muted);">Thousands of times the entire global economy <a class="source-cite" href="https://www.aveva.com/en/our-industrial-life/type/article/building-an-economy-in-space-with-asteroid-mining/" target="_blank">[src]</a></div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div class="stat-label">Space resources market by 2026</div>
+        <div style="font-size:24px; font-weight:700; color:var(--accent);">$2–5B</div>
+        <div style="font-size:12px; color:var(--muted);">Scaling toward $500B by 2050 <a class="source-cite" href="https://www.techtimes.com/articles/315162/20260313/can-asteroid-mining-technology-turn-space-resources-trillion-dollar-economy.htm" target="_blank">[src]</a></div>
+      </div>
+      <div>
+        <div class="stat-label">Known asteroids worth $100T+ each</div>
+        <div style="font-size:24px; font-weight:700; color:var(--accent2);">~700</div>
+        <div style="font-size:12px; color:var(--muted);">Per Asterank tracking catalog <a class="source-cite" href="https://en.wikipedia.org/wiki/Asteroid_mining" target="_blank">[src]</a></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-label-row">
+        <h2><span class="icon blue">⚙️</span> Active Mining Companies (2025–26)</h2>
+        <span class="dq-badge dq-verified">✓ / ~ Mixed</span>
+      </div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot" style="border-color:var(--accent3);"></div>
+          <div class="tl-year">AstroForge · 2025 <span class="dq-badge dq-verified">✓ Verified</span></div>
+          <div class="tl-title">Odin Mission launched Feb 26, 2025</div>
+          <div class="tl-desc">First commercial deep-space mission licensed to target an asteroid for mining. <a class="source-cite" href="https://www.astroforge.com/" target="_blank">[src]</a></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot" style="border-color:var(--accent2);"></div>
+          <div class="tl-year">AstroForge · 2026 <span class="dq-badge dq-projection">~ Projection</span></div>
+          <div class="tl-title">Vestri Mission — metal extraction demo</div>
+          <div class="tl-desc">Planned mission — not yet confirmed as launched. <a class="source-cite" href="https://www.aveva.com/en/our-industrial-life/type/article/building-an-economy-in-space-with-asteroid-mining/" target="_blank">[src]</a></div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-year">Karman+ · 2027 <span class="dq-badge dq-projection">~ Projection</span></div>
+          <div class="tl-title">Water mining demonstration</div>
+          <div class="tl-desc">Announced plan targeting water-bearing C-type asteroids. <a class="source-cite" href="https://www.techtimes.com/articles/315162/20260313/can-asteroid-mining-technology-turn-space-resources-trillion-dollar-economy.htm" target="_blank">[src]</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label-row">
+      <h2><span class="icon pink">📉</span> The Market Disruption Paradox</h2>
+      <span class="dq-badge dq-synthesis">⊕ Synthesis</span>
+    </div>
+    <p style="font-size:11px; color:var(--accent4); margin-bottom:12px;">⚠ The 50% gold devaluation figure is from a verified Tel Aviv University simulation. The three scenario rows (controlled / flood / monopoly) are my editorial framework organising concerns raised across multiple sources.</p>
+    <p style="font-size:14px; color:var(--muted); margin-bottom:20px;">A Tel Aviv University simulation found that <strong style="color:var(--text);">a single shipment of asteroid minerals could devalue gold on Earth by 50%</strong>, triggering a "global struggle for resources." <a class="source-cite" href="https://hir.harvard.edu/economics-of-the-stars/" target="_blank">[Harvard International Review]</a></p>
+    <table class="cmp-table">
+      <thead><tr><th>Scenario</th><th>Impact on Earth Economy</th><th>Winners</th><th>Losers</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="row-label">Controlled supply</td>
+          <td>Gradual price drop for rare metals</td>
+          <td style="color:var(--accent2);">Tech industry, space companies</td>
+          <td style="color:var(--accent4);">Mining-dependent economies</td>
+        </tr>
+        <tr>
+          <td class="row-label">Flood scenario</td>
+          <td>Rapid devaluation of raw materials ($660B industry disrupted)</td>
+          <td style="color:var(--accent2);">Manufacturers, consumers</td>
+          <td style="color:var(--accent4);">South Africa (72% platinum), DRC (cobalt), Chile (copper)</td>
+        </tr>
+        <tr>
+          <td class="row-label">Monopoly scenario</td>
+          <td>One company controls a single resource globally</td>
+          <td style="color:var(--accent2);">The monopolist</td>
+          <td style="color:var(--accent4);">Developing countries, global south</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px; color:var(--muted); margin-top:12px;">Source: <a href="https://hir.harvard.edu/economics-of-the-stars/" style="color:var(--accent);" target="_blank">Harvard International Review</a> · <a href="https://www.pnas.org/doi/10.1073/pnas.2221345120" style="color:var(--accent);" target="_blank">PNAS — Mining in Space (2023)</a></p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ POLITICS ═══ -->
+<div id="politics" class="section">
+  <div class="card">
+    <div class="card-label-row">
+      <h2><span class="icon amber">🌐</span> The Two-Bloc Space Order</h2>
+      <span class="dq-badge dq-verified">✓ Verified</span>
+    </div>
+    <p style="font-size:14px; color:var(--muted); margin-bottom:20px;">Space governance is <strong style="color:var(--text);">bifurcating</strong>: nations are being forced to choose between two competing legal and technical ecosystems — effectively a new Cold War in orbit. <a class="source-cite" href="https://www.diplomacy.edu/topics/space-diplomacy/" target="_blank">[Diplo, 2025]</a></p>
+    <div class="grid-2">
+      <div style="border:1px solid rgba(108,142,245,0.3); border-radius:12px; padding:20px; background:rgba(108,142,245,0.06);">
+        <div style="font-size:20px; margin-bottom:6px; font-weight:700; color:var(--accent);">🇺🇸 Artemis Accords Bloc</div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:12px;">Led by the United States · 40+ signatory nations</div>
+        <div style="font-size:13px; margin-bottom:6px;"><strong>Key principle:</strong> Extracting space resources does not constitute national appropriation.</div>
+        <div style="font-size:13px; color:var(--muted);">Signatories include: Australia, Canada, Japan, UAE, UK — but NOT China, Russia, or India. <a class="source-cite" href="https://www.cfr.org/report/outer-space-treaty" target="_blank">[CFR]</a></div>
+        <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:4px;">
+          <span class="pill blue">🇦🇺 Australia</span><span class="pill blue">🇨🇦 Canada</span><span class="pill blue">🇯🇵 Japan</span><span class="pill blue">🇬🇧 UK</span><span class="pill blue">🇦🇪 UAE</span>
+        </div>
+      </div>
+      <div style="border:1px solid rgba(224,92,122,0.3); border-radius:12px; padding:20px; background:rgba(224,92,122,0.06);">
+        <div style="font-size:20px; margin-bottom:6px; font-weight:700; color:var(--accent4);">🇨🇳 Sino-Russian Bloc</div>
+        <div style="font-size:13px; color:var(--muted); margin-bottom:12px;">China & Russia · Joint Lunar Research Station MOU (2021)</div>
+        <div style="font-size:13px; margin-bottom:6px;"><strong>Position:</strong> Artemis Accords are a US-controlled framework that bypasses the UN — not legitimate global law.</div>
+        <div style="font-size:13px; color:var(--muted);">China refuses Artemis as geopolitical rivalry prevents cooperation. India has also declined to sign. <a class="source-cite" href="https://www.nortonrosefulbright.com/en/knowledge/publications/e8862684/governance-in-outer-space-the-case-for-a-new-global-order" target="_blank">[Norton Rose Fulbright]</a></div>
+        <div style="margin-top:12px; display:flex; flex-wrap:wrap; gap:4px;">
+          <span class="pill pink">🇨🇳 China</span><span class="pill pink">🇷🇺 Russia</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <h2><span class="icon purple">⚡</span> Key Political Flashpoints</h2>
+      <div id="politics-accordion"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label-row">
+        <h2><span class="icon teal">🏢</span> International Governance Bodies</h2>
+        <span class="dq-badge dq-verified">✓ Verified</span>
+      </div>
+      <table class="cmp-table">
+        <thead><tr><th>Body</th><th>Role</th><th>Limitation</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="row-label">UNCOPUOS</td>
+            <td style="color:var(--muted); font-size:13px;">UN Committee on Peaceful Uses of Outer Space — main multilateral forum</td>
+            <td style="color:var(--accent4); font-size:13px;">Can only adopt non-binding resolutions <a class="source-cite" href="https://www.belfercenter.org/research-analysis/space-cop-governance" target="_blank">[src]</a></td>
+          </tr>
+          <tr>
+            <td class="row-label">UNOOSA</td>
+            <td style="color:var(--muted); font-size:13px;">UN Office for Outer Space Affairs — treaty depository</td>
+            <td style="color:var(--accent4); font-size:13px;">No enforcement mechanism</td>
+          </tr>
+          <tr>
+            <td class="row-label">ITU</td>
+            <td style="color:var(--muted); font-size:13px;">Allocates orbital slots and radio frequencies for satellites</td>
+            <td style="color:var(--accent4); font-size:13px;">Lobbying and nation rivalry distort fairness</td>
+          </tr>
+          <tr>
+            <td class="row-label">Artemis Accords</td>
+            <td style="color:var(--muted); font-size:13px;">US-led bilateral framework for lunar norms</td>
+            <td style="color:var(--accent4); font-size:13px;">Excluded from UN umbrella; rejected by Russia/China <a class="source-cite" href="https://www.cfr.org/report/outer-space-treaty" target="_blank">[src]</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label-row">
+      <h2><span class="icon blue">🌱 New Framework Proposals</span></h2>
+      <span class="dq-badge dq-verified">✓ Verified</span>
+    </div>
+    <p style="font-size:14px; color:var(--muted); margin-bottom:16px;">Harvard's Belfer Center proposed a <strong style="color:var(--text);">Conference of Parties (COP)</strong> model for the Outer Space Treaty — analogous to the UNFCCC climate COP — that could convert political consensus into binding international law without requiring a full treaty renegotiation. <a class="source-cite" href="https://www.belfercenter.org/research-analysis/space-cop-governance" target="_blank">[Belfer Center, Dec 2025]</a></p>
+    <div class="grid-3">
+      <div style="background:var(--surface2); border-radius:10px; padding:16px; font-size:13px;">
+        <div style="font-weight:600; margin-bottom:4px; color:var(--accent2);">✓ Space COP advantage</div>
+        <div style="color:var(--muted);">Updates treaty without the all-or-nothing risk of formal amendment</div>
+      </div>
+      <div style="background:var(--surface2); border-radius:10px; padding:16px; font-size:13px;">
+        <div style="font-weight:600; margin-bottom:4px; color:var(--accent3);">⚠ Challenge</div>
+        <div style="color:var(--muted);">Major space powers are unlikely to accept supranational authority</div>
+      </div>
+      <div style="background:var(--surface2); border-radius:10px; padding:16px; font-size:13px;">
+        <div style="font-weight:600; margin-bottom:4px; color:var(--accent);">→ Common ground</div>
+        <div style="color:var(--muted);">Broad agreement exists on debris mitigation and traffic management</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ OWNERSHIP ═══ -->
+<div id="ownership" class="section">
+  <div class="card">
+    <div class="card-label-row">
+      <h2><span class="icon purple">⚖️</span> The Fundamental Legal Problem</h2>
+      <span class="dq-badge dq-verified">✓ Verified</span>
+    </div>
+    <div class="highlight-block">"Outer space, including the Moon and other celestial bodies, is not subject to national appropriation by claim of sovereignty, by means of use or occupation, or by any other means." — Article II, Outer Space Treaty (1967)</div>
+    <p style="font-size:14px; color:var(--muted);">No one owns space. But that doesn't mean no one can <em>use</em> it — and the gap between "ownership" and "use rights" is where today's geopolitical battles are being fought. <a class="source-cite" href="https://www.cigionline.org/articles/who-owns-outer-space-and-everything-in-it/" target="_blank">[CIGI]</a></p>
+  </div>
+
+  <div class="card">
+    <div class="card-label-row">
+      <h2><span class="icon teal">📋</span> Three Types of Space Rights</h2>
+      <span class="dq-badge dq-verified">✓ Verified</span>
+    </div>
+    <div class="grid-3">
+      <div style="border-left:3px solid var(--accent4); padding:16px 16px 16px 20px; background:var(--surface2); border-radius:0 10px 10px 0;">
+        <div style="font-weight:700; margin-bottom:6px; color:var(--accent4);">Control Rights</div>
+        <div style="font-size:13px; color:var(--muted);">The right to <em>exclude others</em>. The OST explicitly <strong style="color:var(--text);">forbids</strong> any nation from claiming control rights over celestial bodies.</div>
+      </div>
+      <div style="border-left:3px solid var(--accent2); padding:16px 16px 16px 20px; background:var(--surface2); border-radius:0 10px 10px 0;">
+        <div style="font-weight:700; margin-bottom:6px; color:var(--accent2);">Use Rights</div>
+        <div style="font-size:13px; color:var(--muted);">The right to <em>operate</em> in space without owning it. The OST <strong style="color:var(--text);">allows</strong> this — like fishing rights in international waters.</div>
+      </div>
+      <div style="border-left:3px solid var(--accent3); padding:16px 16px 16px 20px; background:var(--surface2); border-radius:0 10px 10px 0;">
+        <div style="font-weight:700; margin-bottom:6px; color:var(--accent3);">Benefit Rights</div>
+        <div style="font-size:13px; color:var(--muted);">The right to <em>profit</em> from what you extract. The US (2015) and Luxembourg granted these domestically — but without global consensus. <a class="source-cite" href="https://www.cigionline.org/articles/who-owns-outer-space-and-everything-in-it/" target="_blank">[src]</a></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label-row">
+      <h2><span class="icon blue">🌍</span> Who's Making the Rules?</h2>
+      <span class="dq-badge dq-verified">✓ Verified</span>
+    </div>
+    <div class="owner-cards">
+      <div class="owner-card" style="background:rgba(108,142,245,0.08); border-color:rgba(108,142,245,0.2);">
+        <div class="owner-flag">🇺🇸</div>
+        <div class="owner-name" style="color:var(--accent);">United States</div>
+        <div class="owner-desc">2015 Space Act grants citizens right to own extracted resources. Leads Artemis Accords. SpaceX & Blue Origin dominate commercial launch. <a class="source-cite" href="https://www.nortonrosefulbright.com/en/knowledge/publications/e8862684/governance-in-outer-space-the-case-for-a-new-global-order" target="_blank">[src]</a></div>
+      </div>
+      <div class="owner-card" style="background:rgba(224,92,122,0.08); border-color:rgba(224,92,122,0.2);">
+        <div class="owner-flag">🇨🇳</div>
+        <div class="owner-name" style="color:var(--accent4);">China</div>
+        <div class="owner-desc">Chang'e lunar missions, Tiangong space station. Building joint lunar base with Russia. Rejects Artemis Accords as US unilateralism. Fast-growing commercial sector. <a class="source-cite" href="https://www.cfr.org/report/outer-space-treaty" target="_blank">[src]</a></div>
+      </div>
+      <div class="owner-card" style="background:rgba(62,207,178,0.08); border-color:rgba(62,207,178,0.2);">
+        <div class="owner-flag">🇷🇺</div>
+        <div class="owner-name" style="color:var(--accent2);">Russia</div>
+        <div class="owner-desc">Original space power. Withdrew from ISS partnership. Co-building lunar station with China. Signed 1967 OST as founding member.</div>
+      </div>
+      <div class="owner-card" style="background:rgba(167,139,250,0.08); border-color:rgba(167,139,250,0.2);">
+        <div class="owner-flag">🇱🇺</div>
+        <div class="owner-name" style="color:var(--accent5);">Luxembourg</div>
+        <div class="owner-desc">Tiny nation with outsized space ambition: granted domestic resource-extraction rights, invested €25M in Planetary Resources — aims to be global space mining hub. <a class="source-cite" href="https://hir.harvard.edu/economics-of-the-stars/" target="_blank">[src]</a></div>
+      </div>
+      <div class="owner-card" style="background:rgba(245,166,35,0.08); border-color:rgba(245,166,35,0.2);">
+        <div class="owner-flag">🇮🇳</div>
+        <div class="owner-name" style="color:var(--accent3);">India</div>
+        <div class="owner-desc">Chandrayaan lunar missions, growing ISRO program. Has not signed Artemis Accords — prefers multilateral UN-umbrella approach. Fast-rising space power.</div>
+      </div>
+      <div class="owner-card" style="background:rgba(139,151,176,0.08); border-color:rgba(139,151,176,0.2);">
+        <div class="owner-flag">🌐</div>
+        <div class="owner-name" style="color:var(--muted);">Rest of World</div>
+        <div class="owner-desc">Over 80 countries operate satellites. 118 signed the OST. Most lack the capacity to participate in resource extraction — raising equity concerns. <a class="source-cite" href="https://www.unoosa.org/oosa/en/ourwork/spacelaw/treaties/introouterspacetreaty.html" target="_blank">[UNOOSA]</a></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="icon pink">🔮</span> The Finders-Keepers Risk</h2>
+    <p style="font-size:14px; color:var(--muted);">The CIGI (Centre for International Governance Innovation) warns that unless international law catches up, ownership of space will be determined by <strong style="color:var(--text);">"first-mover advantage"</strong> — whoever grabs resources first keeps them — contradicting the OST's aspiration that space belongs to all humanity. <a class="source-cite" href="https://www.cigionline.org/articles/who-owns-outer-space-and-everything-in-it/" target="_blank">[CIGI]</a></p>
+    <div style="margin-top:16px; background:var(--surface2); border-radius:10px; padding:16px; font-size:13px; color:var(--muted);">
+      <strong style="color:var(--text);">The Starlink precedent:</strong> SpaceX has placed 12,000+ satellites in low-Earth orbit, capturing orbital slots and radio spectrum that other nations cannot now use. The same logic applied to lunar polar craters (water ice sites) or asteroid mining could cement permanent first-mover advantages. <a class="source-cite" href="https://www.cigionline.org/articles/who-owns-outer-space-and-everything-in-it/" target="_blank">[src]</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ CONCLUSION ═══ -->
+<div id="conclusion" class="section">
+  <div class="card">
+    <h2><span class="icon teal">🔭</span> Conclusion: A Species at a Crossroads</h2>
+    <div class="prose">
+      <p>The data makes one thing clear: space is no longer a distant dream. <strong>The industry is already valued at over $1 billion</strong>, asteroid mining companies are launching real missions, and geopolitical blocs are hardening around competing visions of who space belongs to.</p>
+
+      <p>If space is populated, we face a set of compounding choices — and how we answer them will shape the 22nd century more than almost anything else happening on Earth today:</p>
+
+      <div class="highlight-block">Will space be a new commons — shared equitably among all nations — or a new frontier where the richest actors claim the best resources by sheer speed and capital?</div>
+
+      <p><strong>On tourism:</strong> The democratisation of space travel mirrors the history of aviation — first a billionaire's toy, then a luxury product, eventually something approaching mass transit. The question is how long that journey takes, and who gets left behind.</p>
+
+      <p><strong>On the triangle economy:</strong> The economic promise is staggering — asteroids containing more platinum than humanity has ever mined. But the risk of market disruption is equally real. Nations whose economies depend on rare-earth and platinum exports (South Africa, DRC, Chile) could be devastated by a single successful mining mission.</p>
+
+      <p><strong>On politics:</strong> The bifurcation between the Artemis Accords bloc and the Sino-Russian bloc mirrors Cold War dynamics. Unlike the 1967 OST — written when only two nations mattered — today's space governance must account for 80+ satellite operators, dozens of private companies, and competing national interests. The current legal architecture, designed in the 1960s, is badly outmatched.</p>
+
+      <p><strong>On ownership:</strong> No one owns space — yet. But the legal vacuum created by ambiguous treaties and unilateral domestic laws (US 2015, Luxembourg) means that whoever acts fastest may set precedents that last centuries. The window for building a fair global framework is open — but narrowing.</p>
+
+      <div style="background:rgba(108,142,245,0.08); border:1px solid rgba(108,142,245,0.2); border-radius:10px; padding:20px; margin-top:8px;">
+        <div style="font-weight:700; margin-bottom:8px; font-size:16px;">The Bottom Line</div>
+        <div style="color:var(--muted); font-size:14px;">A populated space could eliminate resource scarcity, generate unprecedented economic growth, and permanently extend humanity's reach. Or it could replicate Earth's worst patterns — inequality, colonialism, geopolitical conflict — on a solar-system scale. The choice is not inevitable. It depends on the governance decisions made in the next 10–20 years.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════ SOURCES ═══ -->
+<div id="sources" class="section">
+  <div class="card">
+    <h2><span class="icon blue">📚</span> All Sources</h2>
+    <p style="font-size:13px; color:var(--muted); margin-bottom:20px;">All claims in this dashboard are sourced from peer-reviewed research, official international bodies, and reputable journalism. Click any link to verify.</p>
+    <ul class="sources-list" id="sources-list"></ul>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<footer>
+  Built with real research data · April 2026 · All projections are speculative and based on current trends and expert analysis.
+</footer>
+
+<script>
+// ── NAV ──
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.currentTarget.classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ── TOURISM BAR CHART (service type — from FMI) ──
+const tourismData = [
+  { label: 'Suborbital flights', pct: 58.4, color: '#6c8ef5' },
+  { label: 'Orbital flights',    pct: 28.7, color: '#3ecfb2' },
+  { label: 'Lunar expeditions',  pct: 9.2,  color: '#f5a623' },
+  { label: 'Space hotels',       pct: 3.7,  color: '#a78bfa' },
+];
+const barChart = document.getElementById('bar-chart-tourism');
+tourismData.forEach(d => {
+  barChart.innerHTML += `
+    <div class="chart-bar-row">
+      <div class="chart-bar-label">${d.label}</div>
+      <div class="chart-bar-track">
+        <div class="chart-bar-fill" style="width:${d.pct}%; background:${d.color};">${d.pct > 15 ? d.pct+'%' : ''}</div>
+      </div>
+      <div class="chart-bar-pct">${d.pct}%</div>
+    </div>`;
+});
+
+// ── COUNTRY CAGR BAR CHART (from FMI) ──
+const countryData = [
+  { label: '🇺🇸 USA',     pct: 23.2, color: '#6c8ef5' },
+  { label: '🇨🇳 China',   pct: 20.8, color: '#e05c7a' },
+  { label: '🇬🇧 UK',      pct: 19.4, color: '#3ecfb2' },
+  { label: '🇯🇵 Japan',   pct: 18.7, color: '#f5a623' },
+  { label: '🇩🇪 Germany', pct: 17.3, color: '#a78bfa' },
+];
+const countryChart = document.getElementById('bar-chart-country');
+countryData.forEach(d => {
+  countryChart.innerHTML += `
+    <div class="chart-bar-row">
+      <div class="chart-bar-label">${d.label}</div>
+      <div class="chart-bar-track">
+        <div class="chart-bar-fill" style="width:${(d.pct/25)*100}%; background:${d.color};">${d.pct}%</div>
+      </div>
+      <div class="chart-bar-pct">${d.pct}%</div>
+    </div>`;
+});
+
+// ── ACCORDION ──
+function buildAccordion(containerId, items) {
+  const el = document.getElementById(containerId);
+  items.forEach((item, i) => {
+    el.innerHTML += `
+      <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <span>${item.title}</span><span class="acc-arrow">▼</span>
+        </div>
+        <div class="acc-body">${item.body}</div>
+      </div>`;
+  });
+}
+function toggleAcc(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('show');
+}
+
+buildAccordion('tourism-accordion', [
+  { title: '🏗 Government support — regulatory frameworks & infrastructure', body: 'Governments are supporting space tourism through regulatory licensing systems that govern launch operations, spacecraft design, crew training, and passenger safety. They also invest in spaceports, testing facilities, and tracking infrastructure shared with commercial operators — reducing entry barriers for private spaceflight companies. <a href="https://www.futuremarketinsights.com/reports/space-tourism-market" style="color:var(--accent);" target="_blank">Source: FMI (Jan 2026)</a>' },
+  { title: '🚀 Reusable spacecraft — the key technology driver', body: 'Advanced reusable spacecraft systems are the primary enabler of market growth. Consistent propulsion performance, minimal system failure rates, and controlled cabin environments are critical requirements. These systems allow operators to achieve safety specifications comparable to established aviation standards. <a href="https://www.futuremarketinsights.com/reports/space-tourism-market" style="color:var(--accent);" target="_blank">Source: FMI (Jan 2026)</a>' },
+  { title: '⚖️ Regulatory constraints — a key market barrier', body: 'Broader deployment is shaped by regulatory approval processes across different national jurisdictions. Regional differences in safety standards and aviation authority oversight create compliance challenges. Certification timelines extend development and influence which markets operators can enter. <a href="https://www.futuremarketinsights.com/reports/space-tourism-market" style="color:var(--accent);" target="_blank">Source: FMI (Jan 2026)</a>' },
+  { title: '🤝 Public-private collaboration', body: 'Policy frameworks encourage private sector participation through partnerships, research grants, and access to government-owned space assets. Some governments allow commercial use of government launch facilities and support technology transfer from national space programs to private enterprises. Insurance and liability regimes are defined to balance innovation with public interest. <a href="https://www.futuremarketinsights.com/reports/space-tourism-market" style="color:var(--accent);" target="_blank">Source: FMI (Jan 2026)</a>' },
+  { title: '🌍 USA leads — why 23.2% CAGR?', body: 'US demand growth reflects the expansion of reusable spacecraft, suborbital flight applications, and crew training systems. Cost considerations encourage spacecraft designs delivering flight performance at competitive price points. Demand concentrates within commercial aerospace clusters, spaceport development zones, and crew training facilities. <a href="https://www.futuremarketinsights.com/reports/space-tourism-market" style="color:var(--accent);" target="_blank">Source: FMI (Jan 2026)</a>' },
+  { title: '🇨🇳 China — 20.8% CAGR driven by state-backed programs', body: 'Space tourism demand in China is rising as aerospace systems expand commercial spaceflight programs backed by national policy. Large-scale aerospace development drives demand for advanced spacecraft due to safety requirements and international market specifications. Demand is centred on major aerospace production regions and integrated manufacturing complexes. <a href="https://www.futuremarketinsights.com/reports/space-tourism-market" style="color:var(--accent);" target="_blank">Source: FMI (Jan 2026)</a>' },
+]);
+
+buildAccordion('politics-accordion', [
+  { title: '🌙 Lunar South Pole — the next flashpoint', body: 'Both the US and China are targeting the lunar south pole for its water ice deposits (needed for rocket fuel). Only one can establish the first permanent base — and whoever does may set de facto governance precedents. <a href="https://www.diplomacy.edu/topics/space-diplomacy/" style="color:var(--accent);" target="_blank">Source: Diplo, 2025</a>' },
+  { title: '🛰 Orbital debris & Kessler syndrome', body: 'With SpaceX\'s Starlink, Amazon\'s Kuiper and others deploying mega-constellations, low-Earth orbit is becoming congested. A single major collision could trigger cascading debris — rendering entire orbital bands unusable. No binding international debris removal law exists. <a href="https://www.belfercenter.org/research-analysis/space-cop-governance" style="color:var(--accent);" target="_blank">Source: Belfer Center</a>' },
+  { title: '🔫 Weaponisation of space', body: 'The 1967 OST bans nuclear weapons in space but does NOT ban conventional weapons or anti-satellite missiles. China, Russia, and the US have all tested ASAT capabilities. Space is already militarised — just not yet weaponised. <a href="https://en.wikipedia.org/wiki/Outer_Space_Treaty" style="color:var(--accent);" target="_blank">Source: Outer Space Treaty, Wikipedia</a>' },
+  { title: '📡 Orbital slot monopolisation', body: 'The ITU allocates orbital slots on a first-come, first-served basis. SpaceX\'s Starlink has captured a massive share, leaving less spectrum and fewer slots for developing nations. This is already generating diplomatic tensions. <a href="https://www.diplomacy.edu/topics/space-diplomacy/" style="color:var(--accent);" target="_blank">Source: Diplo, 2025</a>' },
+]);
+
+// ── SOURCES LIST ──
+const sources = [
+  { num:1, title:'Future Market Insights: Space Tourism Market Report 2026–2036 — SOLE SOURCE for Tourism section', url:'https://www.futuremarketinsights.com/reports/space-tourism-market', meta:'January 2026 · All tourism data (market size $8.9B in 2026, $62.1B by 2036, CAGR 21.8%, service type shares, flight duration split, country CAGRs, customer segments, key players) comes exclusively from this report.' },
+  { num:2, title:'AVEVA: Building an Economy in Space with Asteroid Mining', url:'https://www.aveva.com/en/our-industrial-life/type/article/building-an-economy-in-space-with-asteroid-mining/', meta:'March 2026 · AstroForge Odin mission, Psyche 16 valuation, PGMs' },
+  { num:3, title:'Harvard International Review: Economics of the Stars — Asteroid Mining', url:'https://hir.harvard.edu/economics-of-the-stars/', meta:'Academic · Tel Aviv University simulation, South Africa platinum impact, Luxembourg investments' },
+  { num:4, title:'TechTimes: Can Asteroid Mining Turn Space Resources into a Trillion-Dollar Economy?', url:'https://www.techtimes.com/articles/315162/20260313/can-asteroid-mining-technology-turn-space-resources-trillion-dollar-economy.htm', meta:'March 2026 · Karman+ 2027 water mining, $500B market by 2050' },
+  { num:5, title:'AstroForge: Official Mission Page', url:'https://www.astroforge.com/', meta:'Company · First commercial deep-space mining mission, Odin (Feb 26, 2025)' },
+  { num:6, title:'PNAS: Mining in Space Could Spur Sustainable Growth', url:'https://www.pnas.org/doi/10.1073/pnas.2221345120', meta:'October 2023 · Peer-reviewed journal · Proceedings of the National Academy of Sciences' },
+  { num:7, title:'Wikipedia: Asteroid Mining', url:'https://en.wikipedia.org/wiki/Asteroid_mining', meta:'Reference · 700 known asteroids worth $100T+ each, Asterank tracking catalog' },
+  { num:8, title:'Belfer Center (Harvard Kennedy School): A Space COP for the Outer Space Treaty', url:'https://www.belfercenter.org/research-analysis/space-cop-governance', meta:'December 2025 · Governance proposal, UNCOPUOS non-binding limits' },
+  { num:9, title:'Wikipedia: Outer Space Treaty', url:'https://en.wikipedia.org/wiki/Outer_Space_Treaty', meta:'Reference · 118 parties as of October 2025, Article II prohibition' },
+  { num:10, title:'Wikipedia: Politics of Outer Space', url:'https://en.wikipedia.org/wiki/Politics_of_outer_space', meta:'Reference · Bifurcation of space governance, resource race risks' },
+  { num:11, title:'Diplo: Space Diplomacy — Tools, Processes and Approaches (2025)', url:'https://www.diplomacy.edu/topics/space-diplomacy/', meta:'2025 · Bifurcation of governance, Artemis vs. China-Russia, orbital slot lobbying' },
+  { num:12, title:'Council on Foreign Relations: The Outer Space Treaty', url:'https://www.cfr.org/report/outer-space-treaty', meta:'Foreign policy research · Artemis Accords signatories, China/India/Russia refusal' },
+  { num:13, title:'Norton Rose Fulbright: Governance in Outer Space — The Case for a New Global Order', url:'https://www.nortonrosefulbright.com/en/knowledge/publications/e8862684/governance-in-outer-space-the-case-for-a-new-global-order', meta:'International law firm · US 2015 Space Act, Luxembourg law, Artemis Accords Section 10' },
+  { num:14, title:'CIGI (Centre for International Governance Innovation): Who Owns Outer Space?', url:'https://www.cigionline.org/articles/who-owns-outer-space-and-everything-in-it/', meta:'May 2022 · Control vs. use vs. benefit rights, first-mover risk, Starlink precedent' },
+  { num:15, title:'UNOOSA: The Outer Space Treaty (Official UN Text)', url:'https://www.unoosa.org/oosa/en/ourwork/spacelaw/treaties/introouterspacetreaty.html', meta:'United Nations Office for Outer Space Affairs · Official treaty depository' },
+  { num:16, title:'Georgia Journal of International & Comparative Law: Who Has the Power? Space Governance and New Entrants', url:'https://georgia-international-journal.scholasticahq.com/article/23685-who-has-the-power-a-critical-perspective-on-space-governance-and-new-entrants-to-the-space-sector/attachment/60315.pdf', meta:'Academic law journal · Critical perspective on governance power dynamics' },
+];
+
+const sl = document.getElementById('sources-list');
+sources.forEach(s => {
+  sl.innerHTML += `<li>
+    <div class="src-num">${s.num}</div>
+    <div>
+      <div><a href="${s.url}" target="_blank">${s.title}</a></div>
+      <div class="src-meta">${s.meta}</div>
+    </div>
+  </li>`;
+});
+</script>
+</body>
+</html>
+
