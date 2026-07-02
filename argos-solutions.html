@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Argos — Data for Intelligence</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0A0A0F; color: #F0EDE8; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0A0A0F; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .viz-fade { animation: fadeIn 0.3s ease both; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    function hex2rgb(h){ const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return `${r},${g},${b}`; }
+
+    // ── VIZ COMPONENTS ──────────────────────────────────────────────────────
+
+    function RadarChart({color,data,labels}){
+      const cx=130,cy=110,r=80,sides=data.length;
+      const angle=i=>((i/sides)*2*Math.PI)-Math.PI/2;
+      const pt=(i,val)=>{const a=angle(i);return[cx+r*val*Math.cos(a),cy+r*val*Math.sin(a)]};
+      const webPts=n=>Array.from({length:sides},(_,i)=>pt(i,n/5).join(",")).join(" ");
+      const dataPts=data.map((v,i)=>pt(i,v/100).join(",")).join(" ");
+      return(
+        <svg viewBox="0 0 260 230" style={{width:"100%"}}>
+          {[1,2,3,4,5].map(n=><polygon key={n} points={webPts(n)} fill="none" stroke={`rgba(${hex2rgb(color)},0.12)`} strokeWidth="1"/>)}
+          {Array.from({length:sides},(_,i)=>{const[x,y]=pt(i,1);return<line key={i} x1={cx} y1={cy} x2={x} y2={y} stroke={`rgba(${hex2rgb(color)},0.15)`} strokeWidth="1"/>})}
+          <polygon points={dataPts} fill={`rgba(${hex2rgb(color)},0.15)`} stroke={color} strokeWidth="2"/>
+          {data.map((v,i)=>{const[x,y]=pt(i,v/100);return<circle key={i} cx={x} cy={y} r="4" fill={color}/>})}
+          {labels.map((l,i)=>{const[x,y]=pt(i,1.28);return<text key={i} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="8" fontFamily="sans-serif" fill="rgba(240,237,232,0.5)">{l}</text>})}
+        </svg>
+      );
+    }
+
+    function DotPlot({color,items}){
+      const max=Math.max(...items.map(i=>i.v));
+      return(
+        <div style={{display:"flex",flexDirection:"column",gap:9}}>
+          {items.map((item,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{width:18,fontSize:9,fontFamily:"sans-serif",color:`rgba(${hex2rgb(color)},0.55)`,textAlign:"right",fontWeight:600}}>#{i+1}</div>
+              <div style={{width:100,fontSize:9,fontFamily:"sans-serif",color:"rgba(240,237,232,0.65)"}}>{item.label}</div>
+              <div style={{flex:1,height:1,background:`rgba(${hex2rgb(color)},0.15)`,position:"relative"}}>
+                <div style={{position:"absolute",left:0,top:"50%",transform:"translateY(-50%)",width:`${(item.v/max)*100}%`,height:1,background:`rgba(${hex2rgb(color)},0.35)`}}/>
+                <div style={{position:"absolute",left:`${(item.v/max)*100}%`,top:"50%",transform:"translate(-50%,-50%)",width:7,height:7,borderRadius:"50%",background:color}}/>
+              </div>
+              <div style={{width:26,fontSize:9,fontFamily:"sans-serif",color:color,fontWeight:700,textAlign:"right"}}>{item.v}</div>
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    function HeatGrid({color,rows,cols,data}){
+      const max=Math.max(...data.flat());
+      return(
+        <div style={{display:"grid",gridTemplateColumns:`70px repeat(${cols.length},1fr)`,gap:3}}>
+          <div/>
+          {cols.map(c=><div key={c} style={{fontSize:8,fontFamily:"sans-serif",color:"rgba(240,237,232,0.35)",textAlign:"center",paddingBottom:3}}>{c}</div>)}
+          {rows.map((r,i)=>[
+            <div key={r} style={{fontSize:8,fontFamily:"sans-serif",color:"rgba(240,237,232,0.45)",display:"flex",alignItems:"center",paddingRight:4}}>{r}</div>,
+            ...data[i].map((v,j)=>(
+              <div key={j} style={{height:26,borderRadius:3,background:`rgba(${hex2rgb(color)},${(v/max)*0.8+0.05})`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:8,fontFamily:"sans-serif",color:v/max>0.55?"rgba(10,10,15,0.9)":"rgba(240,237,232,0.7)",fontWeight:600}}>{v}</div>
+            ))
+          ])}
+        </div>
+      );
+    }
+
+    function NetworkGraph({color,nodes,edges}){
+      return(
+        <svg viewBox="0 0 260 220" style={{width:"100%"}}>
+          <defs><marker id="arr" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill={`rgba(${hex2rgb(color)},0.4)`}/></marker></defs>
+          {edges.map((e,i)=>{const a=nodes[e[0]],b=nodes[e[1]];return<line key={i} x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={`rgba(${hex2rgb(color)},0.2)`} strokeWidth="1" markerEnd="url(#arr)"/>})}
+          {nodes.map((n,i)=>(
+            <g key={i}>
+              <circle cx={n.x} cy={n.y} r={n.r||12} fill={n.center?color:`rgba(${hex2rgb(color)},0.12)`} stroke={color} strokeWidth={n.center?0:1.5}/>
+              <text x={n.x} y={n.y+1} textAnchor="middle" dominantBaseline="middle" fontSize="7" fontFamily="sans-serif" fill={n.center?"#0A0A0F":"rgba(240,237,232,0.8)"} fontWeight="600">{n.label}</text>
+              {n.sub&&<text x={n.x} y={n.y+(n.r||12)+10} textAnchor="middle" fontSize="7" fontFamily="sans-serif" fill="rgba(240,237,232,0.35)">{n.sub}</text>}
+            </g>
+          ))}
+        </svg>
+      );
+    }
+
+    function MatrixScatter({color,points,quadrants,xLabel,yLabel}){
+      return(
+        <svg viewBox="0 0 260 220" style={{width:"100%"}}>
+          <line x1="130" y1="10" x2="130" y2="190" stroke="rgba(240,237,232,0.1)" strokeWidth="1" strokeDasharray="4,3"/>
+          <line x1="20" y1="100" x2="250" y2="100" stroke="rgba(240,237,232,0.1)" strokeWidth="1" strokeDasharray="4,3"/>
+          {quadrants.map((q,i)=><text key={i} x={q.x} y={q.y} textAnchor="middle" fontSize="8" fontFamily="sans-serif" fill={q.hot?`rgba(${hex2rgb(color)},0.55)`:"rgba(240,237,232,0.18)"} fontStyle="italic" fontWeight={q.hot?700:400}>{q.label}</text>)}
+          {points.map((p,i)=>(
+            <g key={i}>
+              <circle cx={p.x} cy={p.y} r={p.you?7:4} fill={p.you?color:`rgba(${hex2rgb(color)},0.25)`} stroke={color} strokeWidth={p.you?2:1}/>
+              <text x={p.x} y={p.y-(p.you?12:9)} textAnchor="middle" fontSize={p.you?9:7} fontFamily="sans-serif" fill={p.you?"rgba(240,237,232,0.95)":"rgba(240,237,232,0.4)"} fontWeight={p.you?700:400}>{p.label}</text>
+            </g>
+          ))}
+          {xLabel&&<text x="140" y="210" textAnchor="middle" fontSize="7" fontFamily="sans-serif" fill="rgba(240,237,232,0.28)">→ {xLabel}</text>}
+          {yLabel&&<text x="8" y="100" textAnchor="middle" fontSize="7" fontFamily="sans-serif" fill="rgba(240,237,232,0.28)" transform="rotate(-90,8,100)">↑ {yLabel}</text>}
+        </svg>
+      );
+    }
+
+    // Dumbbell gap chart: market momentum vs current allocation
+    function GapChart({color,items}){
+      return(
+        <svg viewBox="0 0 280 210" style={{width:"100%"}}>
+          {items.map((item,i)=>{
+            const y=22+i*26;
+            const x1=90+item.you*1.6, x2=90+item.market*1.6;
+            return(
+              <g key={i}>
+                <text x={84} y={y+3} textAnchor="end" fontSize="8" fontFamily="sans-serif" fill="rgba(240,237,232,0.55)">{item.label}</text>
+                <line x1={90} y1={y} x2={250} y2={y} stroke="rgba(240,237,232,0.05)" strokeWidth="1"/>
+                <line x1={x1} y1={y} x2={x2} y2={y} stroke={`rgba(${hex2rgb(color)},0.5)`} strokeWidth="2"/>
+                <circle cx={x1} cy={y} r="4.5" fill="#0A0A0F" stroke="rgba(240,237,232,0.45)" strokeWidth="1.5"/>
+                <circle cx={x2} cy={y} r="5" fill={color}/>
+                {item.market-item.you>25&&<text x={(x1+x2)/2} y={y-8} textAnchor="middle" fontSize="7" fontFamily="sans-serif" fill={color} fontWeight="700">GAP</text>}
+              </g>
+            );
+          })}
+          <g>
+            <circle cx="98" cy="196" r="4" fill="#0A0A0F" stroke="rgba(240,237,232,0.45)" strokeWidth="1.5"/>
+            <text x="106" y="199" fontSize="7.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.4)">your allocation</text>
+            <circle cx="178" cy="196" r="4.5" fill={color}/>
+            <text x="186" y="199" fontSize="7.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.4)">trend momentum</text>
+          </g>
+        </svg>
+      );
+    }
+
+    // ── SEGMENT DATA ─────────────────────────────────────────────────────────
+
+    const segments = [
+      {
+        id: "government", label: "Government", icon: "🏛️", color: "#0057FF",
+        headline: "Decide where to invest — and who to bet on",
+        sub: "We help ministries, agencies and EU institutions turn technology and ecosystem data into industrial strategy: which technologies to prioritize, which players to back, and who to partner with.",
+        cta: "See how it works for Government",
+        bullets: [
+          {
+            text: "Tech Priority Compass — which technologies to invest in, ranked by feasibility and long-term strategic value",
+            engine: "Smart Investment Graphs",
+            vizTitle: "Technology Priority Matrix", vizSub: "X = Feasibility · Y = Long-term strategic value",
+            method: "Economic complexity · relatedness density · patent + trade data",
+            Viz: ({color}) => <MatrixScatter color={color} xLabel="Feasibility" yLabel="Long-term value"
+              quadrants={[{x:75,y:24,label:"Moonshot"},{x:195,y:24,label:"Invest",hot:true},{x:75,y:186,label:"Deprioritize"},{x:195,y:186,label:"Maintain"}]}
+              points={[{x:200,y:40,label:"AI Infra",you:true},{x:172,y:62,label:"Green H2"},{x:220,y:75,label:"Robotics"},{x:80,y:38,label:"Quantum"},{x:58,y:66,label:"Fusion"},{x:198,y:142,label:"Adv Mfg"},{x:168,y:165,label:"Biotech"},{x:76,y:150,label:"Space"}]}
+            />
+          },
+          {
+            text: "Ecosystem Atlas — the companies, labs and institutions in your ecosystem worth betting on, and where the gaps are",
+            engine: "Ecosystem Mapping",
+            vizTitle: "Ecosystem Actor Map", vizSub: "Size = organization scale · intensity = tech advantage",
+            method: "Patent RTA scores · employment data · relatedness density",
+            Viz: ({color}) => <svg viewBox="0 0 270 200" style={{width:"100%"}}>
+              {[
+                {x:4,y:4,w:90,h:52,label:"Tech Univ A",sub:"Univ · RTA 0.91",rta:0.91},
+                {x:98,y:4,w:74,h:52,label:"Nat. Lab",sub:"Lab · RTA 0.84",rta:0.84},
+                {x:176,y:4,w:90,h:52,label:"Champion Co",sub:"Corp · RTA 0.96",rta:0.96},
+                {x:4,y:60,w:60,h:42,label:"Corp B",sub:"0.72",rta:0.72},
+                {x:68,y:60,w:78,h:42,label:"Univ B",sub:"0.65",rta:0.65},
+                {x:150,y:60,w:56,h:42,label:"RTO",sub:"0.78",rta:0.78},
+                {x:210,y:60,w:56,h:42,label:"Corp C",sub:"0.68",rta:0.68},
+                {x:4,y:106,w:50,h:36,label:"Scale-up A",sub:"0.55",rta:0.55},
+                {x:58,y:106,w:50,h:36,label:"Scale-up B",sub:"0.48",rta:0.48},
+                {x:112,y:106,w:80,h:36,label:"Deep Tech Co",sub:"0.82",rta:0.82},
+                {x:196,y:106,w:70,h:36,label:"Institute",sub:"0.77",rta:0.77},
+                {x:4,y:146,w:262,h:50,label:"Ecosystem Average — RTA 0.74",sub:"",rta:0.25},
+              ].map((t,i)=>(
+                <g key={i}>
+                  <rect x={t.x} y={t.y} width={t.w} height={t.h} rx="3" fill={`rgba(${hex2rgb(color)},${t.rta*0.55+0.04})`} stroke={`rgba(${hex2rgb(color)},0.3)`} strokeWidth="1"/>
+                  <text x={t.x+t.w/2} y={t.y+t.h/2-(t.sub?5:0)} textAnchor="middle" dominantBaseline="middle" fontSize={t.w>70?9:7.5} fontFamily="sans-serif" fill="rgba(240,237,232,0.9)" fontWeight="600">{t.label}</text>
+                  {t.sub&&<text x={t.x+t.w/2} y={t.y+t.h/2+8} textAnchor="middle" fontSize="6.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.4)">{t.sub}</text>}
+                </g>
+              ))}
+            </svg>
+          },
+          {
+            text: "Partnership Matcher — which countries and institutions to partner with, based on complementary capabilities",
+            engine: "Strategic Positioning",
+            vizTitle: "Complementarity Network", vizSub: "Solid = active partnership · dashed = untapped potential",
+            method: "Co-patent networks · trade complementarity · research co-authorship",
+            Viz: ({color}) => <svg viewBox="0 0 270 210" style={{width:"100%"}}>
+              <defs><marker id="garrA" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill={color}/></marker>
+              <marker id="garrB" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L0,5 L5,2.5 z" fill={`rgba(${hex2rgb(color)},0.4)`}/></marker></defs>
+              {[[0,1,3],[0,2,2],[1,3,1.5],[2,4,1.5],[0,5,2.5]].map(([a,b,w],i)=>{
+                const nds=[{x:135,y:95},{x:55,y:40},{x:215,y:40},{x:40,y:155},{x:230,y:155},{x:135,y:175}];
+                const n1=nds[a],n2=nds[b];
+                return<line key={i} x1={n1.x} y1={n1.y} x2={n2.x} y2={n2.y} stroke={color} strokeWidth={w} strokeOpacity="0.45" markerEnd="url(#garrA)"/>;
+              })}
+              {[[1,4],[3,2],[5,1]].map(([a,b],i)=>{
+                const nds=[{x:135,y:95},{x:55,y:40},{x:215,y:40},{x:40,y:155},{x:230,y:155},{x:135,y:175}];
+                const n1=nds[a],n2=nds[b];
+                return<line key={i} x1={n1.x} y1={n1.y} x2={n2.x} y2={n2.y} stroke={`rgba(${hex2rgb(color)},0.35)`} strokeWidth="1.5" strokeDasharray="5,3" markerEnd="url(#garrB)"/>;
+              })}
+              {[{x:135,y:95,r:18,label:"YOUR\nCOUNTRY",main:true},{x:55,y:40,r:13,label:"Finland"},{x:215,y:40,r:13,label:"Austria"},{x:40,y:155,r:11,label:"Portugal"},{x:230,y:155,r:11,label:"Poland"},{x:135,y:175,r:12,label:"Belgium"}].map((n,i)=>(
+                <g key={i}>
+                  <circle cx={n.x} cy={n.y} r={n.r} fill={n.main?color:`rgba(${hex2rgb(color)},0.12)`} stroke={color} strokeWidth={n.main?0:1.5}/>
+                  <text x={n.x} y={n.y+1} textAnchor="middle" dominantBaseline="middle" fontSize={n.main?7:8} fontFamily="sans-serif" fill={n.main?"#0A0A0F":"rgba(240,237,232,0.85)"} fontWeight="600">{n.label}</text>
+                </g>
+              ))}
+              <text x="6" y="207" fontSize="6.5" fontFamily="sans-serif" fill="rgba(240,237,232,0.3)">— active  - - potential</text>
+            </svg>
+          },
+        ],
+      },
+      {
+        id: "funds", label: "Funds — VC · PE · LP", icon: "💼", color: "#10B981",
+        headline: "From allocation thesis to signed deal",
+        sub: "We help GPs and LPs see the gap between where technology is heading and where their capital sits — then find the companies worth backing and stress-test their technology.",
+        cta: "See how it works for Funds",
+        bullets: [
+          {
+            text: "Allocation Radar — the gap between major tech trends and your current portfolio allocation",
+            engine: "Smart Investment Graphs",
+            vizTitle: "Trend vs Portfolio Gap", vizSub: "Where momentum is building faster than your exposure",
+            method: "Deal flow analysis · patent velocity · portfolio classification",
+            Viz: ({color}) => <GapChart color={color} items={[
+              {label:"AI Agents",you:28,market:92},
+              {label:"Robotics",you:15,market:78},
+              {label:"Defense Tech",you:22,market:70},
+              {label:"Energy Storage",you:40,market:65},
+              {label:"Biotech AI",you:35,market:58},
+              {label:"Web3",you:55,market:30},
+              {label:"Consumer SaaS",you:70,market:25},
+            ]}/>
+          },
+          {
+            text: "Deal Sourcing Engine — once your thesis is set, we surface the best companies to invest in, before everyone else",
+            engine: "Ecosystem Mapping",
+            vizTitle: "Ranked Deal Pipeline", vizSub: "Thesis-fit score (0–100) · updated weekly",
+            method: "Thesis matching · founder signals · patent + hiring velocity",
+            Viz: ({color}) => <DotPlot color={color} items={[
+              {label:"Actuator Co (FR)",v:96},
+              {label:"GridAI (DE)",v:91},
+              {label:"SynthBio (NL)",v:87},
+              {label:"EdgeSense (SE)",v:82},
+              {label:"QuantumSoft (FI)",v:76},
+              {label:"AgriBotics (ES)",v:71},
+              {label:"NanoMat (CH)",v:64},
+              {label:"CleanCat (IT)",v:58},
+            ]}/>
+          },
+          {
+            text: "Tech Due Diligence — independent assessment of a target's technology: defensibility, distance to the frontier, staying power",
+            engine: "Strategic Positioning",
+            vizTitle: "Technology Assessment Radar", vizSub: "Target scored on 6 dimensions vs sector frontier",
+            method: "Patent landscape · frontier benchmarking · team + IP analysis",
+            Viz: ({color}) => <RadarChart color={color} data={[88,72,91,64,79,58]} labels={["Defensibility","IP Depth","Frontier Dist","Team","Scalability","Moat Duration"]}/>
+          },
+        ],
+      },
+      {
+        id: "corporate", label: "Corporate", icon: "🏢", color: "#F59E0B",
+        headline: "Grow where your capabilities give you the edge",
+        sub: "We help corporates find their biggest adjacent growth opportunities, identify the right acquisition targets, and decide where to locate what comes next.",
+        cta: "See how it works for Corporates",
+        bullets: [
+          {
+            text: "Adjacent Growth Explorer — your biggest opportunities for adjacent growth, based on what you already know how to do",
+            engine: "Smart Investment Graphs",
+            vizTitle: "Capability Adjacency Map", vizSub: "Distance from core = capability leap required",
+            method: "Relatedness space · capability mapping · product space analysis",
+            Viz: ({color}) => <NetworkGraph color={color}
+              nodes={[
+                {x:130,y:110,r:20,label:"YOUR\nCORE",center:true},
+                {x:60,y:55,r:14,label:"Adjacency A",sub:"92% related"},
+                {x:200,y:50,r:13,label:"Adjacency B",sub:"87% related"},
+                {x:230,y:130,r:12,label:"Adjacency C",sub:"74% related"},
+                {x:160,y:190,r:10,label:"Opt. D",sub:"61%"},
+                {x:60,y:175,r:10,label:"Opt. E",sub:"55%"},
+                {x:25,y:110,r:8,label:"F",sub:"40%"},
+              ]}
+              edges={[[0,1],[0,2],[0,3],[0,4],[0,5],[0,6]]}
+            />
+          },
+          {
+            text: "M&A Target Scanner — acquisition targets screened by technological fit and strategic complementarity",
+            engine: "Ecosystem Mapping",
+            vizTitle: "Acquisition Target Matrix", vizSub: "X = Technological fit · Y = Strategic value",
+            method: "Patent complementarity · capability overlap · valuation signals",
+            Viz: ({color}) => <MatrixScatter color={color} xLabel="Technological fit" yLabel="Strategic value"
+              quadrants={[{x:75,y:24,label:"Transform"},{x:195,y:24,label:"Acquire",hot:true},{x:75,y:186,label:"Ignore"},{x:195,y:186,label:"Partner"}]}
+              points={[{x:210,y:38,label:"Target α",you:true},{x:180,y:60,label:"Target β"},{x:225,y:80,label:"Target γ"},{x:85,y:45,label:"Target δ"},{x:60,y:70,label:"Target ε"},{x:195,y:140,label:"Target ζ"},{x:160,y:168,label:"Target η"},{x:70,y:155,label:"Target θ"}]}
+            />
+          },
+          {
+            text: "Site Location Intelligence — where to locate your next plant, lab or office, based on talent and ecosystem density, not just cost",
+            engine: "Strategic Positioning",
+            vizTitle: "Location Score Grid", vizSub: "Candidate locations × decision factors (0–100)",
+            method: "Talent density · ecosystem relatedness · infrastructure + cost data",
+            Viz: ({color}) => <HeatGrid color={color}
+              rows={["Toulouse","Eindhoven","Munich","Barcelona","Kraków"]}
+              cols={["Talent","Ecosystem","Infra","Cost"]}
+              data={[[85,78,72,68],[92,95,80,45],[88,90,85,38],[70,62,75,72],[65,48,60,90]]}
+            />
+          },
+        ],
+      },
+    ];
+
+    // ── MAIN PAGE ────────────────────────────────────────────────────────────
+
+    function SolutionsPage() {
+      const [active, setActive] = useState("government");
+      const [activeBullet, setActiveBullet] = useState(0);
+      const [vizKey, setVizKey] = useState(0);
+      const seg = segments.find((s) => s.id === active);
+      const bullet = seg.bullets[activeBullet];
+
+      function switchSeg(id){ setActive(id); setActiveBullet(0); setVizKey(k=>k+1); }
+      function switchBullet(i){ setActiveBullet(i); setVizKey(k=>k+1); }
+
+      return (
+        <div style={{ fontFamily: "'Georgia','Times New Roman',serif", background: "#0A0A0F", minHeight: "100vh", color: "#F0EDE8", overflowX: "hidden" }}>
+
+          {/* Nav */}
+          <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 48px", borderBottom: "1px solid rgba(255,255,255,0.07)", position: "sticky", top: 0, background: "rgba(10,10,15,0.95)", backdropFilter: "blur(12px)", zIndex: 100 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#0057FF,#10B981)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>◉</div>
+              <span style={{ fontWeight: 700, fontSize: 17, letterSpacing: "-0.3px", fontFamily: "sans-serif" }}>Argos</span>
+              <span style={{ fontSize: 11, fontFamily: "sans-serif", color: "rgba(240,237,232,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", borderLeft: "1px solid rgba(255,255,255,0.15)", paddingLeft: 10, marginLeft: 2 }}>Data for Intelligence</span>
+            </div>
+            <div style={{ display: "flex", gap: 32, fontSize: 14, fontFamily: "sans-serif", color: "rgba(240,237,232,0.6)" }}>
+              {["Solutions","Engines","Data","About"].map(l => <span key={l} style={{ cursor: "pointer" }}>{l}</span>)}
+            </div>
+            <button style={{ background: "#0057FF", color: "#fff", border: "none", borderRadius: 8, padding: "9px 20px", cursor: "pointer", fontSize: 13, fontFamily: "sans-serif", fontWeight: 600 }}>Book a demo</button>
+          </nav>
+
+          {/* Hero */}
+          <div style={{ textAlign: "center", padding: "80px 48px 56px", maxWidth: 760, margin: "0 auto" }}>
+            <div style={{ display: "inline-block", fontSize: 11, fontFamily: "sans-serif", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(240,237,232,0.4)", marginBottom: 20, borderBottom: "1px solid rgba(240,237,232,0.15)", paddingBottom: 8 }}>
+              Argos · Data for Intelligence
+            </div>
+            <h1 style={{ fontSize: "clamp(36px,5vw,58px)", fontWeight: 400, lineHeight: 1.12, letterSpacing: "-1.5px", margin: "0 0 20px", background: "linear-gradient(135deg,#F0EDE8 60%,rgba(240,237,232,0.4))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+              Investment Intelligence for Governments, Funds, and Corporates
+            </h1>
+            <p style={{ fontSize: 17, lineHeight: 1.7, color: "rgba(240,237,232,0.55)", fontFamily: "sans-serif", maxWidth: 560, margin: "0 auto" }}>
+              Three intelligence engines — smart investment graphs, ecosystem mapping, and strategic positioning — that answer the three questions every investor faces: where to invest, who to bet on, and how to execute.
+            </p>
+          </div>
+
+          {/* Tabs */}
+          <div style={{ display: "flex", justifyContent: "center", gap: 6, padding: "0 48px 48px", flexWrap: "wrap" }}>
+            {segments.map((s) => (
+              <button key={s.id} onClick={() => switchSeg(s.id)} style={{ fontFamily: "sans-serif", fontSize: 13, fontWeight: 600, padding: "9px 18px", borderRadius: 100, cursor: "pointer", border: active === s.id ? `1.5px solid ${s.color}` : "1.5px solid rgba(255,255,255,0.1)", background: active === s.id ? `${s.color}18` : "transparent", color: active === s.id ? s.color : "rgba(240,237,232,0.5)", transition: "all 0.2s" }}>
+                {s.icon} {s.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Panel */}
+          <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 48px 100px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 40, alignItems: "start" }}>
+
+            {/* Left */}
+            <div style={{ paddingTop: 8 }}>
+              <div style={{ fontSize: 11, fontFamily: "sans-serif", letterSpacing: "0.12em", textTransform: "uppercase", color: seg.color, marginBottom: 16, fontWeight: 700 }}>For {seg.label}</div>
+              <h2 style={{ fontSize: "clamp(26px,3vw,38px)", fontWeight: 400, lineHeight: 1.2, letterSpacing: "-0.8px", margin: "0 0 16px" }}>{seg.headline}</h2>
+              <p style={{ fontSize: 15, lineHeight: 1.75, color: "rgba(240,237,232,0.55)", fontFamily: "sans-serif", marginBottom: 32 }}>{seg.sub}</p>
+
+              <ul style={{ listStyle: "none", padding: 0, margin: "0 0 36px", display: "flex", flexDirection: "column", gap: 8 }}>
+                {seg.bullets.map((b, i) => (
+                  <li key={i} onClick={() => switchBullet(i)} style={{
+                    display: "flex", alignItems: "flex-start", gap: 10,
+                    fontFamily: "sans-serif", fontSize: 14,
+                    color: activeBullet === i ? "rgba(240,237,232,0.95)" : "rgba(240,237,232,0.5)",
+                    cursor: "pointer",
+                    padding: "10px 10px",
+                    borderRadius: 8,
+                    background: activeBullet === i ? `${seg.color}12` : "transparent",
+                    border: `1px solid ${activeBullet === i ? seg.color + "44" : "transparent"}`,
+                    transition: "all 0.18s",
+                    fontWeight: activeBullet === i ? 500 : 400,
+                  }}>
+                    <span style={{ width: 20, height: 20, borderRadius: 4, flexShrink: 0, background: activeBullet === i ? seg.color : `${seg.color}22`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: activeBullet === i ? "#fff" : seg.color, marginTop: 1, transition: "all 0.18s" }}>
+                      {activeBullet === i ? "→" : "✓"}
+                    </span>
+                    <span>
+                      <span style={{ display: "block" }}>{b.text}</span>
+                      <span style={{ display: "block", marginTop: 3, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: activeBullet === i ? seg.color : "rgba(240,237,232,0.28)", fontWeight: 700 }}>Engine · {b.engine}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <button style={{ fontFamily: "sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 24px", borderRadius: 10, cursor: "pointer", background: seg.color, color: "#fff", border: "none" }}>{seg.cta} →</button>
+            </div>
+
+            {/* Right — mock app shell */}
+            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, overflow: "hidden" }}>
+              <div style={{ background: "rgba(255,255,255,0.04)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "10px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ display: "flex", gap: 5 }}>
+                  {["#FF5F57","#FEBC2E","#28C840"].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />)}
+                </div>
+                <div style={{ flex: 1, background: "rgba(255,255,255,0.06)", borderRadius: 5, padding: "4px 10px", fontSize: 10, fontFamily: "monospace", color: "rgba(240,237,232,0.3)" }}>
+                  app.argos.eu/{seg.id}
+                </div>
+              </div>
+
+              <div key={vizKey} className="viz-fade" style={{ padding: 24 }}>
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontSize: 11, fontFamily: "sans-serif", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: seg.color, marginBottom: 4 }}>{bullet.vizTitle}</div>
+                  <div style={{ fontSize: 10, fontFamily: "sans-serif", color: "rgba(240,237,232,0.3)", letterSpacing: "0.04em" }}>{bullet.vizSub}</div>
+                </div>
+
+                <bullet.Viz color={seg.color} />
+
+                {bullet.method && (
+                  <div style={{ marginTop: 10, padding: "5px 8px", background: "rgba(255,255,255,0.025)", borderRadius: 5, borderLeft: `2px solid rgba(${hex2rgb(seg.color)},0.3)` }}>
+                    <span style={{ fontSize: 8.5, fontFamily: "monospace", color: "rgba(240,237,232,0.28)", letterSpacing: "0.02em" }}>method: </span>
+                    <span style={{ fontSize: 8.5, fontFamily: "monospace", color: `rgba(${hex2rgb(seg.color)},0.55)` }}>{bullet.method}</span>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 16 }}>
+                  {seg.bullets.map((_,i) => (
+                    <div key={i} onClick={() => switchBullet(i)} style={{ width: i === activeBullet ? 18 : 5, height: 5, borderRadius: 3, background: i === activeBullet ? seg.color : `rgba(${hex2rgb(seg.color)},0.2)`, cursor: "pointer", transition: "all 0.2s" }}/>
+                  ))}
+                </div>
+
+                <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: 10, fontFamily: "sans-serif", color: "rgba(240,237,232,0.25)" }}>Updated 2h ago · Powered by investment graphs</span>
+                  <span style={{ fontSize: 10, fontFamily: "sans-serif", fontWeight: 700, color: seg.color, cursor: "pointer" }}>Full report →</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Engine strip */}
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", padding: "56px 48px", maxWidth: 1100, margin: "0 auto" }}>
+            <div style={{ textAlign: "center", fontSize: 11, fontFamily: "sans-serif", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(240,237,232,0.35)", marginBottom: 28 }}>One platform · Three engines</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 20 }}>
+              {[
+                {n:"01",t:"Smart Investment Graphs",d:"Where to invest next — technology prioritization, allocation gaps, adjacent growth.",c:"#0057FF"},
+                {n:"02",t:"Ecosystem Mapping",d:"Who to bet on — the players worth backing, the deals worth sourcing, the targets worth buying.",c:"#10B981"},
+                {n:"03",t:"Strategic Positioning",d:"How to execute — partnerships, technology due diligence, and location decisions.",c:"#F59E0B"},
+              ].map((e)=>(
+                <div key={e.n} style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "24px 22px" }}>
+                  <div style={{ fontSize: 11, fontFamily: "monospace", color: e.c, marginBottom: 10, fontWeight: 700 }}>{e.n}</div>
+                  <div style={{ fontSize: 17, fontWeight: 400, letterSpacing: "-0.3px", marginBottom: 8 }}>{e.t}</div>
+                  <div style={{ fontSize: 13, fontFamily: "sans-serif", lineHeight: 1.65, color: "rgba(240,237,232,0.45)" }}>{e.d}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", padding: "64px 48px", textAlign: "center" }}>
+            <h3 style={{ fontSize: 32, fontWeight: 400, letterSpacing: "-0.8px", margin: "0 0 12px" }}>Ready to see it in action?</h3>
+            <p style={{ fontFamily: "sans-serif", fontSize: 15, color: "rgba(240,237,232,0.45)", marginBottom: 28 }}>Get a personalised walkthrough for your organisation.</p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+              <button style={{ fontFamily: "sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 28px", borderRadius: 10, cursor: "pointer", background: "#0057FF", color: "#fff", border: "none" }}>Book a demo</button>
+              <button style={{ fontFamily: "sans-serif", fontSize: 14, fontWeight: 600, padding: "12px 28px", borderRadius: 10, cursor: "pointer", background: "transparent", color: "rgba(240,237,232,0.6)", border: "1px solid rgba(255,255,255,0.12)" }}>Talk to the team</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<SolutionsPage />);
+  </script>
+</body>
+</html>
