@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The same cities, three different rankings</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+:root {
+    --fs-control:  clamp(9px, 1.4vw, 13px);
+    --fs-legend:   clamp(0.625rem, 1.4vw, 1rem);
+    --fs-meta:     clamp(10px, 1.6vw, 16px);
+    --fs-slider:   clamp(11px, 1.2vw, 13px);
+    --breakpoint-compact: 500px;
+}
+
+html, body { height: 100%; }
+body {
+    margin: 0;
+    overflow: hidden;
+    height: 100vh;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Helvetica, Arial, sans-serif;
+    background-color: white;
+}
+
+.viz-grid {
+    display: grid;
+    grid-template-rows: 16fr 1fr;
+    grid-template-columns: 1fr 1fr;
+    height: 100vh;
+    width: 100vw;
+    box-sizing: border-box;
+    padding-bottom: clamp(8px, 2vh, 18px);
+}
+#container1 { grid-row: 1; grid-column: 1 / span 2; overflow: hidden; min-height: 0; }
+#container2 { grid-row: 2; grid-column: 1 / span 2; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+
+#viz { width: 100%; height: 100%; min-height: 0; min-width: 0; }
+#chart { display: block; }
+
+#tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: #fff;
+    color: #0f172a;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    max-width: 240px;
+    z-index: 100;
+}
+#tooltip .t-name { font-weight: 700; display: block; margin-bottom: 5px; }
+#tooltip .t-k { color: #0f172a; display: inline-block; min-width: 86px; }
+#tooltip .t-v { font-weight: 700; font-variant-numeric: tabular-nums; }
+#tooltip .t-r { color: #0f172a; }
+
+.legend {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: clamp(6px, 1vw, 14px);
+    background: rgba(255, 255, 255, 1);
+    padding: clamp(4px, 1vh, 10px) clamp(10px, 2vw, 16px);
+    border-radius: clamp(6px, 1vw, 12px);
+    max-width: 100%; max-height: 100%;
+    font-size: var(--fs-legend);
+}
+.legend-item { display: flex; align-items: center; gap: clamp(4px, 1vw, 8px); font-weight: 400; color: #0f172a; font-size: inherit; padding: 2px 6px; cursor: default; }
+.legend-square { width: clamp(8px, 0.9vw, 12px); height: clamp(8px, 0.9vw, 12px); border-radius: 0; flex-shrink: 0; }
+
+.tick text { font-weight: 600; fill: #4b5563; }
+
+.rib { transition: opacity 0.16s ease; }
+#chart.dim .rib:not(.hoveredLink) { opacity: 0.07 !important; }
+#chart.dim text:not(.hoveredLabel)  { opacity: 0.12; }
+.hoveredLabel { font-weight: 700; }
+.node-label      { fill: #0f172a; }
+.node-label.rest { fill: #0f172a; }
+.node-value      { fill: #0f172a; font-weight: 700; font-variant-numeric: tabular-nums; }
+.leader          { stroke: #d5d8dd; stroke-width: 1px; fill: none; }
+.level-label     { font-weight: 400; fill: #0f172a; text-anchor: middle; font-size: 14px; }
+text { transition: opacity 0.16s ease; }
+
+@media (max-height: 500px) {
+    .viz-grid { grid-template-rows: 1fr !important; grid-template-columns: 1fr !important; padding-bottom: 0; }
+    #container1 { grid-row: 1 !important; grid-column: 1 !important; }
+    #container2 { display: none !important; }
+    .legend { display: none !important; }
+}
+
+@media (max-width: 719px) {
+    body { overflow-x: auto; }
+    .viz-grid { min-width: 720px; }
+    #container1, #viz { overflow: visible; }
+}
+@media (max-height: 559px) {
+    body { overflow-y: auto; }
+    .viz-grid { height: auto; min-height: 560px; }
+    #container1, #viz { overflow: visible; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="viz-grid">
+  <div id="container1" class="container viz-container">
+    <div id="viz">
+      <svg id="chart"></svg>
+    </div>
+  </div>
+  <div id="container2" class="container legend-container">
+    <div class="legend" id="legend"></div>
+  </div>
+</div>
+
+<script>
+const SHOW_CONTAINER_2 = 1;
+
+(function adjustLayout() {
+  const gridRows = ['1fr'];
+  if (SHOW_CONTAINER_2) gridRows.push('auto');
+  else document.getElementById('container2').style.display = 'none';
+  document.querySelector('.viz-grid').style.gridTemplateRows = gridRows.join(' ');
+})();
+
+const SHOW_LABELS   = 1;
+const SHOW_TOOLTIP  = 1;
+const NODE_W        = 20;
+const NODE_GAP      = 3.4;
+const LABEL_FS      = 10.5;
+const LABEL_FS_MIN  = 8;
+const FLOW_MIN      = 260;
+const WIDTH_FLOOR   = 720;
+const HEIGHT_FLOOR  = 560;
+const PAD_TOP       = 12;
+const PAD_BOTTOM    = 34;
+const BREAKPOINT_COMPACT = 500;
+
+const BANDS = [['pat', 'AI patents'], ['pub', 'AI publications'], ['inv', 'AI investment']];
+const REGIONS = [
+  ['US', 'United States', '#1e3a6d'],
+  ['CN', 'China',         '#9e2b25'],
+  ['KR', 'Korea',         '#2f6f5e'],
+  ['EU', 'Europe',        '#b0842e'],
+  ['OT', 'Asia',          '#5b4a7a'],
+];
+const COLOR = Object.fromEntries(REGIONS.map(([k, , c]) => [k, c]).concat([['REST', '#c3c0b8']]));
+
+const D={"rows": [{"city": "Beijing", "reg": "CN", "pat": 16.05, "pub": 6.0, "inv": 1.84, "cpat": 859, "cpub": 2351, "cinv": 6731869834.0, "rpat": 3, "rpub": 1, "rinv": 6}, {"city": "Hangzhou", "reg": "CN", "pat": 2.21, "pub": 1.43, "inv": 2.23, "cpat": 118, "cpub": 559, "cinv": 8144697533.0, "rpat": 7, "rpub": 7, "rinv": 4}, {"city": "Shanghai", "reg": "CN", "pat": 1.27, "pub": 2.27, "inv": 1.14, "cpat": 68, "cpub": 891, "cinv": 4170902225.0, "rpat": 12, "rpub": 2, "rinv": 9}, {"city": "Shenzhen", "reg": "CN", "pat": 24.5, "pub": 1.18, "inv": 0.41, "cpat": 1311, "cpub": 463, "cinv": 1516534375.0, "rpat": 1, "rpub": 12, "rinv": 15}, {"city": "San Jose", "reg": "US", "pat": 5.23, "pub": 0.79, "inv": 11.66, "cpat": 280, "cpub": 310, "cinv": 42633849395.0, "rpat": 5, "rpub": 22, "rinv": 2}, {"city": "Seoul", "reg": "KR", "pat": 17.38, "pub": 1.23, "inv": 0.39, "cpat": 930, "cpub": 481, "cinv": 1415071332.0, "rpat": 2, "rpub": 11, "rinv": 17}, {"city": "New York", "reg": "US", "pat": 0.86, "pub": 1.03, "inv": 1.89, "cpat": 46, "cpub": 403, "cinv": 6930383153.0, "rpat": 17, "rpub": 17, "rinv": 5}, {"city": "London", "reg": "EU", "pat": 0.78, "pub": 1.03, "inv": 2.58, "cpat": 42, "cpub": 403, "cinv": 9451888692.0, "rpat": 19, "rpub": 18, "rinv": 3}, {"city": "Singapore", "reg": "OT", "pat": 0.43, "pub": 1.16, "inv": 1.54, "cpat": 23, "cpub": 455, "cinv": 5617454859.0, "rpat": 26, "rpub": 13, "rinv": 7}, {"city": "SF–Oakland", "reg": "US", "pat": 0.78, "pub": 0.55, "inv": 66.5, "cpat": 42, "cpub": 214, "cinv": 243231329670.0, "rpat": 20, "rpub": 30, "rinv": 1}, {"city": "Los Angeles", "reg": "US", "pat": 1.68, "pub": 0.69, "inv": 0.22, "cpat": 90, "cpub": 271, "cinv": 819885004.0, "rpat": 10, "rpub": 25, "rinv": 20}, {"city": "Boston", "reg": "US", "pat": 0.22, "pub": 1.04, "inv": 0.44, "cpat": 12, "cpub": 407, "cinv": 1620886510.0, "rpat": 32, "rpub": 16, "rinv": 13}, {"city": "Paris", "reg": "EU", "pat": 0.13, "pub": 1.24, "inv": 0.47, "cpat": 7, "cpub": 484, "cinv": 1732422938.0, "rpat": 42, "rpub": 9, "rinv": 12}, {"city": "Guangzhou", "reg": "CN", "pat": 0.45, "pub": 1.61, "inv": 0.07, "cpat": 24, "cpub": 631, "cinv": 246795625.0, "rpat": 25, "rpub": 4, "rinv": 42}, {"city": "Seattle", "reg": "US", "pat": 1.07, "pub": 0.41, "inv": 0.21, "cpat": 57, "cpub": 161, "cinv": 771054236.0, "rpat": 16, "rpub": 43, "rinv": 22}, {"city": "Rest of world (1063 cities)", "reg": "REST", "rest": true, "pat": 26.96, "cpat": 1442.0, "rpat": 0, "pub": 78.34, "cpub": 30704.0, "rpub": 0, "inv": 8.41, "cinv": 30717313849.0, "rinv": 0}]};
+const R = D.rows;
+
+function smartFormat(v) {
+  if (!isFinite(v)) return "N/A";
+  if (Math.abs(v) >= 1e9) return d3.format(".1f")(v / 1e9) + "B";
+  if (Math.abs(v) >= 1e6) return d3.format(".1f")(v / 1e6) + "M";
+  return d3.format(",")(Math.round(v));
+}
+const pct = v => (v >= 10 ? v.toFixed(1) : v.toFixed(2)) + '%';
+
+const shortName = r => r.rest ? 'Rest of world' : r.city;
+
+function measureLabelWidth(fs) {
+  const g = svg.append('g').attr('font-size', fs + 'px').attr('font-weight', 700);
+  let w = 0;
+  R.forEach(r => {
+    const t = g.append('text').text(shortName(r) + '  100.0%');
+    w = Math.max(w, t.node().getComputedTextLength());
+  });
+  g.remove();
+  return w;
+}
+
+function declump(ys, lo, hi, pitch) {
+  const n = ys.length, out = ys.slice();
+  const p = Math.min(pitch, (hi - lo) / Math.max(1, n - 1));
+  out[0] = Math.max(lo, out[0]);
+  for (let i = 1; i < n; i++) out[i] = Math.max(out[i], out[i - 1] + p);
+  out[n - 1] = Math.min(out[n - 1], hi);
+  for (let i = n - 2; i >= 0; i--) out[i] = Math.min(out[i], out[i + 1] - p);
+  return out;
+}
+
+(function buildLegend() {
+  const legend = document.getElementById('legend');
+  const rest = R.find(r => r.rest);
+  REGIONS.concat([['REST', rest.city, COLOR.REST]]).forEach(([, name, color]) => {
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    const sq = document.createElement('span');
+    sq.className = 'legend-square';
+    sq.style.background = color;
+    const label = document.createElement('span');
+    label.textContent = name;
+    item.append(sq, label);
+    legend.appendChild(item);
+  });
+})();
+
+const tooltip = (() => {
+  const t = document.createElement('div');
+  t.id = 'tooltip';
+  document.body.appendChild(t);
+  return t;
+})();
+
+const vizEl = document.getElementById('viz');
+const svg = d3.select('#chart');
+let width = 0, height = 0;
+
+function updateDimensions() {
+  const rect = vizEl.getBoundingClientRect();
+  width  = Math.max(WIDTH_FLOOR, rect.width);
+  height = Math.max(HEIGHT_FLOOR, rect.height);
+  svg.attr('width', width).attr('height', height).attr('viewBox', `0 0 ${width} ${height}`)
+     .style('width', width + 'px').style('height', height + 'px');
+}
+
+function render() {
+  updateDimensions();
+  svg.selectAll('*').remove();
+
+  let labelFS = LABEL_FS, labelW = measureLabelWidth(labelFS);
+  const padCap = (width - NODE_W - FLOW_MIN) / 2 - 22;
+  if (labelW > padCap && padCap > 0) {
+    labelFS = Math.max(LABEL_FS_MIN, labelFS * padCap / labelW);
+    labelW  = measureLabelWidth(labelFS);
+  }
+  const sidePad  = Math.min(Math.max(90, labelW + 22), (width - NODE_W - FLOW_MIN) / 2);
+  const pitch    = labelFS + 1.5;
+  const x0       = sidePad;
+  const x2       = width - sidePad - NODE_W;
+  const XS       = [x0, (x0 + x2) / 2, x2];
+
+  const gap    = Math.min(NODE_GAP, (height - PAD_TOP - PAD_BOTTOM) * 0.16 / (R.length - 1));
+  const usable = height - PAD_TOP - PAD_BOTTOM - gap * (R.length - 1);
+  const sc     = usable / 100;
+
+  const ord = {}, pos = {};
+  BANDS.forEach(([k]) => {
+    ord[k] = R.filter(r => !r.rest).sort((a, b) => b[k] - a[k]).concat(R.filter(r => r.rest));
+    let y = PAD_TOP;
+    ord[k].forEach(r => { pos[k + '|' + r.city] = [y, y + r[k] * sc]; y += r[k] * sc + gap; });
+  });
+
+  const ribbons = svg.append('g').attr('class', 'links');
+  const nodes   = svg.append('g').attr('class', 'nodes');
+  const labels  = svg.append('g').attr('class', 'labels');
+
+  for (let i = 0; i < 2; i++) {
+    const k1 = BANDS[i][0], k2 = BANDS[i + 1][0];
+    const xa = XS[i] + NODE_W, xb = XS[i + 1], cx = (xa + xb) / 2;
+    R.slice().sort((a, b) => (b[k1] + b[k2]) - (a[k1] + a[k2])).forEach(r => {
+      const [a1, b1] = pos[k1 + '|' + r.city], [a2, b2] = pos[k2 + '|' + r.city];
+      ribbons.append('path')
+        .attr('class', 'rib')
+        .attr('data-city', r.city)
+        .attr('d', `M${xa},${a1} C${cx},${a1} ${cx},${a2} ${xb},${a2} L${xb},${b2} C${cx},${b2} ${cx},${b1} ${xa},${b1} Z`)
+        .attr('fill', COLOR[r.reg])
+        .attr('opacity', r.rest ? 0.14 : 0.34);
+    });
+  }
+
+  BANDS.forEach(([k, label], i) => {
+    ord[k].forEach(r => {
+      const [a, b] = pos[k + '|' + r.city];
+      nodes.append('rect')
+        .attr('class', 'rib')
+        .attr('data-city', r.city)
+        .attr('x', XS[i]).attr('y', a)
+        .attr('width', NODE_W).attr('height', Math.max(b - a, 0.8))
+        .attr('fill', COLOR[r.reg])
+        .attr('opacity', r.rest ? 0.5 : 0.95);
+    });
+    svg.append('text')
+      .attr('class', 'level-label')
+      .attr('x', XS[i] + NODE_W / 2)
+      .attr('y', height - 12)
+      .text(label);
+  });
+
+  if (SHOW_LABELS) {
+    [[0, 'pat', 'end'], [2, 'inv', 'start']].forEach(([col, k, anchor]) => {
+      const list = ord[k];
+      const mids = list.map(r => { const [a, b] = pos[k + '|' + r.city]; return (a + b) / 2; });
+      const ys = declump(mids, PAD_TOP + 4, height - PAD_BOTTOM - 4, pitch);
+      const xText = anchor === 'end' ? XS[col] - 12 : XS[col] + NODE_W + 12;
+      list.forEach((r, j) => {
+        const t = labels.append('text')
+          .attr('class', 'node-label' + (r.rest ? ' rest' : ''))
+          .attr('data-city', r.city)
+          .attr('x', xText).attr('y', ys[j]).attr('dy', '0.35em')
+          .attr('font-size', labelFS.toFixed(1) + 'px')
+          .attr('text-anchor', anchor);
+        if (anchor === 'end') {
+          t.append('tspan').text(shortName(r));
+          t.append('tspan').attr('class', 'node-value').attr('dx', 6).text(pct(r[k]));
+        } else {
+          t.append('tspan').attr('class', 'node-value').attr('dx', 0).text(pct(r[k]));
+          t.append('tspan').attr('dx', 6).text(shortName(r));
+        }
+
+        if (Math.abs(ys[j] - mids[j]) > 2) {
+          const xEdge = anchor === 'end' ? XS[col] - 4 : XS[col] + NODE_W + 4;
+          const xTip  = anchor === 'end' ? xText + 2 : xText - 2;
+          labels.insert('path', ':first-child')
+            .attr('class', 'leader')
+            .attr('data-city', r.city)
+            .attr('d', `M${xTip},${ys[j]} L${(xTip + xEdge) / 2},${ys[j]} L${xEdge},${mids[j]}`);
+        }
+      });
+    });
+  }
+}
+
+const chartNode = document.getElementById('chart');
+
+chartNode.addEventListener('mouseover', e => {
+  const hit = e.target.closest('[data-city]');
+  if (!hit) { clearHover(); return; }
+  const city = hit.dataset.city;
+  chartNode.classList.add('dim');
+  chartNode.querySelectorAll('.hoveredLink, .hoveredLabel').forEach(n => n.classList.remove('hoveredLink', 'hoveredLabel'));
+  chartNode.querySelectorAll(`[data-city="${CSS.escape(city)}"]`).forEach(n => {
+    n.classList.add(n.tagName === 'text' ? 'hoveredLabel' : 'hoveredLink');
+  });
+  if (!SHOW_TOOLTIP) return;
+  const r = R.find(x => x.city === city);
+  const row = (name, share, count, rank, prefix) =>
+    `<span class="t-k">${name}</span><span class="t-v">${pct(share)}</span>` +
+    `<span class="t-r"> / ${prefix || ''}${smartFormat(count)}${rank ? `, rank ${rank}` : ''}</span><br>`;
+  tooltip.innerHTML = `<span class="t-name">${r.city}</span>` +
+    row('Patents', r.pat, r.cpat, r.rpat) +
+    row('Publications', r.pub, r.cpub, r.rpub) +
+    row('Investment', r.inv, r.cinv, r.rinv, '$');
+  tooltip.style.opacity = 1;
+});
+
+function clearHover() {
+  chartNode.classList.remove('dim');
+  chartNode.querySelectorAll('.hoveredLink, .hoveredLabel').forEach(n => n.classList.remove('hoveredLink', 'hoveredLabel'));
+  tooltip.style.opacity = 0;
+}
+chartNode.addEventListener('mouseleave', clearHover);
+
+window.addEventListener('mousemove', e => {
+  tooltip.style.left = Math.min(e.clientX + 14, window.innerWidth  - tooltip.offsetWidth  - 8) + 'px';
+  tooltip.style.top  = Math.min(e.clientY - 24, window.innerHeight - tooltip.offsetHeight - 8) + 'px';
+});
+
+render();
+window.addEventListener('resize', render);
+if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => render()).observe(vizEl);
+</script>
+</body>
+</html>
