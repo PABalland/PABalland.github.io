@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>One general technology, five different economies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16181c; --muted:#6b6f76; --faint:#9aa0a8;
+  --paper:#fff; --rail:#f5f4f1; --rule:#dcdad4;
+  --lo:#8b1a0f; --mid:#f1efea; --hi:#1e5e20; --none:#ecebe7;
+  --cell:26px; --gapw:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:48px 32px 64px}
+
+header{border-bottom:1px solid var(--rule);padding-bottom:20px;margin-bottom:8px}
+.eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);
+  font-weight:500;margin-bottom:14px}
+h1{font-family:"Source Serif 4",Georgia,serif;font-weight:600;font-size:31px;line-height:1.18;
+  margin:0 0 12px;letter-spacing:-.012em;max-width:22ch}
+.sub{font-size:14px;line-height:1.55;color:var(--muted);max-width:66ch;margin:0}
+.sub b{color:var(--ink);font-weight:600}
+
+.bar{display:flex;align-items:center;justify-content:space-between;gap:24px;
+  flex-wrap:wrap;padding:18px 0 14px}
+.legend{display:flex;align-items:center;gap:10px;font-size:11.5px;color:var(--muted)}
+.ramp{display:flex;height:9px;width:180px;border:1px solid var(--rule)}
+.ramp i{flex:1}
+.ticks{display:flex;justify-content:space-between;width:180px;font-family:"IBM Plex Mono",monospace;
+  font-size:9.5px;color:var(--faint);margin-top:3px}
+.rampwrap{display:flex;flex-direction:column}
+.controls{display:flex;gap:6px}
+button{font-family:inherit;font-size:11.5px;color:var(--muted);background:none;
+  border:1px solid var(--rule);padding:5px 11px;cursor:pointer;transition:.14s}
+button:hover{color:var(--ink);border-color:var(--ink)}
+button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+button:focus-visible{outline:2px solid var(--hi);outline-offset:2px}
+
+.scroll{overflow-x:auto;padding-bottom:6px}
+table{border-collapse:separate;border-spacing:0;font-size:12px}
+th,td{padding:0}
+th.city{text-align:right;padding-right:14px;font-weight:400;font-size:12.5px;
+  white-space:nowrap;color:var(--ink);position:sticky;left:0;background:var(--paper);z-index:2}
+tbody tr:nth-child(even) th.city{background:var(--rail)}
+tbody tr:nth-child(even) td.gap{background:var(--rail)}
+td.gap{width:var(--gapw)}
+th.ind{font-family:"Source Serif 4",Georgia,serif;font-weight:600;font-size:14.5px;
+  padding:0 0 3px;text-align:center;letter-spacing:-.005em}
+tr.rule th{border-bottom:1px solid var(--ink);height:1px;padding:0}
+tr.rule th.gap,tr.rule th.city{border-bottom:none}
+th.lens{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);
+  font-weight:500;padding:7px 0 9px;text-align:center}
+.cell{width:var(--cell);height:var(--cell);position:relative;cursor:default;
+  border:1px solid #fff;transition:filter .12s}
+.cell.na{background:var(--none);border-color:#fff;
+  background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,#e2e1dd 3px,#e2e1dd 4px)}
+.cell span{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:"IBM Plex Mono",monospace;font-size:9.5px;font-weight:500;pointer-events:none}
+tbody.dim .cell:not(.on){filter:saturate(.14) opacity(.42)}
+tbody.dim th.city:not(.on){color:var(--faint)}
+.cell.on{border-color:var(--ink);z-index:1}
+
+.tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .1s;z-index:20;
+  background:var(--ink);color:#fff;padding:9px 12px;font-size:11.5px;line-height:1.5;max-width:230px}
+.tip b{font-weight:600}
+.tip .k{color:#9aa0a8;display:inline-block;min-width:74px}
+.tip .num{font-family:"IBM Plex Mono",monospace}
+
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--rule);
+  font-size:11.5px;line-height:1.65;color:var(--muted);max-width:88ch}
+footer p{margin:0 0 7px}
+.note{color:var(--faint)}
+@media (max-width:760px){.wrap{padding:32px 18px 48px}h1{font-size:24px}:root{--cell:22px;--gapw:11px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+
+<div class="bar">
+  <div class="legend">
+    <div class="rampwrap">
+      <div class="ramp" id="ramp"></div>
+      <div class="ticks"><span>0.06</span><span>0.25</span><span>1.0</span><span>4</span><span>16</span></div>
+    </div>
+    <span style="margin-left:6px">Economic Specialization (Revealed Comparative Advantage)</span>
+    <span style="display:inline-flex;align-items:center;gap:6px;margin-left:14px">
+      <i style="width:11px;height:11px;display:inline-block;background:var(--none);
+        background-image:repeating-linear-gradient(45deg,transparent,transparent 3px,#e2e1dd 3px,#e2e1dd 4px);
+        border:1px solid var(--rule)"></i> </span>
+  </div>
+  <div class="controls">
+    <button id="bTot" aria-pressed="true">Rank by total activity</button>
+    <button id="bAlpha" aria-pressed="false">A&ndash;Z</button>
+  </div>
+</div>
+
+<div class="scroll"><table id="t"></table></div>
+<div class="tip" id="tip"></div>
+
+<footer>
+  <p><b>Reading the figure.</b> Colour within a row shows what a city does with AI, not how much it does. Reading horizontally across the three lenses of one industry shows whether a specialization appears in knowledge production and in capital allocation alike; a city green in patents but red in funding is producing knowledge it is not capitalising on.</p>
+  <p class="note">RCA is a city's share of an industry's AI activity relative to its share of all AI activity in the sample. Values on very small denominators are unstable and are not interpreted individually. Hatched columns indicate data not yet loaded.</p>
+</footer>
+</div>
+
+<script>
+const D={"cities": [{"n": "SF\u2013Oakland", "t": 51240.3, "c": [null, null, [0.8, 17453.9, 4.3, 7.5], null, null, [0.62, 18333.1, 4.51, 6.1], null, null, [0.19, 866.6, 0.21, 5.3], null, null, [0.35, 7456.5, 1.84, 16.6], null, null, [0.34, 7130.1, 1.76, 21.6]]}, {"n": "San Jose", "t": 42627.5, "c": [null, null, [1.52, 11040.8, 8.18, 43.7], null, null, [2.35, 23259.8, 17.22, 30.5], null, null, [0.17, 260.5, 0.19, 54.6], null, null, [0.44, 3125.2, 2.31, 28.2], null, null, [0.71, 4941.2, 3.66, 33.2]]}, {"n": "London", "t": 14736.7, "c": [null, null, [3.01, 4771.9, 16.21, 36.2], null, null, [1.18, 2540.2, 8.63, 28.8], null, null, [0.49, 162.4, 0.55, 48.9], null, null, [2.83, 4367.8, 14.84, 39.0], null, null, [1.91, 2894.3, 9.83, 36.9]]}, {"n": "New York", "t": 13180.8, "c": [null, null, [1.33, 2636.7, 7.16, 62.8], null, null, [0.08, 212.1, 0.58, 70.0], null, null, [0.24, 98.8, 0.27, 69.1], null, null, [2.41, 4647.5, 12.62, 71.8], null, null, [2.95, 5585.7, 15.16, 68.4]]}, {"n": "Boston", "t": 6364.5, "c": [null, null, [0.04, 26.2, 0.21, 29.6], null, null, [0.11, 100.1, 0.79, 24.3], null, null, [0.36, 51.0, 0.4, 28.4], null, null, [6.68, 4429.5, 35.0, 31.8], null, null, [2.7, 1757.7, 13.89, 27.1]]}, {"n": "Beijing", "t": 4949.0, "c": [null, null, [0.77, 964.1, 4.17, 36.0], null, null, [1.69, 2857.6, 12.35, 30.8], null, null, [0.28, 72.0, 0.31, 35.3], null, null, [0.78, 946.8, 4.09, 22.1], null, null, [0.09, 108.5, 0.47, 10.4]]}, {"n": "Seoul", "t": 4716.2, "c": [null, null, [3.82, 1570.3, 20.59, 58.1], null, null, [1.95, 1087.7, 14.26, 60.1], null, null, [0.57, 48.5, 0.64, 79.1], null, null, [1.66, 664.9, 8.72, 54.6], null, null, [3.43, 1344.9, 17.64, 36.6]]}, {"n": "Shenzhen", "t": 4537.9, "c": [null, null, [0.6, 270.3, 3.22, 43.2], null, null, [6.25, 3833.3, 45.69, 39.5], null, null, [0.01, 0.6, 0.01, 46.6], null, null, [0.97, 428.7, 5.11, 24.9], null, null, [0.01, 5.0, 0.06, 13.6]]}, {"n": "Austin", "t": 4195.9, "c": [null, null, [0.31, 283.8, 1.67, 47.9], null, null, [2.39, 2973.1, 17.47, 47.7], null, null, [0.25, 47.9, 0.28, 50.8], null, null, [0.42, 371.2, 2.18, 33.8], null, null, [0.59, 519.9, 3.05, 27.6]]}, {"n": "Denver", "t": 4013.4, "c": [null, null, [0.08, 30.6, 0.42, 41.2], null, null, [0.25, 135.0, 1.85, 44.5], null, null, [31.6, 2576.4, 35.27, 33.5], null, null, [2.77, 1061.9, 14.54, 30.0], null, null, [0.56, 209.6, 2.87, 41.0]]}, {"n": "San Diego", "t": 3438.1, "c": [null, null, [0.0, 0.5, 0.01, 31.0], null, null, [5.25, 2747.8, 38.42, 18.7], null, null, [0.0, 0.0, 0.0, 23.9], null, null, [1.27, 475.3, 6.65, 17.7], null, null, [0.58, 214.5, 3.0, 38.0]]}, {"n": "Toronto", "t": 3161.3, "c": [null, null, [2.68, 1013.7, 14.45, 20.9], null, null, [1.86, 954.9, 13.61, 21.3], null, null, [0.79, 61.8, 0.88, 33.3], null, null, [0.85, 312.9, 4.46, 40.8], null, null, [2.27, 818.1, 11.66, 25.5]]}, {"n": "Tel Aviv", "t": 2775.7, "c": [null, null, [0.59, 262.3, 3.2, 49.8], null, null, [0.45, 272.5, 3.32, 59.6], null, null, [1.49, 136.1, 1.66, 44.4], null, null, [2.71, 1163.7, 14.19, 47.5], null, null, [2.23, 941.0, 11.47, 49.4]]}, {"n": "Singapore", "t": 2372.4, "c": [null, null, [1.68, 655.2, 9.03, 62.1], null, null, [0.01, 5.8, 0.08, 57.7], null, null, [2.94, 237.7, 3.28, 58.0], null, null, [1.09, 413.1, 5.69, 56.1], null, null, [2.85, 1060.5, 14.62, 51.1]]}, {"n": "Los Angeles", "t": 2155.1, "c": [null, null, [1.09, 420.2, 5.88, 67.7], null, null, [0.07, 35.9, 0.5, 68.2], null, null, [1.51, 120.4, 1.69, 62.1], null, null, [1.84, 689.6, 9.65, 65.9], null, null, [2.42, 889.0, 12.45, 67.7]]}, {"n": "Paris", "t": 2064.2, "c": [null, null, [0.4, 216.8, 2.13, 43.5], null, null, [0.12, 86.3, 0.85, 40.9], null, null, [0.83, 94.0, 0.92, 32.6], null, null, [1.85, 988.7, 9.7, 43.7], null, null, [1.3, 678.4, 6.66, 37.1]]}, {"n": "Shanghai", "t": 1940.7, "c": [null, null, [1.27, 586.6, 6.84, 36.9], null, null, [1.18, 738.9, 8.62, 38.8], null, null, [0.89, 84.8, 0.99, 42.0], null, null, [0.97, 436.7, 5.09, 35.7], null, null, [0.21, 93.5, 1.09, 18.6]]}, {"n": "Pittsburgh", "t": 1889.9, "c": [null, null, [0.02, 7.6, 0.13, 42.1], null, null, [2.33, 1018.9, 17.06, 42.8], null, null, [0.12, 8.1, 0.14, 54.4], null, null, [2.65, 828.9, 13.88, 29.7], null, null, [0.09, 26.4, 0.44, 43.4]]}, {"n": "Munich", "t": 1359.2, "c": [null, null, [0.48, 159.2, 2.58, 62.4], null, null, [0.17, 77.8, 1.26, 72.1], null, null, [2.05, 141.1, 2.28, 52.1], null, null, [0.7, 225.4, 3.65, 53.9], null, null, [2.38, 755.7, 12.23, 35.5]]}, {"n": "Riyadh", "t": 1330.6, "c": [null, null, [0.0, 0.0, 0.0, 27.1], null, null, [0.0, 0.0, 0.0, 20.3], null, null, [0.0, 0.0, 0.0, 19.7], null, null, [0.0, 0.1, 0.0, 31.4], null, null, [7.46, 1330.6, 38.3, 22.1]]}, {"n": "Dubai", "t": 1284.3, "c": [null, null, [2.09, 300.0, 11.24, 24.7], null, null, [0.03, 6.2, 0.23, 36.6], null, null, [1.38, 41.1, 1.54, 35.1], null, null, [0.15, 20.9, 0.79, 34.3], null, null, [6.68, 916.0, 34.32, 25.6]]}, {"n": "Seattle", "t": 1280.9, "c": [null, null, [0.06, 16.2, 0.3, 67.4], null, null, [0.34, 134.8, 2.5, 72.4], null, null, [1.27, 76.3, 1.42, 63.2], null, null, [1.46, 411.8, 7.64, 69.2], null, null, [2.32, 641.8, 11.91, 69.8]]}, {"n": "Chicago", "t": 1223.7, "c": [null, null, [0.01, 0.8, 0.04, 20.0], null, null, [0.17, 23.5, 1.23, 18.1], null, null, [0.07, 1.6, 0.08, 19.0], null, null, [8.88, 892.6, 46.56, 34.6], null, null, [3.1, 305.2, 15.92, 32.5]]}, {"n": "Washington DC", "t": 1215.5, "c": [null, null, [0.02, 6.7, 0.1, 65.9], null, null, [0.74, 366.5, 5.41, 70.7], null, null, [1.46, 110.3, 1.63, 47.5], null, null, [0.81, 287.7, 4.25, 62.3], null, null, [1.28, 444.2, 6.56, 47.0]]}, {"n": "Mumbai", "t": 1204.3, "c": [null, null, [0.0, 0.0, 0.0, 9.2], null, null, [0.0, 0.0, 0.0, 10.8], null, null, [0.0, 0.0, 0.0, 12.3], null, null, [1.65, 111.9, 8.65, 23.4], null, null, [16.44, 1092.4, 84.47, 17.8]]}, {"n": "Hong Kong", "t": 1146.5, "c": [null, null, [2.31, 250.0, 12.41, 19.6], null, null, [0.01, 1.2, 0.06, 36.6], null, null, [0.39, 8.8, 0.44, 27.1], null, null, [3.66, 386.3, 19.18, 31.3], null, null, [4.83, 500.2, 24.84, 18.1]]}, {"n": "Tokyo", "t": 857.9, "c": [null, null, [0.18, 36.6, 0.95, 64.3], null, null, [0.54, 152.8, 3.97, 63.7], null, null, [1.75, 75.1, 1.95, 60.0], null, null, [2.12, 427.4, 11.09, 47.1], null, null, [0.84, 166.0, 4.31, 50.0]]}, {"n": "Bengaluru", "t": 826.9, "c": [null, null, [3.03, 372.1, 16.29, 51.0], null, null, [0.14, 23.4, 1.03, 43.3], null, null, [0.81, 20.8, 0.91, 43.6], null, null, [1.35, 161.7, 7.08, 51.5], null, null, [2.12, 249.0, 10.9, 42.0]]}, {"n": "Montral", "t": 822.4, "c": [null, null, [2.26, 200.1, 12.16, 50.8], null, null, [0.92, 110.6, 6.72, 68.0], null, null, [6.52, 119.7, 7.27, 64.2], null, null, [0.5, 42.9, 2.6, 54.5], null, null, [4.13, 349.0, 21.2, 25.7]]}, {"n": "Salt Lake City", "t": 687.9, "c": [null, null, [1.54, 108.0, 8.31, 27.5], null, null, [0.06, 5.3, 0.41, 35.3], null, null, [18.26, 265.0, 20.38, 33.2], null, null, [0.2, 13.3, 1.02, 29.2], null, null, [4.44, 296.4, 22.8, 18.3]]}], "inds": ["Semiconductor", "Automotive", "Energy", "Healthcare", "Finance"], "mets": ["Patents", "Publications", "Funding"], "present": [false, false, true]};
+const NM=D.mets.length, NI=D.inds.length;
+
+// diverging ramp on log2(RCA), anchored at 1
+const LO=[139,26,15], MID=[241,239,234], HI=[30,94,32];
+const mix=(a,b,t)=>`rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(',')})`;
+function col(r){
+  if(r===null||r===undefined) return null;
+  const x=Math.log2(Math.max(r,0.05));
+  return x<0 ? mix(MID,LO,Math.min(-x/4.3,1)) : mix(MID,HI,Math.min(x/5,1));
+}
+document.getElementById('ramp').innerHTML=
+  Array.from({length:60},(_,i)=>{const x=-4.3+(i/59)*9.3;
+    return `<i style="background:${x<0?mix(MID,LO,-x/4.3):mix(MID,HI,x/5)}"></i>`}).join('');
+
+let order='tot';
+function rows(){
+  const c=[...D.cities];
+  return order==='alpha' ? c.sort((a,b)=>a.n.localeCompare(b.n)) : c.sort((a,b)=>b.t-a.t);
+}
+function build(){
+  const t=document.getElementById('t');
+  let h='<thead><tr><th class="city"></th>';
+  D.inds.forEach((n,i)=>{h+=`<th class="ind" colspan="${NM}">${n}</th>`;
+    if(i<NI-1)h+='<th class="gap"></th>';});
+  h+='</tr><tr class="rule"><th class="city"></th>';
+  D.inds.forEach((n,i)=>{h+=`<th colspan="${NM}"></th>`; if(i<NI-1)h+='<th class="gap"></th>';});
+  h+='</tr><tr><th class="city"></th>';
+  D.inds.forEach((n,i)=>{D.mets.forEach(m=>h+=`<th class="lens">${m.slice(0,3)}</th>`);
+    if(i<NI-1)h+='<th class="gap"></th>';});
+  h+='</tr></thead><tbody>';
+
+  rows().forEach(ct=>{
+    h+=`<tr><th class="city">${ct.n}</th>`;
+    for(let i=0;i<NI;i++){
+      for(let m=0;m<NM;m++){
+        const k=i*NM+m, d=ct.c[k];
+        if(!d){h+='<td class="cell na"></td>';continue;}
+        const [rca,cnt,shr,rd]=d, bg=col(rca);
+        const dark=rca>=4||rca<=0.12, lab=rca>=1.5?(rca>=10?rca.toFixed(0):rca.toFixed(1)):'';
+        h+=`<td class="cell" style="background:${bg}" data-c="${ct.n}" data-i="${i}" data-m="${m}"
+             data-r="${rca}" data-n="${cnt}" data-s="${shr}" data-d="${rd}">
+             <span style="color:${dark?'#fff':'#1a1a1a'}">${lab}</span></td>`;
+      }
+      if(i<NI-1)h+='<td class="gap"></td>';
+    }
+    h+='</tr>';
+  });
+  t.innerHTML=h+'</tbody>';
+}
+
+const tip=document.getElementById('tip');
+document.addEventListener('mouseover',e=>{
+  const tr=e.target.closest('tbody tr'); const tb=document.querySelector('tbody');
+  if(!tr){if(tb)tb.classList.remove('dim');tip.style.opacity=0;return;}
+  tb.classList.add('dim');
+  document.querySelectorAll('.on').forEach(n=>n.classList.remove('on'));
+  tr.querySelectorAll('.cell,.city').forEach(n=>n.classList.add('on'));
+  const c=e.target.closest('.cell');
+  if(c&&c.dataset.r!==undefined){
+    tip.innerHTML=`<b>${c.dataset.c}</b><br>${D.inds[c.dataset.i]} &middot; ${D.mets[c.dataset.m]}
+      <div style="margin-top:6px">
+      <span class="k">RCA</span><span class="num">${(+c.dataset.r).toFixed(2)}</span><br>
+      <span class="k">Activity</span><span class="num">${(+c.dataset.n).toLocaleString()}</span><br>
+      <span class="k">Share of city</span><span class="num">${(+c.dataset.s).toFixed(1)}%</span><br>
+      <span class="k">Relatedness</span><span class="num">${(+c.dataset.d).toFixed(1)}</span></div>`;
+    tip.style.opacity=1;
+  } else tip.style.opacity=0;
+});
+document.addEventListener('mousemove',e=>{
+  const p=12, w=tip.offsetWidth, hh=tip.offsetHeight;
+  tip.style.left=Math.min(e.clientX+p,innerWidth-w-8)+'px';
+  tip.style.top=Math.min(e.clientY+p,innerHeight-hh-8)+'px';
+});
+document.querySelector('.scroll').addEventListener('mouseleave',()=>{
+  const tb=document.querySelector('tbody'); if(tb)tb.classList.remove('dim'); tip.style.opacity=0;});
+
+const bT=document.getElementById('bTot'), bA=document.getElementById('bAlpha');
+bT.onclick=()=>{order='tot';bT.setAttribute('aria-pressed','true');bA.setAttribute('aria-pressed','false');build();};
+bA.onclick=()=>{order='alpha';bA.setAttribute('aria-pressed','true');bT.setAttribute('aria-pressed','false');build();};
+build();
+</script>
+</body>
+</html>
