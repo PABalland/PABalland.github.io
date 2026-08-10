@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The same cities, three different rankings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#14161a;--muted:#666b73;--faint:#9ba1a9;--rule:#dedcd6;--paper:#fff;
+  --US:#1e3a6d;--CN:#9e2b25;--EU:#b0842e;--KR:#2f6f5e;--OT:#5b4a7a;--REST:#c3c0b8}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:52px 30px 60px}
+.eyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);font-weight:500;margin-bottom:15px}
+h1{font-family:"Source Serif 4",Georgia,serif;font-weight:600;font-size:33px;line-height:1.15;
+  margin:0 0 13px;letter-spacing:-.014em;max-width:22ch}
+.sub{font-size:14.5px;line-height:1.6;color:var(--muted);max-width:66ch;margin:0 0 22px}
+.sub b{color:var(--ink);font-weight:600}
+.key{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);
+  padding-bottom:16px;margin-bottom:6px;border-bottom:1px solid var(--rule)}
+.key i{width:10px;height:10px;display:inline-block;margin-right:6px;vertical-align:-1px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.rib{transition:opacity .16s}
+svg.dim .rib:not(.on){opacity:.07}
+svg.dim text:not(.on){opacity:.22}
+text{transition:opacity .16s}
+.cl{font-size:11.5px;fill:var(--ink)}
+.cl.rest{fill:var(--muted)}
+.cv{font-family:"IBM Plex Mono",monospace;font-size:9.5px;fill:var(--faint)}
+.band{font-family:"Source Serif 4",Georgia,serif;font-size:16px;font-weight:600;fill:var(--ink)}
+.bsub{font-family:"IBM Plex Mono",monospace;font-size:10px;fill:var(--faint)}
+.tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .1s;z-index:20;
+  background:var(--ink);color:#fff;padding:10px 13px;font-size:11.5px;line-height:1.6}
+.tip .num{font-family:"IBM Plex Mono",monospace;font-weight:600}
+.tip .k{color:#9ba1a9;display:inline-block;min-width:82px}
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--rule);
+  font-size:11.5px;line-height:1.7;color:var(--muted);max-width:88ch}
+footer p{margin:0 0 8px}footer b{color:var(--ink);font-weight:600}
+.note{color:var(--faint)}
+@media (max-width:820px){.wrap{padding:32px 14px 44px}h1{font-size:24px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body><div class="wrap">
+
+
+<div class="key">
+  <span><i style="background:var(--US)"></i>United States</span>
+  <span><i style="background:var(--CN)"></i>China</span>
+  <span><i style="background:var(--KR)"></i>Korea</span>
+  <span><i style="background:var(--EU)"></i>Europe</span>
+  <span><i style="background:var(--REST)"></i>Rest of world (197 cities)</span>
+</div>
+
+<svg id="s" viewBox="0 0 1120 860" preserveAspectRatio="xMidYMid meet"></svg>
+<div class="tip" id="tip"></div>
+
+
+<script>
+const D={"rows": [{"city": "SF\u2013Oakland", "reg": "US", "pat": 0.97, "pub": 0.97, "inv": 52.32}, {"city": "Shenzhen", "reg": "CN", "pat": 20.33, "pub": 0.94, "inv": 0.63}, {"city": "Beijing", "reg": "CN", "pat": 13.32, "pub": 6.52, "inv": 2.46}, {"city": "San Jose", "reg": "US", "pat": 3.8, "pub": 0.81, "inv": 9.29}, {"city": "Shanghai", "reg": "CN", "pat": 1.85, "pub": 2.7, "inv": 1.64}, {"city": "Seoul", "reg": "KR", "pat": 8.84, "pub": 1.52, "inv": 0.5}, {"city": "London", "reg": "EU", "pat": 0.91, "pub": 2.15, "inv": 3.93}, {"city": "Paris", "reg": "EU", "pat": 0.82, "pub": 2.26, "inv": 0.83}, {"city": "Dongguan", "reg": "CN", "pat": 6.75, "pub": 0.12, "inv": 0.03}, {"city": "New York", "reg": "US", "pat": 1.48, "pub": 1.94, "inv": 3.32}, {"city": "San Diego", "reg": "US", "pat": 4.14, "pub": 0.51, "inv": 1.03}, {"city": "Washington DC", "reg": "US", "pat": 0.57, "pub": 1.96, "inv": 0.2}, {"city": "Nanjing", "reg": "CN", "pat": 0.65, "pub": 1.95, "inv": 0.04}, {"city": "Hangzhou", "reg": "CN", "pat": 1.08, "pub": 1.5, "inv": 1.95}, {"city": "Daejeon", "reg": "KR", "pat": 3.53, "pub": 0.39, "inv": 0.01}, {"city": "Helsinki", "reg": "EU", "pat": 2.12, "pub": 0.35, "inv": 0.16}, {"city": "Guangzhou", "reg": "CN", "pat": 0.5, "pub": 1.81, "inv": 0.08}, {"city": "Boston", "reg": "US", "pat": 0.75, "pub": 1.79, "inv": 1.49}, {"city": "Singapore", "reg": "OT", "pat": 0.31, "pub": 0.71, "inv": 1.26}, {"city": "Mannheim", "reg": "EU", "pat": 1.76, "pub": 0.34, "inv": 0.04}, {"city": "Rest of world (197 cities)", "reg": "REST", "rest": true, "pat": 25.52, "pub": 68.76, "inv": 18.79}]}, R=D.rows;
+const BANDS=[['pat','AI Patents','20.3% top city'],['pub','AI Publications','6.5% top city'],['inv','AI Investment','52.3% top city']];
+const W=1120,H=860, TOP=68, BOT=20, BW=15, GAP=3.4;
+const XS=[300,560,820];
+const usable=H-TOP-BOT-GAP*(R.length-1);
+const sc=usable/100;
+
+// per-band ordering: rest always last, others by share desc
+const ord={}, pos={};
+BANDS.forEach(([k])=>{
+  const o=[...R].filter(r=>!r.rest).sort((a,b)=>b[k]-a[k]).concat(R.filter(r=>r.rest));
+  ord[k]=o; let y=TOP;
+  o.forEach(r=>{pos[k+'|'+r.city]=[y,y+r[k]*sc]; y+=r[k]*sc+GAP;});
+});
+
+const svg=document.getElementById('s');
+let out='';
+// ribbons between adjacent bands
+for(let i=0;i<2;i++){
+  const k1=BANDS[i][0], k2=BANDS[i+1][0];
+  const x1=XS[i]+BW, x2=XS[i+1];
+  [...R].sort((a,b)=>(b[k1]+b[k2])-(a[k1]+a[k2])).forEach(r=>{
+    const [a1,b1]=pos[k1+'|'+r.city], [a2,b2]=pos[k2+'|'+r.city];
+    const cx=(x1+x2)/2;
+    out+=`<path class="rib" data-city="${r.city}"
+      d="M${x1},${a1} C${cx},${a1} ${cx},${a2} ${x2},${a2} L${x2},${b2} C${cx},${b2} ${cx},${b1} ${x1},${b1} Z"
+      fill="var(--${r.reg})" opacity="${r.rest?0.16:0.34}"/>`;
+  });
+}
+// band rects
+BANDS.forEach(([k,label,note],i)=>{
+  ord[k].forEach(r=>{
+    const [a,b]=pos[k+'|'+r.city];
+    out+=`<rect class="rib" data-city="${r.city}" x="${XS[i]}" y="${a}" width="${BW}" height="${Math.max(b-a,0.6)}"
+      fill="var(--${r.reg})" opacity="${r.rest?0.5:0.95}"/>`;
+  });
+  out+=`<text class="band" x="${XS[i]+BW/2}" y="${TOP-30}" text-anchor="middle">${label}</text>`;
+  out+=`<text class="bsub" x="${XS[i]+BW/2}" y="${TOP-15}" text-anchor="middle"></text>`;
+});
+// labels: left of band 1, right of band 3
+ord['pat'].forEach(r=>{
+  const [a,b]=pos['pat|'+r.city], h=b-a;
+  if(h<7&&!r.rest) return;
+  out+=`<text class="cl ${r.rest?'rest':''}" data-city="${r.city}" x="${XS[0]-11}" y="${(a+b)/2+(h>22?-2:3.6)}" text-anchor="end">${r.city}</text>`;
+  if(h>22) out+=`<text class="cv" data-city="${r.city}" x="${XS[0]-11}" y="${(a+b)/2+11}" text-anchor="end">${r.pat.toFixed(1)}%</text>`;
+});
+ord['inv'].forEach(r=>{
+  const [a,b]=pos['inv|'+r.city], h=b-a;
+  if(h<7&&!r.rest) return;
+  out+=`<text class="cl ${r.rest?'rest':''}" data-city="${r.city}" x="${XS[2]+BW+11}" y="${(a+b)/2+(h>22?-2:3.6)}">${r.city}</text>`;
+  if(h>22) out+=`<text class="cv" data-city="${r.city}" x="${XS[2]+BW+11}" y="${(a+b)/2+11}">${r.inv.toFixed(1)}%</text>`;
+});
+svg.innerHTML=out;
+
+const tip=document.getElementById('tip');
+svg.addEventListener('mouseover',e=>{
+  const p=e.target.closest('[data-city]');
+  if(!p){svg.classList.remove('dim');tip.style.opacity=0;return;}
+  svg.classList.add('dim');
+  document.querySelectorAll('.on').forEach(n=>n.classList.remove('on'));
+  const c=p.dataset.city;
+  document.querySelectorAll(`[data-city="${CSS.escape(c)}"]`).forEach(n=>n.classList.add('on'));
+  const r=R.find(x=>x.city===c);
+  tip.innerHTML=`<b>${c}</b><div style="margin-top:6px">
+    <span class="k">Patents</span><span class="num">${r.pat.toFixed(2)}%</span><br>
+    <span class="k">Publications</span><span class="num">${r.pub.toFixed(2)}%</span><br>
+    <span class="k">Investment</span><span class="num">${r.inv.toFixed(2)}%</span></div>`;
+  tip.style.opacity=1;
+});
+svg.addEventListener('mouseleave',()=>{svg.classList.remove('dim');tip.style.opacity=0;});
+addEventListener('mousemove',e=>{tip.style.left=Math.min(e.clientX+13,innerWidth-tip.offsetWidth-8)+'px';
+  tip.style.top=Math.min(e.clientY+13,innerHeight-tip.offsetHeight-8)+'px';});
+</script></body></html>
