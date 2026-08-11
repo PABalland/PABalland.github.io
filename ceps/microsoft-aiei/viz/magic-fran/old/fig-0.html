@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Where frontier models come from</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14161a;--muted:#666b73;--faint:#9ba1a9;--rule:#dedcd6;--rail:#f7f6f3;--paper:#fff;
+  --sf:#1e3a6d;--sj:#4a7fb5;--bj:#9e2b25;--hz:#c76a45;--sh:#7d3230;--pa:#b0842e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto;padding:50px 28px 58px}
+.eyebrow{font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);font-weight:500;margin-bottom:14px}
+h1{font-family:"Source Serif 4",Georgia,serif;font-weight:600;font-size:32px;line-height:1.15;
+  margin:0 0 12px;letter-spacing:-.014em;max-width:22ch}
+.sub{font-size:14.5px;line-height:1.6;color:var(--muted);max-width:70ch;margin:0 0 22px}
+.sub b{color:var(--ink);font-weight:600}
+.hl{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);
+  border:1px solid var(--rule);margin-bottom:26px}
+.h{background:var(--paper);padding:14px 17px}
+.h .n{font-family:"IBM Plex Mono",monospace;font-size:25px;font-weight:500;letter-spacing:-.03em;line-height:1}
+.h .d{font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.45}
+.h .d b{color:var(--ink);font-weight:600}
+.key{display:flex;gap:15px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);
+  border-top:1px solid var(--rule);padding-top:12px;margin-bottom:4px}
+.key i{width:9px;height:9px;display:inline-block;margin-right:6px;vertical-align:-.5px;border-radius:2px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.rib{transition:opacity .16s}
+svg.dim .rib:not(.on){opacity:.08}
+svg.dim text:not(.on){opacity:.2}
+svg.dim .bar:not(.on){opacity:.14}
+text{transition:opacity .16s}
+.nlab{font-size:11.5px;font-weight:500}
+.mlab{font-size:12px}
+.mlab.top{font-weight:600}
+.chd{font-family:"Source Serif 4",Georgia,serif;font-size:13.5px;font-weight:600;fill:var(--ink)}
+.chs{font-family:"IBM Plex Mono",monospace;font-size:9px;fill:var(--faint);letter-spacing:.05em}
+.val{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;fill:#fff}
+.ax{font-family:"IBM Plex Mono",monospace;font-size:9.5px;fill:var(--faint)}
+.hit{fill:transparent;cursor:pointer}
+.tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .1s;z-index:20;
+  background:var(--ink);color:#fff;padding:10px 13px;font-size:11.5px;line-height:1.6}
+.tip .k{color:#9ba1a9;display:inline-block;min-width:76px}
+.tip .num{font-family:"IBM Plex Mono",monospace;font-weight:600}
+footer{margin-top:26px;padding-top:15px;border-top:1px solid var(--rule);
+  font-size:11.5px;line-height:1.7;color:var(--muted);max-width:92ch}
+footer p{margin:0 0 8px}footer b{color:var(--ink);font-weight:600}
+.note{color:var(--faint)}
+@media (max-width:900px){.wrap{padding:30px 12px 40px}h1{font-size:24px}.hl{grid-template-columns:1fr 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+
+<div class="hl" id="hl"></div>
+<div class="key" id="key"></div>
+
+<svg id="s" viewBox="0 0 1280 640" preserveAspectRatio="xMidYMid meet"></svg>
+<div class="tip" id="tip"></div>
+
+
+</div>
+
+<script>
+const M=[
+ ["Claude Fable 5","Anthropic","San Francisco–Oakland","sf",0.601],
+ ["GPT 5.6 Sol","OpenAI","San Francisco–Oakland","sf",0.590],
+ ["Kimi K3","Moonshot AI","Beijing","bj",0.582],
+ ["Qwen 3.8 Max","Alibaba","Hangzhou","hz",0.574],
+ ["Muse Spark 1.2","Meta","San Francisco–Oakland","sf",0.568],
+ ["Grok 4.5","xAI","San Jose","sj",0.557],
+ ["Gemini 3.5 Flash","Google DeepMind","San Jose","sj",0.541],
+ ["GLM 5.2","Zhipu AI","Beijing","bj",0.540],
+ ["DeepSeek v4 Flash","DeepSeek","Hangzhou","hz",0.535],
+ ["MiMo v2.5 Pro","Xiaomi","Beijing","bj",0.502],
+ ["MiniMax M3","MiniMax","Shanghai","sh",0.494],
+ ["Nemotron 3 Ultra","NVIDIA","San Jose","sj",0.456],
+ ["ERNIE 5.0","Baidu","Beijing","bj",0.397],
+ ["Step 3.5 Flash","StepFun","Shanghai","sh",0.396],
+ ["Magistral Medium","Mistral AI","Paris","pa",0.336]
+];
+const CITY={sf:"San Francisco–Oakland",sj:"San Jose",bj:"Beijing",hz:"Hangzhou",sh:"Shanghai",pa:"Paris"};
+const CTRY={sf:"US",sj:"US",bj:"CN",hz:"CN",sh:"CN",pa:"FR"};
+
+
+/* ---- geometry ---- */
+const W=1280,H=640,T=54,B=46;
+const X=[92,300,470];        // city node, company node, model node (left edge of label col)
+const NW=12, BARX=690, BARW=470;
+const PH=H-T-B, rowH=PH/M.length, rib=rowH*0.70;
+
+/* model row centres */
+M.forEach((m,i)=>m.y=T+(i+0.5)*rowH);
+
+/* company nodes */
+const comp=[];
+M.forEach(m=>{
+  let c=comp.find(c=>c.name===m[1]);
+  if(!c){c={name:m[1],city:m[3],ms:[]};comp.push(c);}
+  c.ms.push(m);
+});
+/* city nodes */
+const city=[];
+comp.forEach(c=>{
+  let g=city.find(g=>g.key===c.city);
+  if(!g){g={key:c.city,name:CITY[c.city],cs:[],n:0};city.push(g);}
+  g.cs.push(c); g.n+=c.ms.length;
+});
+
+/* stack: order by mean model y, then de-overlap */
+function stack(nodes,sizeOf,meanOf,gap){
+  nodes.forEach(n=>{n.h=sizeOf(n)*rib; n.mid=meanOf(n);});
+  nodes.sort((a,b)=>a.mid-b.mid);
+  nodes.forEach(n=>n.y0=n.mid-n.h/2);
+  for(let k=1;k<nodes.length;k++){
+    const prev=nodes[k-1];
+    if(nodes[k].y0<prev.y0+prev.h+gap) nodes[k].y0=prev.y0+prev.h+gap;
+  }
+  const last=nodes[nodes.length-1], over=last.y0+last.h-(T+PH);
+  if(over>0){ for(let k=nodes.length-1;k>=0;k--){ nodes[k].y0-=over;
+    if(k>0 && nodes[k].y0-(nodes[k-1].y0+nodes[k-1].h)>=gap) break; } }
+  nodes.forEach(n=>n.cur=n.y0);
+}
+stack(comp,c=>c.ms.length,c=>c.ms.reduce((s,m)=>s+m.y,0)/c.ms.length,7);
+stack(city,g=>g.n,g=>g.cs.reduce((s,c)=>s+c.mid*c.ms.length,0)/g.n,13);
+
+/* assign slots: cities give to companies (ordered by company mid), companies to models */
+city.forEach(g=>{ g.cs.sort((a,b)=>a.y0-b.y0); });
+comp.forEach(c=>{ c.ms.sort((a,b)=>a.y-b.y); });
+
+const band=(x1,y1,x2,y2,t,fill,op,dc)=>{
+  const cx=(x1+x2)/2;
+  return `<path class="rib" data-c="${dc}" fill="${fill}" opacity="${op}"
+   d="M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2} L${x2},${y2+t} C${cx},${y2+t} ${cx},${y1+t} ${x1},${y1+t} Z"/>`;
+};
+
+let o='';
+/* column heads */
+[["Urban area",X[0],"WHERE"],["Developer",X[1],"WHO"],["Model",X[2],"WHAT"]].forEach(([n,x,s])=>{
+  o+=`<text class="chd" x="${x}" y="${T-26}">${n}</text>`;
+  o+=`<text class="chs" x="${x}" y="${T-13}">${s}</text>`;});
+o+=`<text class="chd" x="${BARX}" y="${T-26}">Capability score</text>`;
+o+=`<text class="chs" x="${BARX}" y="${T-13}">HOW GOOD</text>`;
+
+/* ribbons city -> company */
+city.forEach(g=>{
+  g.cs.forEach(c=>{
+    const t=c.ms.length*rib;
+    o+=band(X[0]+NW,g.cur,X[1],c.cur,t,`var(--${g.key})`,.30,g.key);
+    g.cur+=t;
+  });
+});
+/* ribbons company -> model */
+comp.forEach(c=>{
+  c.ms.forEach(m=>{
+    o+=band(X[1]+NW,c.cur,X[2]-26,m.y-rib/2,rib,`var(--${c.city})`,.42,m[0]);
+    c.cur+=rib;
+  });
+});
+/* nodes */
+city.forEach(g=>{
+  o+=`<rect class="rib" data-c="${g.key}" x="${X[0]}" y="${g.y0}" width="${NW}" height="${g.h}" fill="var(--${g.key})"/>`;
+  o+=`<text class="nlab rib" data-c="${g.key}" x="${X[0]-9}" y="${g.y0+g.h/2+4}" text-anchor="end"
+      fill="var(--${g.key})">${g.name}</text>`;
+});
+comp.forEach(c=>{
+  o+=`<rect class="rib" data-c="${c.name}" x="${X[1]}" y="${c.y0}" width="${NW}" height="${c.h}" fill="var(--${c.city})" opacity=".9"/>`;
+  o+=`<text class="nlab rib" data-c="${c.name}" x="${X[1]+NW+8}" y="${c.y0+c.h/2+4}">${c.name}</text>`;
+});
+
+/* bars */
+const lo=0.30, hi=0.62, bx=v=>BARX+(v-lo)/(hi-lo)*BARW;
+[0.35,0.40,0.45,0.50,0.55,0.60].forEach(v=>{
+  o+=`<line x1="${bx(v)}" y1="${T-4}" x2="${bx(v)}" y2="${T+PH+6}" stroke="#eeedea" stroke-width="1"/>`;
+  o+=`<text class="ax" x="${bx(v)}" y="${T+PH+22}" text-anchor="middle">${v.toFixed(2)}</text>`;});
+M.forEach((m,i)=>{
+  const h=rib, y=m.y-h/2;
+  o+=`<text class="mlab rib ${i<3?'top':''}" data-c="${m[0]}" x="${X[2]-18}" y="${m.y+4}" text-anchor="end">${m[0]}</text>`;
+  o+=`<rect class="bar rib" data-c="${m[0]}" x="${BARX}" y="${y}" width="${bx(m[4])-BARX}" height="${h}"
+      fill="var(--${m[3]})" opacity=".88"/>`;
+  o+=`<text class="val rib" data-c="${m[0]}" x="${bx(m[4])-8}" y="${m.y+4}" text-anchor="end">${m[4].toFixed(3)}</text>`;
+});
+/* hit areas over model rows */
+M.forEach(m=>{o+=`<rect class="hit" data-c="${m[0]}" x="${X[2]-190}" y="${m.y-rowH/2}" width="${BARW+520}" height="${rowH}"/>`;});
+
+document.getElementById('s').innerHTML=o;
+
+/* ---- interaction ---- */
+const svg=document.getElementById('s'), tip=document.getElementById('tip');
+svg.addEventListener('mouseover',e=>{
+  const t=e.target.closest('[data-c]');
+  if(!t){svg.classList.remove('dim');tip.style.opacity=0;return;}
+  const key=t.dataset.c;
+  const rows=M.filter(m=>m[0]===key||m[1]===key||m[3]===key);
+  if(!rows.length) return;
+  svg.classList.add('dim');
+  svg.querySelectorAll('.on').forEach(n=>n.classList.remove('on'));
+  const names=new Set(); rows.forEach(m=>{names.add(m[0]);names.add(m[1]);names.add(m[3]);});
+  names.forEach(n=>svg.querySelectorAll(`[data-c="${CSS.escape(n)}"]`).forEach(x=>x.classList.add('on')));
+  if(rows.length===1){
+    const m=rows[0];
+    tip.innerHTML=`<b>${m[0]}</b><div style="margin-top:6px">
+      <span class="k">Developer</span>${m[1]}<br>
+      <span class="k">Urban area</span>${CITY[m[3]]}<br>
+      <span class="k">Score</span><span class="num">${m[4].toFixed(3)}</span></div>`;
+  } else {
+    const lbl=CITY[key]||key;
+    tip.innerHTML=`<b>${lbl}</b><div style="margin-top:6px">${rows.length} models &middot; best ${Math.max(...rows.map(r=>r[4])).toFixed(3)}<br>
+      <span style="color:#9ba1a9">${rows.map(r=>r[0]).join(', ')}</span></div>`;
+  }
+  tip.style.opacity=1;
+});
+svg.addEventListener('mouseleave',()=>{svg.classList.remove('dim');tip.style.opacity=0;});
+addEventListener('mousemove',e=>{
+  tip.style.left=Math.min(e.clientX+14,innerWidth-tip.offsetWidth-8)+'px';
+  tip.style.top=Math.min(e.clientY+14,innerHeight-tip.offsetHeight-8)+'px';});
+</script>
+</body>
+</html>
