@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>One general technology, five different economies</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+
+:root {
+    --fs-control:  clamp(9px, 1.4vw, 13px);
+    --fs-legend:   clamp(0.625rem, 1.4vw, 1rem);
+    --fs-meta:     clamp(10px, 1.6vw, 16px);
+    --fs-slider:   clamp(11px, 1.2vw, 13px);
+
+    --breakpoint-compact: 500px;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    height: 100vh;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Helvetica, Arial, sans-serif;
+    background-color: white;
+}
+
+.viz-grid {
+    display: grid;
+    grid-template-rows: 16fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
+    height: 100vh;
+    width: 100vw;
+    box-sizing: border-box;
+    padding-bottom: clamp(8px, 2vh, 18px);
+}
+
+#container1 {
+    grid-row: 1;
+    grid-column: 1 / span 2;
+    overflow: hidden;
+    min-height: 0;
+}
+
+#container2 {
+    grid-row: 2;
+    grid-column: 1 / span 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#viz {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    min-width: 0;
+}
+
+.selector-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(2px, 0.5vw, 6px);
+    padding: clamp(2px, 0.4vw, 4px);
+    border-radius: 6px;
+    border: 1px solid rgba(17, 24, 39, 0.15);
+    background: #f8fafc;
+    max-width: 100%;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.selector-pill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #2756d3;
+    border-radius: 6px;
+    z-index: 0;
+    pointer-events: none;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.selector-button {
+    position: relative;
+    z-index: 1;
+    border: none;
+    background: transparent;
+    padding: clamp(4px, 0.8vh, 8px) clamp(8px, 1.5vw, 14px);
+    border-radius: 6px;
+    font-size: var(--fs-control);
+    font-weight: 600;
+    color: #475569;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.selector-button.active {
+    color: #fff;
+}
+
+#tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: #fff;
+    color: #0f172a;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    max-width: 240px;
+    z-index: 100;
+}
+
+.axis path,
+.axis line {
+    stroke: #cfd2d7;
+}
+
+.tick text {
+    font-weight: 600;
+    fill: #4b5563;
+}
+
+.grid-lines line {
+    stroke: #DBDBDB;
+    stroke-dasharray: 2, 3;
+}
+
+.grid-lines path {
+    stroke: none;
+}
+
+.bar-label {
+    fill: #555;
+    font-weight: 500;
+}
+
+@media (max-height: 500px) {
+    .viz-grid {
+        grid-template-rows: 1fr !important;
+        grid-template-columns: 1fr !important;
+        padding-bottom: 0;
+    }
+
+    #container1 {
+        grid-row: 1 !important;
+        grid-column: 1 !important;
+    }
+
+    #container2 {
+        display: none !important;
+    }
+}
+
+#page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    box-sizing: border-box;
+    padding: clamp(10px, 2vh, 24px) clamp(12px, 2vw, 28px) clamp(8px, 2vh, 18px);
+}
+
+#main { display: flex; flex: 1; min-height: 0; min-width: 0; gap: 30px; justify-content: center; }
+#heatmap-wrapper { display: flex; align-items: flex-start; flex: 0 1 auto; min-width: 0; position: relative; }
+#y-axis, #sections { position: relative; z-index: 1; }
+
+#row-bands {
+    position: absolute; left: 0; right: 0; z-index: 0; pointer-events: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 10%, #000 90%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 10%, #000 90%, transparent 100%);
+}
+
+#y-axis { display: flex; flex-direction: column; flex-shrink: 0; gap: 1px; }
+.y-label {
+    text-align: right; padding-right: 10px; line-height: 1.25;
+    display: flex; align-items: center; justify-content: flex-end;
+    max-width: 30ch; overflow-wrap: break-word;
+
+    font-size: clamp(8px, 0.95vw, 11px);
+    font-weight: 600; color: #333;
+    transition: color 0.15s ease;
+}
+#sections { display: flex; gap: 16px; align-items: flex-start; }
+.section { display: flex; flex-direction: column; align-items: center; flex: 0 0 auto; }
+.section-rule { background: #0f172a; height: 2px; margin-bottom: 13px; }
+.section-title {
+    font-weight: bold; text-align: center; margin-bottom: 7px;
+    white-space: nowrap;
+    font-size: clamp(11px, 1.3vw, 17px); color: #0f172a; line-height: 1.2;
+}
+.section-grid { display: flex; align-items: flex-start; }
+.x-label {
+    text-align: center; line-height: 1.2; margin-top: 6px;
+    font-size: clamp(8px, 0.95vw, 12px); letter-spacing: 0.04em;
+    color: #4b5563; font-weight: 600;
+}
+.group-block { display: flex; gap: 2px; }
+.col-block { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.cell {
+    border: 0.5px solid rgba(255, 255, 255, 0.3);
+    box-sizing: border-box;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 400; font-variant-numeric: tabular-nums;
+    transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+#sections.dim .cell:not(.on) { filter: saturate(0.15); opacity: 0.45; }
+#y-axis.dim .y-label:not(.on) { color: #9aa3ae; }
+.cell.on { outline: 1.5px solid #0f172a; outline-offset: -1.5px; z-index: 1; }
+
+#legend { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+#legend-title {
+    font-size: clamp(9px, 1.1vw, 13px); font-weight: 600; color: #333;
+    text-align: center; margin-bottom: 6px; line-height: 1.25;
+}
+#legend-body { display: flex; }
+#legend-bar {
+    width: 14px; border: 1px solid #ccc;
+    background: linear-gradient(to bottom, #1F5F21 0%, #ffffff 50%, #8B1A10 100%);
+}
+#legend-ticks { display: flex; flex-direction: column; justify-content: space-between; }
+
+.legend-tick {
+    display: flex; align-items: center; gap: 4px; margin-left: -1px;
+    font-size: clamp(8px, 1vw, 11px); color: #4b5563; font-weight: 600; line-height: 1;
+    white-space: nowrap;
+}
+.legend-tick::before { content: ''; width: 11px; height: 1px; background: #9aa3ae; }
+
+@media (max-width: 469px) {
+    body { overflow-x: auto; }
+    #page { min-width: 470px; }
+}
+
+@media (max-height: 699px) {
+    body { overflow-y: auto; }
+    #page { height: auto; min-height: 700px; }
+}
+
+@media (max-width: 560px) {
+    #page { padding: 10px 8px 10px; }
+    #main { flex-direction: column; align-items: center; gap: 10px; }
+    #heatmap-wrapper { flex: 0 0 auto; }
+    #legend { flex-direction: row; align-items: center; gap: 8px; }
+    #legend-title { margin-bottom: 0; text-align: left; }
+    #legend-body { flex-direction: column; }
+    #legend-ticks {
+        flex-direction: row-reverse; justify-content: space-between; width: 100%;
+    }
+    .legend-tick { flex-direction: column; gap: 2px; margin-left: 0; }
+    .legend-tick::before { width: 1px; height: 11px; }
+    .y-label { padding-right: 6px; }
+}
+
+#controls { display: flex; justify-content: center; padding-top: clamp(6px, 1.5vh, 14px); }
+.error-message {
+    display: flex; align-items: center; justify-content: center;
+    height: 100%; font-family: system-ui, sans-serif; color: #666;
+}
+</style>
+</head>
+<body>
+<div id="page">
+  <div id="main">
+    <div id="heatmap-wrapper">
+      <div id="row-bands"></div>
+      <div id="y-axis"></div>
+      <div id="sections"></div>
+    </div>
+    <div id="legend">
+      <div id="legend-title">Revealed<br>comparative<br>advantage</div>
+      <div id="legend-body">
+        <div id="legend-bar"></div>
+        <div id="legend-ticks">
+          <span class="legend-tick">16</span>
+          <span class="legend-tick">4</span>
+          <span class="legend-tick">1</span>
+          <span class="legend-tick">0.25</span>
+          <span class="legend-tick">0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="controls">
+    <div class="selector-group">
+      <button class="selector-button active" data-order="rank">By overall rank</button>
+      <button class="selector-button" data-order="alpha">A&ndash;Z</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const BREAKPOINT_COMPACT = 500;
+const BREAKPOINT_PHONE   = 560;
+const SHOW_TOOLTIP   = 1;
+const SHOW_CELL_VALUE = 1;
+const SECTION_GAP    = 16;
+const COL_GAP        = 2;
+const ROW_GAP        = 1;
+const RAMP_HALF      = 4;
+const RAMP_GAMMA     = 0.62;
+const MAX_CELL_W     = 90;
+
+const D={"rows":[{"label":"Seoul (KR)","rank":1,"c":{"Semiconductor|pat":[1.28,7885.0,9.61,1],"Semiconductor|pub":[1.69,1031.0,1.52,5],"Semiconductor|inv":[3.8,1570.31,3.3,6],"Automotive|pat":[1.64,738.0,12.32,1],"Automotive|pub":[1.88,734.0,1.7,5],"Automotive|inv":[1.94,1087.71,1.68,6],"Energy|pat":[2.14,458.0,16.06,1],"Energy|pub":[0.85,609.0,0.77,5],"Energy|inv":[0.58,48.49,0.5,6],"Healthcare|pat":[2.28,1568.0,17.12,1],"Healthcare|pub":[1.28,3088.0,1.16,5],"Healthcare|inv":[1.76,664.85,1.53,6],"Finance|pat":[2.32,1436.0,17.43,1],"Finance|pub":[1.02,381.0,0.92,5],"Finance|inv":[3.49,1344.88,3.02,6]}},{"label":"Beijing (CN)","rank":2,"c":{"Semiconductor|pat":[1.73,6813.0,8.3,5],"Semiconductor|pub":[1.66,4289.0,6.34,1],"Semiconductor|inv":[0.77,964.1,2.02,10],"Automotive|pat":[0.77,221.0,3.69,5],"Automotive|pub":[2.22,3670.0,8.49,1],"Automotive|inv":[1.68,2857.55,4.42,10],"Energy|pat":[0.4,54.0,1.89,5],"Energy|pub":[1.89,5727.0,7.23,1],"Energy|inv":[0.28,72.03,0.74,10],"Healthcare|pat":[0.33,146.0,1.59,5],"Healthcare|pub":[0.93,9480.0,3.55,1],"Healthcare|inv":[0.83,946.77,2.17,10],"Finance|pat":[0.79,312.0,3.79,5],"Finance|pub":[0.95,1512.0,3.65,1],"Finance|inv":[0.09,108.51,0.24,10]}},{"label":"New York (US)","rank":3,"c":{"Semiconductor|pat":[1.07,1478.0,1.8,7],"Semiconductor|pub":[0.81,599.0,0.89,15],"Semiconductor|inv":[1.32,2636.71,5.53,4],"Automotive|pat":[1.62,163.0,2.72,7],"Automotive|pub":[0.66,315.0,0.73,15],"Automotive|inv":[0.08,212.1,0.33,4],"Energy|pat":[0.96,46.0,1.61,7],"Energy|pub":[0.47,407.0,0.51,15],"Energy|inv":[0.24,98.75,1.02,4],"Healthcare|pat":[2.03,312.0,3.41,7],"Healthcare|pub":[1.03,3031.0,1.14,15],"Healthcare|inv":[2.55,4647.5,10.68,4],"Finance|pat":[2.75,380.0,4.61,7],"Finance|pub":[0.93,422.0,1.02,15],"Finance|inv":[3.0,5585.72,12.55,4]}},{"label":"San Jose (US)","rank":3,"c":{"Semiconductor|pat":[1.92,5875.0,7.16,2],"Semiconductor|pub":[3.48,1172.0,1.73,22],"Semiconductor|inv":[1.51,11040.83,23.17,2],"Automotive|pat":[1.56,348.0,5.81,2],"Automotive|pub":[1.91,411.0,0.95,22],"Automotive|inv":[2.34,23259.81,35.96,2],"Energy|pat":[1.03,109.0,3.82,2],"Energy|pub":[1.14,448.0,0.57,22],"Energy|inv":[0.17,260.46,2.68,2],"Healthcare|pat":[1.13,386.0,4.21,2],"Healthcare|pub":[1.44,1915.0,0.72,22],"Healthcare|inv":[0.47,3125.15,7.18,2],"Finance|pat":[1.27,389.0,4.72,2],"Finance|pub":[0.74,153.0,0.37,22],"Finance|inv":[0.72,4941.24,11.1,2]}},{"label":"Shanghai (CN)","rank":4,"c":{"Semiconductor|pat":[0.89,1930.0,2.35,10],"Semiconductor|pub":[1.66,1687.0,2.49,2],"Semiconductor|inv":[1.26,586.65,1.23,15],"Automotive|pat":[0.72,113.0,1.89,10],"Automotive|pub":[2.24,1453.0,3.36,2],"Automotive|inv":[1.17,738.93,1.14,15],"Energy|pat":[0.51,38.0,1.33,10],"Energy|pub":[1.24,1469.0,1.86,2],"Energy|inv":[0.9,84.83,0.87,15],"Healthcare|pat":[0.34,82.0,0.9,10],"Healthcare|pub":[1.07,4286.0,1.61,2],"Healthcare|inv":[1.03,436.73,1.0,15],"Finance|pat":[0.49,106.0,1.29,10],"Finance|pub":[1.01,630.0,1.52,2],"Finance|inv":[0.22,93.55,0.21,15]}},{"label":"London (GB)","rank":5,"c":{"Semiconductor|pat":[1.08,706.0,0.86,16],"Semiconductor|pub":[0.72,556.0,0.82,16],"Semiconductor|inv":[2.99,4771.95,10.02,3],"Automotive|pat":[1.03,49.0,0.82,16],"Automotive|pub":[0.66,325.0,0.75,16],"Automotive|inv":[1.17,2540.15,3.93,3],"Energy|pat":[0.97,22.0,0.77,16],"Energy|pub":[0.59,532.0,0.67,16],"Energy|inv":[0.5,162.41,1.67,3],"Healthcare|pat":[1.53,111.0,1.21,16],"Healthcare|pub":[0.95,2876.0,1.08,16],"Healthcare|inv":[3.0,4367.81,10.03,3],"Finance|pat":[1.41,92.0,1.12,16],"Finance|pub":[0.72,339.0,0.82,16],"Finance|inv":[1.94,2894.34,6.5,3]}},{"label":"Paris (FR)","rank":6,"c":{"Semiconductor|pat":[0.64,608.0,0.74,16],"Semiconductor|pub":[1.39,1330.0,1.97,11],"Semiconductor|inv":[0.39,216.77,0.45,9],"Automotive|pat":[1.36,94.0,1.57,16],"Automotive|pub":[0.58,354.0,0.82,11],"Automotive|inv":[0.12,86.28,0.13,9],"Energy|pat":[0.82,27.0,0.95,16],"Energy|pub":[0.76,854.0,1.08,11],"Energy|inv":[0.84,94.01,0.97,9],"Healthcare|pat":[0.74,78.0,0.85,16],"Healthcare|pub":[0.64,2394.0,0.9,11],"Healthcare|inv":[1.96,988.66,2.27,9],"Finance|pat":[0.64,61.0,0.74,16],"Finance|pub":[0.51,301.0,0.73,11],"Finance|inv":[1.32,678.43,1.52,9]}},{"label":"Tokyo (JP)","rank":7,"c":{"Semiconductor|pat":[0.81,5495.0,6.7,3],"Semiconductor|pub":[2.57,1749.0,2.59,17],"Semiconductor|inv":[0.18,36.6,0.08,17],"Automotive|pat":[0.41,201.0,3.36,3],"Automotive|pub":[0.9,391.0,0.9,17],"Automotive|inv":[0.54,152.85,0.24,17],"Energy|pat":[0.39,92.0,3.23,3],"Energy|pub":[0.63,505.0,0.64,17],"Energy|inv":[1.77,75.07,0.77,17],"Healthcare|pat":[0.52,395.0,4.31,3],"Healthcare|pub":[0.77,2063.0,0.77,17],"Healthcare|inv":[2.24,427.35,0.98,17],"Finance|pat":[0.62,418.0,5.07,3],"Finance|pub":[0.53,220.0,0.53,17],"Finance|inv":[0.85,166.04,0.37,17]}},{"label":"San Francisco (US)","rank":8,"c":{"Semiconductor|pat":[1.36,2025.0,2.47,6],"Semiconductor|pub":[1.21,448.0,0.66,34],"Semiconductor|inv":[0.79,17453.93,36.63,1],"Automotive|pat":[1.55,168.0,2.8,6],"Automotive|pub":[0.67,159.0,0.37,34],"Automotive|inv":[0.61,18333.11,28.34,1],"Energy|pat":[0.7,36.0,1.26,6],"Energy|pub":[0.5,216.0,0.27,34],"Energy|inv":[0.19,866.64,8.93,1],"Healthcare|pat":[2.29,381.0,4.16,6],"Healthcare|pub":[0.89,1296.0,0.49,34],"Healthcare|inv":[0.37,7456.51,17.13,1],"Finance|pat":[2.3,344.0,4.18,6],"Finance|pub":[0.6,135.0,0.33,34],"Finance|inv":[0.35,7130.12,16.02,1]}},{"label":"Boston (US)","rank":9,"c":{"Semiconductor|pat":[0.46,657.0,0.8,13],"Semiconductor|pub":[1.48,1003.0,1.48,19],"Semiconductor|inv":[0.04,26.25,0.06,14],"Automotive|pat":[0.82,85.0,1.42,13],"Automotive|pub":[0.59,256.0,0.59,19],"Automotive|inv":[0.11,100.09,0.15,14],"Energy|pat":[0.59,29.0,1.02,13],"Energy|pub":[0.44,352.0,0.44,19],"Energy|inv":[0.37,51.0,0.53,14],"Healthcare|pat":[1.88,298.0,3.25,13],"Healthcare|pub":[1.18,3151.0,1.18,19],"Healthcare|inv":[7.07,4429.47,10.17,14],"Finance|pat":[0.47,67.0,0.81,13],"Finance|pub":[0.6,248.0,0.6,19],"Finance|inv":[2.74,1757.72,3.95,14]}},{"label":"Shenzhen (CN)","rank":10,"c":{"Semiconductor|pat":[1.97,9624.0,11.73,4],"Semiconductor|pub":[2.48,854.0,1.26,10],"Semiconductor|inv":[0.59,270.29,0.57,33],"Automotive|pat":[0.8,284.0,4.74,4],"Automotive|pub":[3.86,848.0,1.96,10],"Automotive|inv":[6.21,3833.34,5.93,33],"Energy|pat":[0.54,92.0,3.23,4],"Energy|pub":[1.33,537.0,0.68,10],"Energy|inv":[0.01,0.6,0.01,33],"Healthcare|pat":[0.34,183.0,2.0,4],"Healthcare|pub":[1.84,2499.0,0.94,10],"Healthcare|inv":[1.03,428.66,0.98,33],"Finance|pat":[0.4,197.0,2.39,4],"Finance|pub":[1.48,311.0,0.75,10],"Finance|inv":[0.01,5.0,0.01,33]}},{"label":"Singapore (SG)","rank":10,"c":{"Semiconductor|pat":[0.98,520.0,0.63,14],"Semiconductor|pub":[3.51,901.0,1.33,20],"Semiconductor|inv":[1.67,655.25,1.38,13],"Automotive|pat":[1.68,65.0,1.09,14],"Automotive|pub":[3.83,629.0,1.45,20],"Automotive|inv":[0.01,5.8,0.01,13],"Energy|pat":[2.98,55.0,1.93,14],"Energy|pub":[1.26,379.0,0.48,20],"Energy|inv":[2.97,237.74,2.45,13],"Healthcare|pat":[1.53,91.0,0.99,14],"Healthcare|pub":[1.61,1628.0,0.61,20],"Healthcare|inv":[1.15,413.1,0.95,13],"Finance|pat":[1.69,90.0,1.09,14],"Finance|pub":[1.53,241.0,0.58,20],"Finance|inv":[2.89,1060.49,2.38,13]}},{"label":"Washington (US)","rank":11,"c":{"Semiconductor|pat":[0.94,494.0,0.6,17],"Semiconductor|pub":[1.29,961.0,1.42,14],"Semiconductor|inv":[0.02,6.73,0.01,18],"Automotive|pat":[1.05,40.0,0.67,17],"Automotive|pub":[0.62,294.0,0.68,14],"Automotive|inv":[0.74,366.52,0.57,18],"Energy|pat":[1.59,29.0,1.02,17],"Energy|pub":[0.86,751.0,0.95,14],"Energy|inv":[1.48,110.33,1.14,18],"Healthcare|pat":[1.28,75.0,0.82,17],"Healthcare|pub":[0.83,2422.0,0.91,14],"Healthcare|inv":[0.86,287.67,0.66,18],"Finance|pat":[3.04,160.0,1.94,17],"Finance|pub":[0.55,252.0,0.61,14],"Finance|inv":[1.3,444.24,1.0,18]}},{"label":"Los Angeles (US)","rank":12,"c":{"Semiconductor|pat":[1.46,1148.0,1.4,11],"Semiconductor|pub":[1.8,685.0,1.01,32],"Semiconductor|inv":[1.09,420.22,0.88,8],"Automotive|pat":[2.42,139.0,2.32,11],"Automotive|pub":[0.91,220.0,0.51,32],"Automotive|inv":[0.07,35.85,0.06,8],"Energy|pat":[0.88,24.0,0.84,11],"Energy|pub":[0.57,253.0,0.32,32],"Energy|inv":[1.53,120.4,1.24,8],"Healthcare|pat":[1.35,119.0,1.3,11],"Healthcare|pub":[0.97,1459.0,0.55,32],"Healthcare|inv":[1.95,689.64,1.58,8],"Finance|pat":[1.9,150.0,1.82,11],"Finance|pub":[0.65,152.0,0.37,32],"Finance|inv":[2.46,889.04,2.0,8]}},{"label":"Bangalore (IN)","rank":13,"c":{"Semiconductor|pat":[1.43,709.0,0.86,18],"Semiconductor|pub":[1.32,275.0,0.41,26],"Semiconductor|inv":[3.01,372.11,0.78,20],"Automotive|pat":[1.13,41.0,0.68,18],"Automotive|pub":[1.89,253.0,0.59,26],"Automotive|inv":[0.14,23.43,0.04,20],"Energy|pat":[1.22,21.0,0.74,18],"Energy|pub":[1.39,340.0,0.43,26],"Energy|inv":[0.82,20.76,0.21,20],"Healthcare|pat":[0.83,46.0,0.5,18],"Healthcare|pub":[2.37,1949.0,0.73,26],"Healthcare|inv":[1.43,161.67,0.37,20],"Finance|pat":[2.05,102.0,1.24,18],"Finance|pub":[3.18,407.0,0.98,26],"Finance|inv":[2.15,248.97,0.56,20]}},{"label":"Toronto (CA)","rank":14,"c":{"Semiconductor|pat":[1.49,421.0,0.51,20],"Semiconductor|pub":[1.24,339.0,0.5,39],"Semiconductor|inv":[2.67,1013.68,2.13,7],"Automotive|pat":[1.5,31.0,0.52,20],"Automotive|pub":[1.19,208.0,0.48,39],"Automotive|inv":[1.85,954.88,1.48,7],"Energy|pat":[2.03,20.0,0.7,20],"Energy|pub":[0.45,144.0,0.18,39],"Energy|inv":[0.8,61.76,0.64,7],"Healthcare|pat":[2.43,77.0,0.84,20],"Healthcare|pub":[1.21,1299.0,0.49,39],"Healthcare|inv":[0.9,312.89,0.72,7],"Finance|pat":[2.5,71.0,0.86,20],"Finance|pub":[0.87,145.0,0.35,39],"Finance|inv":[2.3,818.07,1.84,7]}},{"label":"Seattle (US)","rank":15,"c":{"Semiconductor|pat":[3.24,3236.0,3.94,8],"Semiconductor|pub":[1.19,271.0,0.4,54],"Semiconductor|inv":[0.06,16.23,0.03,16],"Automotive|pat":[1.14,83.0,1.39,8],"Automotive|pub":[1.22,178.0,0.41,54],"Automotive|inv":[0.34,134.85,0.21,16],"Energy|pat":[1.41,49.0,1.72,8],"Energy|pub":[0.48,127.0,0.16,54],"Energy|inv":[1.28,76.3,0.79,16],"Healthcare|pat":[1.29,144.0,1.57,8],"Healthcare|pub":[1.37,1235.0,0.46,54],"Healthcare|inv":[1.54,411.78,0.95,16],"Finance|pat":[2.55,256.0,3.11,8],"Finance|pub":[0.82,115.0,0.28,54],"Finance|inv":[2.35,641.77,1.44,16]}},{"label":"Hangzhou (CN)","rank":16,"c":{"Semiconductor|pat":[2.34,1895.0,2.31,20],"Semiconductor|pub":[1.97,1029.0,1.52,6],"Semiconductor|inv":[0.49,243.63,0.51,56],"Automotive|pat":[1.54,91.0,1.52,20],"Automotive|pub":[2.53,843.0,1.95,6],"Automotive|inv":[0.19,129.67,0.2,56],"Energy|pat":[0.21,6.0,0.21,20],"Energy|pub":[1.21,740.0,0.93,6],"Energy|inv":[0.0,0.0,0.0,56],"Healthcare|pat":[0.69,62.0,0.68,20],"Healthcare|pub":[1.23,2529.0,0.95,6],"Healthcare|inv":[0.33,148.88,0.34,56],"Finance|pat":[1.4,114.0,1.38,20],"Finance|pub":[1.09,348.0,0.84,6],"Finance|inv":[0.0,1.59,0.0,56]}},{"label":"München (DE)","rank":17,"c":{"Semiconductor|pat":[1.07,1035.0,1.26,19],"Semiconductor|pub":[2.43,583.0,0.86,50],"Semiconductor|inv":[0.48,159.23,0.33,14],"Automotive|pat":[1.96,138.0,2.3,19],"Automotive|pub":[1.68,258.0,0.6,50],"Automotive|inv":[0.17,77.85,0.12,14],"Energy|pat":[0.72,24.0,0.84,19],"Energy|pub":[0.53,149.0,0.19,50],"Energy|inv":[2.07,141.07,1.45,14],"Healthcare|pat":[0.32,35.0,0.38,19],"Healthcare|pub":[1.02,961.0,0.36,50],"Healthcare|inv":[0.74,225.42,0.52,14],"Finance|pat":[0.58,56.0,0.68,19],"Finance|pub":[0.52,76.0,0.18,50],"Finance|inv":[2.42,755.68,1.7,14]}},{"label":"Delhi (IN)","rank":18,"c":{"Semiconductor|pat":[1.38,199.0,0.24,49],"Semiconductor|pub":[0.79,360.0,0.53,12],"Semiconductor|inv":[0.0,0.2,0.0,35],"Automotive|pat":[0.95,10.0,0.17,49],"Automotive|pub":[1.08,316.0,0.73,12],"Automotive|inv":[0.52,29.97,0.05,35],"Energy|pat":[1.6,8.0,0.28,49],"Energy|pub":[1.6,852.0,1.08,12],"Energy|inv":[4.24,36.39,0.37,35],"Healthcare|pat":[1.18,19.0,0.21,49],"Healthcare|pub":[1.7,3055.0,1.15,12],"Healthcare|inv":[1.09,41.99,0.1,35],"Finance|pat":[2.83,41.0,0.5,49],"Finance|pub":[2.51,702.0,1.69,12],"Finance|inv":[2.19,86.27,0.19,35]}},{"label":"Chicago (US)","rank":19,"c":{"Semiconductor|pat":[0.8,331.0,0.4,20],"Semiconductor|pub":[1.33,432.0,0.64,52],"Semiconductor|inv":[0.01,0.8,0.0,29],"Automotive|pat":[1.32,40.0,0.67,20],"Automotive|pub":[0.58,120.0,0.28,52],"Automotive|inv":[0.17,23.5,0.04,29],"Energy|pat":[1.18,17.0,0.6,20],"Energy|pub":[0.36,136.0,0.17,52],"Energy|inv":[0.08,1.6,0.02,29],"Healthcare|pat":[1.74,81.0,0.88,20],"Healthcare|pub":[0.96,1229.0,0.46,52],"Healthcare|inv":[9.4,892.61,2.05,29],"Finance|pat":[1.63,68.0,0.83,20],"Finance|pub":[0.58,115.0,0.28,52],"Finance|inv":[3.15,305.18,0.69,29]}},{"label":"San Diego (US)","rank":20,"c":{"Semiconductor|pat":[0.78,1508.0,1.84,9],"Semiconductor|pub":[1.44,274.0,0.4,68],"Semiconductor|inv":[0.0,0.47,0.0,32],"Automotive|pat":[1.42,201.0,3.36,9],"Automotive|pub":[0.93,113.0,0.26,68],"Automotive|inv":[5.22,2747.8,4.25,32],"Energy|pat":[0.99,67.0,2.35,9],"Energy|pub":[0.65,145.0,0.18,68],"Energy|inv":[0.0,0.0,0.0,32],"Healthcare|pat":[0.83,180.0,1.97,9],"Healthcare|pub":[0.93,695.0,0.26,68],"Healthcare|inv":[1.34,475.28,1.09,32],"Finance|pat":[0.22,43.0,0.52,9],"Finance|pub":[0.56,65.0,0.16,68],"Finance|inv":[0.59,214.51,0.48,32]}},{"label":"Montréal (CA)","rank":21,"c":{"Semiconductor|pat":[0.78,235.0,0.29,29],"Semiconductor|pub":[1.01,213.0,0.31,63],"Semiconductor|inv":[2.24,200.14,0.42,19],"Automotive|pat":[0.82,18.0,0.3,29],"Automotive|pub":[1.05,141.0,0.33,63],"Automotive|inv":[0.91,110.62,0.17,19],"Energy|pat":[1.15,12.0,0.42,29],"Energy|pub":[0.64,158.0,0.2,63],"Energy|inv":[6.59,119.73,1.23,19],"Healthcare|pat":[1.61,54.0,0.59,29],"Healthcare|pub":[0.88,727.0,0.27,63],"Healthcare|inv":[0.53,42.86,0.1,19],"Finance|pat":[1.09,33.0,0.4,29],"Finance|pub":[0.68,87.0,0.21,63],"Finance|inv":[4.19,349.01,0.78,19]}},{"label":"Sydney (AU)","rank":22,"c":{"Semiconductor|pat":[0.95,130.0,0.16,50],"Semiconductor|pub":[1.37,422.0,0.62,25],"Semiconductor|inv":[0.0,0.0,0.0,37],"Automotive|pat":[1.2,12.0,0.2,50],"Automotive|pub":[2.08,411.0,0.95,25],"Automotive|inv":[0.12,10.3,0.02,37],"Energy|pat":[1.05,5.0,0.18,50],"Energy|pub":[0.97,349.0,0.44,25],"Energy|inv":[0.86,10.92,0.11,37],"Healthcare|pat":[2.22,34.0,0.37,50],"Healthcare|pub":[1.31,1593.0,0.6,25],"Healthcare|inv":[2.54,145.27,0.33,37],"Finance|pat":[2.69,37.0,0.45,50],"Finance|pub":[1.11,210.0,0.51,25],"Finance|inv":[1.94,112.97,0.25,37]}},{"label":"Hong Kong (HK)","rank":23,"c":{"Semiconductor|pat":[0.66,86.0,0.1,87],"Semiconductor|pub":[2.0,801.0,1.18,13],"Semiconductor|inv":[2.29,250.0,0.52,22],"Automotive|pat":[1.36,13.0,0.22,87],"Automotive|pub":[3.04,776.0,1.79,13],"Automotive|inv":[0.01,1.2,0.0,22],"Energy|pat":[0.22,1.0,0.04,87],"Energy|pub":[1.05,491.0,0.62,13],"Energy|inv":[0.4,8.83,0.09,22],"Healthcare|pat":[0.75,11.0,0.12,87],"Healthcare|pub":[1.47,2325.0,0.87,13],"Healthcare|inv":[3.87,386.29,0.89,22],"Finance|pat":[0.91,12.0,0.15,87],"Finance|pub":[1.41,345.0,0.83,13],"Finance|inv":[4.91,500.16,1.12,22]}},{"label":"Zürich (CH)","rank":23,"c":{"Semiconductor|pat":[0.78,264.0,0.32,52],"Semiconductor|pub":[1.82,389.0,0.57,49],"Semiconductor|inv":[0.47,57.14,0.12,21],"Automotive|pat":[0.52,13.0,0.22,52],"Automotive|pub":[0.97,133.0,0.31,49],"Automotive|inv":[0.35,57.99,0.09,21],"Energy|pat":[0.42,5.0,0.18,52],"Energy|pub":[0.89,224.0,0.28,49],"Energy|inv":[1.32,32.52,0.34,21],"Healthcare|pat":[0.37,14.0,0.15,52],"Healthcare|pub":[0.87,736.0,0.28,49],"Healthcare|inv":[1.42,156.44,0.36,21],"Finance|pat":[0.67,23.0,0.28,52],"Finance|pub":[0.69,90.0,0.22,49],"Finance|inv":[2.08,234.7,0.53,21]}},{"label":"Atlanta (US)","rank":24,"c":{"Semiconductor|pat":[0.76,209.0,0.25,41],"Semiconductor|pub":[1.22,274.0,0.4,51],"Semiconductor|inv":[2.26,187.8,0.39,34],"Automotive|pat":[0.5,10.0,0.17,41],"Automotive|pub":[1.23,176.0,0.41,51],"Automotive|inv":[0.01,0.8,0.0,34],"Energy|pat":[0.84,8.0,0.28,41],"Energy|pub":[0.54,141.0,0.18,51],"Energy|inv":[0.21,3.52,0.04,34],"Healthcare|pat":[0.92,28.0,0.31,41],"Healthcare|pub":[1.35,1191.0,0.45,51],"Healthcare|inv":[1.79,135.69,0.31,34],"Finance|pat":[2.04,56.0,0.68,41],"Finance|pub":[0.83,114.0,0.28,51],"Finance|inv":[1.32,102.81,0.23,34]}},{"label":"Berlin (DE)","rank":25,"c":{"Semiconductor|pat":[0.63,152.0,0.19,47],"Semiconductor|pub":[1.27,354.0,0.52,58],"Semiconductor|inv":[0.01,1.35,0.0,22],"Automotive|pat":[1.7,30.0,0.5,47],"Automotive|pub":[0.58,103.0,0.24,58],"Automotive|inv":[0.15,33.99,0.05,22],"Energy|pat":[0.71,6.0,0.21,47],"Energy|pub":[0.62,203.0,0.26,58],"Energy|inv":[2.06,68.51,0.71,22],"Healthcare|pat":[1.07,29.0,0.32,47],"Healthcare|pub":[0.79,862.0,0.32,58],"Healthcare|inv":[1.32,196.85,0.45,22],"Finance|pat":[0.62,15.0,0.18,47],"Finance|pub":[0.49,83.0,0.2,58],"Finance|inv":[1.73,263.93,0.59,22]}},{"label":"Taipei (TW)","rank":26,"c":{"Semiconductor|pat":[1.43,212.0,0.26,73],"Semiconductor|pub":[1.16,290.0,0.43,33],"Semiconductor|inv":[2.94,134.2,0.28,24],"Automotive|pat":[0.46,5.0,0.08,73],"Automotive|pub":[1.31,210.0,0.49,33],"Automotive|inv":[0.37,22.98,0.04,24],"Energy|pat":[1.74,9.0,0.32,73],"Energy|pub":[0.87,253.0,0.32,33],"Energy|inv":[0.89,8.31,0.09,24],"Healthcare|pat":[1.03,17.0,0.19,73],"Healthcare|pub":[1.15,1136.0,0.43,33],"Healthcare|inv":[4.9,204.14,0.47,24],"Finance|pat":[0.4,6.0,0.07,73],"Finance|pub":[1.39,212.0,0.51,33],"Finance|inv":[2.1,89.55,0.2,24]}},{"label":"Austin (US)","rank":27,"c":{"Semiconductor|pat":[2.19,676.0,0.82,23],"Semiconductor|pub":[1.61,158.0,0.23,104],"Semiconductor|inv":[0.31,283.79,0.6,11],"Automotive|pat":[1.42,32.0,0.53,23],"Automotive|pub":[1.71,107.0,0.25,104],"Automotive|inv":[2.37,2973.1,4.6,11],"Energy|pat":[1.68,18.0,0.63,23],"Energy|pub":[1.23,141.0,0.18,104],"Energy|inv":[0.25,47.88,0.49,11],"Healthcare|pat":[1.22,42.0,0.46,23],"Healthcare|pub":[0.91,352.0,0.13,104],"Healthcare|inv":[0.44,371.22,0.85,11],"Finance|pat":[1.61,50.0,0.61,23],"Finance|pub":[0.75,45.0,0.11,104],"Finance|inv":[0.6,519.9,1.17,11]}}],"doms":["Semiconductor","Automotive","Energy","Healthcare","Finance"],"mets":[["pat","Patents"],["pub","Publications"],["inv","Investment"]]};
+
+const COLS = [];
+D.doms.forEach(dom => D.mets.forEach(([met, metLabel]) => {
+  COLS.push({ key: `${dom}|${met}`, dom, met, metLabel, short: met.toUpperCase() });
+}));
+
+const labels = {};
+COLS.forEach(c => { labels[c.key] = [c.short]; });
+
+const rows = D.rows.map(r => {
+  const values = {}, meta = {};
+  COLS.forEach(c => {
+    const d = r.c[c.key];
+    values[c.key] = d ? d[0] : null;
+    meta[c.key] = d ? { rca: d[0], count: d[1], share: d[2], rank: d[3] } : null;
+  });
+  return { label: r.label, rank: r.rank, values, meta };
+});
+
+const sections = D.doms.map(dom => ({
+  title: dom,
+  groups: [COLS.filter(c => c.dom === dom).map(c => c.key)]
+}));
+
+const LO = [139, 26, 16], WHITE = [255, 255, 255], HI = [31, 95, 33];
+const mix = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
+const logRca = v => Math.log2(Math.max(v, Math.pow(2, -RAMP_HALF)));
+
+function valToColor(v) {
+  if (v === null || v === undefined) return '#e0e0e0';
+  const x = Math.max(-RAMP_HALF, Math.min(RAMP_HALF, logRca(v)));
+
+  const t = Math.pow(Math.abs(x) / RAMP_HALF, RAMP_GAMMA);
+  return x < 0 ? mix(WHITE, LO, t) : mix(WHITE, HI, t);
+}
+
+function setLegendGradient(horizontal) {
+  const stops = Array.from({ length: 25 }, (_, i) => {
+    const x = RAMP_HALF - (i / 24) * 2 * RAMP_HALF;
+    return `${valToColor(Math.pow(2, horizontal ? -x : x))} ${(i / 24 * 100).toFixed(1)}%`;
+  }).join(',');
+  document.getElementById('legend-bar').style.background =
+    `linear-gradient(to ${horizontal ? 'right' : 'bottom'},${stops})`;
+}
+
+function cellLabel(v) {
+  if (v >= 10) return v.toFixed(0);
+  if (v >= 1) return v.toFixed(1);
+  if (v < 0.005) return '0';
+  return v.toFixed(2).slice(1);
+}
+
+function smartFormat(v) {
+  if (!isFinite(v)) return "N/A";
+  if (Math.abs(v) >= 1e9) return (v / 1e9).toFixed(1) + "B";
+  if (Math.abs(v) >= 1e6) return (v / 1e6).toFixed(1) + "M";
+  if (Math.floor(v) === v) return v.toLocaleString();
+  return v.toLocaleString(undefined, { maximumFractionDigits: 1 });
+}
+
+const pageEl     = document.getElementById('page');
+const mainEl     = document.getElementById('main');
+const wrapper    = document.getElementById('heatmap-wrapper');
+const yAxis      = document.getElementById('y-axis');
+const sectionsEl = document.getElementById('sections');
+const legendEl   = document.getElementById('legend');
+const legendBar  = document.getElementById('legend-bar');
+const legendBody = document.getElementById('legend-body');
+const bands      = document.getElementById('row-bands');
+
+let currentRows = [], totalCols = 0, totalSeparators = 0;
+let order = 'rank';
+
+const tooltip = document.createElement('div');
+tooltip.id = 'tooltip';
+document.body.appendChild(tooltip);
+
+function sortedRows() {
+  const r = [...rows];
+  return order === 'alpha'
+    ? r.sort((a, b) => a.label.localeCompare(b.label))
+    : r.sort((a, b) => a.rank - b.rank || a.label.localeCompare(b.label));
+}
+
+function displayNoData(message) {
+  yAxis.innerHTML = '';
+  sectionsEl.innerHTML = `<div class="error-message">${message}</div>`;
+}
+
+function render() {
+  currentRows = sortedRows();
+  yAxis.innerHTML = '';
+  sectionsEl.innerHTML = '';
+  if (!currentRows.length) return displayNoData('No data available');
+
+  currentRows.forEach((row, ri) => {
+    const el = document.createElement('div');
+    el.className = 'y-label';
+    el.textContent = row.label;
+    el.dataset.row = ri;
+    yAxis.appendChild(el);
+  });
+
+  sections.forEach(sec => {
+    const secEl = document.createElement('div');
+    secEl.className = 'section';
+    const title = document.createElement('div');
+    title.className = 'section-title';
+    title.textContent = sec.title;
+    secEl.appendChild(title);
+    const rule = document.createElement('div');
+    rule.className = 'section-rule';
+    secEl.appendChild(rule);
+
+    const grid = document.createElement('div');
+    grid.className = 'section-grid';
+    sec.groups.forEach((group, gi) => {
+      if (gi > 0) {
+        const sep = document.createElement('div');
+        sep.className = 'group-separator';
+        grid.appendChild(sep);
+      }
+      const block = document.createElement('div');
+      block.className = 'group-block';
+      group.forEach(colKey => {
+        const col = document.createElement('div');
+        col.className = 'col-block';
+        currentRows.forEach((row, ri) => {
+
+          const v = row.values[colKey];
+          const m = row.meta[colKey];
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.style.background = valToColor(v);
+          cell.dataset.row = ri;
+          cell.dataset.col = colKey;
+          if (SHOW_CELL_VALUE && m) {
+            cell.textContent = cellLabel(m.share);
+            cell.style.color = Math.abs(logRca(v)) >= 2.0 ? '#fff' : '#0f172a';
+          }
+          col.appendChild(cell);
+        });
+        const parts = labels[colKey] || colKey.split('|');
+        const xl = document.createElement('div');
+        xl.className = 'x-label';
+        xl.innerHTML = parts.length >= 2
+          ? `<span style="font-weight:bold;font-size:120%">${parts[0]}</span><br>${parts.slice(1).join('<br>')}`
+          : parts[0];
+        col.appendChild(xl);
+        block.appendChild(col);
+      });
+      grid.appendChild(block);
+    });
+    secEl.appendChild(grid);
+    sectionsEl.appendChild(secEl);
+  });
+
+  totalCols = sections.reduce((s, sec) => s + sec.groups.reduce((s2, g) => s2 + g.length, 0), 0);
+  totalSeparators = sections.reduce((s, sec) => s + Math.max(0, sec.groups.length - 1), 0);
+  updateSizes();
+}
+
+function updateSizes() {
+  if (!currentRows.length) return;
+
+  const horiz = window.matchMedia(`(max-width:${BREAKPOINT_PHONE}px)`).matches;
+  setLegendGradient(horiz);
+
+  const pad = getComputedStyle(pageEl);
+  const pageW = pageEl.clientWidth - parseFloat(pad.paddingLeft) - parseFloat(pad.paddingRight);
+  const wrapperW = horiz ? pageW : pageW - legendEl.offsetWidth - 30;
+  const wrapperH = horiz ? mainEl.clientHeight - legendEl.offsetHeight - 10
+                         : wrapper.clientHeight;
+  const yAxisW   = yAxis.offsetWidth;
+  const titles   = Array.from(document.querySelectorAll('.section-title'));
+  const xLabels  = Array.from(document.querySelectorAll('.x-label'));
+
+  const grids    = Array.from(document.querySelectorAll('.section-grid'));
+  const titleH   = Math.max(...grids.map(g =>
+    g.getBoundingClientRect().top - g.parentElement.getBoundingClientRect().top));
+  const xLabelH  = Math.max(12, ...xLabels.map(l => l.offsetHeight)) + 6;
+  const maxTitleW = Math.max(...titles.map(t => t.offsetWidth));
+
+  const colsPerSection = totalCols / sections.length;
+  const colGaps = sections.length * (colsPerSection - 1) * COL_GAP;
+  const maxW = Math.floor((wrapperW - yAxisW - (sections.length - 1) * SECTION_GAP
+                           - totalSeparators * 4 - colGaps) / totalCols);
+  const maxH = Math.floor((wrapperH - titleH - xLabelH
+                           - (currentRows.length - 1) * ROW_GAP) / currentRows.length);
+  const cellSize = Math.max(6, Math.min(maxW, maxH, MAX_CELL_W));
+
+  const sectionEls = Array.from(document.querySelectorAll('.section'));
+  const sectionW = colsPerSection * cellSize + (colsPerSection - 1) * COL_GAP + totalSeparators * 4;
+  sectionEls.forEach(s => { s.style.width = sectionW + 'px'; });
+  document.querySelectorAll('.section-rule')
+    .forEach(r => { r.style.width = sectionW + 'px'; });
+  const slack = wrapperW - yAxisW - sections.length * sectionW;
+  const gap = Math.max(SECTION_GAP,
+    Math.min(Math.floor(slack / (sections.length - 1)), maxTitleW - sectionW + 12));
+  sectionsEl.style.gap = gap + 'px';
+
+  const fontPx = Math.max(6, Math.min(11, Math.floor((cellSize - 3) / 2.2)));
+  document.querySelectorAll('.cell').forEach(c => {
+    c.style.width = cellSize + 'px';
+    c.style.height = cellSize + 'px';
+    c.style.fontSize = fontPx + 'px';
+  });
+  document.querySelectorAll('.y-label').forEach(l => { l.style.height = cellSize + 'px'; });
+
+  const xFontPx = Math.max(7, Math.min(11, Math.floor((cellSize - 4) / 1.9)));
+  xLabels.forEach(l => { l.style.width = cellSize + 'px'; l.style.fontSize = xFontPx + 'px'; });
+  titles.forEach(t => { t.style.width = ''; });
+  const pitch = cellSize + ROW_GAP;
+  const gridH = currentRows.length * cellSize + (currentRows.length - 1) * ROW_GAP;
+  document.querySelectorAll('.group-separator')
+    .forEach(s => { s.style.height = gridH + 'px'; });
+
+  const contentH = titleH + gridH + xLabelH;
+
+  const vertOffset = horiz ? 0 : Math.max(0, Math.floor((wrapperH - contentH) / 2));
+  bands.style.top = (vertOffset + titleH) + 'px';
+  bands.style.height = gridH + 'px';
+  bands.style.background = `repeating-linear-gradient(to bottom, rgba(15,23,42,0.05) 0 `
+    + `${pitch}px, transparent ${pitch}px ${pitch * 2}px)`;
+  yAxis.style.transform = `translateY(${vertOffset + titleH}px)`;
+  sectionsEl.style.transform = `translateY(${vertOffset}px)`;
+
+  if (horiz) {
+    const gridW = sections.length * sectionW + (sections.length - 1) * gap;
+    legendEl.style.transform = '';
+    legendBar.style.height = '12px';
+    legendBar.style.width = Math.round(gridW * 0.75) + 'px';
+    legendBody.style.height = '';
+    legendBody.style.width = Math.round(gridW * 0.75) + 'px';
+  } else {
+    const barH = Math.round(gridH * 0.6);
+    const legendTitleH = document.getElementById('legend-title').offsetHeight + 6;
+    const legendOffset = vertOffset + titleH + Math.round((gridH - barH) / 2) - legendTitleH;
+    legendEl.style.transform = `translateY(${Math.max(0, legendOffset)}px)`;
+    legendBar.style.height = barH + 'px';
+    legendBar.style.width = '';
+    legendBody.style.height = barH + 'px';
+    legendBody.style.width = '';
+  }
+}
+
+function clearFocus() {
+  sectionsEl.classList.remove('dim');
+  yAxis.classList.remove('dim');
+  document.querySelectorAll('.on').forEach(n => n.classList.remove('on'));
+  tooltip.style.opacity = '0';
+}
+
+wrapper.addEventListener('mousemove', e => {
+  const target = e.target.closest('.cell, .y-label');
+  if (!target) return clearFocus();
+
+  const ri = target.dataset.row;
+  sectionsEl.classList.add('dim');
+  yAxis.classList.add('dim');
+  document.querySelectorAll('.on').forEach(n => n.classList.remove('on'));
+  wrapper.querySelectorAll(`[data-row="${ri}"]`).forEach(n => n.classList.add('on'));
+
+  const cell = target.classList.contains('cell') ? target : null;
+  if (!SHOW_TOOLTIP || !cell) { tooltip.style.opacity = '0'; return; }
+
+  const row = currentRows[+ri];
+  const col = COLS.find(c => c.key === cell.dataset.col);
+  const m = row.meta[cell.dataset.col];
+  if (!m) { tooltip.style.opacity = '0'; return; }
+
+  const city = row.label.replace(/\s*\([A-Z]{2}\)$/, '');
+  const possessive = city.endsWith('s') ? `${city}'` : `${city}'s`;
+  tooltip.innerHTML =
+    `<strong>${possessive} ${col.metLabel} in ${col.dom}</strong><br>` +
+    `RCA: <strong>${m.rca.toFixed(2)}</strong><br>` +
+    `Share: <strong>${m.share.toFixed(2)}%</strong> of world<br>` +
+    `${col.metLabel}: ${smartFormat(m.count)}<br>` +
+    `World rank: #${m.rank}`;
+  tooltip.style.left = (e.clientX + 14) + 'px';
+  tooltip.style.top  = (e.clientY - 24) + 'px';
+  tooltip.style.opacity = '1';
+});
+wrapper.addEventListener('mouseleave', clearFocus);
+
+function positionPill(group) {
+  const pill = group._pill, btn = group.querySelector('.selector-button.active');
+  if (!pill || !btn) return;
+  pill.style.width = btn.offsetWidth + 'px';
+  pill.style.height = btn.offsetHeight + 'px';
+  pill.style.transform = `translate(${btn.offsetLeft}px,${btn.offsetTop}px)`;
+}
+function initPill(group) {
+  const pill = document.createElement('span');
+  pill.className = 'selector-pill';
+  pill.style.transition = 'none';
+  group.insertBefore(pill, group.firstChild);
+  group._pill = pill;
+  positionPill(group);
+  requestAnimationFrame(() => { pill.style.transition = ''; });
+}
+const SELECTOR_GROUPS = Array.from(document.querySelectorAll('.selector-group'));
+SELECTOR_GROUPS.forEach(initPill);
+window.addEventListener('resize', () => SELECTOR_GROUPS.forEach(g => {
+  const p = g._pill; if (p) p.style.transition = 'none';
+  positionPill(g);
+  requestAnimationFrame(() => { if (p) p.style.transition = ''; });
+}));
+
+document.querySelectorAll('.selector-button').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const group = e.currentTarget.closest('.selector-group');
+    group.querySelectorAll('.selector-button').forEach(b => b.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+    positionPill(group);
+    order = e.currentTarget.dataset.order;
+    render();
+  });
+});
+
+window.addEventListener('resize', updateSizes);
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(() => updateSizes()).observe(pageEl);
+}
+
+render();
+</script>
+</body>
+</html>

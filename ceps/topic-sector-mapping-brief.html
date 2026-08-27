@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Brief — mapping scientific topics onto NACE divisions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --ink:#14161a;
+  --paper:#f6f5f1;
+  --card:#fffefb;
+  --rule:#dcd9d0;
+  --rule-soft:#e8e5dd;
+  --muted:#6b6862;
+  --rel:#1d6f63;
+  --sem:#5b3e96;
+  --warn:#96690f;
+  --err:#b3392f;
+  --maxw:760px;
+  --gutter:112px;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"Source Serif 4",Georgia,serif;
+  font-size:17px;
+  line-height:1.62;
+  font-variant-numeric:oldstyle-nums;
+}
+.wrap{max-width:calc(var(--maxw) + var(--gutter) + 48px);margin:0 auto;padding:0 24px 96px}
+.lab{
+  font-family:"JetBrains Mono",ui-monospace,monospace;
+  font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);font-variant-numeric:lining-nums;
+}
+h1,h2,h3{font-family:Archivo,"Helvetica Neue",sans-serif;font-weight:600;letter-spacing:-.015em;margin:0}
+p{margin:0 0 1rem}
+a{color:var(--rel)}
+
+/* ---- masthead ---- */
+.mast{border-bottom:1px solid var(--ink);padding:28px 0 14px;margin-bottom:44px;display:flex;justify-content:space-between;align-items:baseline;gap:20px;flex-wrap:wrap}
+.mast .who{font-family:"JetBrains Mono",monospace;font-size:11.5px;line-height:1.9;color:var(--muted);font-variant-numeric:lining-nums}
+.mast .who b{color:var(--ink);font-weight:500}
+
+.hero{margin-bottom:52px}
+.hero h1{font-size:38px;line-height:1.12;max-width:16ch;margin-bottom:20px}
+.hero .stand{font-size:19.5px;max-width:60ch;color:#33363c}
+.figwrap{margin:34px 0 0;background:var(--card);border:1px solid var(--rule);padding:20px 20px 14px}
+.figwrap svg{display:block;width:100%;height:auto}
+.figcap{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);line-height:1.7;margin-top:10px;font-variant-numeric:lining-nums}
+
+/* ---- the two-source key ---- */
+.key{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin:0 0 56px}
+.key > div{background:var(--card);padding:16px 18px}
+.key .sym{font-family:"JetBrains Mono",monospace;font-size:15px;font-weight:500;margin-bottom:4px;font-variant-numeric:lining-nums}
+.key .nm{font-family:Archivo,sans-serif;font-size:13.5px;font-weight:500;margin-bottom:6px}
+.key .ds{font-size:14px;line-height:1.5;color:var(--muted)}
+.k-rel .sym,.k-rel .nm{color:var(--rel)}
+.k-sem .sym,.k-sem .nm{color:var(--sem)}
+
+/* ---- sections & steps ---- */
+section{margin-bottom:54px}
+.shead{display:grid;grid-template-columns:var(--gutter) minmax(0,1fr);gap:0;align-items:start;border-top:1px solid var(--ink);padding-top:12px;margin-bottom:22px}
+.shead .num{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.1em;color:var(--muted);padding-top:6px;font-variant-numeric:lining-nums}
+.shead h2{font-size:25px;line-height:1.2;max-width:22ch}
+.shead .sub{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+.body{display:grid;grid-template-columns:var(--gutter) minmax(0,1fr);gap:0}
+.body .side{padding-right:20px}
+.body .side p{font-family:"JetBrains Mono",monospace;font-size:11px;line-height:1.65;color:var(--muted);margin:0 0 10px;font-variant-numeric:lining-nums}
+.body .main{min-width:0}
+
+/* ---- code ---- */
+pre{
+  margin:18px 0;padding:15px 18px;background:var(--card);
+  border:1px solid var(--rule);border-left:3px solid var(--ink);
+  overflow-x:auto;font-family:"JetBrains Mono",monospace;font-size:12.5px;
+  line-height:1.68;font-variant-numeric:lining-nums;
+}
+pre.rel{border-left-color:var(--rel)}
+pre.sem{border-left-color:var(--sem)}
+pre .c{color:var(--muted)}
+code{font-family:"JetBrains Mono",monospace;font-size:.86em;font-variant-numeric:lining-nums;background:#ecebe4;padding:1px 4px;border-radius:2px}
+.t-rel{color:var(--rel);font-weight:500}
+.t-sem{color:var(--sem);font-weight:500}
+
+/* ---- formula ---- */
+.formula{background:var(--card);border:1px solid var(--rule);padding:22px 20px;margin:20px 0;text-align:center;font-family:"Source Serif 4",serif;font-size:19px;line-height:1.9}
+.formula .sm{font-size:14px;color:var(--muted);display:block;margin-top:10px;font-family:"JetBrains Mono",monospace;font-variant-numeric:lining-nums}
+
+/* ---- callouts ---- */
+.note{border-left:3px solid var(--warn);background:#fbf7ec;padding:13px 16px;margin:18px 0;font-size:15.5px;line-height:1.55}
+.note b{font-family:Archivo,sans-serif;font-weight:500;font-size:13px;letter-spacing:.02em;display:block;margin-bottom:3px;color:var(--warn)}
+.stop{border-left:3px solid var(--err);background:#fbefed;padding:13px 16px;margin:18px 0;font-size:15.5px;line-height:1.55}
+.stop b{font-family:Archivo,sans-serif;font-weight:500;font-size:13px;display:block;margin-bottom:3px;color:var(--err)}
+
+/* ---- lists & tables ---- */
+ul,ol{margin:0 0 1rem;padding-left:1.15rem}
+li{margin-bottom:.4rem}
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:14.5px}
+th{font-family:Archivo,sans-serif;font-weight:500;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 10px 7px 0;border-bottom:1px solid var(--ink)}
+td{padding:9px 10px 9px 0;border-bottom:1px solid var(--rule-soft);vertical-align:top;line-height:1.45}
+td.mono{font-family:"JetBrains Mono",monospace;font-size:12.5px;white-space:nowrap;font-variant-numeric:lining-nums}
+
+.check{list-style:none;padding:0}
+.check li{padding-left:26px;position:relative;margin-bottom:.6rem}
+.check li:before{content:"";position:absolute;left:0;top:.42em;width:11px;height:11px;border:1.5px solid var(--ink)}
+
+footer{border-top:1px solid var(--ink);padding-top:16px;font-family:"JetBrains Mono",monospace;font-size:11.5px;line-height:1.85;color:var(--muted);font-variant-numeric:lining-nums}
+
+@media (max-width:720px){
+  :root{--gutter:0px}
+  body{font-size:16.5px}
+  .hero h1{font-size:29px}
+  .shead,.body{grid-template-columns:minmax(0,1fr)}
+  .shead .num{padding-top:0;margin-bottom:6px}
+  .body .side{padding:0 0 14px}
+  .body .side p{display:inline;margin-right:14px}
+}
+@media print{
+  body{background:#fff;font-size:10.5pt}
+  .wrap{padding:0}
+  section{break-inside:avoid}
+  pre{break-inside:avoid;font-size:8.5pt}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+
+
+<div class="hero">
+  <h1>Mapping 4,500 scientific topics onto 88 NACE divisions</h1>
+  <p class="stand">The task is to assign every OpenAlex topic to an industrial sector. The obvious approach — ask an LLM to read each topic and pick a division — gets you roughly three quarters of the way and then stalls, because the text of a topic and the text of a NACE note describe the same activity in two different languages. The fix is to use a second, independent source of evidence: topics that repeatedly appear on the same papers belong to the same part of the economy, whatever the words say. This brief is how we combine the two.</p>
+
+  <div class="figwrap">
+    <svg viewBox="0 0 440 168" role="img" aria-labelledby="figtitle figdesc">
+      <title id="figtitle">Two panels comparing labelling from text alone versus text plus relatedness</title>
+      <desc id="figdesc">Left panel: a network of topics coloured by an LLM prior, with three topics mislabelled and cutting across dense clusters. Right panel: the same network after relatedness smoothing, with clusters cleanly and contiguously coloured.</desc>
+
+      <ellipse cx="49" cy="46" rx="30" ry="26" fill="#1d6f63" fill-opacity="0.07"/>
+      <ellipse cx="150" cy="44" rx="30" ry="26" fill="#5b3e96" fill-opacity="0.07"/>
+      <ellipse cx="100" cy="116" rx="30" ry="26" fill="#96690f" fill-opacity="0.07"/>
+      <g stroke="#b7b3a8" stroke-width="1">
+        <line x1="48" y1="46" x2="38" y2="32"/><line x1="48" y1="46" x2="64" y2="30"/>
+        <line x1="48" y1="46" x2="34" y2="60"/><line x1="48" y1="46" x2="62" y2="62"/>
+        <line x1="38" y1="32" x2="64" y2="30"/><line x1="34" y1="60" x2="62" y2="62"/>
+        <line x1="150" y1="44" x2="139" y2="29"/><line x1="150" y1="44" x2="165" y2="31"/>
+        <line x1="150" y1="44" x2="137" y2="58"/><line x1="150" y1="44" x2="163" y2="60"/>
+        <line x1="139" y1="29" x2="165" y2="31"/><line x1="137" y1="58" x2="163" y2="60"/>
+        <line x1="100" y1="116" x2="88" y2="102"/><line x1="100" y1="116" x2="114" y2="101"/>
+        <line x1="100" y1="116" x2="86" y2="131"/><line x1="100" y1="116" x2="113" y2="132"/>
+        <line x1="88" y1="102" x2="114" y2="101"/><line x1="86" y1="131" x2="113" y2="132"/>
+        <line x1="62" y1="62" x2="88" y2="102"/><line x1="114" y1="101" x2="137" y2="58"/>
+      </g>
+      <g stroke="#b3392f" stroke-width="1.4">
+        <line x1="48" y1="46" x2="62" y2="62"/><line x1="34" y1="60" x2="62" y2="62"/>
+        <line x1="150" y1="44" x2="139" y2="29"/><line x1="139" y1="29" x2="165" y2="31"/>
+        <line x1="100" y1="116" x2="114" y2="101"/><line x1="88" y1="102" x2="114" y2="101"/>
+      </g>
+      <g stroke="#fffefb" stroke-width="1.2">
+        <circle cx="48" cy="46" r="4.4" fill="#1d6f63"/><circle cx="38" cy="32" r="4.4" fill="#1d6f63"/>
+        <circle cx="64" cy="30" r="4.4" fill="#1d6f63"/><circle cx="34" cy="60" r="4.4" fill="#1d6f63"/>
+        <circle cx="62" cy="62" r="5.2" fill="#96690f" stroke="#14161a" stroke-opacity="0.6"/>
+        <circle cx="150" cy="44" r="4.4" fill="#5b3e96"/><circle cx="165" cy="31" r="4.4" fill="#5b3e96"/>
+        <circle cx="137" cy="58" r="4.4" fill="#5b3e96"/><circle cx="163" cy="60" r="4.4" fill="#5b3e96"/>
+        <circle cx="139" cy="29" r="5.2" fill="#1d6f63" stroke="#14161a" stroke-opacity="0.6"/>
+        <circle cx="100" cy="116" r="4.4" fill="#96690f"/><circle cx="88" cy="102" r="4.4" fill="#96690f"/>
+        <circle cx="86" cy="131" r="4.4" fill="#96690f"/><circle cx="113" cy="132" r="4.4" fill="#96690f"/>
+        <circle cx="114" cy="101" r="5.2" fill="#5b3e96" stroke="#14161a" stroke-opacity="0.6"/>
+      </g>
+      <text x="0" y="163" font-family="JetBrains Mono, monospace" font-size="10" fill="#6b6862" letter-spacing="0.08em">A ALONE — 3 ERRORS, 6 CROSS-SECTOR EDGES</text>
+
+      <g transform="translate(240,0)">
+        <ellipse cx="49" cy="46" rx="30" ry="26" fill="#1d6f63" fill-opacity="0.07"/>
+        <ellipse cx="150" cy="44" rx="30" ry="26" fill="#5b3e96" fill-opacity="0.07"/>
+        <ellipse cx="100" cy="116" rx="30" ry="26" fill="#96690f" fill-opacity="0.07"/>
+        <g stroke="#b7b3a8" stroke-width="1">
+          <line x1="48" y1="46" x2="38" y2="32"/><line x1="48" y1="46" x2="64" y2="30"/>
+          <line x1="48" y1="46" x2="34" y2="60"/><line x1="48" y1="46" x2="62" y2="62"/>
+          <line x1="38" y1="32" x2="64" y2="30"/><line x1="34" y1="60" x2="62" y2="62"/>
+          <line x1="150" y1="44" x2="139" y2="29"/><line x1="150" y1="44" x2="165" y2="31"/>
+          <line x1="150" y1="44" x2="137" y2="58"/><line x1="150" y1="44" x2="163" y2="60"/>
+          <line x1="139" y1="29" x2="165" y2="31"/><line x1="137" y1="58" x2="163" y2="60"/>
+          <line x1="100" y1="116" x2="88" y2="102"/><line x1="100" y1="116" x2="114" y2="101"/>
+          <line x1="100" y1="116" x2="86" y2="131"/><line x1="100" y1="116" x2="113" y2="132"/>
+          <line x1="88" y1="102" x2="114" y2="101"/><line x1="86" y1="131" x2="113" y2="132"/>
+        </g>
+        <g stroke="#b3392f" stroke-width="1.4">
+          <line x1="62" y1="62" x2="88" y2="102"/><line x1="114" y1="101" x2="137" y2="58"/>
+        </g>
+        <g stroke="#fffefb" stroke-width="1.2">
+          <circle cx="48" cy="46" r="4.4" fill="#1d6f63"/><circle cx="38" cy="32" r="4.4" fill="#1d6f63"/>
+          <circle cx="64" cy="30" r="4.4" fill="#1d6f63"/><circle cx="34" cy="60" r="4.4" fill="#1d6f63"/>
+          <circle cx="62" cy="62" r="4.4" fill="#1d6f63"/>
+          <circle cx="150" cy="44" r="4.4" fill="#5b3e96"/><circle cx="165" cy="31" r="4.4" fill="#5b3e96"/>
+          <circle cx="137" cy="58" r="4.4" fill="#5b3e96"/><circle cx="163" cy="60" r="4.4" fill="#5b3e96"/>
+          <circle cx="139" cy="29" r="4.4" fill="#5b3e96"/>
+          <circle cx="100" cy="116" r="4.4" fill="#96690f"/><circle cx="88" cy="102" r="4.4" fill="#96690f"/>
+          <circle cx="86" cy="131" r="4.4" fill="#96690f"/><circle cx="113" cy="132" r="4.4" fill="#96690f"/>
+          <circle cx="114" cy="101" r="4.4" fill="#96690f"/>
+        </g>
+        <text x="0" y="163" font-family="JetBrains Mono, monospace" font-size="10" fill="#6b6862" letter-spacing="0.08em">A + R — 0 ERRORS, 2 BRIDGE EDGES LEFT</text>
+      </g>
+    </svg>
+    <div class="figcap">Colour = assigned sector. Ringed nodes are wrong. Red edges connect topics that co-occur on the same papers but were given different sectors — that is the signal we exploit. The two bridge edges surviving on the right are real interdisciplinarity, not error; do not try to remove them.</div>
+  </div>
+</div>
+
+<div class="key">
+  <div class="k-rel">
+    <div class="sym">R</div>
+    <div class="nm">Relatedness</div>
+    <div class="ds">4,516 &times; 4,516. Normalised co-occurrence of topics on the same journal articles. Says nothing about sectors — only which topics travel together.</div>
+  </div>
+  <div class="k-sem">
+    <div class="sym">A</div>
+    <div class="nm">Semantic affinity</div>
+    <div class="ds">4,516 &times; 88. From embeddings and LLM scoring of topic text against NACE text. Says which sector a topic sounds like, one topic at a time.</div>
+  </div>
+  <div>
+    <div class="sym">M</div>
+    <div class="nm">The output</div>
+    <div class="ds">4,516 &times; 88, rows summing to 1. What we ship. Every step below exists to produce this and to prove it is better than A on its own.</div>
+  </div>
+</div>
+
+<section>
+  <div class="shead">
+    <div class="num">00</div>
+    <div>
+      <h2>What the problem actually is</h2>
+      <div class="sub">Read this part twice before writing code</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="side"><p>Not clustering. Not classification. Graph labelling.</p></div>
+    <div class="main">
+      <p>This is tempting to frame as "run a classifier over 4,516 rows," and that framing will cost you two weeks. It is a <b>semi-supervised labelling problem on a graph</b> — a Potts model, if you want the physics name, or constrained clustering with a prior, if you want the ML one. Topics are nodes. We know something about each node individually (the text) and something about pairs of nodes (co-occurrence). We want a labelling that respects both.</p>
+
+      <div class="formula">
+        <em>z</em>* = argmax<sub><em>z</em></sub> &nbsp; &Sigma;<sub><em>i</em></sub> <span class="t-sem">A</span><sub><em>i,z<sub>i</sub></em></sub> &nbsp;+&nbsp; &lambda; &Sigma;<sub><em>i</em>&lt;<em>j</em></sub> ( <span class="t-rel">R</span><sub><em>ij</em></sub> &minus; &gamma; <em>k<sub>i</sub>k<sub>j</sub></em> / 2<em>m</em> ) &sdot; 1[<em>z<sub>i</sub></em> = <em>z<sub>j</sub></em>]
+        <span class="sm">first term: go where the text says &nbsp;·&nbsp; second term: go where your neighbours went</span>
+      </div>
+
+      <p>&lambda; is the only interesting parameter in the whole project. At &lambda; = 0 you have the LLM's answer. As &lambda; grows, the structure of science starts overruling the text. Somewhere in between is the best mapping, and <em>finding that point empirically is the result</em>, not a preprocessing detail.</p>
+
+      <div class="stop">
+        <b>Why the &gamma; term is there</b>
+        Without the null-model correction, the pairwise term is maximised by putting all 4,516 topics in one sector. It is not a subtlety — at high &lambda; it will happen, silently, and your accuracy metric will not immediately tell you. Subtracting the configuration-model expectation <em>k<sub>i</sub>k<sub>j</sub></em>/2<em>m</em> (Reichardt &amp; Bornholdt resolution) penalises over-merging. Keep it in from the first run.
+      </div>
+
+      <p>One more framing point. A single hard label per topic is a <em>modelling convenience</em>, not a fact about the world — biotechnology genuinely belongs to C21 and M72 at once. The deliverable is the soft matrix <code>M</code>; the hard partition is one view of it. Build it that way from the start, because everything downstream (weighting regional science portfolios by sector, linking to employment or R&D data) wants the weights.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="num">01</div>
+    <div>
+      <h2>Build the gold set — before anything else</h2>
+      <div class="sub">Week 1 · ~2 days · do not skip, do not postpone</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="side"><p>If you build this after the model, you will unconsciously label to match it.</p></div>
+    <div class="main">
+      <p>Sample 250 topics stratified across the 26 OpenAlex fields, weighted so that fields with many topics get more but no field gets zero. Hand-assign each one a NACE division, plus a second-best division, plus a flag for <code>no_sector</code> (pure basic science, humanities, methodology). Two people label 60 of them independently so we have an inter-rater agreement number to report — if we disagree on 20% of cases, no model is going to beat that ceiling and we need to know before we promise anything.</p>
+      <p>Freeze it. Commit it. Never look at it again until step 6.</p>
+      <div class="note">
+        <b>Ask me when</b>
+        A topic seems to sit outside the productive economy entirely, or spans four divisions with no dominant one. Those cases define our <code>no_sector</code> policy and I want to set it, not discover it in the results.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="num">02</div>
+    <div>
+      <h2>Relatedness from co-occurrence</h2>
+      <div class="sub">Week 1 · produces <span class="t-rel">R</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="side"><p>OpenAlex snapshot on S3, DuckDB over the parquet. Do not use the API for this.</p></div>
+    <div class="main">
+      <p>Take works from 2015 onwards, English or not, journal articles only (drop preprints, datasets, book chapters — they have different topic-assignment behaviour). Each work carries up to three topics with scores; use topics above score 0.3. Count co-occurrence, then normalise with association strength, which is the standard proximity measure and the one that behaves correctly under a random null.</p>
+
+      <pre class="rel">import duckdb, numpy as np, scipy.sparse as sp
+
+con = duckdb.connect()
+<span class="c"># one row per (work_id, topic_id) above threshold</span>
+pairs = con.execute("""
+  SELECT a.topic_id AS i, b.topic_id AS j, COUNT(*) AS c
+  FROM work_topics a JOIN work_topics b ON a.work_id = b.work_id
+  WHERE a.topic_id &lt; b.topic_id
+    AND a.score &gt; 0.3 AND b.score &gt; 0.3
+  GROUP BY 1, 2
+""").df()
+
+N = 4516
+C = sp.coo_matrix((pairs.c, (pairs.i, pairs.j)), shape=(N, N))
+C = (C + C.T).tocsr()
+
+<span class="c"># association strength (Van Eck &amp; Waltman): observed / expected</span>
+k     = np.asarray(C.sum(axis=1)).ravel()          <span class="c"># topic marginals</span>
+total = k.sum()
+R     = C.multiply(1.0 / np.outer(k, k)).multiply(total)   <span class="c"># keep sparse</span>
+</pre>
+
+      <p>Then sparsify: keep the top 15 neighbours per topic, symmetrise by taking the max, and check that the result is one connected component. If it is not, the isolated pieces are usually a data problem, not a discovery — inspect them before dropping.</p>
+
+      <div class="stop">
+        <b>The journal artifact</b>
+        Topics co-occur partly because journals have editorial scope, not because the underlying science is related. Compute <code>R</code> a second time with within-journal normalisation and compare the two rankings (Spearman on the top-15 neighbour lists). If they diverge badly we are partly measuring editorial policy and I want to see that before we build on it. Report the number either way.
+      </div>
+
+      <p>Note also that OpenAlex gives roughly three topics per work, so any single paper contributes at most three pairs. The matrix is thin per-document and dense only in aggregate. This is fine over ~100M articles but it means rare topics have noisy neighbourhoods — track the topic degree distribution and flag anything below ~200 co-occurrences as low-confidence.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="num">03</div>
+    <div>
+      <h2>Semantic affinity, with a bridge</h2>
+      <div class="sub">Week 2 · produces <span class="t-sem">A</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="side"><p>The register mismatch is the whole difficulty here.</p></div>
+    <div class="main">
+      <p>NACE explanatory notes are administrative prose about activities and products. OpenAlex topic descriptions are scientific prose about phenomena and methods. Cosine similarity between the two is weak — not because the mapping is hard, but because the vocabularies barely overlap. Fix it with document expansion before you embed anything.</p>
+
+      <p><b>3a — Expand the 88 divisions.</b> For each division, give the LLM the title, the includes/excludes notes, and the associated CPA product list, and ask for ~150 words on <em>what scientific and engineering knowledge underpins this activity</em>. Written in the register of a research abstract. Do this once, review all 88 by hand — it is one afternoon and it is the highest-leverage hour in the project.</p>
+
+      <p><b>3b — Shortlist by embedding.</b> Embed the expanded division texts and the topic texts (name + description + keywords) with the same model. Cosine gives you 4,516 &times; 88. Keep the top 15 per topic.</p>
+
+      <p><b>3c — Score the shortlist with an LLM.</b> Never present 88 options in one prompt; quality collapses past roughly twenty. One call per topic over its own shortlist, structured output, temperature 0.</p>
+
+      <pre class="sem">SYSTEM: You map scientific research topics to NACE Rev. 2 industrial
+divisions. You judge which industries would plausibly draw on this
+research, not which sound superficially similar.
+
+USER:
+Topic: {name}
+Description: {description}
+Keywords: {keywords}
+
+Candidate divisions:
+{15 candidates, code + title + expanded description}
+
+Return JSON only:
+{"ranked": [{"code": "C21", "score": 0..100, "why": "one clause"}, ...],
+ "no_sector": true|false}
+Score independently, not as a ranking - several may score high, or none.
+</pre>
+
+      <p>Convert scores to a row-stochastic <code>A</code> with a softmax over the shortlist (leave the other 73 divisions at a small floor). Keep the <code>why</code> field — it is our audit trail, and when a reviewer asks why C20 got a topic, we can answer in one line instead of re-running anything.</p>
+
+      <div class="note">
+        <b>Run 3b and 3c as two separate ablations</b>
+        We need to know how much the LLM stage adds over plain embedding similarity. Same evaluation, both versions. If the LLM adds two points, that is a finding worth a paragraph; if it adds fifteen, it changes how we describe the method.
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="num">04</div>
+    <div>
+      <h2>Combine</h2>
+      <div class="sub">Week 3 · produces <span style="font-family:JetBrains Mono,monospace;font-weight:500">M</span></div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="side"><p>Soft version first. It is closed-form and runs in seconds.</p></div>
+    <div class="main">
+      <p>The hard problem is NP-hard, but the relaxation is a fixed-point iteration (Zhou label spreading) and converges in about forty passes. Start here, always.</p>
+
+      <pre>d = np.asarray(R.sum(axis=1)).ravel()
+Dm = sp.diags(1.0 / np.sqrt(np.maximum(d, 1e-12)))
+S  = Dm @ R @ Dm                      <span class="c"># symmetric normalised</span>
+
+def spread(A, S, alpha, n_iter=40):
+    M = A.copy()
+    for _ in range(n_iter):
+        M = alpha * (S @ M) + (1 - alpha) * A
+        M /= M.sum(axis=1, keepdims=True)
+    return M
+
+M     = spread(A, S, alpha=0.6)
+hard  = M.argmax(axis=1)
+</pre>
+
+      <p><code>alpha</code> here plays the role of &lambda; in the objective — same dial, different parameterisation. Sweep it from 0 to 0.95 in steps of 0.05 and keep every intermediate result; that sweep <em>is</em> step 6.</p>
+
+      <p>Only once the soft version is working and evaluated, try the hard version with &alpha;-expansion (Boykov–Veksler–Zabih) on the Potts objective including the &gamma; correction. It should agree with <code>argmax M</code> on 90%+ of topics. If it does not, one of the two is wrong and I want to know which before we go further.</p>
+
+      <p><b>Two constraints to add once the base works:</b></p>
+      <ul>
+        <li><b>An outside option.</b> An 89th column with a fixed affinity floor, so topics with no industrial counterpart land there instead of being forced into the nearest division. Calibrate the floor so roughly the same share of topics goes to <code>no_sector</code> as in the gold set.</li>
+        <li><b>Capacity.</b> Nothing should let one division absorb 15% of science. Sinkhorn scaling against target sector marginals (from BERD or sectoral value added) gives you this in a few lines and is defensible in a paper as an optimal-transport formulation.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="num">05</div>
+    <div>
+      <h2>Evaluation — the actual result</h2>
+      <div class="sub">Week 3–4 · the figure I want</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="side"><p>Accuracy alone is not enough. Report all four.</p></div>
+    <div class="main">
+      <table>
+        <thead><tr><th style="width:31%">Metric</th><th>What it tells us</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">top-1 / top-3</td><td>Agreement with the gold set. Top-3 against the soft weights matters more than top-1, given the multi-sector reality.</td></tr>
+          <tr><td class="mono">within-sector edge share</td><td>Coherence: fraction of relatedness edges whose endpoints share a label. Rises monotonically with &alpha;, so it is a sanity check, never a success criterion on its own.</td></tr>
+          <tr><td class="mono">sector entropy</td><td>Collapse detector. Entropy of the sector-size distribution. If it falls off a cliff as &alpha; rises, the &gamma; term is not doing its job.</td></tr>
+          <tr><td class="mono">bootstrap ARI</td><td>Stability. Resample works, recompute <code>R</code>, rerun. Adjusted Rand index between runs. Below ~0.8 and the mapping is not reproducible enough to publish.</td></tr>
+        </tbody>
+      </table>
+
+      <p><b>The figure:</b> accuracy on the y-axis, &alpha; on the x-axis, with coherence and entropy on the same panel. I expect an inverted U — relatedness fixes LLM errors up to a point, then starts dragging correctly-labelled topics into their neighbours' sector. That curve is the argument for the whole method, and it is the reason we can claim something more interesting than "we asked GPT to classify things."</p>
+
+      <p>Cross-validate externally where you can: for topics with patent linkage, check agreement against the CPC-to-NACE concordance. It will be noisy. Report it anyway.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="num">06</div>
+    <div>
+      <h2>Deliverables</h2>
+      <div class="sub">What lands in the repo</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="side"><p>Reproducible from raw inputs with one command.</p></div>
+    <div class="main">
+      <table>
+        <thead><tr><th style="width:34%">File</th><th>Contents</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">gold_set.csv</td><td>250 hand-labelled topics, two annotators on 60, agreement reported</td></tr>
+          <tr><td class="mono">relatedness.npz</td><td>Sparse <code>R</code>, top-15 backbone, plus the raw counts and the within-journal variant</td></tr>
+          <tr><td class="mono">nace_expanded.json</td><td>The 88 expanded division descriptions, hand-reviewed</td></tr>
+          <tr><td class="mono">affinity.parquet</td><td><code>A</code> with per-cell LLM justifications, both ablations</td></tr>
+          <tr><td class="mono">mapping.parquet</td><td><code>M</code> — 4,516 &times; 89, soft weights. The deliverable.</td></tr>
+          <tr><td class="mono">alpha_sweep.csv</td><td>All four metrics at every &alpha;. Source of the main figure.</td></tr>
+          <tr><td class="mono">README.md</td><td>Decisions made, thresholds chosen, and why</td></tr>
+        </tbody>
+      </table>
+
+      <ul class="check">
+        <li>Every threshold in the pipeline (0.3 on topic scores, 15 neighbours, 15 candidates) sits in one config file, not scattered through the code</li>
+        <li>Random seeds fixed and recorded</li>
+        <li>LLM calls cached to disk by input hash, so a rerun costs nothing</li>
+        <li>The whole thing runs end-to-end from raw parquet in under an hour on the workstation</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="num">07</div>
+    <div>
+      <h2>Where this usually goes wrong</h2>
+      <div class="sub">Check yourself against this list weekly</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="side"><p>None of these are hypothetical.</p></div>
+    <div class="main">
+      <ul>
+        <li><b>Building the gold set last.</b> You will label to match the model without meaning to, and the evaluation becomes worthless. First week, no exceptions.</li>
+        <li><b>Silent collapse at high &alpha;.</b> Watch sector entropy, not just accuracy. Accuracy degrades gracefully while the partition quietly implodes.</li>
+        <li><b>Trusting cosine similarity across registers.</b> Without the expansion step in 3a, C26 ends up looking similar to half of physics and nothing else lands anywhere.</li>
+        <li><b>Forcing every topic somewhere.</b> Medieval literature does not have a NACE division. The outside option is not optional.</li>
+        <li><b>Treating the hard labels as ground truth downstream.</b> Ship the weights. Let whoever uses it decide when to collapse them.</li>
+        <li><b>NACE vintage drift.</b> We are on Rev. 2 (88 divisions). If we move to Rev. 2.1 later, we remap through a concordance table — we do not re-run the pipeline. Keep the division codes as data, never hardcoded.</li>
+      </ul>
+
+      <div class="note">
+        <b>Send me at the end of each week</b>
+        One page: what the current numbers are, what you changed, and the one decision you are least sure about. I would rather correct a threshold in week 2 than re-run everything in week 4.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <b>References</b><br>
+  Van Eck &amp; Waltman (2009), <em>JASIST</em> — association strength normalisation<br>
+  Zhou et al. (2004), <em>NeurIPS</em> — learning with local and global consistency<br>
+  Boykov, Veksler &amp; Zabih (2001), <em>IEEE TPAMI</em> — fast approximate energy minimisation via graph cuts<br>
+  Reichardt &amp; Bornholdt (2006), <em>Phys. Rev. E</em> — statistical mechanics of community detection<br>
+  Hidalgo et al. (2007), <em>Science</em> — relatedness and the product space<br>
+  Cuturi (2013), <em>NeurIPS</em> — Sinkhorn distances<br>
+  <br>
+  Questions on anything above: ask early rather than guessing. The parts I care most about are the gold set and the &alpha; sweep.
+</footer>
+
+</div>
+</body>
+</html>

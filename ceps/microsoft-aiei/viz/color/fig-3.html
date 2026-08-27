@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Smart specialization in the age of AI</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+:root {
+    --breakpoint-compact: 500px;
+    --opt: #2f6f5e;
+    --moon: #5b4a7a;
+    --incr: #b0842e;
+    --div: #9d9a93;
+}
+
+html, body { height: 100%; }
+body {
+    margin: 0;
+    overflow: hidden;
+    height: 100%;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Helvetica, Arial, sans-serif;
+    background-color: white;
+}
+
+.viz-grid {
+    display: grid;
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0 clamp(12px, 2.4vw, 40px);
+}
+#container1 { grid-row: 1; grid-column: 1; overflow: hidden; min-height: 0; min-width: 0; }
+
+#viz { position: relative; overflow: hidden; width: 100%; height: 100%; min-height: 0; min-width: 0; }
+#chart { position: absolute; inset: 0; display: block; }
+
+#tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: #fff;
+    color: #0f172a;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.4;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    max-width: 240px;
+    z-index: 100;
+}
+#tooltip .t-name { font-weight: 700; font-size: 15px; display: block; margin-bottom: 3px; }
+#tooltip .t-q { font-weight: 700; display: block; margin-bottom: 5px; }
+#tooltip .t-row { display: flex; justify-content: space-between; gap: 14px; }
+#tooltip .t-k { color: #0f172a; }
+#tooltip .t-v { font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.hit { transition: opacity 0.16s ease; }
+#chart.dim .hit:not(.hovered) { opacity: 0.16; }
+.dot { stroke: #fff; stroke-width: 1.5px; }
+.dot-label { fill: #0f172a; font-weight: 400; }
+.dot-label.hovered { font-weight: 700; }
+.leader { stroke: #9ba1a9; stroke-width: 0.8px; fill: none; }
+.mid-line { stroke: #14161a; stroke-width: 1.2px; stroke-dasharray: 2 5; }
+.axbox { fill: #fff; stroke: #14161a; stroke-width: 1.4px; }
+.axname { fill: #14161a; font-weight: 700; letter-spacing: 0.03em; }
+.axmeas { fill: #666b73; font-weight: 400; font-variant-numeric: tabular-nums; }
+.qtab { fill: none; stroke-width: 1.2px; stroke-opacity: 0.5; stroke-linejoin: round; }
+.qname { font-weight: 700; }
+.qdo { fill: #666b73; font-weight: 400; }
+
+@media (max-width: 423px) {
+    body { overflow-x: auto; }
+    .viz-grid { min-width: 424px; }
+}
+@media (max-height: 399px) {
+    body { overflow-y: auto; }
+    .viz-grid { height: auto; min-height: 400px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="viz-grid">
+  <div id="container1" class="container viz-container">
+    <div id="viz">
+      <svg id="chart"></svg>
+    </div>
+  </div>
+</div>
+
+<script>
+const SHOW_LABELS   = 1;
+const SHOW_TOOLTIP  = 1;
+const MX            = 50;
+const MY            = 50;
+const LABEL_FS      = 10.5;
+const LABEL_FS_MIN  = 6.5;
+const AXNAME_FS     = 11.5;
+const AXMEAS_FS     = 9.5;
+const AXBOX_H       = 34;
+const AXBOX_PAD     = 20;
+const QNAME_FS      = 14.5;
+const QDO_FS        = 10.5;
+const TAB_H         = 52;
+const TAB_PAD       = 18;
+const PAD_TOP       = 80;
+const PAD_BOTTOM    = 80;
+const PLOT_MIN      = 380;
+const WIDTH_FLOOR   = 400;
+const HEIGHT_FLOOR  = 400;
+
+const S = [
+ ["Software & IT services", 93, 64],
+ ["Pharmaceutical R&D", 89, 31],
+ ["Semiconductor design", 86, 22],
+ ["Medical diagnostics", 83, 44],
+ ["Asset management", 80, 17],
+ ["Aerospace design", 77, 86],
+ ["Insurance", 74, 26],
+ ["Legal services", 71, 55],
+ ["Media & advertising", 68, 38],
+ ["Scientific instruments", 66, 79],
+ ["Banking", 63, 30],
+ ["Accounting", 60, 58],
+ ["Industrial machinery", 57, 91],
+ ["Automotive", 55, 76],
+ ["Telecommunications", 53, 47],
+ ["Electronics", 51, 70],
+ ["Energy networks", 49, 62],
+ ["Chemicals", 47, 83],
+ ["Management consulting", 45, 41],
+ ["Precision agriculture", 43, 29],
+ ["Logistics", 40, 73],
+ ["Healthcare delivery", 37, 52],
+ ["Higher education", 35, 66],
+ ["Retail", 32, 45],
+ ["Food processing", 29, 60],
+ ["Wholesale trade", 26, 71],
+ ["Construction", 22, 57],
+ ["Real estate", 19, 36],
+ ["Hospitality & tourism", 15, 48],
+ ["Water & waste", 11, 64]
+];
+
+const QUAD = [
+  { name: 'Optimal investments',  do: 'Build the strategy here', c: 'var(--opt)' },
+  { name: 'Moonshot initiatives', do: 'Bet selectively, and few', c: 'var(--moon)' },
+  { name: 'Incremental growth',   do: "Adopt, don't specialise", c: 'var(--incr)' },
+  { name: 'Strategic divestment', do: "Don't allocate here",    c: 'var(--div)' }
+];
+const QTINT = ['rgba(47,111,94,.055)', 'rgba(91,74,122,.045)', 'rgba(176,132,46,.04)', 'rgba(20,22,26,.022)'];
+const qOf = (ap, rd) => ap >= MY ? (rd >= MX ? QUAD[0] : QUAD[1]) : (rd >= MX ? QUAD[2] : QUAD[3]);
+
+const AXBOX = [
+  ['HIGH ECONOMIC IMPACT', '↑ AI applicability'],
+  ['LOW ECONOMIC IMPACT',  '↓ AI applicability'],
+  ['LOW FEASIBILITY',      '↓ relatedness density'],
+  ['HIGH FEASIBILITY',     '↑ relatedness density']
+];
+
+const tooltip = (() => {
+  const t = document.createElement('div');
+  t.id = 'tooltip';
+  document.body.appendChild(t);
+  return t;
+})();
+
+const vizEl = document.getElementById('viz');
+const svg = d3.select('#chart');
+let width = 0, height = 0;
+
+function measureWidth(strings, fs, weight) {
+  const g = svg.append('g').attr('font-size', fs + 'px').attr('font-weight', weight || 400);
+  let w = 0;
+  strings.forEach(s => {
+    const t = g.append('text').text(s);
+    w = Math.max(w, t.node().getComputedTextLength());
+  });
+  g.remove();
+  return w;
+}
+
+function declump(ys, lo, hi, pitch) {
+  const n = ys.length, out = ys.slice();
+  if (!n) return out;
+  const p = Math.min(pitch, (hi - lo) / Math.max(1, n - 1));
+  out[0] = Math.max(lo, out[0]);
+  for (let i = 1; i < n; i++) out[i] = Math.max(out[i], out[i - 1] + p);
+  out[n - 1] = Math.min(out[n - 1], hi);
+  for (let i = n - 2; i >= 0; i--) out[i] = Math.min(out[i], out[i + 1] - p);
+  return out;
+}
+
+function updateDimensions() {
+  const rect = vizEl.getBoundingClientRect();
+  width  = Math.max(WIDTH_FLOOR, rect.width);
+  height = Math.max(HEIGHT_FLOOR, rect.height);
+  svg.attr('width', width).attr('height', height).attr('viewBox', `0 0 ${width} ${height}`)
+     .style('width', width + 'px').style('height', height + 'px');
+}
+
+function render() {
+  updateDimensions();
+  svg.selectAll('*').remove();
+
+  const sc = Math.max(0.6, Math.min(1, Math.min(width / 1080, height / 720)));
+  const axNameFS = AXNAME_FS * sc, axMeasFS = AXMEAS_FS * sc;
+  const axH = AXBOX_H * sc, axPad = AXBOX_PAD * sc;
+  const qnFS = QNAME_FS * sc, qdFS = QDO_FS * sc;
+  const tabH = TAB_H * sc, tabPad = TAB_PAD * sc, tabR = 7 * sc;
+  const padV = PAD_TOP * sc;
+  const plotMin = Math.min(PLOT_MIN, width * 0.42);
+
+  const names = S.map(d => d[0]);
+  const dotR = Math.max(3, Math.min(6.4, width / 200));
+  const reach = dotR + 8 * sc;
+  const axBoxW = Math.max(
+    measureWidth(AXBOX.map(b => b[0]), axNameFS, 700),
+    measureWidth(AXBOX.map(b => b[1]), axMeasFS, 400)
+  ) + axPad * 2;
+
+  const gutter = 7 * sc;
+  const xMinText = axH + gutter;
+  const xMaxText = width - axH - gutter;
+  const L = axH + 12 * sc;
+  const PW = Math.max(plotMin, width - L * 2);
+  const x = v => L + v / 100 * PW;
+
+  let labelFS = LABEL_FS * sc, nameW = {};
+  for (;;) {
+    names.forEach(n => { nameW[n] = measureWidth([n], labelFS, 700); });
+    const stuck = S.some(([nm, , rd]) => {
+      const cx = x(rd), w = nameW[nm];
+      return cx - reach - w < xMinText && cx + reach + w > xMaxText;
+    });
+    if (!stuck || labelFS <= LABEL_FS_MIN) break;
+    labelFS = Math.max(LABEL_FS_MIN, labelFS - 0.35);
+  }
+
+  const T = padV;
+  const PH = Math.max(160, height - padV * 2);
+  const y = v => T + (1 - v / 100) * PH;
+
+  const gBack = svg.append('g');
+  const gAxis = svg.append('g');
+  const gLead = svg.append('g');
+  const gLabel = svg.append('g');
+  const gDot = svg.append('g');
+
+  [[MX, 100, MY, 100], [0, MX, MY, 100], [MX, 100, 0, MY], [0, MX, 0, MY]].forEach(([a, b, c, d], i) => {
+    gBack.append('rect')
+      .attr('x', x(a)).attr('y', y(d))
+      .attr('width', x(b) - x(a)).attr('height', y(c) - y(d))
+      .attr('fill', QTINT[i]);
+  });
+
+  gBack.append('line').attr('class', 'mid-line')
+    .attr('x1', x(MX)).attr('y1', T - 18 * sc).attr('x2', x(MX)).attr('y2', T + PH + 18 * sc);
+  gBack.append('line').attr('class', 'mid-line')
+    .attr('x1', L - 14 * sc).attr('y1', y(MY)).attr('x2', L + PW + 14 * sc).attr('y2', y(MY));
+  const arrow = 10 * sc, aw = 5 * sc;
+  gBack.append('path').attr('d', `M${x(MX)},${T - 28 * sc} l${-aw},${arrow} h${aw * 2} Z`).attr('fill', '#14161a');
+  gBack.append('path').attr('d', `M${x(MX)},${T + PH + 28 * sc} l${-aw},${-arrow} h${aw * 2} Z`).attr('fill', '#14161a');
+
+  function axBox(cx, cy, w, spec, rot) {
+    const g = gAxis.append('g')
+      .attr('transform', `translate(${cx},${cy})` + (rot ? ` rotate(${rot})` : ''));
+    g.append('rect').attr('class', 'axbox')
+      .attr('x', -w / 2).attr('y', -axH / 2).attr('width', w).attr('height', axH);
+    g.append('text').attr('class', 'axname').attr('x', 0).attr('y', -3 * sc)
+      .attr('text-anchor', 'middle').attr('font-size', axNameFS.toFixed(1) + 'px').text(spec[0]);
+    g.append('text').attr('class', 'axmeas').attr('x', 0).attr('y', 11 * sc)
+      .attr('text-anchor', 'middle').attr('font-size', axMeasFS.toFixed(1) + 'px').text(spec[1]);
+  }
+  const axW = Math.min(axBoxW, PH - 40 * sc);
+  const topW = Math.min(axBoxW, PW - 20 * sc);
+  const boxOff = axH / 2 + 30 * sc;
+  axBox(x(MX), T - boxOff, topW, AXBOX[0], 0);
+  axBox(x(MX), T + PH + boxOff, topW, AXBOX[1], 0);
+  axBox(axH / 2, y(MY), axW, AXBOX[2], -90);
+  axBox(width - axH / 2, y(MY), axW, AXBOX[3], -90);
+
+  const qBoxAvoid = topW / 2 + 12 * sc;
+  const tabs = [[QUAD[1], 0], [QUAD[0], 1], [QUAD[3], 2], [QUAD[2], 3]].map(([q, slot]) => {
+    const right = slot % 2 === 1, top = slot < 2;
+    const nmW = measureWidth([q.name], qnFS, 700);
+    const doW = measureWidth([q.do], qdFS, 400);
+    const half = PW / 2;
+    const w = Math.min(Math.max(nmW, doW) + tabPad * 2, half - 10 * sc);
+    let cx = right ? x(MX) + half / 2 : x(MX) - half / 2;
+    const inner = right ? cx - w / 2 : cx + w / 2;
+    const push = right ? x(MX) + qBoxAvoid - inner : inner - (x(MX) - qBoxAvoid);
+    if (push > 0) cx += right ? push : -push;
+    cx = Math.max(L + w / 2, Math.min(L + PW - w / 2, cx));
+    const base = top ? T : T + PH;
+    return { q, right, top, cx, x0: cx - w / 2, x1: cx + w / 2, base, tip: top ? base - tabH : base + tabH };
+  });
+
+  tabs.forEach(t => {
+    const outerX = t.right ? x(100) : x(0);
+    const edge = `M${outerX},${y(MY)} L${outerX},${t.base} L${t.right ? t.x1 : t.x0},${t.base}` +
+      ` M${t.right ? t.x0 : t.x1},${t.base} L${x(MX)},${t.base}`;
+    gBack.append('path').attr('class', 'qtab').attr('d', edge).attr('stroke', t.q.c);
+  });
+
+  tabs.forEach(t => {
+    const sy = t.top ? 1 : -1;
+    const outer = `M${t.x0},${t.base} L${t.x0},${t.tip + tabR * sy}` +
+      ` Q${t.x0},${t.tip} ${t.x0 + tabR},${t.tip} L${t.x1 - tabR},${t.tip}` +
+      ` Q${t.x1},${t.tip} ${t.x1},${t.tip + tabR * sy} L${t.x1},${t.base}`;
+    gAxis.append('path').attr('d', outer + ' Z').attr('fill', QTINT[QUAD.indexOf(t.q)]);
+    gAxis.append('path').attr('class', 'qtab').attr('d', outer).attr('stroke', t.q.c);
+
+    const ny = (t.top ? t.tip : t.base) + 21 * sc;
+    gAxis.append('text').attr('class', 'qname').attr('x', t.cx).attr('y', ny)
+      .attr('text-anchor', 'middle').attr('font-size', qnFS.toFixed(1) + 'px').attr('fill', t.q.c).text(t.q.name);
+    gAxis.append('text').attr('class', 'qdo').attr('x', t.cx).attr('y', ny + 15 * sc)
+      .attr('text-anchor', 'middle').attr('font-size', qdFS.toFixed(1) + 'px').text(t.q.do);
+  });
+
+  const items = S.map(([nm, ap, rd]) => {
+    const cx = x(rd), w = nameW[nm], prefer = rd < MX ? -1 : 1;
+    const fitsLeft = cx - reach - w >= xMinText;
+    const fitsRight = cx + reach + w <= xMaxText;
+    const side = prefer < 0
+      ? (fitsLeft ? -1 : (fitsRight ? 1 : -1))
+      : (fitsRight ? 1 : (fitsLeft ? -1 : 1));
+    return { nm, ap, rd, q: qOf(ap, rd), cx, cy: y(ap), side };
+  });
+
+  if (SHOW_LABELS) {
+    [-1, 1].forEach(sd => {
+      const g = items.filter(d => d.side === sd).sort((a, b) => a.cy - b.cy);
+      const ys = declump(g.map(d => d.cy), T + 4, T + PH - 4, labelFS + 4 * sc);
+      g.forEach((d, i) => { d.ly = ys[i]; });
+    });
+
+    items.forEach(d => {
+      const tx = d.cx + d.side * (dotR + 8 * sc);
+      if (Math.abs(d.ly - d.cy) > 1.5) {
+        gLead.append('path').attr('class', 'hit leader').attr('data-s', d.nm)
+          .attr('d', `M${d.cx + d.side * (dotR + 2)},${d.cy} L${tx - d.side * 3},${d.ly}`);
+      }
+      gLabel.append('text').attr('class', 'hit dot-label').attr('data-s', d.nm)
+        .attr('x', tx).attr('y', d.ly).attr('dy', '0.35em')
+        .attr('font-size', labelFS.toFixed(1) + 'px')
+        .attr('text-anchor', d.side === 1 ? 'start' : 'end')
+        .text(d.nm);
+    });
+  }
+
+  items.forEach(d => {
+    gDot.append('circle').attr('class', 'hit dot').attr('data-s', d.nm)
+      .attr('cx', d.cx).attr('cy', d.cy).attr('r', dotR)
+      .attr('fill', d.q.c).attr('fill-opacity', 0.85);
+  });
+}
+
+const chartNode = document.getElementById('chart');
+
+chartNode.addEventListener('mouseover', e => {
+  const hit = e.target.closest('[data-s]');
+  if (!hit) { clearHover(); return; }
+  const name = hit.dataset.s;
+  chartNode.classList.add('dim');
+  chartNode.querySelectorAll('.hovered').forEach(n => n.classList.remove('hovered'));
+  chartNode.querySelectorAll(`[data-s="${CSS.escape(name)}"]`).forEach(n => n.classList.add('hovered'));
+  if (!SHOW_TOOLTIP) return;
+  const s = S.find(d => d[0] === name);
+  const q = qOf(s[1], s[2]);
+  tooltip.innerHTML = `<span class="t-name">${s[0]}</span>` +
+    `<span class="t-q" style="color:${q.c}">${q.name}</span>` +
+    `<span class="t-row"><span class="t-k">AI applicability</span><span class="t-v">${s[1]}</span></span>` +
+    `<span class="t-row"><span class="t-k">Relatedness density</span><span class="t-v">${s[2]}</span></span>`;
+  tooltip.style.opacity = 1;
+});
+
+function clearHover() {
+  chartNode.classList.remove('dim');
+  chartNode.querySelectorAll('.hovered').forEach(n => n.classList.remove('hovered'));
+  tooltip.style.opacity = 0;
+}
+chartNode.addEventListener('mouseleave', clearHover);
+
+window.addEventListener('mousemove', e => {
+  tooltip.style.left = Math.min(e.clientX + 14, window.innerWidth  - tooltip.offsetWidth  - 8) + 'px';
+  tooltip.style.top  = Math.min(e.clientY - 24, window.innerHeight - tooltip.offsetHeight - 8) + 'px';
+});
+
+render();
+window.addEventListener('resize', render);
+let lastW = 0, lastH = 0;
+if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => {
+  const r = vizEl.getBoundingClientRect();
+  if (Math.abs(r.width - lastW) < 1 && Math.abs(r.height - lastH) < 1) return;
+  lastW = r.width; lastH = r.height;
+  render();
+}).observe(vizEl);
+</script>
+</body>
+</html>
