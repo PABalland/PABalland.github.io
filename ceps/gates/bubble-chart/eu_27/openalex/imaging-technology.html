@@ -1,0 +1,1949 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
+.box{width:14px;height:14px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Growth &gt; median</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Growth &lt; median</span></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(rect1, rect2) {
+  return !(rect1.x + rect1.width < rect2.x || 
+           rect2.x + rect2.width < rect1.x || 
+           rect1.y + rect1.height < rect2.y || 
+           rect2.y + rect2.height < rect1.y);
+}
+
+function getPositionOptions(centerX, centerY, radius, padding = 5) {
+  return [
+    { name: 'right', x: centerX + radius + padding, y: centerY + 3, anchor: 'start' },
+    { name: 'left', x: centerX - radius - padding, y: centerY + 3, anchor: 'end' },
+    { name: 'below', x: centerX, y: centerY + radius + padding + 10, anchor: 'middle' },
+    { name: 'above', x: centerX, y: centerY - radius - padding, anchor: 'middle' }
+  ];
+}
+
+function hasCollision(textElement, allCircles) {
+  try {
+    const textBBox = textElement.getBBox();
+    
+    for (const circleData of allCircles) {
+      const r = parseFloat(circleData.circle.getAttribute('r')) || 7.5;
+      const circleBBox = {
+        x: circleData.coords.x - r,
+        y: circleData.coords.y - r,
+        width: r * 2,
+        height: r * 2
+      };
+      
+      if (rectanglesOverlap(textBBox, circleBBox)) {
+        return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+function findBestPosition(textElement, centerX, centerY, radius, allCircles, fullText) {
+  const positions = getPositionOptions(centerX, centerY, radius);
+  let hasCollisionWithFull = false;
+  
+  textElement.textContent = fullText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: fullText, hasCollision: false };
+    }
+  }
+  
+  hasCollisionWithFull = true;
+  
+  const truncatedText = truncateText(fullText, 20);
+  textElement.textContent = truncatedText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: truncatedText, hasCollision: hasCollisionWithFull };
+    }
+  }
+  
+  return { ...positions[0], text: truncatedText, hasCollision: true };
+}
+
+// Function to get data bound to DOM element
+function getBoundData(element) {
+  // Try to get data from d3plus binding
+  if (element.__data__) {
+    return element.__data__;
+  }
+  
+  // Try to get data from parent elements
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  // Prefer the bound data directly from D3
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  // No fallback by position to avoid mismatches
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data=   [
+  {
+    "id": "Afghanistan (AF)",
+    "color": "#F5F5F5",
+    "x": 120,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 3,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Albania (AL)",
+    "color": "#DAE5DA",
+    "x": 49,
+    "y": 0.03,
+    "delta": -99.94,
+    "value": 1,
+    "links_2015": 28,
+    "pct_2015": 0.08,
+    "links_2020": 47,
+    "pct_2020": 0.11
+  },
+  {
+    "id": "Algeria (DZ)",
+    "color": "#E4CECE",
+    "x": 30,
+    "y": -0.09,
+    "delta": -100.3,
+    "value": 1,
+    "links_2015": 127,
+    "pct_2015": 0.37,
+    "links_2020": 123,
+    "pct_2020": 0.28
+  },
+  {
+    "id": "Argentina (AR)",
+    "color": "#E0C5C5",
+    "x": 22,
+    "y": -0.14,
+    "delta": -100.64,
+    "value": 1,
+    "links_2015": 214,
+    "pct_2015": 0.62,
+    "links_2020": 212,
+    "pct_2020": 0.48
+  },
+  {
+    "id": "Armenia (AM)",
+    "color": "#D4E1D4",
+    "x": 70.5,
+    "y": 0.04,
+    "delta": -99.94,
+    "value": 1,
+    "links_2015": 10,
+    "pct_2015": 0.03,
+    "links_2020": 30,
+    "pct_2020": 0.07
+  },
+  {
+    "id": "Australia (AU)",
+    "color": "#D9B5B5",
+    "x": 6,
+    "y": -0.26,
+    "delta": -104.33,
+    "value": 1,
+    "links_2015": 1426,
+    "pct_2015": 4.1,
+    "links_2020": 1690,
+    "pct_2020": 3.84
+  },
+  {
+    "id": "Azerbaijan (AZ)",
+    "color": "#EDE4E4",
+    "x": 70.5,
+    "y": -0.01,
+    "delta": -100.01,
+    "value": 1,
+    "links_2015": 10,
+    "pct_2015": 0.03,
+    "links_2020": 11,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "Bahrain (BH)",
+    "color": "#F5F5F5",
+    "x": 106.5,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 8,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "Bangladesh (BD)",
+    "color": "#C6D9C6",
+    "x": 51.5,
+    "y": 0.07,
+    "delta": -99.86,
+    "value": 1,
+    "links_2015": 25,
+    "pct_2015": 0.07,
+    "links_2020": 63,
+    "pct_2020": 0.14
+  },
+  {
+    "id": "Belarus (BY)",
+    "color": "#E8D7D7",
+    "x": 38.5,
+    "y": -0.05,
+    "delta": -100.13,
+    "value": 1,
+    "links_2015": 54,
+    "pct_2015": 0.16,
+    "links_2020": 49,
+    "pct_2020": 0.11
+  },
+  {
+    "id": "Belize (BZ)",
+    "color": "#EDE4E4",
+    "x": 106.5,
+    "y": -0.01,
+    "delta": -100.01,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 1,
+    "pct_2020": 0
+  },
+  {
+    "id": "Benin (BJ)",
+    "color": "#F0E9E9",
+    "x": 106.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 6,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Bolivia (BO)",
+    "color": "#F5F5F5",
+    "x": 97.5,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 3,
+    "pct_2015": 0.01,
+    "links_2020": 8,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "Bosnia and Herzegovina (BA)",
+    "color": "#D4E1D4",
+    "x": 45,
+    "y": 0.04,
+    "delta": -99.91,
+    "value": 1,
+    "links_2015": 34,
+    "pct_2015": 0.1,
+    "links_2020": 60,
+    "pct_2020": 0.14
+  },
+  {
+    "id": "Brazil (BR)",
+    "color": "#DCBBBB",
+    "x": 8,
+    "y": -0.21,
+    "delta": -102.63,
+    "value": 1,
+    "links_2015": 1009,
+    "pct_2015": 2.9,
+    "links_2020": 1184,
+    "pct_2020": 2.69
+  },
+  {
+    "id": "Brunei (BN)",
+    "color": "#F0E9E9",
+    "x": 106.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 4,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Burkina Faso (BF)",
+    "color": "#F5F5F5",
+    "x": 120,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 4,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Burundi (BI)",
+    "color": "#F5F5F5",
+    "x": 60,
+    "y": 0.01,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 15,
+    "pct_2015": 0.04,
+    "links_2020": 23,
+    "pct_2020": 0.05
+  },
+  {
+    "id": "Cambodia (KH)",
+    "color": "#D4E1D4",
+    "x": 86.5,
+    "y": 0.04,
+    "delta": -99.95,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.01,
+    "links_2020": 23,
+    "pct_2020": 0.05
+  },
+  {
+    "id": "Cameroon (CM)",
+    "color": "#D4E1D4",
+    "x": 80.5,
+    "y": 0.04,
+    "delta": -99.95,
+    "value": 1,
+    "links_2015": 6,
+    "pct_2015": 0.02,
+    "links_2020": 26,
+    "pct_2020": 0.06
+  },
+  {
+    "id": "Canada (CA)",
+    "color": "#E7D4D4",
+    "x": 5,
+    "y": -0.06,
+    "delta": -101.2,
+    "value": 1,
+    "links_2015": 1671,
+    "pct_2015": 4.81,
+    "links_2020": 2092,
+    "pct_2020": 4.75
+  },
+  {
+    "id": "Cayman Islands (KY)",
+    "color": "#EDE4E4",
+    "x": 106.5,
+    "y": -0.01,
+    "delta": -100.01,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 1,
+    "pct_2020": 0
+  },
+  {
+    "id": "Chad (TD)",
+    "color": "#F0E9E9",
+    "x": 120,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 1,
+    "pct_2020": 0
+  },
+  {
+    "id": "Chile (CL)",
+    "color": "#E3CCCC",
+    "x": 16,
+    "y": -0.1,
+    "delta": -100.63,
+    "value": 1,
+    "links_2015": 286,
+    "pct_2015": 0.82,
+    "links_2020": 319,
+    "pct_2020": 0.72
+  },
+  {
+    "id": "China (CN)",
+    "color": "#006400",
+    "x": 4,
+    "y": 1.62,
+    "delta": -59.5,
+    "value": 1,
+    "links_2015": 2140,
+    "pct_2015": 6.15,
+    "links_2020": 3423,
+    "pct_2020": 7.77
+  },
+  {
+    "id": "Colombia (CO)",
+    "color": "#E0C4C4",
+    "x": 23,
+    "y": -0.15,
+    "delta": -100.65,
+    "value": 1,
+    "links_2015": 199,
+    "pct_2015": 0.57,
+    "links_2020": 184,
+    "pct_2020": 0.42
+  },
+  {
+    "id": "Costa Rica (CR)",
+    "color": "#ECE0E0",
+    "x": 50,
+    "y": -0.02,
+    "delta": -100.04,
+    "value": 1,
+    "links_2015": 26,
+    "pct_2015": 0.07,
+    "links_2020": 23,
+    "pct_2020": 0.05
+  },
+  {
+    "id": "Cuba (CU)",
+    "color": "#E7D4D4",
+    "x": 43.5,
+    "y": -0.06,
+    "delta": -100.14,
+    "value": 1,
+    "links_2015": 39,
+    "pct_2015": 0.11,
+    "links_2020": 20,
+    "pct_2020": 0.05
+  },
+  {
+    "id": "Curacao (CW)",
+    "color": "#F5F5F5",
+    "x": 120,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 3,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Dominican Republic (DO)",
+    "color": "#E2EAE2",
+    "x": 66,
+    "y": 0.02,
+    "delta": -99.97,
+    "value": 1,
+    "links_2015": 13,
+    "pct_2015": 0.04,
+    "links_2020": 27,
+    "pct_2020": 0.06
+  },
+  {
+    "id": "DR Congo (CD)",
+    "color": "#F5F5F5",
+    "x": 86.5,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.01,
+    "links_2020": 9,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "Ecuador (EC)",
+    "color": "#E2EAE2",
+    "x": 38.5,
+    "y": 0.02,
+    "delta": -99.95,
+    "value": 1,
+    "links_2015": 54,
+    "pct_2015": 0.16,
+    "links_2020": 80,
+    "pct_2020": 0.18
+  },
+  {
+    "id": "Egypt (EG)",
+    "color": "#9FC29F",
+    "x": 21,
+    "y": 0.21,
+    "delta": -99,
+    "value": 1,
+    "links_2015": 220,
+    "pct_2015": 0.63,
+    "links_2020": 371,
+    "pct_2020": 0.84
+  },
+  {
+    "id": "Ethiopia (ET)",
+    "color": "#F0E9E9",
+    "x": 58.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 16,
+    "pct_2015": 0.05,
+    "links_2020": 22,
+    "pct_2020": 0.05
+  },
+  {
+    "id": "Faroe Islands (FO)",
+    "color": "#F0E9E9",
+    "x": 120,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 1,
+    "pct_2020": 0
+  },
+  {
+    "id": "French Polynesia (PF)",
+    "color": "#F0E9E9",
+    "x": 120,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 2,
+    "pct_2020": 0
+  },
+  {
+    "id": "Gabon (GA)",
+    "color": "#EDE4E4",
+    "x": 92.5,
+    "y": -0.01,
+    "delta": -100.01,
+    "value": 1,
+    "links_2015": 4,
+    "pct_2015": 0.01,
+    "links_2020": 1,
+    "pct_2020": 0
+  },
+  {
+    "id": "Georgia (GE)",
+    "color": "#F5F5F5",
+    "x": 76,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 8,
+    "pct_2015": 0.02,
+    "links_2020": 13,
+    "pct_2020": 0.03
+  },
+  {
+    "id": "Ghana (GH)",
+    "color": "#F5F5F5",
+    "x": 72.5,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 9,
+    "pct_2015": 0.03,
+    "links_2020": 17,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "Gibraltar (GI)",
+    "color": "#EDE4E4",
+    "x": 97.5,
+    "y": -0.01,
+    "delta": -100.01,
+    "value": 1,
+    "links_2015": 3,
+    "pct_2015": 0.01,
+    "links_2020": 1,
+    "pct_2020": 0
+  },
+  {
+    "id": "Grenada (GD)",
+    "color": "#EDE4E4",
+    "x": 56.5,
+    "y": -0.01,
+    "delta": -100.02,
+    "value": 1,
+    "links_2015": 18,
+    "pct_2015": 0.05,
+    "links_2020": 16,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "Guatemala (GT)",
+    "color": "#F5F5F5",
+    "x": 76,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 8,
+    "pct_2015": 0.02,
+    "links_2020": 13,
+    "pct_2020": 0.03
+  },
+  {
+    "id": "Honduras (HN)",
+    "color": "#EDE4E4",
+    "x": 106.5,
+    "y": -0.01,
+    "delta": -100.01,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 2,
+    "pct_2020": 0
+  },
+  {
+    "id": "Hong Kong (HK)",
+    "color": "#9ABF9A",
+    "x": 19.5,
+    "y": 0.23,
+    "delta": -98.82,
+    "value": 1,
+    "links_2015": 238,
+    "pct_2015": 0.68,
+    "links_2020": 402,
+    "pct_2020": 0.91
+  },
+  {
+    "id": "Iceland (IS)",
+    "color": "#F5F5F5",
+    "x": 46,
+    "y": 0.01,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 31,
+    "pct_2015": 0.09,
+    "links_2020": 43,
+    "pct_2020": 0.1
+  },
+  {
+    "id": "India (IN)",
+    "color": "#3B873B",
+    "x": 11,
+    "y": 0.94,
+    "delta": -91.45,
+    "value": 1,
+    "links_2015": 606,
+    "pct_2015": 1.74,
+    "links_2020": 1179,
+    "pct_2020": 2.68
+  },
+  {
+    "id": "Indonesia (ID)",
+    "color": "#BED5BE",
+    "x": 37,
+    "y": 0.09,
+    "delta": -99.76,
+    "value": 1,
+    "links_2015": 56,
+    "pct_2015": 0.16,
+    "links_2020": 111,
+    "pct_2020": 0.25
+  },
+  {
+    "id": "Iran (IR)",
+    "color": "#6EA56E",
+    "x": 17,
+    "y": 0.5,
+    "delta": -97.06,
+    "value": 1,
+    "links_2015": 285,
+    "pct_2015": 0.82,
+    "links_2020": 579,
+    "pct_2020": 1.32
+  },
+  {
+    "id": "Iraq (IQ)",
+    "color": "#C6D9C6",
+    "x": 41,
+    "y": 0.07,
+    "delta": -99.83,
+    "value": 1,
+    "links_2015": 46,
+    "pct_2015": 0.13,
+    "links_2020": 90,
+    "pct_2020": 0.2
+  },
+  {
+    "id": "Israel (IL)",
+    "color": "#BED5BE",
+    "x": 13,
+    "y": 0.09,
+    "delta": -99.31,
+    "value": 1,
+    "links_2015": 446,
+    "pct_2015": 1.28,
+    "links_2020": 604,
+    "pct_2020": 1.37
+  },
+  {
+    "id": "Ivory Coast (CI)",
+    "color": "#F5F5F5",
+    "x": 86.5,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.01,
+    "links_2020": 10,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "Jamaica (JM)",
+    "color": "#F0E9E9",
+    "x": 97.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 3,
+    "pct_2015": 0.01,
+    "links_2020": 6,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Japan (JP)",
+    "color": "#D0A0A0",
+    "x": 7,
+    "y": -0.46,
+    "delta": -106.57,
+    "value": 1,
+    "links_2015": 1291,
+    "pct_2015": 3.71,
+    "links_2020": 1430,
+    "pct_2020": 3.25
+  },
+  {
+    "id": "Jordan (JO)",
+    "color": "#A8C7A8",
+    "x": 48,
+    "y": 0.17,
+    "delta": -99.65,
+    "value": 1,
+    "links_2015": 29,
+    "pct_2015": 0.08,
+    "links_2020": 109,
+    "pct_2020": 0.25
+  },
+  {
+    "id": "Kazakhstan (KZ)",
+    "color": "#D4E1D4",
+    "x": 55,
+    "y": 0.04,
+    "delta": -99.93,
+    "value": 1,
+    "links_2015": 20,
+    "pct_2015": 0.06,
+    "links_2020": 45,
+    "pct_2020": 0.1
+  },
+  {
+    "id": "Kenya (KE)",
+    "color": "#F5F5F5",
+    "x": 66,
+    "y": 0.01,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 13,
+    "pct_2015": 0.04,
+    "links_2020": 24,
+    "pct_2020": 0.05
+  },
+  {
+    "id": "Kosovo (XK)",
+    "color": "#F5F5F5",
+    "x": 86.5,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.01,
+    "links_2020": 7,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "Kuwait (KW)",
+    "color": "#F0E9E9",
+    "x": 53,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 24,
+    "pct_2015": 0.07,
+    "links_2020": 30,
+    "pct_2020": 0.07
+  },
+  {
+    "id": "Kyrgyzstan (KG)",
+    "color": "#F5F5F5",
+    "x": 120,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 3,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Lebanon (LB)",
+    "color": "#F5F5F5",
+    "x": 31,
+    "y": 0.01,
+    "delta": -99.97,
+    "value": 1,
+    "links_2015": 115,
+    "pct_2015": 0.33,
+    "links_2020": 151,
+    "pct_2020": 0.34
+  },
+  {
+    "id": "Libya (LY)",
+    "color": "#E2EAE2",
+    "x": 66,
+    "y": 0.02,
+    "delta": -99.97,
+    "value": 1,
+    "links_2015": 13,
+    "pct_2015": 0.04,
+    "links_2020": 27,
+    "pct_2020": 0.06
+  },
+  {
+    "id": "Liechtenstein (LI)",
+    "color": "#F0E9E9",
+    "x": 106.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 4,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Macao (MO)",
+    "color": "#DAE5DA",
+    "x": 43.5,
+    "y": 0.03,
+    "delta": -99.93,
+    "value": 1,
+    "links_2015": 39,
+    "pct_2015": 0.11,
+    "links_2020": 60,
+    "pct_2020": 0.14
+  },
+  {
+    "id": "Madagascar (MG)",
+    "color": "#F0E9E9",
+    "x": 86.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.01,
+    "links_2020": 6,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Malawi (MW)",
+    "color": "#EDE4E4",
+    "x": 106.5,
+    "y": -0.01,
+    "delta": -100.01,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 2,
+    "pct_2020": 0
+  },
+  {
+    "id": "Malaysia (MY)",
+    "color": "#CADBCA",
+    "x": 28,
+    "y": 0.06,
+    "delta": -99.79,
+    "value": 1,
+    "links_2015": 144,
+    "pct_2015": 0.41,
+    "links_2020": 209,
+    "pct_2020": 0.47
+  },
+  {
+    "id": "Mali (ML)",
+    "color": "#F0E9E9",
+    "x": 62.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 14,
+    "pct_2015": 0.04,
+    "links_2020": 18,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "Mexico (MX)",
+    "color": "#E2C8C8",
+    "x": 15,
+    "y": -0.12,
+    "delta": -100.8,
+    "value": 1,
+    "links_2015": 292,
+    "pct_2015": 0.84,
+    "links_2020": 317,
+    "pct_2020": 0.72
+  },
+  {
+    "id": "Moldova (MD)",
+    "color": "#E2EAE2",
+    "x": 86.5,
+    "y": 0.02,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.01,
+    "links_2020": 15,
+    "pct_2020": 0.03
+  },
+  {
+    "id": "Monaco (MC)",
+    "color": "#F0E9E9",
+    "x": 62.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 14,
+    "pct_2015": 0.04,
+    "links_2020": 16,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "Mongolia (MN)",
+    "color": "#E2EAE2",
+    "x": 97.5,
+    "y": 0.02,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 3,
+    "pct_2015": 0.01,
+    "links_2020": 14,
+    "pct_2020": 0.03
+  },
+  {
+    "id": "Montenegro (ME)",
+    "color": "#F0E9E9",
+    "x": 72.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 9,
+    "pct_2015": 0.03,
+    "links_2020": 13,
+    "pct_2020": 0.03
+  },
+  {
+    "id": "Morocco (MA)",
+    "color": "#F0E9E9",
+    "x": 35,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 71,
+    "pct_2015": 0.2,
+    "links_2020": 88,
+    "pct_2020": 0.2
+  },
+  {
+    "id": "Myanmar (MM)",
+    "color": "#ECE0E0",
+    "x": 58.5,
+    "y": -0.02,
+    "delta": -100.03,
+    "value": 1,
+    "links_2015": 16,
+    "pct_2015": 0.05,
+    "links_2020": 14,
+    "pct_2020": 0.03
+  },
+  {
+    "id": "Namibia (NA)",
+    "color": "#EDE4E4",
+    "x": 106.5,
+    "y": -0.01,
+    "delta": -100.01,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 2,
+    "pct_2020": 0
+  },
+  {
+    "id": "Nepal (NP)",
+    "color": "#CADBCA",
+    "x": 86.5,
+    "y": 0.06,
+    "delta": -99.93,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.01,
+    "links_2020": 33,
+    "pct_2020": 0.07
+  },
+  {
+    "id": "New Caledonia (NC)",
+    "color": "#F5F5F5",
+    "x": 120,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 3,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "New Zealand (NZ)",
+    "color": "#E6D2D2",
+    "x": 29,
+    "y": -0.07,
+    "delta": -100.24,
+    "value": 1,
+    "links_2015": 143,
+    "pct_2015": 0.41,
+    "links_2020": 148,
+    "pct_2020": 0.34
+  },
+  {
+    "id": "Nicaragua (NI)",
+    "color": "#F0E9E9",
+    "x": 86.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.01,
+    "links_2020": 3,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Nigeria (NG)",
+    "color": "#BED5BE",
+    "x": 62.5,
+    "y": 0.09,
+    "delta": -99.86,
+    "value": 1,
+    "links_2015": 14,
+    "pct_2015": 0.04,
+    "links_2020": 57,
+    "pct_2020": 0.13
+  },
+  {
+    "id": "North Macedonia (MK)",
+    "color": "#F0E9E9",
+    "x": 54,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 23,
+    "pct_2015": 0.07,
+    "links_2020": 33,
+    "pct_2020": 0.07
+  },
+  {
+    "id": "Norway (NO)",
+    "color": "#8DB78D",
+    "x": 12,
+    "y": 0.3,
+    "delta": -97.5,
+    "value": 1,
+    "links_2015": 548,
+    "pct_2015": 1.58,
+    "links_2020": 826,
+    "pct_2020": 1.88
+  },
+  {
+    "id": "Oman (OM)",
+    "color": "#DAE5DA",
+    "x": 80.5,
+    "y": 0.03,
+    "delta": -99.96,
+    "value": 1,
+    "links_2015": 6,
+    "pct_2015": 0.02,
+    "links_2020": 22,
+    "pct_2020": 0.05
+  },
+  {
+    "id": "Pakistan (PK)",
+    "color": "#76AA76",
+    "x": 33,
+    "y": 0.44,
+    "delta": -98.67,
+    "value": 1,
+    "links_2015": 98,
+    "pct_2015": 0.28,
+    "links_2020": 316,
+    "pct_2020": 0.72
+  },
+  {
+    "id": "Palestine (PS)",
+    "color": "#D4E1D4",
+    "x": 76,
+    "y": 0.04,
+    "delta": -99.95,
+    "value": 1,
+    "links_2015": 8,
+    "pct_2015": 0.02,
+    "links_2020": 28,
+    "pct_2020": 0.06
+  },
+  {
+    "id": "Panama (PA)",
+    "color": "#F0E9E9",
+    "x": 106.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 4,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Papua New Guinea (PG)",
+    "color": "#F5F5F5",
+    "x": 120,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 4,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Paraguay (PY)",
+    "color": "#F5F5F5",
+    "x": 76,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 8,
+    "pct_2015": 0.02,
+    "links_2020": 13,
+    "pct_2020": 0.03
+  },
+  {
+    "id": "Peru (PE)",
+    "color": "#ECE0E0",
+    "x": 42,
+    "y": -0.02,
+    "delta": -100.05,
+    "value": 1,
+    "links_2015": 42,
+    "pct_2015": 0.12,
+    "links_2020": 45,
+    "pct_2020": 0.1
+  },
+  {
+    "id": "Philippines (PH)",
+    "color": "#F5F5F5",
+    "x": 51.5,
+    "y": 0.01,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 25,
+    "pct_2015": 0.07,
+    "links_2020": 35,
+    "pct_2020": 0.08
+  },
+  {
+    "id": "Puerto Rico (PR)",
+    "color": "#EDE4E4",
+    "x": 69,
+    "y": -0.01,
+    "delta": -100.01,
+    "value": 1,
+    "links_2015": 11,
+    "pct_2015": 0.03,
+    "links_2020": 11,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "Qatar (QA)",
+    "color": "#CEDECE",
+    "x": 40,
+    "y": 0.05,
+    "delta": -99.88,
+    "value": 1,
+    "links_2015": 50,
+    "pct_2015": 0.14,
+    "links_2020": 82,
+    "pct_2020": 0.19
+  },
+  {
+    "id": "Russia (RU)",
+    "color": "#C98F8F",
+    "x": 9,
+    "y": -0.67,
+    "delta": -107.44,
+    "value": 1,
+    "links_2015": 894,
+    "pct_2015": 2.57,
+    "links_2020": 838,
+    "pct_2020": 1.9
+  },
+  {
+    "id": "Rwanda (RW)",
+    "color": "#F5F5F5",
+    "x": 106.5,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 7,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "San Marino (SM)",
+    "color": "#EDE4E4",
+    "x": 106.5,
+    "y": -0.01,
+    "delta": -100.01,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.01,
+    "links_2020": 1,
+    "pct_2020": 0
+  },
+  {
+    "id": "Saudi Arabia (SA)",
+    "color": "#659F65",
+    "x": 19.5,
+    "y": 0.57,
+    "delta": -97.08,
+    "value": 1,
+    "links_2015": 238,
+    "pct_2015": 0.68,
+    "links_2020": 551,
+    "pct_2020": 1.25
+  },
+  {
+    "id": "Senegal (SN)",
+    "color": "#F0E9E9",
+    "x": 80.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 6,
+    "pct_2015": 0.02,
+    "links_2020": 10,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "Serbia (RS)",
+    "color": "#F0E9E9",
+    "x": 26.5,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 153,
+    "pct_2015": 0.44,
+    "links_2020": 192,
+    "pct_2020": 0.44
+  },
+  {
+    "id": "Sierra Leone (SL)",
+    "color": "#F5F5F5",
+    "x": 120,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 5,
+    "pct_2020": 0.01
+  },
+  {
+    "id": "Singapore (SG)",
+    "color": "#EADCDC",
+    "x": 18,
+    "y": -0.03,
+    "delta": -100.17,
+    "value": 1,
+    "links_2015": 280,
+    "pct_2015": 0.81,
+    "links_2020": 344,
+    "pct_2020": 0.78
+  },
+  {
+    "id": "South Africa (ZA)",
+    "color": "#CEDECE",
+    "x": 25,
+    "y": 0.05,
+    "delta": -99.8,
+    "value": 1,
+    "links_2015": 170,
+    "pct_2015": 0.49,
+    "links_2020": 239,
+    "pct_2020": 0.54
+  },
+  {
+    "id": "South Korea (KR)",
+    "color": "#D4E1D4",
+    "x": 10,
+    "y": 0.04,
+    "delta": -99.6,
+    "value": 1,
+    "links_2015": 610,
+    "pct_2015": 1.75,
+    "links_2020": 786,
+    "pct_2020": 1.79
+  },
+  {
+    "id": "South Sudan (SS)",
+    "color": "#E2EAE2",
+    "x": 120,
+    "y": 0.02,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 7,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "Sri Lanka (LK)",
+    "color": "#F5F5F5",
+    "x": 62.5,
+    "y": 0.01,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 14,
+    "pct_2015": 0.04,
+    "links_2020": 23,
+    "pct_2020": 0.05
+  },
+  {
+    "id": "St Kitts and Nevis (KN)",
+    "color": "#F0E9E9",
+    "x": 120,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 2,
+    "pct_2020": 0
+  },
+  {
+    "id": "Sudan (SD)",
+    "color": "#DAE5DA",
+    "x": 76,
+    "y": 0.03,
+    "delta": -99.96,
+    "value": 1,
+    "links_2015": 8,
+    "pct_2015": 0.02,
+    "links_2020": 22,
+    "pct_2020": 0.05
+  },
+  {
+    "id": "Switzerland (CH)",
+    "color": "#DAE5DA",
+    "x": 3,
+    "y": 0.03,
+    "delta": -99,
+    "value": 1,
+    "links_2015": 3347,
+    "pct_2015": 9.63,
+    "links_2020": 4253,
+    "pct_2020": 9.66
+  },
+  {
+    "id": "Syria (SY)",
+    "color": "#DAE5DA",
+    "x": 68,
+    "y": 0.03,
+    "delta": -99.96,
+    "value": 1,
+    "links_2015": 12,
+    "pct_2015": 0.03,
+    "links_2020": 26,
+    "pct_2020": 0.06
+  },
+  {
+    "id": "Tajikistan (TJ)",
+    "color": "#E2EAE2",
+    "x": 97.5,
+    "y": 0.02,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 3,
+    "pct_2015": 0.01,
+    "links_2020": 15,
+    "pct_2020": 0.03
+  },
+  {
+    "id": "Tanzania (TZ)",
+    "color": "#E2EAE2",
+    "x": 92.5,
+    "y": 0.02,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 4,
+    "pct_2015": 0.01,
+    "links_2020": 12,
+    "pct_2020": 0.03
+  },
+  {
+    "id": "Thailand (TH)",
+    "color": "#C2D7C2",
+    "x": 32,
+    "y": 0.08,
+    "delta": -99.75,
+    "value": 1,
+    "links_2015": 102,
+    "pct_2015": 0.29,
+    "links_2020": 161,
+    "pct_2020": 0.37
+  },
+  {
+    "id": "The Gambia (GM)",
+    "color": "#F0E9E9",
+    "x": 120,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 1,
+    "pct_2020": 0
+  },
+  {
+    "id": "Trinidad and Tobago (TT)",
+    "color": "#F0E9E9",
+    "x": 120,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 1,
+    "pct_2020": 0
+  },
+  {
+    "id": "Tunisia (TN)",
+    "color": "#DBBABA",
+    "x": 26.5,
+    "y": -0.22,
+    "delta": -100.83,
+    "value": 1,
+    "links_2015": 153,
+    "pct_2015": 0.44,
+    "links_2020": 95,
+    "pct_2020": 0.22
+  },
+  {
+    "id": "Turkiye (TR)",
+    "color": "#6FA66F",
+    "x": 14,
+    "y": 0.49,
+    "delta": -96.5,
+    "value": 1,
+    "links_2015": 373,
+    "pct_2015": 1.07,
+    "links_2020": 685,
+    "pct_2020": 1.56
+  },
+  {
+    "id": "Uganda (UG)",
+    "color": "#F5F5F5",
+    "x": 97.5,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 3,
+    "pct_2015": 0.01,
+    "links_2020": 11,
+    "pct_2020": 0.02
+  },
+  {
+    "id": "Ukraine (UA)",
+    "color": "#E2C8C8",
+    "x": 24,
+    "y": -0.12,
+    "delta": -100.5,
+    "value": 1,
+    "links_2015": 181,
+    "pct_2015": 0.52,
+    "links_2020": 175,
+    "pct_2020": 0.4
+  },
+  {
+    "id": "United Arab Emirates (AE)",
+    "color": "#7CAE7C",
+    "x": 36,
+    "y": 0.4,
+    "delta": -98.89,
+    "value": 1,
+    "links_2015": 67,
+    "pct_2015": 0.19,
+    "links_2020": 258,
+    "pct_2020": 0.59
+  },
+  {
+    "id": "United Kingdom (GB)",
+    "color": "#C38282",
+    "x": 2,
+    "y": -0.86,
+    "delta": -143,
+    "value": 1,
+    "links_2015": 5026,
+    "pct_2015": 14.46,
+    "links_2020": 5986,
+    "pct_2020": 13.6
+  },
+  {
+    "id": "United States (US)",
+    "color": "#8B0000",
+    "x": 1,
+    "y": -3.91,
+    "delta": -491,
+    "value": 1,
+    "links_2015": 10437,
+    "pct_2015": 30.02,
+    "links_2020": 11497,
+    "pct_2020": 26.11
+  },
+  {
+    "id": "Uruguay (UY)",
+    "color": "#ECE0E0",
+    "x": 47,
+    "y": -0.02,
+    "delta": -100.04,
+    "value": 1,
+    "links_2015": 30,
+    "pct_2015": 0.09,
+    "links_2020": 33,
+    "pct_2020": 0.07
+  },
+  {
+    "id": "Uzbekistan (UZ)",
+    "color": "#CADBCA",
+    "x": 92.5,
+    "y": 0.06,
+    "delta": -99.94,
+    "value": 1,
+    "links_2015": 4,
+    "pct_2015": 0.01,
+    "links_2020": 33,
+    "pct_2020": 0.07
+  },
+  {
+    "id": "Venezuela (VE)",
+    "color": "#F5F5F5",
+    "x": 56.5,
+    "y": 0.01,
+    "delta": -99.98,
+    "value": 1,
+    "links_2015": 18,
+    "pct_2015": 0.05,
+    "links_2020": 28,
+    "pct_2020": 0.06
+  },
+  {
+    "id": "Vietnam (VN)",
+    "color": "#BBD3BB",
+    "x": 34,
+    "y": 0.1,
+    "delta": -99.71,
+    "value": 1,
+    "links_2015": 72,
+    "pct_2015": 0.21,
+    "links_2020": 138,
+    "pct_2020": 0.31
+  },
+  {
+    "id": "Yemen (YE)",
+    "color": "#DAE5DA",
+    "x": 92.5,
+    "y": 0.03,
+    "delta": -99.97,
+    "value": 1,
+    "links_2015": 4,
+    "pct_2015": 0.01,
+    "links_2020": 19,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "Zambia (ZM)",
+    "color": "#F5F5F5",
+    "x": 80.5,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 6,
+    "pct_2015": 0.02,
+    "links_2020": 13,
+    "pct_2020": 0.03
+  },
+  {
+    "id": "Zimbabwe (ZW)",
+    "color": "#F5F5F5",
+    "x": 120,
+    "y": 0.01,
+    "delta": -99.99,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0,
+    "links_2020": 6,
+    "pct_2020": 0.01
+  }
+] 
+;
+
+// reverse rank: plotted value grows as rank improves, labels still show real ranks
+const maxRank = Math.max(...data.map(d => d.x));
+data.forEach(d => { d.rank = d.x; d.x = maxRank + 1 - d.rank; });
+const rankTicks = [1, 5, 10, 15, 20].filter(r => r <= maxRank);
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain = [0.5, Math.max(...xVals) + 2];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+  title: d => d.id,
+  body: d => {
+    const rank  = d.rank ?? d.x;                        // real rank, even if the axis is reversed
+    const fmt   = (v, n = 2) => (v > 0 ? "+" : "") + v.toFixed(n);
+    const above = d.delta > median(data.map(e => e.delta));
+    return `<table class='tooltip-table'>
+      <tr><td class='title'>Rank (t-1):</td><td class='data'>${rank} of ${data.length}</td></tr>
+      <tr><td class='title'>Links (2015-2020):</td><td class='data'>${d.links_2015}</td></tr>
+      <tr><td class='title'>PCT (2015-2020):</td><td class='data'>${(d.pct_2015)}</td></tr>
+      <tr><td class='title'>Links (2020-2025):</td><td class='data'>${(d.links_2020)}</td></tr>
+      <tr><td class='title'>PCT (2020-2025):</td><td class='data'>${d.pct_2020}</td></tr>
+      <tr><td class='title'>Change t-1 → t (%):</td><td class='data'>${fmt(d.y)}</td></tr>
+      <tr><td class='title'>vs. median change:</td><td class='data'>${above ? "Above" : "Below"}</td></tr>
+    </table>`;
+  }
+})
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"% change between periods",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+  title: "Rank, previous period (2015-2020)  →  1 = top",
+  titleConfig: {fontSize: () => 16},
+  gridConfig: {stroke: "transparent"},
+  shapeConfig: {labelConfig: {fontSize: () => 16}},
+  ticks: rankTicks.map(r => maxRank + 1 - r),
+  tickFormat: v => Math.round(maxRank + 1 - v)
+})
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  startPositionUpdater();
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      svg.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+        
+        // Show in console for debugging
+        console.log('Hovering over:', matchingData.id);
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  customLabels.forEach((labelData) => {
+    const {circle, text, fullText} = labelData;
+    
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    
+    if (circle && text) {
+      const circleData = circlePositions.find(cp => cp.circle === circle);
+      if (circleData) {
+        const r = parseFloat(circle.getAttribute('r')) || 7.5;
+        const bestPosition = findBestPosition(
+          text, 
+          circleData.coords.x, 
+          circleData.coords.y, 
+          r,
+          circlePositions,
+          fullText
+        );
+        
+        text.setAttribute('x', bestPosition.x);
+        text.setAttribute('y', bestPosition.y);
+        text.setAttribute('text-anchor', bestPosition.anchor);
+        text.textContent = bestPosition.text;
+        labelData.defaultText = bestPosition.text;
+        
+        if (bestPosition.hasCollision) {
+          text.classList.add('collision');
+          text.setAttribute('opacity', '0.3');
+        } else {
+          text.classList.remove('collision');
+          text.setAttribute('opacity', '1');
+        }
+      }
+    }
+  });
+  
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
+  
+</div>
+</body>
+</html>

@@ -1,0 +1,917 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<style>
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
+.box{width:14px;height:14px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+.tooltip-table{width:100%;}
+.tooltip-table .data{text-align:right;}
+.tooltip-footer{opacity:.5;}
+tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+
+.custom-label {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  fill: #000;
+  opacity: 1;
+  font-weight: normal;
+  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
+  pointer-events: none;
+  transform-origin: center;
+}
+
+.custom-label.collision {
+  opacity: 0.3;
+}
+
+.custom-label.hover {
+  opacity: 1 !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.custom-label, text.custom-label {
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 10px !important;
+  fill: #000 !important;
+  stroke: none !important;
+  font-weight: normal !important;
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Growth &gt; median</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Growth &lt; median</span></div>
+  </div>
+</div>
+<script>
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+
+function truncateText(text, maxLength = 20) {
+  if (text.length <= maxLength) {
+    return text;
+  }
+  return text.substring(0, maxLength) + "...";
+}
+
+function rectanglesOverlap(rect1, rect2) {
+  return !(rect1.x + rect1.width < rect2.x || 
+           rect2.x + rect2.width < rect1.x || 
+           rect1.y + rect1.height < rect2.y || 
+           rect2.y + rect2.height < rect1.y);
+}
+
+function getPositionOptions(centerX, centerY, radius, padding = 5) {
+  return [
+    { name: 'right', x: centerX + radius + padding, y: centerY + 3, anchor: 'start' },
+    { name: 'left', x: centerX - radius - padding, y: centerY + 3, anchor: 'end' },
+    { name: 'below', x: centerX, y: centerY + radius + padding + 10, anchor: 'middle' },
+    { name: 'above', x: centerX, y: centerY - radius - padding, anchor: 'middle' }
+  ];
+}
+
+function hasCollision(textElement, allCircles) {
+  try {
+    const textBBox = textElement.getBBox();
+    
+    for (const circleData of allCircles) {
+      const r = parseFloat(circleData.circle.getAttribute('r')) || 7.5;
+      const circleBBox = {
+        x: circleData.coords.x - r,
+        y: circleData.coords.y - r,
+        width: r * 2,
+        height: r * 2
+      };
+      
+      if (rectanglesOverlap(textBBox, circleBBox)) {
+        return true;
+      }
+    }
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+function findBestPosition(textElement, centerX, centerY, radius, allCircles, fullText) {
+  const positions = getPositionOptions(centerX, centerY, radius);
+  let hasCollisionWithFull = false;
+  
+  textElement.textContent = fullText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: fullText, hasCollision: false };
+    }
+  }
+  
+  hasCollisionWithFull = true;
+  
+  const truncatedText = truncateText(fullText, 20);
+  textElement.textContent = truncatedText;
+  for (const pos of positions) {
+    textElement.setAttribute('x', pos.x);
+    textElement.setAttribute('y', pos.y);
+    textElement.setAttribute('text-anchor', pos.anchor);
+    
+    if (!hasCollision(textElement, allCircles)) {
+      return { ...pos, text: truncatedText, hasCollision: hasCollisionWithFull };
+    }
+  }
+  
+  return { ...positions[0], text: truncatedText, hasCollision: true };
+}
+
+// Function to get data bound to DOM element
+function getBoundData(element) {
+  // Try to get data from d3plus binding
+  if (element.__data__) {
+    return element.__data__;
+  }
+  
+  // Try to get data from parent elements
+  let parent = element.parentElement;
+  while (parent) {
+    if (parent.__data__) {
+      return parent.__data__;
+    }
+    parent = parent.parentElement;
+  }
+  
+  return null;
+}
+
+function findMatchingDataPoint(circle) {
+  // Prefer the bound data directly from D3
+  const bound = circle.__data__ || d3.select(circle).datum();
+  if (bound) return bound;
+  // No fallback by position to avoid mismatches
+  console.warn('No data bound to circle:', circle);
+  return null;
+}
+
+var data=   [
+  {
+    "id": "Andorra (AD)",
+    "color": "#E1E9E1",
+    "x": 34,
+    "y": 0.01,
+    "delta": -99.97,
+    "value": 1,
+    "links_2015": 3,
+    "pct_2015": 0.12,
+    "links_2020": 3,
+    "pct_2020": 0.13
+  },
+  {
+    "id": "Argentina (AR)",
+    "color": "#D9E4D9",
+    "x": 22.5,
+    "y": 0.02,
+    "delta": -99.91,
+    "value": 1,
+    "links_2015": 6,
+    "pct_2015": 0.24,
+    "links_2020": 6,
+    "pct_2020": 0.26
+  },
+  {
+    "id": "Australia (AU)",
+    "color": "#006400",
+    "x": 9.5,
+    "y": 1.48,
+    "delta": -84.42,
+    "value": 1,
+    "links_2015": 32,
+    "pct_2015": 1.28,
+    "links_2020": 63,
+    "pct_2020": 2.76
+  },
+  {
+    "id": "Belarus (BY)",
+    "color": "#E1C6C6",
+    "x": 30,
+    "y": -0.07,
+    "delta": -100.23,
+    "value": 1,
+    "links_2015": 4,
+    "pct_2015": 0.16,
+    "links_2020": 2,
+    "pct_2020": 0.09
+  },
+  {
+    "id": "Benin (BJ)",
+    "color": "#F5F5F5",
+    "x": 39,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0.04,
+    "links_2020": 1,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "Bolivia (BO)",
+    "color": "#F5F5F5",
+    "x": 39,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0.04,
+    "links_2020": 1,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "Brazil (BR)",
+    "color": "#A7C7A7",
+    "x": 22.5,
+    "y": 0.15,
+    "delta": -99.33,
+    "value": 1,
+    "links_2015": 6,
+    "pct_2015": 0.24,
+    "links_2020": 9,
+    "pct_2020": 0.39
+  },
+  {
+    "id": "Canada (CA)",
+    "color": "#C78B8B",
+    "x": 4,
+    "y": -0.36,
+    "delta": -109,
+    "value": 1,
+    "links_2015": 91,
+    "pct_2015": 3.65,
+    "links_2020": 75,
+    "pct_2020": 3.29
+  },
+  {
+    "id": "Chile (CL)",
+    "color": "#DBB8B8",
+    "x": 30,
+    "y": -0.12,
+    "delta": -100.4,
+    "value": 1,
+    "links_2015": 4,
+    "pct_2015": 0.16,
+    "links_2020": 1,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "China (CN)",
+    "color": "#609D60",
+    "x": 5,
+    "y": 0.55,
+    "delta": -89,
+    "value": 1,
+    "links_2015": 66,
+    "pct_2015": 2.65,
+    "links_2020": 73,
+    "pct_2020": 3.2
+  },
+  {
+    "id": "Colombia (CO)",
+    "color": "#D0A0A0",
+    "x": 18,
+    "y": -0.23,
+    "delta": -101.28,
+    "value": 1,
+    "links_2015": 8,
+    "pct_2015": 0.32,
+    "links_2020": 2,
+    "pct_2020": 0.09
+  },
+  {
+    "id": "Costa Rica (CR)",
+    "color": "#EADCDC",
+    "x": 22.5,
+    "y": -0.02,
+    "delta": -100.09,
+    "value": 1,
+    "links_2015": 6,
+    "pct_2015": 0.24,
+    "links_2020": 5,
+    "pct_2020": 0.22
+  },
+  {
+    "id": "Egypt (EG)",
+    "color": "#C4D8C4",
+    "x": 30,
+    "y": 0.06,
+    "delta": -99.8,
+    "value": 1,
+    "links_2015": 4,
+    "pct_2015": 0.16,
+    "links_2020": 5,
+    "pct_2020": 0.22
+  },
+  {
+    "id": "Hong Kong (HK)",
+    "color": "#B9D1B9",
+    "x": 14,
+    "y": 0.09,
+    "delta": -99.36,
+    "value": 1,
+    "links_2015": 12,
+    "pct_2015": 0.48,
+    "links_2020": 13,
+    "pct_2020": 0.57
+  },
+  {
+    "id": "Iceland (IS)",
+    "color": "#F5F5F5",
+    "x": 39,
+    "y": 0,
+    "delta": -100,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0.04,
+    "links_2020": 1,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "India (IN)",
+    "color": "#036603",
+    "x": 9.5,
+    "y": 1.44,
+    "delta": -84.84,
+    "value": 1,
+    "links_2015": 32,
+    "pct_2015": 1.28,
+    "links_2020": 62,
+    "pct_2020": 2.72
+  },
+  {
+    "id": "Iran (IR)",
+    "color": "#EADCDC",
+    "x": 26,
+    "y": -0.02,
+    "delta": -100.08,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.2,
+    "links_2020": 4,
+    "pct_2020": 0.18
+  },
+  {
+    "id": "Israel (IL)",
+    "color": "#97BD97",
+    "x": 6,
+    "y": 0.22,
+    "delta": -96.33,
+    "value": 1,
+    "links_2015": 61,
+    "pct_2015": 2.45,
+    "links_2020": 61,
+    "pct_2020": 2.67
+  },
+  {
+    "id": "Japan (JP)",
+    "color": "#B35D5D",
+    "x": 7,
+    "y": -0.74,
+    "delta": -110.57,
+    "value": 1,
+    "links_2015": 50,
+    "pct_2015": 2.01,
+    "links_2020": 29,
+    "pct_2020": 1.27
+  },
+  {
+    "id": "Lebanon (LB)",
+    "color": "#D9E4D9",
+    "x": 26,
+    "y": 0.02,
+    "delta": -99.92,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.2,
+    "links_2020": 5,
+    "pct_2020": 0.22
+  },
+  {
+    "id": "Liechtenstein (LI)",
+    "color": "#DEC0C0",
+    "x": 15,
+    "y": -0.09,
+    "delta": -100.6,
+    "value": 1,
+    "links_2015": 11,
+    "pct_2015": 0.44,
+    "links_2020": 8,
+    "pct_2020": 0.35
+  },
+  {
+    "id": "Malaysia (MY)",
+    "color": "#C0D5C0",
+    "x": 18,
+    "y": 0.07,
+    "delta": -99.61,
+    "value": 1,
+    "links_2015": 8,
+    "pct_2015": 0.32,
+    "links_2020": 9,
+    "pct_2020": 0.39
+  },
+  {
+    "id": "Montenegro (ME)",
+    "color": "#C98E8E",
+    "x": 13,
+    "y": -0.34,
+    "delta": -102.62,
+    "value": 1,
+    "links_2015": 14,
+    "pct_2015": 0.56,
+    "links_2020": 5,
+    "pct_2020": 0.22
+  },
+  {
+    "id": "New Zealand (NZ)",
+    "color": "#ACCAAC",
+    "x": 16,
+    "y": 0.13,
+    "delta": -99.19,
+    "value": 1,
+    "links_2015": 10,
+    "pct_2015": 0.4,
+    "links_2020": 12,
+    "pct_2020": 0.53
+  },
+  {
+    "id": "Norway (NO)",
+    "color": "#E8D6D6",
+    "x": 12,
+    "y": -0.03,
+    "delta": -100.25,
+    "value": 1,
+    "links_2015": 15,
+    "pct_2015": 0.6,
+    "links_2020": 13,
+    "pct_2020": 0.57
+  },
+  {
+    "id": "Pakistan (PK)",
+    "color": "#E6D2D2",
+    "x": 36,
+    "y": -0.04,
+    "delta": -100.11,
+    "value": 1,
+    "links_2015": 2,
+    "pct_2015": 0.08,
+    "links_2020": 1,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "Russia (RU)",
+    "color": "#A4C5A4",
+    "x": 11,
+    "y": 0.16,
+    "delta": -98.55,
+    "value": 1,
+    "links_2015": 20,
+    "pct_2015": 0.8,
+    "links_2020": 22,
+    "pct_2020": 0.96
+  },
+  {
+    "id": "Saudi Arabia (SA)",
+    "color": "#E8D6D6",
+    "x": 34,
+    "y": -0.03,
+    "delta": -100.09,
+    "value": 1,
+    "links_2015": 3,
+    "pct_2015": 0.12,
+    "links_2020": 2,
+    "pct_2020": 0.09
+  },
+  {
+    "id": "Serbia (RS)",
+    "color": "#DDBDBD",
+    "x": 20,
+    "y": -0.1,
+    "delta": -100.5,
+    "value": 1,
+    "links_2015": 7,
+    "pct_2015": 0.28,
+    "links_2020": 4,
+    "pct_2020": 0.18
+  },
+  {
+    "id": "Singapore (SG)",
+    "color": "#ACCAAC",
+    "x": 8,
+    "y": 0.13,
+    "delta": -98.38,
+    "value": 1,
+    "links_2015": 37,
+    "pct_2015": 1.49,
+    "links_2020": 37,
+    "pct_2020": 1.62
+  },
+  {
+    "id": "South Africa (ZA)",
+    "color": "#EADCDC",
+    "x": 22.5,
+    "y": -0.02,
+    "delta": -100.09,
+    "value": 1,
+    "links_2015": 6,
+    "pct_2015": 0.24,
+    "links_2020": 5,
+    "pct_2020": 0.22
+  },
+  {
+    "id": "South Korea (KR)",
+    "color": "#AFCCAF",
+    "x": 18,
+    "y": 0.12,
+    "delta": -99.33,
+    "value": 1,
+    "links_2015": 8,
+    "pct_2015": 0.32,
+    "links_2020": 10,
+    "pct_2020": 0.44
+  },
+  {
+    "id": "Switzerland (CH)",
+    "color": "#7BAD7B",
+    "x": 2,
+    "y": 0.37,
+    "delta": -81.5,
+    "value": 1,
+    "links_2015": 352,
+    "pct_2015": 14.13,
+    "links_2020": 331,
+    "pct_2020": 14.5
+  },
+  {
+    "id": "Thailand (TH)",
+    "color": "#E1C6C6",
+    "x": 30,
+    "y": -0.07,
+    "delta": -100.23,
+    "value": 1,
+    "links_2015": 4,
+    "pct_2015": 0.16,
+    "links_2020": 2,
+    "pct_2020": 0.09
+  },
+  {
+    "id": "Tunisia (TN)",
+    "color": "#E8D6D6",
+    "x": 34,
+    "y": -0.03,
+    "delta": -100.09,
+    "value": 1,
+    "links_2015": 3,
+    "pct_2015": 0.12,
+    "links_2020": 2,
+    "pct_2020": 0.09
+  },
+  {
+    "id": "Turkiye (TR)",
+    "color": "#92BB92",
+    "x": 26,
+    "y": 0.24,
+    "delta": -99.08,
+    "value": 1,
+    "links_2015": 5,
+    "pct_2015": 0.2,
+    "links_2020": 10,
+    "pct_2020": 0.44
+  },
+  {
+    "id": "Ukraine (UA)",
+    "color": "#A0C2A0",
+    "x": 39,
+    "y": 0.18,
+    "delta": -99.54,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0.04,
+    "links_2020": 5,
+    "pct_2020": 0.22
+  },
+  {
+    "id": "United Arab Emirates (AE)",
+    "color": "#DBB8B8",
+    "x": 30,
+    "y": -0.12,
+    "delta": -100.4,
+    "value": 1,
+    "links_2015": 4,
+    "pct_2015": 0.16,
+    "links_2020": 1,
+    "pct_2020": 0.04
+  },
+  {
+    "id": "United Kingdom (GB)",
+    "color": "#961919",
+    "x": 3,
+    "y": -1.55,
+    "delta": -151.67,
+    "value": 1,
+    "links_2015": 248,
+    "pct_2015": 9.96,
+    "links_2020": 192,
+    "pct_2020": 8.41
+  },
+  {
+    "id": "United States (US)",
+    "color": "#8B0000",
+    "x": 1,
+    "y": -1.93,
+    "delta": -293,
+    "value": 1,
+    "links_2015": 1323,
+    "pct_2015": 53.11,
+    "links_2020": 1168,
+    "pct_2020": 51.18
+  },
+  {
+    "id": "Vietnam (VN)",
+    "color": "#C8DAC8",
+    "x": 39,
+    "y": 0.05,
+    "delta": -99.87,
+    "value": 1,
+    "links_2015": 1,
+    "pct_2015": 0.04,
+    "links_2020": 2,
+    "pct_2020": 0.09
+  }
+] 
+;
+
+// reverse rank: plotted value grows as rank improves, labels still show real ranks
+const maxRank = Math.max(...data.map(d => d.x));
+data.forEach(d => { d.rank = d.x; d.x = maxRank + 1 - d.rank; });
+const rankTicks = [1, 5, 10, 15, 20].filter(r => r <= maxRank);
+
+const xVals=data.map(d=>d.x);
+const yVals=data.map(d=>d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain = [0.5, Math.max(...xVals) + 2];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+let customLabels = [];
+let isUpdating = false;
+let hoveringElements = new Set();
+
+new d3plus.Plot()
+  .select("#chart")
+  .data(data)
+  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
+  {id:"Trend",x:medianX,y:maxY},
+  {id:"Baseline",x:xDomain[0],y:medianY},
+  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
+  .groupBy(["parent","id"])
+  .tooltipConfig({
+  title: d => d.id,
+  body: d => {
+    const rank  = d.rank ?? d.x;                        // real rank, even if the axis is reversed
+    const fmt   = (v, n = 2) => (v > 0 ? "+" : "") + v.toFixed(n);
+    const above = d.delta > median(data.map(e => e.delta));
+    return `<table class='tooltip-table'>
+      <tr><td class='title'>Rank (t-1):</td><td class='data'>${rank} of ${data.length}</td></tr>
+      <tr><td class='title'>Links (2015-2020):</td><td class='data'>${d.links_2015}</td></tr>
+      <tr><td class='title'>PCT (2015-2020):</td><td class='data'>${(d.pct_2015)}</td></tr>
+      <tr><td class='title'>Links (2020-2025):</td><td class='data'>${(d.links_2020)}</td></tr>
+      <tr><td class='title'>PCT (2020-2025):</td><td class='data'>${d.pct_2020}</td></tr>
+      <tr><td class='title'>Change t-1 → t (%):</td><td class='data'>${fmt(d.y)}</td></tr>
+      <tr><td class='title'>vs. median change:</td><td class='data'>${above ? "Above" : "Below"}</td></tr>
+    </table>`;
+  }
+})
+  .size("value")
+  .sizeMin(15)
+  .sizeMax(15)
+  .color("color")
+  .label("")
+  .shapeConfig({
+    Circle:{
+      labelConfig:{fontSize:0}
+    }
+  })
+  .yConfig({
+    title:"% change between periods",
+    titleConfig:{fontSize:()=>16},
+    gridConfig:{stroke:"transparent"},
+    shapeConfig:{labelConfig:{fontSize:()=>16}}
+  })
+  .xDomain(xDomain)
+  .xConfig({
+  title: "Rank, previous period (2015-2020)  →  1 = top",
+  titleConfig: {fontSize: () => 16},
+  gridConfig: {stroke: "transparent"},
+  shapeConfig: {labelConfig: {fontSize: () => 16}},
+  ticks: rankTicks.map(r => maxRank + 1 - r),
+  tickFormat: v => Math.round(maxRank + 1 - v)
+})
+  .legend(false)
+  .downloadButton(false)
+  .render();
+
+setTimeout(() => {
+  initializeCustomLabels();
+  startPositionUpdater();
+}, 500);
+
+function initializeCustomLabels() {
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    setTimeout(initializeCustomLabels, 100);
+    return;
+  }
+  
+  const circles = svg.querySelectorAll('circle');
+  console.log('Found circles:', circles.length);
+  
+  circles.forEach((circle, index) => {
+    const matchingData = findMatchingDataPoint(circle);
+    
+    if (matchingData) {
+      console.log('Circle', index, 'matched to data:', matchingData.id);
+      
+      const fullText = matchingData.id;
+      
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('class', 'custom-label');
+      text.setAttribute('data-id', matchingData.id);
+      text.setAttribute('text-anchor', 'start');
+      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
+      text.setAttribute('font-size', '10');
+      text.setAttribute('fill', '#000');
+      text.setAttribute('font-weight', 'normal');
+      text.textContent = fullText;
+      
+      svg.appendChild(text);
+      
+      customLabels.push({
+        circle: circle,
+        text: text,
+        data: matchingData,
+        fullText: fullText,
+        defaultText: fullText,
+        savedPosition: null
+      });
+      
+      circle.addEventListener('mouseenter', () => {
+        hoveringElements.add(text);
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData) {
+          labelData.savedPosition = {
+            x: text.getAttribute('x'),
+            y: text.getAttribute('y'),
+            anchor: text.getAttribute('text-anchor'),
+            content: text.textContent
+          };
+        }
+        
+        text.classList.add('hover');
+        text.textContent = fullText;
+        
+        // Show in console for debugging
+        console.log('Hovering over:', matchingData.id);
+      });
+      
+      circle.addEventListener('mouseleave', () => {
+        hoveringElements.delete(text);
+        
+        text.classList.remove('hover');
+        
+        const labelData = customLabels.find(l => l.circle === circle);
+        if (labelData && labelData.savedPosition) {
+          text.setAttribute('x', labelData.savedPosition.x);
+          text.setAttribute('y', labelData.savedPosition.y);
+          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
+          text.textContent = labelData.savedPosition.content;
+        }
+      });
+    } else {
+      console.log('Circle', index, 'could not be matched to data');
+    }
+  });
+  
+  updateLabelPositions();
+}
+
+function updateLabelPositions() {
+  if (isUpdating) return;
+  isUpdating = true;
+  
+  const svg = document.querySelector('#chart svg');
+  if (!svg) {
+    isUpdating = false;
+    return;
+  }
+  
+  const circlePositions = [];
+  
+  customLabels.forEach(({circle, text}) => {
+    if (circle && text) {
+      const bbox = circle.getBoundingClientRect();
+      const svgRect = svg.getBoundingClientRect();
+      
+      const svgPoint = svg.createSVGPoint();
+      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
+      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
+      
+      const screenCTM = svg.getScreenCTM();
+      if (screenCTM) {
+        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
+        circlePositions.push({
+          circle: circle,
+          coords: svgCoords
+        });
+      }
+    }
+  });
+  
+  customLabels.forEach((labelData) => {
+    const {circle, text, fullText} = labelData;
+    
+    if (hoveringElements.has(text)) {
+      return;
+    }
+    
+    if (circle && text) {
+      const circleData = circlePositions.find(cp => cp.circle === circle);
+      if (circleData) {
+        const r = parseFloat(circle.getAttribute('r')) || 7.5;
+        const bestPosition = findBestPosition(
+          text, 
+          circleData.coords.x, 
+          circleData.coords.y, 
+          r,
+          circlePositions,
+          fullText
+        );
+        
+        text.setAttribute('x', bestPosition.x);
+        text.setAttribute('y', bestPosition.y);
+        text.setAttribute('text-anchor', bestPosition.anchor);
+        text.textContent = bestPosition.text;
+        labelData.defaultText = bestPosition.text;
+        
+        if (bestPosition.hasCollision) {
+          text.classList.add('collision');
+          text.setAttribute('opacity', '0.3');
+        } else {
+          text.classList.remove('collision');
+          text.setAttribute('opacity', '1');
+        }
+      }
+    }
+  });
+  
+  isUpdating = false;
+}
+
+function startPositionUpdater() {
+  function updateLoop() {
+    updateLabelPositions();
+    requestAnimationFrame(updateLoop);
+  }
+  
+  updateLoop();
+  
+  const chartElement = document.getElementById('chart');
+  if (chartElement) {
+    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
+    chartElement.addEventListener('mousedown', updateLabelPositions);
+    chartElement.addEventListener('mousemove', updateLabelPositions);
+    chartElement.addEventListener('mouseup', updateLabelPositions);
+  }
+}
+</script>
+<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
+  
+</div>
+</body>
+</html>
