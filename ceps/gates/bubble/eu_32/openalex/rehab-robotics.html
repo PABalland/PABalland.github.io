@@ -1,175 +1,347 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8">
-<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
-<style>
-body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
-.container{display:flex;flex-direction:column;height:100vh;}
-#chart{flex:1 1 auto;}
-.legend{display:flex;justify-content:center;padding:12px 0;}
-.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
-.box{width:14px;height:14px;margin-right:10px;border:none;}
-.pos{background:#2d7c2d;}
-.neg{background:#8B1A0F;}
-.tooltip-table{width:100%;}
-.tooltip-table .data{text-align:right;}
-.tooltip-footer{opacity:.5;}
-tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
+  <meta charset="utf-8">
+  <title>Water management research</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root {
+        --fs-control:  clamp(9px, 1.4vw, 13px);
+        --fs-legend:   clamp(0.625rem, 1.4vw, 1rem);
+        --fs-meta:     clamp(10px, 1.6vw, 16px);
+        --fs-slider:   clamp(11px, 1.2vw, 13px);
+        --breakpoint-compact: 500px;
+    }
 
-.custom-label {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 10px;
-  fill: #000;
-  opacity: 1;
-  font-weight: normal;
-  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
-  pointer-events: none;
-  transform-origin: center;
-}
+    html, body {
+        height: 100%;
+    }
 
-.custom-label.collision {
-  opacity: 0.3;
-}
+    body {
+        margin: 0;
+        overflow: hidden;
+        height: 100vh;
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: white;
+    }
 
-.custom-label.hover {
-  opacity: 1 !important;
-  font-size: 16px !important;
-  font-weight: bold !important;
-}
+    .viz-grid {
+        display: grid;
+        grid-template-rows: 16fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr;
+        height: 100vh;
+        width: 100vw;
+        box-sizing: border-box;
+        padding-bottom: clamp(8px, 2vh, 18px);
+    }
 
-.custom-label, text.custom-label {
-  font-family: Arial, Helvetica, sans-serif !important;
-  font-size: 10px !important;
-  fill: #000 !important;
-  stroke: none !important;
-  font-weight: normal !important;
-}
-</style>
+    #container1 {
+        grid-row: 1;
+        grid-column: 1 / span 2;
+        overflow: hidden;
+        min-height: 0;
+    }
+
+    #container2 {
+        grid-row: 2;
+        grid-column: 1 / span 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    #viz {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        min-width: 0;
+    }
+
+    #chart {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    #viz { position: relative; overflow: hidden; }
+    #chart { position: absolute; inset: 0; }
+
+    #tooltip {
+        position: fixed;
+        pointer-events: none;
+        background: #fff;
+        color: #000;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 2px;
+        padding: 5px;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        z-index: 100;
+        font-family: Roboto, "Helvetica Neue", HelveticaNeue, Helvetica, Arial, sans-serif;
+    }
+    #tooltip .tt-title { font-size: 14px; font-weight: 600; max-width: 200px; }
+    #tooltip .tt-body { font-size: 12px; font-weight: 400; }
+    #tooltip .tt-arrow {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        background: inherit;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-width: 0 1px 1px 0;
+        transform: rotate(45deg);
+        z-index: -1;
+        bottom: -5.5px;
+    }
+    #tooltip.below .tt-arrow { bottom: auto; top: -5.5px; border-width: 1px 0 0 1px; }
+    .tooltip-table { width: 100%; }
+    .tooltip-table .data { text-align: right; }
+
+    .legend { display: flex; justify-content: center; padding: 12px 0; }
+    .legend-item { display: flex; align-items: center; margin: 0 24px; font-size: 14px; }
+    .box { width: 14px; height: 14px; margin-right: 10px; border: none; }
+    .pos { background: #2d7c2d; }
+    .neg { background: #8B1A0F; }
+
+    #slider-container {
+        grid-row: 4;
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-self: center;
+        gap: clamp(8px, 1vw, 16px);
+        padding: clamp(4px, 1vh, 8px) clamp(8px, 2vw, 24px);
+        overflow: visible;
+        min-height: 0;
+        max-width: 500px;
+        width: 100%;
+    }
+
+    .slider-wrapper {
+        flex: 1;
+        position: relative;
+        display: flex;
+        align-items: center;
+        height: 40px;
+    }
+
+    .slider-track-bg {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 3px;
+        transform: translateY(-50%);
+        display: flex;
+        align-items: center;
+        pointer-events: none;
+    }
+
+    .slider-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #cbd5e1;
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .slider-tooltip {
+        position: absolute;
+        bottom: -18px;
+        transform: translateX(-50%);
+        font-size: var(--fs-slider);
+        font-weight: 600;
+        color: #fff;
+        background: #1e293b;
+        padding: 3px 8px;
+        border-radius: 4px;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+
+    .slider-tooltip::after {
+        content: '';
+        position: absolute;
+        top: -4px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-bottom: 5px solid #1e293b;
+    }
+
+    .year-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        background: transparent;
+        border-radius: 3px;
+        outline: none;
+        cursor: pointer;
+        position: relative;
+        z-index: 2;
+    }
+
+    .year-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #3b82f6;
+        border: 3px solid #fff;
+        cursor: pointer;
+        transition: box-shadow 0.2s;
+    }
+
+    .year-slider::-webkit-slider-thumb:hover {
+        box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.15);
+    }
+
+    .year-slider::-moz-range-thumb {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #3b82f6;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4);
+        cursor: pointer;
+    }
+
+    #container1 { display: flex; flex-direction: column; }
+    #container1 #viz { flex: 1 1 auto; height: auto; }
+    #slider-container { flex: 0 0 auto; align-self: center; width: clamp(240px, 36vw, 420px); padding: 8px 0 0; gap: 10px; }
+    .slider-wrapper { height: 28px; }
+    .slider-label { font-size: 14px; color: #000; white-space: nowrap; }
+    #label-pct { min-width: 2.6em; font-variant-numeric: tabular-nums; }
+
+    .axis path,
+    .axis line {
+        stroke: #cfd2d7;
+    }
+
+    .tick text {
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-weight: 400;
+        fill: #000;
+    }
+
+    .point-dot { cursor: pointer; }
+    .hit { transition: opacity 0.16s ease; }
+    #chart.dim .hit:not(.hovered) { opacity: 0.16; }
+    .dot-label { fill: #000; font-weight: 400; font-family: Arial, Helvetica, sans-serif; paint-order: stroke; stroke: #fff; stroke-width: 3px; stroke-opacity: 0.8; stroke-linejoin: round; }
+    .dot-label.collision { fill-opacity: 0.3; }
+    .dot-label.hovered { font-weight: 700; fill-opacity: 1; }
+    .connector-line { stroke: #000; stroke-width: 1px; stroke-opacity: 0.5; pointer-events: none; }
+    .connector-line.collision { stroke-opacity: 0.2; }
+    .split-line { stroke: #14161a; stroke-width: 1.2px; stroke-dasharray: 2 5; stroke-opacity: 0.5; }
+    .axis-label { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: clamp(12px, 1.5vw, 16px); font-weight: 400; fill: #000; }
+
+    @media (max-height: 500px) {
+        .viz-grid {
+            grid-template-rows: 1fr !important;
+            grid-template-columns: 1fr !important;
+            padding-bottom: 0;
+        }
+
+        #container1 {
+            grid-row: 1 !important;
+            grid-column: 1 !important;
+        }
+
+        #container2 {
+            display: none !important;
+        }
+
+        .legend {
+            display: none !important;
+        }
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-  <div id="chart"></div>
-  <div class="legend">
-    <div class="legend-item"><span class="box pos"></span><span>Growth &gt; median</span></div>
-    <div class="legend-item"><span class="box neg"></span><span>Growth &lt; median</span></div>
+<div class="viz-grid">
+  <div id="container1" class="container viz-container">
+    <div id="slider-container">
+      <span class="slider-label">Labels</span>
+      <div class="slider-wrapper">
+        <div class="slider-track-bg"></div>
+        <input type="range" class="year-slider" id="label-slider" min="0" max="100" step="5" value="15" aria-label="Label overlap tolerance">
+      </div>
+      <span class="slider-label" id="label-pct">15%</span>
+    </div>
+    <div id="viz">
+      <svg id="chart"></svg>
+    </div>
+  </div>
+  <div id="container2" class="container legend-container">
+    <div class="legend" id="legend">
+      <div class="legend-item"><span class="box pos"></span><span>Growth &gt; median</span></div>
+      <div class="legend-item"><span class="box neg"></span><span>Growth &lt; median</span></div>
+    </div>
   </div>
 </div>
 <script>
-function median(v){
-  if(!v.length)throw new Error("empty");
-  v=[...v].sort((a,b)=>a-b);
-  const h=Math.floor(v.length/2);
-  return v.length%2?v[h]:(v[h-1]+v[h])/2;
-}
+const SHOW_CONTAINER_2 = 1;
+const SHOW_CONTAINER_3 = 0;
+const SHOW_CONTAINER_4 = 0;
+const SHOW_CONTAINER_5 = 0;
 
-function truncateText(text, maxLength = 20) {
-  if (text.length <= maxLength) {
-    return text;
+(function applyContainerVisibility() {
+  const vizGrid = document.querySelector('.viz-grid');
+  const c2 = document.getElementById('container2');
+  const c3 = document.getElementById('container3');
+  const c4 = document.getElementById('container4');
+  const c5 = document.getElementById('container5');
+
+  if (!SHOW_CONTAINER_2 && c2) c2.style.display = 'none';
+  if (!SHOW_CONTAINER_3 && c3) c3.style.display = 'none';
+  if (!SHOW_CONTAINER_4 && c4) c4.style.display = 'none';
+  if (c5 && !SHOW_CONTAINER_5) c5.style.display = 'none';
+
+  const row2Visible = SHOW_CONTAINER_5;
+  const row3Visible = SHOW_CONTAINER_2;
+  const row4Visible = SHOW_CONTAINER_3 || SHOW_CONTAINER_4;
+
+  let gridRows = [];
+  let currentRow = 1;
+  const chartHeight = 20 - (row2Visible ? 1 : 0) - (row3Visible ? 1 : 0) - (row4Visible ? 1 : 0);
+  gridRows.push(`${chartHeight}fr`);
+
+  if (row2Visible) { gridRows.push('1fr'); currentRow++; if (c5) c5.style.gridRow = String(currentRow); }
+  if (row3Visible) { gridRows.push('1fr'); currentRow++; if (c2) c2.style.gridRow = String(currentRow); }
+  if (row4Visible) {
+    gridRows.push('1fr'); currentRow++;
+    if (SHOW_CONTAINER_3 && c3) c3.style.gridRow = String(currentRow);
+    if (SHOW_CONTAINER_4 && c4) c4.style.gridRow = String(currentRow);
+    if (row4Visible && SHOW_CONTAINER_3 && !SHOW_CONTAINER_4 && c3) c3.style.gridColumn = '1 / span 2';
+    if (row4Visible && !SHOW_CONTAINER_3 && SHOW_CONTAINER_4 && c4) c4.style.gridColumn = '1 / span 2';
   }
-  return text.substring(0, maxLength) + "...";
-}
 
-function rectanglesOverlap(rect1, rect2) {
-  return !(rect1.x + rect1.width < rect2.x || 
-           rect2.x + rect2.width < rect1.x || 
-           rect1.y + rect1.height < rect2.y || 
-           rect2.y + rect2.height < rect1.y);
-}
+  vizGrid.style.gridTemplateRows = gridRows.join(' ');
+  document.getElementById('container1').style.gridRow = '1';
+})();
 
-function getPositionOptions(centerX, centerY, radius, padding = 5) {
-  return [
-    { name: 'right', x: centerX + radius + padding, y: centerY + 3, anchor: 'start' },
-    { name: 'left', x: centerX - radius - padding, y: centerY + 3, anchor: 'end' },
-    { name: 'below', x: centerX, y: centerY + radius + padding + 10, anchor: 'middle' },
-    { name: 'above', x: centerX, y: centerY - radius - padding, anchor: 'middle' }
-  ];
-}
+const LABEL_PCT = 15;
+const LABEL_PADS = [8, 20, 32, 48, 64];
+const LABEL_GAP = 3;
+const CROSS_PENALTY = 60;
+const TRANSITION_MS = 400;
+const X_TITLE = 'Rank, previous period (2015-2020), 1 = top';
+const Y_TITLE = '% change between periods';
+const BREAKPOINT_COMPACT = 500;
+const LABEL_FONT = 'Arial, Helvetica, sans-serif';
+const AXIS_FONT = '"Helvetica Neue", Helvetica, Arial, sans-serif';
 
-function hasCollision(textElement, allCircles) {
-  try {
-    const textBBox = textElement.getBBox();
-    
-    for (const circleData of allCircles) {
-      const r = parseFloat(circleData.circle.getAttribute('r')) || 7.5;
-      const circleBBox = {
-        x: circleData.coords.x - r,
-        y: circleData.coords.y - r,
-        width: r * 2,
-        height: r * 2
-      };
-      
-      if (rectanglesOverlap(textBBox, circleBBox)) {
-        return true;
-      }
-    }
-    return false;
-  } catch (e) {
-    return false;
-  }
-}
-
-function findBestPosition(textElement, centerX, centerY, radius, allCircles, fullText) {
-  const positions = getPositionOptions(centerX, centerY, radius);
-  let hasCollisionWithFull = false;
-  
-  textElement.textContent = fullText;
-  for (const pos of positions) {
-    textElement.setAttribute('x', pos.x);
-    textElement.setAttribute('y', pos.y);
-    textElement.setAttribute('text-anchor', pos.anchor);
-    
-    if (!hasCollision(textElement, allCircles)) {
-      return { ...pos, text: fullText, hasCollision: false };
-    }
-  }
-  
-  hasCollisionWithFull = true;
-  
-  const truncatedText = truncateText(fullText, 20);
-  textElement.textContent = truncatedText;
-  for (const pos of positions) {
-    textElement.setAttribute('x', pos.x);
-    textElement.setAttribute('y', pos.y);
-    textElement.setAttribute('text-anchor', pos.anchor);
-    
-    if (!hasCollision(textElement, allCircles)) {
-      return { ...pos, text: truncatedText, hasCollision: hasCollisionWithFull };
-    }
-  }
-  
-  return { ...positions[0], text: truncatedText, hasCollision: true };
-}
-
-// Function to get data bound to DOM element
-function getBoundData(element) {
-  // Try to get data from d3plus binding
-  if (element.__data__) {
-    return element.__data__;
-  }
-  
-  // Try to get data from parent elements
-  let parent = element.parentElement;
-  while (parent) {
-    if (parent.__data__) {
-      return parent.__data__;
-    }
-    parent = parent.parentElement;
-  }
-  
-  return null;
-}
-
-function findMatchingDataPoint(circle) {
-  // Prefer the bound data directly from D3
-  const bound = circle.__data__ || d3.select(circle).datum();
-  if (bound) return bound;
-  // No fallback by position to avoid mismatches
-  console.warn('No data bound to circle:', circle);
-  return null;
-}
-
-var data=   [
+const data =  [
   {
     "id": "Albania (AL)",
     "color": "#E2EAE2",
@@ -1526,256 +1698,314 @@ var data=   [
     "links_2020": 3,
     "pct_2020": 0.03
   }
-] 
-;
+] ;
 
-// reverse rank: plotted value grows as rank improves, labels still show real ranks
-const maxRank = Math.max(...data.map(d => d.x));
-data.forEach(d => { d.rank = d.x; d.x = maxRank + 1 - d.rank; });
-const rankTicks = [1, 5, 10, 15, 20].filter(r => r <= maxRank);
+const n = data.length;
+const maxRank = d3.max(data, d => d.x);
+const medRank = d3.median(data, d => d.x);
+const medY = d3.median(data, d => d.y);
+const medDelta = d3.median(data, d => d.delta);
+const byId = new Map(data.map(d => [d.id, d]));
+const ORDER = d3.range(n).sort((a, b) => (+data[b].links_2020 || 0) - (+data[a].links_2020 || 0));
 
-const xVals=data.map(d=>d.x);
-const yVals=data.map(d=>d.y);
-const medianX=median(xVals);
-const medianY=median(yVals);
-const xDomain = [0.5, Math.max(...xVals) + 5];
-const minY=Math.min(...yVals)-1;
-const maxY=Math.max(...yVals)+2;
+const vizEl = document.getElementById('viz');
+const chartNode = document.getElementById('chart');
+const svg = d3.select(chartNode);
+const root = svg.append('g');
+const layers = {
+  frame: root.append('g'),
+  axisX: root.append('g').attr('class', 'axis axis-x'),
+  axisY: root.append('g').attr('class', 'axis axis-y'),
+  leaders: root.append('g'),
+  labels: root.append('g'),
+  dots: root.append('g'),
+  xLabel: svg.append('text').attr('class', 'axis-label').attr('text-anchor', 'middle').text(X_TITLE),
+  yLabel: svg.append('text').attr('class', 'axis-label').attr('text-anchor', 'middle').text(Y_TITLE)
+};
 
-let customLabels = [];
-let isUpdating = false;
-let hoveringElements = new Set();
+const slider = document.getElementById('label-slider');
+const pctEl = document.getElementById('label-pct');
+slider.value = LABEL_PCT;
+slider.addEventListener('input', drawLabels);
 
-new d3plus.Plot()
-  .select("#chart")
-  .data(data)
-  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
-  {id:"Trend",x:medianX,y:maxY},
-  {id:"Baseline",x:xDomain[0],y:medianY},
-  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
-  .groupBy(["parent","id"])
-  .tooltipConfig({
-  title: d => d.id,
-  body: d => {
-    const rank  = d.rank ?? d.x;                        // real rank, even if the axis is reversed
-    const fmt   = (v, n = 2) => (v > 0 ? "+" : "") + v.toFixed(n);
-    const above = d.delta > median(data.map(e => e.delta));
-    return `<table class='tooltip-table'>
-      <tr><td class='title'>Rank (t-1):</td><td class='data'>${rank} of ${data.length}</td></tr>
-      <tr><td class='title'>Links (2015-2020):</td><td class='data'>${d.links_2015}</td></tr>
-      <tr><td class='title'>PCT (2015-2020):</td><td class='data'>${(d.pct_2015)}</td></tr>
-      <tr><td class='title'>Links (2020-2025):</td><td class='data'>${(d.links_2020)}</td></tr>
-      <tr><td class='title'>PCT (2020-2025):</td><td class='data'>${d.pct_2020}</td></tr>
-      <tr><td class='title'>Change t-1 → t (%):</td><td class='data'>${fmt(d.y)}</td></tr>
-      <tr><td class='title'>vs. median change:</td><td class='data'>${above ? "Above" : "Below"}</td></tr>
-    </table>`;
-  }
-})
-  .size("value")
-  .sizeMin(15)
-  .sizeMax(15)
-  .color("color")
-  .label("")
-  .shapeConfig({
-    Circle:{
-      labelConfig:{fontSize:0}
-    }
-  })
-  .yConfig({
-    title:"% change between periods",
-    titleConfig:{fontSize:()=>16},
-    gridConfig:{stroke:"transparent"},
-    shapeConfig:{labelConfig:{fontSize:()=>16}}
-  })
-  .xDomain(xDomain)
-  .xConfig({
-  title: "Rank, previous period (2015-2020)  →  1 = top",
-  titleConfig: {fontSize: () => 16},
-  gridConfig: {stroke: "transparent"},
-  shapeConfig: {labelConfig: {fontSize: () => 16}},
-  ticks: rankTicks.map(r => maxRank + 1 - r),
-  tickFormat: v => Math.round(maxRank + 1 - v)
-})
-  .legend(false)
-  .downloadButton(false)
-  .render();
+const tooltip = document.createElement('div');
+tooltip.id = 'tooltip';
+document.body.appendChild(tooltip);
 
-setTimeout(() => {
-  initializeCustomLabels();
-  startPositionUpdater();
-}, 500);
-
-function initializeCustomLabels() {
-  const svg = document.querySelector('#chart svg');
-  if (!svg) {
-    setTimeout(initializeCustomLabels, 100);
-    return;
-  }
-  
-  const circles = svg.querySelectorAll('circle');
-  console.log('Found circles:', circles.length);
-  
-  circles.forEach((circle, index) => {
-    const matchingData = findMatchingDataPoint(circle);
-    
-    if (matchingData) {
-      console.log('Circle', index, 'matched to data:', matchingData.id);
-      
-      const fullText = matchingData.id;
-      
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('class', 'custom-label');
-      text.setAttribute('data-id', matchingData.id);
-      text.setAttribute('text-anchor', 'start');
-      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
-      text.setAttribute('font-size', '10');
-      text.setAttribute('fill', '#000');
-      text.setAttribute('font-weight', 'normal');
-      text.textContent = fullText;
-      
-      svg.appendChild(text);
-      
-      customLabels.push({
-        circle: circle,
-        text: text,
-        data: matchingData,
-        fullText: fullText,
-        defaultText: fullText,
-        savedPosition: null
-      });
-      
-      circle.addEventListener('mouseenter', () => {
-        hoveringElements.add(text);
-        
-        const labelData = customLabels.find(l => l.circle === circle);
-        if (labelData) {
-          labelData.savedPosition = {
-            x: text.getAttribute('x'),
-            y: text.getAttribute('y'),
-            anchor: text.getAttribute('text-anchor'),
-            content: text.textContent
-          };
-        }
-        
-        text.classList.add('hover');
-        text.textContent = fullText;
-        
-        // Show in console for debugging
-        console.log('Hovering over:', matchingData.id);
-      });
-      
-      circle.addEventListener('mouseleave', () => {
-        hoveringElements.delete(text);
-        
-        text.classList.remove('hover');
-        
-        const labelData = customLabels.find(l => l.circle === circle);
-        if (labelData && labelData.savedPosition) {
-          text.setAttribute('x', labelData.savedPosition.x);
-          text.setAttribute('y', labelData.savedPosition.y);
-          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
-          text.textContent = labelData.savedPosition.content;
-        }
-      });
-    } else {
-      console.log('Circle', index, 'could not be matched to data');
-    }
-  });
-  
-  updateLabelPositions();
+const measureCtx = document.createElement('canvas').getContext('2d');
+function measureWidth(text, fs, weight, family = LABEL_FONT) {
+  measureCtx.font = `${weight} ${fs}px ${family}`;
+  return measureCtx.measureText(text).width;
 }
 
-function updateLabelPositions() {
-  if (isUpdating) return;
-  isUpdating = true;
-  
-  const svg = document.querySelector('#chart svg');
-  if (!svg) {
-    isUpdating = false;
-    return;
+const fmtY = v => (v > 0 ? '+' : '') + d3.format('~g')(v);
+const fmtSigned = v => (v > 0 ? '+' : '') + v.toFixed(2);
+
+function tipHtml(d) {
+  const row = (k, v) => `<tr><td class="title">${k}:</td><td class="data">${v}</td></tr>`;
+  return `<div class="tt-arrow"></div><div class="tt-title">${d.id}</div><div class="tt-body"><table class="tooltip-table">` +
+    row('Rank (t-1)', `${d.x} of ${n}`) +
+    row('Links (2015-2020)', d.links_2015) +
+    row('PCT (2015-2020)', d.pct_2015) +
+    row('Links (2020-2025)', d.links_2020) +
+    row('PCT (2020-2025)', d.pct_2020) +
+    row('Change t-1 → t (%)', fmtSigned(d.y)) +
+    row('vs. median change', d.delta > medDelta ? 'Above' : 'Below') +
+    '</table></div>';
+}
+
+let geo = null;
+
+const DIRS = ['right', 'bottom-right', 'below', 'bottom-left', 'left', 'top-left', 'above', 'top-right'];
+
+const hits = (a, b) => !(a.x + a.w < b.x || b.x + b.w < a.x || a.y + a.h < b.y || b.y + b.h < a.y);
+const overlap = (a, b) =>
+  Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) *
+  Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+
+function positionOptions(cx, cy, pad) {
+  const r = geo.r, k = geo.labelFS / 13;
+  const dg = (r + pad) * 0.707, ex = 4;
+  return [
+    { name: 'right', x: cx + r + pad, y: cy + 5 * k, anchor: 'start' },
+    { name: 'left', x: cx - r - pad, y: cy + 5 * k, anchor: 'end' },
+    { name: 'below', x: cx, y: cy + r + pad + 10 * k, anchor: 'middle' },
+    { name: 'above', x: cx, y: cy - r - pad, anchor: 'middle' },
+    { name: 'top-right', x: cx + dg + ex, y: cy - dg, anchor: 'start' },
+    { name: 'bottom-right', x: cx + dg + ex, y: cy + dg + 5 * k, anchor: 'start' },
+    { name: 'bottom-left', x: cx - dg - ex, y: cy + dg + 5 * k, anchor: 'end' },
+    { name: 'top-left', x: cx - dg - ex, y: cy - dg, anchor: 'end' }
+  ];
+}
+
+function labelRect(p, w) {
+  const x0 = p.anchor === 'start' ? p.x : p.anchor === 'end' ? p.x - w : p.x - w / 2;
+  return { x: x0, y: p.y + geo.textTop, w, h: geo.textH };
+}
+
+function connector(p, cx, cy) {
+  const r = geo.r, k = geo.labelFS / 13, d = r * 0.7;
+  switch (p.name) {
+    case 'right': return [cx + r, cy, p.x - 2, cy];
+    case 'left': return [cx - r, cy, p.x + 2, cy];
+    case 'above': return [cx, cy - r, cx, p.y + 2];
+    case 'below': return [cx, cy + r, cx, p.y - 10 * k - 2];
+    case 'top-right': return [cx + d, cy - d, p.x - 2, p.y - 4 * k];
+    case 'bottom-right': return [cx + d, cy + d, p.x - 2, p.y - 5 * k];
+    case 'bottom-left': return [cx - d, cy + d, p.x + 2, p.y - 5 * k];
+    default: return [cx - d, cy - d, p.x + 2, p.y - 4 * k];
   }
-  
-  const circlePositions = [];
-  
-  customLabels.forEach(({circle, text}) => {
-    if (circle && text) {
-      const bbox = circle.getBoundingClientRect();
-      const svgRect = svg.getBoundingClientRect();
-      
-      const svgPoint = svg.createSVGPoint();
-      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
-      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
-      
-      const screenCTM = svg.getScreenCTM();
-      if (screenCTM) {
-        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
-        circlePositions.push({
-          circle: circle,
-          coords: svgCoords
-        });
+}
+
+const grow = (r, g) => ({ x: r.x - g, y: r.y - g, w: r.w + 2 * g, h: r.h + 2 * g });
+
+function segHits(l, r) {
+  if (Math.max(l[0], l[2]) < r.x || Math.min(l[0], l[2]) > r.x + r.w ||
+      Math.max(l[1], l[3]) < r.y || Math.min(l[1], l[3]) > r.y + r.h) return false;
+  const steps = Math.max(2, Math.ceil(Math.hypot(l[2] - l[0], l[3] - l[1]) / 2));
+  for (let s = 0; s <= steps; s++) {
+    const px = l[0] + (l[2] - l[0]) * s / steps, py = l[1] + (l[3] - l[1]) * s / steps;
+    if (px >= r.x && px <= r.x + r.w && py >= r.y && py <= r.y + r.h) return true;
+  }
+  return false;
+}
+
+function placeLabels(idx) {
+  const b = geo.bounds, m = 5;
+  const boxes = geo.dots.map((r, i) => ({ ...r, i, dot: true }));
+  const lines = [];
+  const cost = (rect, line, i) => {
+    const g = grow(rect, LABEL_GAP);
+    let s = 0;
+    boxes.forEach(o => {
+      if (o.i === i) return;
+      s += overlap(g, o) + (hits(g, o) ? 1 : 0);
+      if (segHits(line, o) && !(o.dot && hits(o, geo.dots[i]))) s += CROSS_PENALTY;
+    });
+    lines.forEach(l => { if (segHits(l, g)) s += CROSS_PENALTY; });
+    return s;
+  };
+  const inside = rect => rect.x >= b.x + m && rect.y >= b.y + m &&
+    rect.x + rect.w <= b.x + b.w - m && rect.y + rect.h <= b.y + b.h - m;
+  return idx.map(i => {
+    const it = geo.items[i], opts = LABEL_PADS.flatMap(pad => positionOptions(it.cx, it.cy, pad));
+    const manual = data[i].labelDirection != null ? opts.find(o => o.name === DIRS[data[i].labelDirection]) : null;
+    let p, collision = false;
+    if (manual) p = manual;
+    else {
+      let best = Infinity;
+      for (const o of opts) {
+        const r = labelRect(o, it.w);
+        const c = cost(r, connector(o, it.cx, it.cy), i) + (inside(r) ? 0 : 1e6);
+        if (c < best) { best = c; p = o; if (!c) break; }
       }
     }
+    const rect = labelRect(p, it.w), line = connector(p, it.cx, it.cy);
+    if (!manual) collision = boxes.some(o => o.i !== i && overlap(rect, o) > 1);
+    boxes.push({ ...rect, i });
+    lines.push(line);
+    return { i, p, rect, collision, line };
   });
-  
-  customLabels.forEach((labelData) => {
-    const {circle, text, fullText} = labelData;
-    
-    if (hoveringElements.has(text)) {
-      return;
-    }
-    
-    if (circle && text) {
-      const circleData = circlePositions.find(cp => cp.circle === circle);
-      if (circleData) {
-        const r = parseFloat(circle.getAttribute('r')) || 7.5;
-        const bestPosition = findBestPosition(
-          text, 
-          circleData.coords.x, 
-          circleData.coords.y, 
-          r,
-          circlePositions,
-          fullText
-        );
-        
-        text.setAttribute('x', bestPosition.x);
-        text.setAttribute('y', bestPosition.y);
-        text.setAttribute('text-anchor', bestPosition.anchor);
-        text.textContent = bestPosition.text;
-        labelData.defaultText = bestPosition.text;
-        
-        if (bestPosition.hasCollision) {
-          text.classList.add('collision');
-          text.setAttribute('opacity', '0.3');
-        } else {
-          text.classList.remove('collision');
-          text.setAttribute('opacity', '1');
-        }
-      }
-    }
-  });
-  
-  isUpdating = false;
 }
 
-function startPositionUpdater() {
-  function updateLoop() {
-    updateLabelPositions();
-    requestAnimationFrame(updateLoop);
+function drawLabels() {
+  pctEl.textContent = slider.value + '%';
+  if (!geo) return;
+  const hidden = new Set(geo.offenders.slice(0, Math.round(geo.offenders.length * (1 - slider.value / 100))));
+  let placed = placeLabels(ORDER.filter(i => !hidden.has(i)));
+  while (+slider.value === 0 && placed.some(p => p.collision)) {
+    placed = placeLabels(placed.filter(p => !p.collision).map(p => p.i));
   }
-  
-  updateLoop();
-  
-  const chartElement = document.getElementById('chart');
-  if (chartElement) {
-    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
-    chartElement.addEventListener('mousedown', updateLabelPositions);
-    chartElement.addEventListener('mousemove', updateLabelPositions);
-    chartElement.addEventListener('mouseup', updateLabelPositions);
-  }
+  layers.leaders.selectAll('line').data(placed, p => data[p.i].id)
+    .join('line')
+    .attr('class', p => 'connector-line hit' + (p.collision ? ' collision' : ''))
+    .attr('data-k', p => data[p.i].id)
+    .attr('x1', p => p.line[0]).attr('y1', p => p.line[1])
+    .attr('x2', p => p.line[2]).attr('y2', p => p.line[3]);
+  layers.labels.selectAll('text').data(placed, p => data[p.i].id)
+    .join('text')
+    .attr('class', p => 'dot-label hit' + (p.collision ? ' collision' : '') + (data[p.i].id === hoverKey ? ' hovered' : ''))
+    .attr('data-k', p => data[p.i].id)
+    .attr('x', p => p.p.x).attr('y', p => p.p.y)
+    .attr('text-anchor', p => p.p.anchor)
+    .style('font-size', `${geo.labelFS}px`)
+    .text(p => data[p.i].id);
 }
+
+let lastW = 0, lastH = 0;
+
+function render() {
+  const width = vizEl.clientWidth, height = vizEl.clientHeight;
+  if (!n || width <= 0 || height <= 0) return;
+  lastW = width; lastH = height;
+  svg.attr('width', width).attr('height', height).attr('viewBox', `0 0 ${width} ${height}`);
+
+  const sc = Math.max(0.6, Math.min(1, Math.min(width / 1080, height / 720)));
+  const compact = window.matchMedia(`(max-height:${BREAKPOINT_COMPACT}px)`).matches;
+  const axisFont = Math.max(10, Math.min(16, width / 80));
+
+  const ext = d3.extent(data, d => d.y);
+  const pad0 = Math.max((ext[1] - ext[0]) * 0.10, ext[1] === ext[0] ? 1 : 0);
+  const lower = d3.scaleLinear().domain([ext[0] - pad0, ext[1] + pad0]).nice().domain()[0];
+  const y = d3.scaleLinear().domain([lower, ext[1] + (ext[0] - lower)]);
+  const yTicks = y.ticks(compact ? 4 : 6);
+
+  const margin = {
+    top: 16 * sc,
+    right: 16 * sc,
+    bottom: 2 * axisFont + 30,
+    left: d3.max(yTicks, t => measureWidth(fmtY(t), axisFont, 400, AXIS_FONT)) + 40
+  };
+  const innerW = Math.max(50, width - margin.left - margin.right);
+  const innerH = Math.max(50, height - margin.top - margin.bottom);
+  y.range([innerH, 0]);
+
+  const xPad = (maxRank - 1) * 0.04 + 0.5;
+  const x = d3.scaleLinear().domain([maxRank + xPad, 1 - xPad]).range([0, innerW]);
+  const step = Math.max(1, d3.tickStep(0, maxRank - 1, Math.max(3, Math.floor(innerW / 120))));
+  const xTicks = [...new Set([1, ...d3.range(step, maxRank + 1, step)])];
+
+  root.attr('transform', `translate(${margin.left},${margin.top})`);
+
+  layers.axisX.attr('transform', `translate(0,${innerH})`)
+    .call(d3.axisBottom(x).tickValues(xTicks).tickFormat(d3.format('d')).tickSizeOuter(0));
+  layers.axisY.call(d3.axisLeft(y).tickValues(yTicks).tickFormat(fmtY).tickSizeOuter(0));
+  root.selectAll('.axis text').style('font-size', `${axisFont}px`);
+
+  layers.frame.selectAll('line')
+    .data([[x(medRank), 0, x(medRank), innerH], [0, y(medY), innerW, y(medY)]])
+    .join('line').attr('class', 'split-line')
+    .attr('x1', d => d[0]).attr('y1', d => d[1]).attr('x2', d => d[2]).attr('y2', d => d[3]);
+
+  layers.xLabel.attr('x', margin.left + innerW / 2).attr('y', height - 10);
+  layers.yLabel.attr('transform', `translate(16,${margin.top + innerH / 2}) rotate(-90)`);
+
+  const dotR = 1.4375 * Math.max(3, Math.min(6.4, innerW / 200));
+  layers.dots.selectAll('circle').data(data, d => d.id)
+    .join(
+      enter => enter.append('circle')
+        .attr('class', 'point-dot hit').attr('data-k', d => d.id)
+        .attr('fill', d => d3.color(d.color) ? d.color : '#999')
+        .attr('stroke', d => (d3.color(d.color) || d3.color('#999')).darker(0.6)).attr('stroke-width', 0.8)
+        .attr('r', 0)
+        .call(s => s.transition().duration(TRANSITION_MS).attr('r', dotR)),
+      update => update.interrupt().attr('r', dotR)
+    )
+    .attr('cx', d => x(d.x)).attr('cy', d => y(d.y));
+
+  const labelFS = (width < 600 ? 9 : width < 900 ? 11 : 13) * 0.85;
+  const probe = layers.labels.append('text').attr('class', 'dot-label').style('font-size', `${labelFS}px`).text('Hg');
+  const bb = probe.node().getBBox();
+  probe.remove();
+  const items = data.map(d => ({ cx: x(d.x), cy: y(d.y), w: measureWidth(d.id, labelFS, 400) }));
+  geo = {
+    items, labelFS, r: dotR, textTop: bb.y, textH: bb.height,
+    dots: items.map(it => ({ x: it.cx - dotR, y: it.cy - dotR, w: 2 * dotR, h: 2 * dotR })),
+    bounds: { x: 0, y: -margin.top, w: innerW + margin.right, h: innerH + margin.top }
+  };
+
+  const P = [];
+  placeLabels(ORDER).forEach(p => { P[p.i] = p; });
+  const pair = (a, c) => overlap(grow(P[a].rect, LABEL_GAP), P[c].rect) +
+    CROSS_PENALTY * (segHits(P[a].line, P[c].rect) + segHits(P[c].line, P[a].rect));
+  const M = d3.range(n).map(() => new Float64Array(n));
+  for (let a = 0; a < n; a++) for (let c = a + 1; c < n; c++) M[a][c] = M[c][a] = pair(a, c);
+  const score = d3.range(n).map(i =>
+    d3.sum(geo.dots, (o, j) => j === i ? 0 : overlap(grow(P[i].rect, LABEL_GAP), o) + CROSS_PENALTY * segHits(P[i].line, o)) +
+    d3.sum(M[i]));
+  const alive = new Set(ORDER);
+  geo.offenders = [];
+  for (;;) {
+    let worst = -1;
+    ORDER.forEach(i => { if (alive.has(i) && score[i] > 0.5 && (worst < 0 || score[i] >= score[worst])) worst = i; });
+    if (worst < 0) break;
+    alive.delete(worst);
+    geo.offenders.push(worst);
+    alive.forEach(i => { score[i] -= M[i][worst]; });
+  }
+  drawLabels();
+}
+
+function placeTooltip(k) {
+  const r = chartNode.querySelector(`.point-dot[data-k="${CSS.escape(k)}"]`).getBoundingClientRect();
+  const w = tooltip.offsetWidth, h = tooltip.offsetHeight, cx = r.left + r.width / 2;
+  const below = r.top - h - 10 < 0;
+  const left = Math.max(4, Math.min(window.innerWidth - w - 4, cx - w / 2));
+  tooltip.classList.toggle('below', below);
+  tooltip.style.left = left + 'px';
+  tooltip.style.top = (below ? r.bottom + 10 : r.top - h - 10) + 'px';
+  tooltip.querySelector('.tt-arrow').style.left = (cx - left - 6) + 'px';
+}
+
+let hoverKey = null;
+function clearHover() {
+  hoverKey = null;
+  chartNode.classList.remove('dim');
+  chartNode.querySelectorAll('.hovered').forEach(el => el.classList.remove('hovered'));
+  tooltip.style.opacity = '0';
+}
+chartNode.addEventListener('mousemove', e => {
+  const hit = e.target.closest('[data-k]');
+  if (!hit) { clearHover(); return; }
+  const k = hit.dataset.k;
+  if (k !== hoverKey) {
+    hoverKey = k;
+    chartNode.classList.add('dim');
+    chartNode.querySelectorAll('.hovered').forEach(el => el.classList.remove('hovered'));
+    chartNode.querySelectorAll(`[data-k="${CSS.escape(k)}"]`).forEach(el => el.classList.add('hovered'));
+    tooltip.innerHTML = tipHtml(byId.get(k));
+    placeTooltip(k);
+  }
+  tooltip.style.opacity = '1';
+});
+chartNode.addEventListener('mouseleave', clearHover);
+
+render();
+window.addEventListener('resize', render);
+if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => {
+  if (Math.abs(vizEl.clientWidth - lastW) < 1 && Math.abs(vizEl.clientHeight - lastH) < 1) return;
+  render();
+}).observe(vizEl);
 </script>
-<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
-  
-</div>
 </body>
 </html>
