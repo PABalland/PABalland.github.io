@@ -1,0 +1,222 @@
+CROSSWALKS TO NACE Rev. 2.1 AND TO THE 14 EU INDUSTRIAL ECOSYSTEMS 
+Methodology, version 2
+Written 2026-09-14
+
+1. THE FILES
+
+Three crosswalks, each maps the keys of one source to exactly one NACE Rev. 2.1 division, plus two named alternatives.
+
+  openalex: 4516 research topics
+  crunchbase: 798 company categories
+  patentscope: 675 IPC patent subclasses
+
+A fourth file exists for patentscope only. It reproduces the official NACE to IPC concordance in the same format, for comparison. It is described in section 9.
+
+The target is always a NACE DIVISION, the two-digit level, 88 of them. A class code such as 62.01 is also carried on every row. The class is evidence, not the
+answer. It proves the model read the Eurostat manual entry rather than the division title.
+
+A second layer maps each row onto the 14 EU industrial ecosystems. It is derived from the division and is not a separate classification. See section 10.
+
+2. THE CONVENTION
+
+This is the single decision that settles most hard rows. It is not shared across the three sources and cannot be.
+
+  openalex: the sector the research BEARS ON. For example, Research into wheat disease maps to crop production, not to scientific research and development, even though a university did the work.
+
+  crunchbase: the sector a company in the category SELLS INTO. A label naming a market maps to that market, however much software the companies write to serve it.
+
+  patentscope: the sector that MAKES OR APPLIES the technology.
+
+Consequence for openalex: Divisions 72 (scientific research and development), 85 (education) and 84 (public administration) are correct only when the conduct of research, teaching or government is itself the subject.
+
+Consequence for crunchbase: Divisions 62 and 63 (computer programming and computing infrastructure) are correct only when the product sold IS the software or the hosting, to buyers across sectors.
+
+Consequence for patentscope: Every key is a patent, so nothing about invention or development separates one key from another. 72, 84 and 85 are almost never the answer.
+
+3. INPUTS
+
+Key lists and their hierarchy text come from the source exports.
+
+  openalex: topic name, plus its three-level taxonomy (domain, field, subfield).
+  crunchbase: category label, plus Crunchbase's own category groups.
+  patentscope: IPC subclass code, plus its IPC title, section and class.
+
+The NACE reference is 88 divisions, names, section letters and the parsed Eurostat explanatory notes, which supply every class code and its exclusions.
+
+The relatedness input is a key-to-key export with columns `from, to, count, rel`. Openalex and Crunchbase have their own. Patentscope has none, so OECD REGPAT's export is borrowed. It is keyed on the same IPC codes and 613 of the 644 concordance subclasses appear in it verbatim.
+
+4. STEP 0: KEYWORDS AND EMBEDDINGS
+
+The topic name is not embedded directly. An AI model writes exactly 4 single lowercase keywords from the name and its hierarchy, and that string is embedded.
+
+Model: gpt-5.6-luna, reasoning effort "none".
+Embedding model: text-embedding-3-large, 3072 dimensions, unit-normalised.
+
+Keyword 1 must name a broad economic field, chosen from an explicit list spanning the whole economy. Keywords 2 to 4 name the concrete product, process, material or organism. Words that match every division are banned by name: management, policy, analysis, systems, development, optimization, data, technology, innovation, etc.
+
+Each prompt also bans the trap specific to its source. For Openalex that is reaching for "manufacturing" because a topic sounds technical, and reaching for "software" because a method is involved. For crunchbase it is "software" because the company has an app. For patentscope it is "electronics" or "machinery" because the title mentions apparatus.
+
+Output is capped at 4 unique tokens in code, because models tend to drift from the instruction. The exact string that was embedded is stored next to its vector in one file, and ships in the `embedded_text` column. Nothing about step 1 can be audited without it.
+
+5. STEP 1: SEMANTIC SIMILARITY
+
+Cosine similarity between the key's keyword vector and each of the 88 division vectors. Both sides are unit-norm, so cosine is a plain dot product and the ranking is exact.
+
+The full 88 ranking is kept, not the top N. Ties break on the numeric division code. The top 10 is what step 4 sees. That number is configurable.
+
+This signal reads no previous answer of ours, so it is the one genuinely outside measurement in the run.
+
+6. STEP 2: RELATEDNESS
+
+The question is which divisions a key's neighbours sit in.
+
+The export is key to key. Projecting it onto divisions needs a division for every NEIGHBOUR key. Where that map comes from decides whether the signal means anything.
+
+Method: default `sum_rel`, the total relatedness weight landing on each division. An alternative `neighbour_vote` counts neighbours instead, so one large neighbour cannot carry a division alone. Both are implemented and the method is a configuration value.
+
+Self-pairs are dropped. A key's own division is never read. A neighbour with no division contributes nothing. Rows are streamed once, about 2M of them, and the per-key neighbour lists are cached, so changing the weighting method costs no re-read.
+
+- Patentscope only: REGPAT mixes IPC subclass and group codes. Group codes are rolled up to their subclass, for example A01B79/005 becomes A01B. IPC is strictly hierarchical, so the prefix is the subclass. Without this most edges never reach a key patentscope uses.
+
+Output: Every division with weight, ranked, with its share of the key's total relatedness. Divisions with no weight are genuinely tied at the next rank. That is recorded as a tie rather than forced into a 1 to 88 permutation.
+
+7. STEP 3: BLIND AI MODEL
+
+One model reads the key, its hierarchy, and the list of 88 division titles. It sees no cosine, no ranking, no shortlist, and no previous answer. That is the point: its disagreement with the numbers is the useful part.
+
+It returns, in this order:
+
+  subject: one sentence on what the key is about, in its own words, forbidden from reusing the key's own wording.
+  picks: one or two divisions, strongest first, each with its own reason.
+
+The schema asks for the subject FIRST. A model fills a tool input in order, so it must state the subject before it can reach for a code. The two worst errors in the previous run came from picking a division off a single word in the topic name.
+
+Model: Claude Sonnet 5, medium effort. The full runs were carried on the Claude subscription rather than the API, using the same prompts and the same schema.
+
+8. STEP 4: REFEREE AI MODEL
+
+One model makes the final call. It sees:
+
+  - the key and its hierarchy
+  - the top 10 semantic divisions, each with its cosine and its rank out of 88
+  - the top 10 relatedness divisions, each with its share and its rank out of 88
+  - the step 3 subject and picks, with their reasons
+  - a written list of the known failure modes of that source
+  - the full Eurostat manual entry for EVERY division any signal put in play, classes and exclusions included
+
+The manual is supplied for all divisions in play, not just for the one the model already prefers. Otherwise only the preferred division can be checked against its classes.
+
+The instruction is explicit that the three inputs are not three votes. It says to decide rather than average. It states what each signal is good and bad at. It requires that if rank 1 sits outside the top 5 of both rankings, the reasoning must name the better-ranked divisions that were rejected and why.
+
+It returns, in this order:
+
+  reading_of_signals: where the evidence disagrees with itself, and which part is being trusted
+  rank1: division, a cited class code, and a reason
+  rank2, rank3: optional, same shape
+
+Rank 2 and rank 3 ship so an auditor can act on a stated alternative.
+
+Every cited class is checked against the parsed manual. Across roughly 15600 citations, zero fell outside it.
+
+9. STEP 5: THE MAPPABILITY PASS
+
+Steps 1 to 4 always return a best division. None of them is ever allowed to say "none of these". So a key with no economic counterpart still gets a division.
+
+A separate agent pass asks the question the pipeline never asks. It sees the key, its hierarchy, the assigned division and class, the step 3 subject, and the referee's reason. It returns one of three verdicts and one line of why.
+
+  1.0: ok - the key names something an industry does, and this division is right.
+  0.5: wrong - a real sector exists for this key, and this is not it.
+  0.0: no_sector - nothing in NACE corresponds to this key, and that is fine.
+
+The number is mapped from the named verdict. The model is never handed a free 0 to 1 field, because a model given one returns fake precision.
+
+The recommended filter for downstream use is `match_score == 1.0`, which keeps around 93% of rows.
+
+10. OTHER SCORES AND FLAGS
+
+signal_score: 0 to 1, how well the two independent signals back the shipped division. It is the mean of two log-scaled rank scores, one per signal. A rank of r out of 88 scores 1 - log10(r)/log10(88), so rank 1 scores 1.00, rank 2 scores 0.85, rank 5 scores 0.64, rank 10 scores 0.49, rank 88 scores 0.00. A missing signal is treated as unknown and falls back to the signal that exists, rather than being scored as zero.
+
+needs_review: A flag, 1 or 0, with a written reason. It fires when either of the following is true.
+
+  Far on both. The shipped division sits outside the top 5 of 88 on BOTH signals. Two signals disagreeing is a reason to look. It is not a reason to move a row, and a genuine cross-sector key belongs here.
+
+  Diffuse. The key's STRONGEST division, whichever it is, holds less than 15.0% of the key's total relatedness. Such a key has no home sector, so a single confident answer is hiding a split. Measured over 4,504 openalex topics, the median key gives its top division 41.9% and the 5th percentile is 18.7%. At 15% the flag fires on 1.5% of rows. At 20% it fires on 7.1%, which is more than a review budget.
+
+class_valid: Records that the cited class exists in the Eurostat manual. It is always 1, because the referee is required to cite a real class. A 0 would mean a bug rather than a poor match. Do not filter on it. It is kept only so a future failure is visible.
+
+11. THE ECOSYSTEM LAYER
+
+The 14 EU industrial ecosystems are defined by the European Commission in terms of NACE codes. The source used is the Annual Report on European SMEs 2022/2023, Annex 9, Table 21, sourced there as "Information provided by the European Commission".
+
+The definition is stated at NACE DIVISION level, which is exactly what our crosswalks ship. No class-level guessing is needed. So this is a lookup against a published table. It is not a fourth classification run.
+
+The definition is NOT a partition. 15 divisions belong to two ecosystems and 3 belong to three. Division 26 is Aerospace, Digital and Electronics at once. Division 27 is Aerospace, Energy-Renewables and Mobility. Division 47 is Cultural and Creative, Proximity and Retail. So no tool can emit one ecosystem per row by lookup alone.
+
+Each row therefore falls into one of three cases, recorded in an `assignment` column.
+
+  lookup: the division belongs to exactly one ecosystem.
+  picked: the division belongs to 2 or 3, and a model chose among the named candidates, with a reason.
+  outside the 14 ecosystems: the division belongs to none. This is correct, not a failure. The 14 do not cover the whole economy. Divisions 72, 84, 69 and 70 are the big ones outside.
+
+The model never chose an ecosystem freely. The NACE division fixes the candidate set, and the pick only resolves ambiguity inside the Commission's own definition.
+
+The ecosystem is derived from the division, so it inherits everything the NACE work established. It can never be better supported than the division itself. The `match_score`, `mappable` and `needs_review` columns are carried over unchanged and are not recomputed. Changing a row's division changes its ecosystem automatically.
+
+Ecosystem NAMES follow the Commission annex spelling. The exact 14 strings used
+are:
+
+  Aerospace and Defence
+  Agri-food
+  Construction
+  Cultural and Creative Industries
+  Digital
+  Electronics
+  Energy - Renewables
+  Energy-intensive Industries
+  Health
+  Mobility - Transport - Automotive
+  Proximity, Social Economy and Civil Security
+  Retail
+  Textiles
+  Tourism
+
+12. OUTPUT FILES
+
+Per source, two files carry the same information in two forms.
+
+  crosswalk.csv: one row per key, all columns below
+  crosswalk.R: an R named vector, key to division. Every line carries a comment holding the full evidence for that row, so an auditor never has to open the csv to find out why a row says what it says. Edit a line to override it.
+
+Columns, ordered by the step that produced them, so reading left to right reads the run in order.
+
+  key, key_hierarchy
+  nace_division, nace_division_name, nace_section, nace_class
+  embedded_text                          step 0, the exact string embedded
+  semantic_score                         step 1, cosine of the shipped division
+  semantic_ranking                       step 1, its rank out of 88
+  semantic_top                           step 1, the top 10 as code:cosine
+  relatedness_pct                        step 2, share of the key's relatedness
+  relatedness_ranking                    step 2, its rank out of 88
+  relatedness_top                        step 2, the top 10 as code:percent
+  relatedness_top_pct                    step 2, the strongest division's share
+  signal_overlap                         how many divisions the two top 10 lists share, 0 to 10
+  blind_subject, blind_picks             step 3
+  reading_of_signals, rank1_reason       step 4
+  rank2_division, rank2_class, rank2_reason
+  rank3_division, rank3_class, rank3_reason
+  class_valid                            always 1, see section 10
+  match_score                            1.0 / 0.5 / 0.0, see section 9
+  mappable                               ok / wrong / no_sector
+  mappable_reason                        one line
+  signal_score                           0 to 1, see section 10
+  needs_review                           1 or 0
+  review_reason                          why, in words
+
+Ecosystem files, per source:
+
+  ecosystem.csv / ecosystem.R   key, division, ecosystem, assignment, candidate_ecosystems, reason, plus the carried match_score, mappable and needs_review.
+
+Check files, per source, under `checks/`. One row per key-division pair
+
+  semantic_similarity_<source>.csv   the full step 1 matrix.
+  relatedness_<source>.csv           the full step 2 matrix, with the raw summed weight and the percentage.
