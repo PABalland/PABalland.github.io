@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 341,
+    "rca": 0.71,
+    "share": 1.3472,
+    "share_d": 1.8996,
+    "reldens": 26.05,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#C8B2B2",
+    "id": "Aerospace & Defence",
+    "value": 341
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 3395,
+    "rca": 1.34,
+    "share": 13.4126,
+    "share_d": 10.0342,
+    "reldens": 40.54,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#88AB88",
+    "id": "Agrifood",
+    "value": 3395
+  },
+  {
+    "domain": "Construction",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 1496,
+    "rca": 0.73,
+    "share": 5.9102,
+    "share_d": 8.053,
+    "reldens": 39.6,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#C9B4B4",
+    "id": "Construction",
+    "value": 1496
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 1181,
+    "rca": 0.59,
+    "share": 4.6658,
+    "share_d": 7.8692,
+    "reldens": 27.45,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#C2A2A2",
+    "id": "Cultural and Creative Industries",
+    "value": 1181
+  },
+  {
+    "domain": "Digital",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 1061,
+    "rca": 0.57,
+    "share": 4.1917,
+    "share_d": 7.342,
+    "reldens": 18.25,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#C19F9F",
+    "id": "Digital",
+    "value": 1061
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 1843,
+    "rca": 0.83,
+    "share": 7.2811,
+    "share_d": 8.7502,
+    "reldens": 44.78,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#CDC0C0",
+    "id": "Electronics",
+    "value": 1843
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 904,
+    "rca": 1.01,
+    "share": 3.5714,
+    "share_d": 3.5456,
+    "reldens": 26.37,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#C5CCC5",
+    "id": "Energy - Renewables",
+    "value": 904
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 2846,
+    "rca": 1.33,
+    "share": 11.2437,
+    "share_d": 8.4773,
+    "reldens": 34.74,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#89AC89",
+    "id": "Energy Intensive Industries",
+    "value": 2846
+  },
+  {
+    "domain": "Health",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 11898,
+    "rca": 1.14,
+    "share": 47.0054,
+    "share_d": 41.1317,
+    "reldens": 40.31,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#A1B9A1",
+    "id": "Health",
+    "value": 11898
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 248,
+    "rca": 0.54,
+    "share": 0.9798,
+    "share_d": 1.8241,
+    "reldens": 33.64,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#C09B9B",
+    "id": "Mobility - Transport - Automotive",
+    "value": 248
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 27,
+    "rca": 0.46,
+    "share": 0.1067,
+    "share_d": 0.232,
+    "reldens": 27.8,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#BC8F8F",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 27
+  },
+  {
+    "domain": "Retail",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 22,
+    "rca": 0.29,
+    "share": 0.0869,
+    "share_d": 0.3014,
+    "reldens": 19.1,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#B27272",
+    "id": "Retail",
+    "value": 22
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 11,
+    "rca": 0.44,
+    "share": 0.0435,
+    "share_d": 0.0983,
+    "reldens": 38.97,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#BB8C8C",
+    "id": "Textiles",
+    "value": 11
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Mecklenburg-Vorpommern (DE80)",
+    "count": 39,
+    "rca": 0.35,
+    "share": 0.1541,
+    "share_d": 0.4414,
+    "reldens": 22.46,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#B67D7D",
+    "id": "Tourism",
+    "value": 39
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

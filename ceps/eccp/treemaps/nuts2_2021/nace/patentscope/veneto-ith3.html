@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Veneto (ITH3)",
+    "count": 14,
+    "rca": 1.31,
+    "share": 0.4337,
+    "share_d": 0.3308,
+    "reldens": 89.08,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#8BAD8B",
+    "id": "Civil engineering (42)",
+    "value": 14
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Veneto (ITH3)",
+    "count": 73,
+    "rca": 0.57,
+    "share": 2.2615,
+    "share_d": 3.9331,
+    "reldens": 45.92,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#C19F9F",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 73
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Veneto (ITH3)",
+    "count": 30,
+    "rca": 2.01,
+    "share": 0.9294,
+    "share_d": 0.4621,
+    "reldens": 92.21,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#5F965F",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 30
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Veneto (ITH3)",
+    "count": 40,
+    "rca": 1.92,
+    "share": 1.2392,
+    "share_d": 0.6442,
+    "reldens": 80.63,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#639863",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 40
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Veneto (ITH3)",
+    "count": 11,
+    "rca": 1.23,
+    "share": 0.3408,
+    "share_d": 0.278,
+    "reldens": 81.45,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#94B294",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 11
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Veneto (ITH3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0231,
+    "reldens": 48.11,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "darkred",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Veneto (ITH3)",
+    "count": 40,
+    "rca": 0.84,
+    "share": 1.2392,
+    "share_d": 1.4733,
+    "reldens": 86.07,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#CDC1C1",
+    "id": "Manufacture of basic metals (24)",
+    "value": 40
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Veneto (ITH3)",
+    "count": 279,
+    "rca": 1,
+    "share": 8.6431,
+    "share_d": 8.6622,
+    "reldens": 58.76,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "lightgrey",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 279
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Veneto (ITH3)",
+    "count": 5,
+    "rca": 2.26,
+    "share": 0.1549,
+    "share_d": 0.0686,
+    "reldens": 91.47,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "#559155",
+    "id": "Manufacture of beverages (11)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Veneto (ITH3)",
+    "count": 166,
+    "rca": 0.63,
+    "share": 5.1425,
+    "share_d": 8.0999,
+    "reldens": 78.47,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#C4A7A7",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 166
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Veneto (ITH3)",
+    "count": 3,
+    "rca": 0.23,
+    "share": 0.0929,
+    "share_d": 0.4105,
+    "reldens": 59.51,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#AE6565",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Veneto (ITH3)",
+    "count": 330,
+    "rca": 0.6,
+    "share": 10.223,
+    "share_d": 17.106,
+    "reldens": 58.94,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#C3A3A3",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 330
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Veneto (ITH3)",
+    "count": 358,
+    "rca": 1.31,
+    "share": 11.0905,
+    "share_d": 8.4817,
+    "reldens": 54.21,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#8BAD8B",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 358
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Veneto (ITH3)",
+    "count": 165,
+    "rca": 1.3,
+    "share": 5.1115,
+    "share_d": 3.9362,
+    "reldens": 64.87,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#8CAE8C",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 165
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Veneto (ITH3)",
+    "count": 63,
+    "rca": 1.52,
+    "share": 1.9517,
+    "share_d": 1.2848,
+    "reldens": 83.41,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#79A479",
+    "id": "Manufacture of food products (10)",
+    "value": 63
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Veneto (ITH3)",
+    "count": 44,
+    "rca": 3.51,
+    "share": 1.3631,
+    "share_d": 0.3882,
+    "reldens": 81.96,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#378137",
+    "id": "Manufacture of furniture (31)",
+    "value": 44
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Veneto (ITH3)",
+    "count": 94,
+    "rca": 11.03,
+    "share": 2.912,
+    "share_d": 0.2641,
+    "reldens": 83.31,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#006400",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 94
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Veneto (ITH3)",
+    "count": 632,
+    "rca": 1.4,
+    "share": 19.5787,
+    "share_d": 13.9956,
+    "reldens": 69.95,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#82A982",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 632
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Veneto (ITH3)",
+    "count": 50,
+    "rca": 0.3,
+    "share": 1.5489,
+    "share_d": 5.2453,
+    "reldens": 79.02,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#B27474",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 50
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Veneto (ITH3)",
+    "count": 56,
+    "rca": 1.27,
+    "share": 1.7348,
+    "share_d": 1.3671,
+    "reldens": 77.55,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#8FAF8F",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 56
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Veneto (ITH3)",
+    "count": 58,
+    "rca": 1,
+    "share": 1.7968,
+    "share_d": 1.7935,
+    "reldens": 72.93,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "lightgrey",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 58
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Veneto (ITH3)",
+    "count": 25,
+    "rca": 1.3,
+    "share": 0.7745,
+    "share_d": 0.5949,
+    "reldens": 70.48,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#8CAE8C",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 25
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Veneto (ITH3)",
+    "count": 216,
+    "rca": 1.44,
+    "share": 6.6914,
+    "share_d": 4.6546,
+    "reldens": 67.54,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#7FA77F",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 216
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Veneto (ITH3)",
+    "count": 39,
+    "rca": 2.03,
+    "share": 1.2082,
+    "share_d": 0.5954,
+    "reldens": 74.37,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#5E955E",
+    "id": "Manufacture of textiles (13)",
+    "value": 39
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Veneto (ITH3)",
+    "count": 13,
+    "rca": 2.98,
+    "share": 0.4027,
+    "share_d": 0.135,
+    "reldens": 95.78,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "#428742",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 13
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Veneto (ITH3)",
+    "count": 46,
+    "rca": 6.01,
+    "share": 1.425,
+    "share_d": 0.2371,
+    "reldens": 88.99,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#197119",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 46
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Veneto (ITH3)",
+    "count": 5,
+    "rca": 1.04,
+    "share": 0.1549,
+    "share_d": 0.1489,
+    "reldens": 83.91,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#B7C5B7",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 5
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Veneto (ITH3)",
+    "count": 3,
+    "rca": 1.9,
+    "share": 0.0929,
+    "share_d": 0.0488,
+    "reldens": 71.57,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "#649864",
+    "id": "Mining of metal ores (7)",
+    "value": 3
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Veneto (ITH3)",
+    "count": 14,
+    "rca": 1.19,
+    "share": 0.4337,
+    "share_d": 0.3637,
+    "reldens": 65.41,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#99B499",
+    "id": "Mining support service activities (9)",
+    "value": 14
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Veneto (ITH3)",
+    "count": 206,
+    "rca": 1.07,
+    "share": 6.3817,
+    "share_d": 5.9525,
+    "reldens": 64.26,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#AFC0AF",
+    "id": "Other manufacturing (32)",
+    "value": 206
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Veneto (ITH3)",
+    "count": 2,
+    "rca": 2.22,
+    "share": 0.062,
+    "share_d": 0.0279,
+    "reldens": 91.76,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "#579257",
+    "id": "Other mining and quarrying (8)",
+    "value": 2
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Veneto (ITH3)",
+    "count": 8,
+    "rca": 0.98,
+    "share": 0.2478,
+    "share_d": 0.2538,
+    "reldens": 66.08,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#D2D1D1",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 8
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Veneto (ITH3)",
+    "count": 2,
+    "rca": 3.53,
+    "share": 0.062,
+    "share_d": 0.0176,
+    "reldens": 14.77,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "#378137",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 2
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Veneto (ITH3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0131,
+    "reldens": 84.96,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Veneto (ITH3)",
+    "count": 2,
+    "rca": 1.41,
+    "share": 0.062,
+    "share_d": 0.0441,
+    "reldens": 88.7,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "#81A881",
+    "id": "Sewerage (37)",
+    "value": 2
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Veneto (ITH3)",
+    "count": 64,
+    "rca": 2.45,
+    "share": 1.9827,
+    "share_d": 0.8093,
+    "reldens": 84.82,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#4F8E4F",
+    "id": "Specialised construction activities (43)",
+    "value": 64
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Veneto (ITH3)",
+    "count": 35,
+    "rca": 0.15,
+    "share": 1.0843,
+    "share_d": 7.2195,
+    "reldens": 31.56,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#A75252",
+    "id": "Telecommunication (61)",
+    "value": 35
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Veneto (ITH3)",
+    "count": 9,
+    "rca": 1.63,
+    "share": 0.2788,
+    "share_d": 0.1712,
+    "reldens": 66.7,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#72A072",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 9
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Veneto (ITH3)",
+    "count": 28,
+    "rca": 1.87,
+    "share": 0.8674,
+    "share_d": 0.4643,
+    "reldens": 69.04,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#659965",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 28
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

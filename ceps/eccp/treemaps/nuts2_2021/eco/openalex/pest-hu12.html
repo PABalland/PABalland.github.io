@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Pest (HU12)",
+    "count": 32,
+    "rca": 0.32,
+    "share": 0.6106,
+    "share_d": 1.8996,
+    "reldens": 11.78,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#B47777",
+    "id": "Aerospace & Defence",
+    "value": 32
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Pest (HU12)",
+    "count": 2367,
+    "rca": 4.5,
+    "share": 45.1631,
+    "share_d": 10.0342,
+    "reldens": 17.79,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#287928",
+    "id": "Agrifood",
+    "value": 2367
+  },
+  {
+    "domain": "Construction",
+    "geo": "Pest (HU12)",
+    "count": 412,
+    "rca": 0.98,
+    "share": 7.8611,
+    "share_d": 8.053,
+    "reldens": 23.41,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#D2D1D1",
+    "id": "Construction",
+    "value": 412
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Pest (HU12)",
+    "count": 382,
+    "rca": 0.93,
+    "share": 7.2887,
+    "share_d": 7.8692,
+    "reldens": 48.84,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#D0CBCB",
+    "id": "Cultural and Creative Industries",
+    "value": 382
+  },
+  {
+    "domain": "Digital",
+    "geo": "Pest (HU12)",
+    "count": 121,
+    "rca": 0.31,
+    "share": 2.3087,
+    "share_d": 7.342,
+    "reldens": 14.09,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#B37575",
+    "id": "Digital",
+    "value": 121
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Pest (HU12)",
+    "count": 288,
+    "rca": 0.63,
+    "share": 5.4951,
+    "share_d": 8.7502,
+    "reldens": 16.59,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#C4A7A7",
+    "id": "Electronics",
+    "value": 288
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Pest (HU12)",
+    "count": 223,
+    "rca": 1.2,
+    "share": 4.2549,
+    "share_d": 3.5456,
+    "reldens": 3.38,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#98B498",
+    "id": "Energy - Renewables",
+    "value": 223
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Pest (HU12)",
+    "count": 323,
+    "rca": 0.73,
+    "share": 6.1629,
+    "share_d": 8.4773,
+    "reldens": 28.89,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#C9B4B4",
+    "id": "Energy Intensive Industries",
+    "value": 323
+  },
+  {
+    "domain": "Health",
+    "geo": "Pest (HU12)",
+    "count": 855,
+    "rca": 0.4,
+    "share": 16.3137,
+    "share_d": 41.1317,
+    "reldens": 30.37,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#B98585",
+    "id": "Health",
+    "value": 855
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Pest (HU12)",
+    "count": 56,
+    "rca": 0.59,
+    "share": 1.0685,
+    "share_d": 1.8241,
+    "reldens": 35.84,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#C2A2A2",
+    "id": "Mobility - Transport - Automotive",
+    "value": 56
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Pest (HU12)",
+    "count": 8,
+    "rca": 0.66,
+    "share": 0.1526,
+    "share_d": 0.232,
+    "reldens": 38.31,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#C5ABAB",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 8
+  },
+  {
+    "domain": "Retail",
+    "geo": "Pest (HU12)",
+    "count": 75,
+    "rca": 4.75,
+    "share": 1.431,
+    "share_d": 0.3014,
+    "reldens": 28.65,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#257825",
+    "id": "Retail",
+    "value": 75
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Pest (HU12)",
+    "count": 7,
+    "rca": 1.36,
+    "share": 0.1336,
+    "share_d": 0.0983,
+    "reldens": 13.24,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#86AA86",
+    "id": "Textiles",
+    "value": 7
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Pest (HU12)",
+    "count": 92,
+    "rca": 3.98,
+    "share": 1.7554,
+    "share_d": 0.4414,
+    "reldens": 24,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#307D30",
+    "id": "Tourism",
+    "value": 92
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

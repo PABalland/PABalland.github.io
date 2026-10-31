@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Funding RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Funding RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Illes Balears (ES53)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 2.0877,
+    "reldens": 41.27,
+    "comp_PA": 86.6,
+    "comp_TCI": 56.38,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Aerospace & Defence",
+    "value": 0
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Illes Balears (ES53)",
+    "count": 0.12,
+    "rca": 0.08,
+    "share": 0.3016,
+    "share_d": 3.6719,
+    "reldens": 29.82,
+    "comp_PA": 81.72,
+    "comp_TCI": 50.44,
+    "parent": "A",
+    "color": "#9F3C3C",
+    "id": "Agrifood",
+    "value": 0.12
+  },
+  {
+    "domain": "Construction",
+    "geo": "Illes Balears (ES53)",
+    "count": 3.26,
+    "rca": 2.5,
+    "share": 8.193,
+    "share_d": 3.2759,
+    "reldens": 17.24,
+    "comp_PA": 67.49,
+    "comp_TCI": 80.38,
+    "parent": "A",
+    "color": "#4E8D4E",
+    "id": "Construction",
+    "value": 3.26
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Illes Balears (ES53)",
+    "count": 0.25,
+    "rca": 0.06,
+    "share": 0.6283,
+    "share_d": 11.1756,
+    "reldens": 51.7,
+    "comp_PA": 91.47,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#9D3434",
+    "id": "Cultural and Creative Industries",
+    "value": 0.25
+  },
+  {
+    "domain": "Digital",
+    "geo": "Illes Balears (ES53)",
+    "count": 18.37,
+    "rca": 1.51,
+    "share": 46.1674,
+    "share_d": 30.6012,
+    "reldens": 23.96,
+    "comp_PA": 88.76,
+    "comp_TCI": 10.64,
+    "parent": "A",
+    "color": "#7AA47A",
+    "id": "Digital",
+    "value": 18.37
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Illes Balears (ES53)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 5.5691,
+    "reldens": 34.87,
+    "comp_PA": 70.25,
+    "comp_TCI": 55,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Electronics",
+    "value": 0
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Illes Balears (ES53)",
+    "count": 3.26,
+    "rca": 0.77,
+    "share": 8.193,
+    "share_d": 10.7065,
+    "reldens": 35.8,
+    "comp_PA": 83.84,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#CAB9B9",
+    "id": "Energy - Renewables",
+    "value": 3.26
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Illes Balears (ES53)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 1.729,
+    "reldens": 30.19,
+    "comp_PA": 79.74,
+    "comp_TCI": 61.19,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Energy Intensive Industries",
+    "value": 0
+  },
+  {
+    "domain": "Health",
+    "geo": "Illes Balears (ES53)",
+    "count": 9.43,
+    "rca": 2.41,
+    "share": 23.6994,
+    "share_d": 9.839,
+    "reldens": 28.37,
+    "comp_PA": 84.27,
+    "comp_TCI": 59.5,
+    "parent": "A",
+    "color": "#518E51",
+    "id": "Health",
+    "value": 9.43
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Illes Balears (ES53)",
+    "count": 0.27,
+    "rca": 0.07,
+    "share": 0.6786,
+    "share_d": 9.4088,
+    "reldens": 33.47,
+    "comp_PA": 87.29,
+    "comp_TCI": 51.89,
+    "parent": "A",
+    "color": "#9E3838",
+    "id": "Mobility - Transport - Automotive",
+    "value": 0.27
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Illes Balears (ES53)",
+    "count": 0.61,
+    "rca": 0.29,
+    "share": 1.533,
+    "share_d": 5.3611,
+    "reldens": 39.79,
+    "comp_PA": 85.35,
+    "comp_TCI": 26.07,
+    "parent": "A",
+    "color": "#B27272",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 0.61
+  },
+  {
+    "domain": "Retail",
+    "geo": "Illes Balears (ES53)",
+    "count": 0.4,
+    "rca": 0.24,
+    "share": 1.0053,
+    "share_d": 4.271,
+    "reldens": 32.59,
+    "comp_PA": 66.26,
+    "comp_TCI": 32.01,
+    "parent": "A",
+    "color": "#AE6767",
+    "id": "Retail",
+    "value": 0.4
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Illes Balears (ES53)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1327,
+    "reldens": 14.78,
+    "comp_PA": 70.04,
+    "comp_TCI": 33.82,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Textiles",
+    "value": 0
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Illes Balears (ES53)",
+    "count": 3.82,
+    "rca": 4.42,
+    "share": 9.6004,
+    "share_d": 2.1704,
+    "reldens": 24.16,
+    "comp_PA": 79.86,
+    "comp_TCI": 40.91,
+    "parent": "A",
+    "color": "#297A29",
+    "id": "Tourism",
+    "value": 3.82
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

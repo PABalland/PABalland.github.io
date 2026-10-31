@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Puglia (ITF4)",
+    "count": 595,
+    "rca": 0.72,
+    "share": 1.3636,
+    "share_d": 1.8996,
+    "reldens": 46.63,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#C8B3B3",
+    "id": "Aerospace & Defence",
+    "value": 595
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Puglia (ITF4)",
+    "count": 6477,
+    "rca": 1.48,
+    "share": 14.8443,
+    "share_d": 10.0342,
+    "reldens": 48.66,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#7CA57C",
+    "id": "Agrifood",
+    "value": 6477
+  },
+  {
+    "domain": "Construction",
+    "geo": "Puglia (ITF4)",
+    "count": 3601,
+    "rca": 1.02,
+    "share": 8.2529,
+    "share_d": 8.053,
+    "reldens": 33.58,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#BFC9BF",
+    "id": "Construction",
+    "value": 3601
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Puglia (ITF4)",
+    "count": 2341,
+    "rca": 0.68,
+    "share": 5.3652,
+    "share_d": 7.8692,
+    "reldens": 38.91,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#C6AEAE",
+    "id": "Cultural and Creative Industries",
+    "value": 2341
+  },
+  {
+    "domain": "Digital",
+    "geo": "Puglia (ITF4)",
+    "count": 2320,
+    "rca": 0.72,
+    "share": 5.3171,
+    "share_d": 7.342,
+    "reldens": 45.06,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#C8B3B3",
+    "id": "Digital",
+    "value": 2320
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Puglia (ITF4)",
+    "count": 4012,
+    "rca": 1.05,
+    "share": 9.1949,
+    "share_d": 8.7502,
+    "reldens": 23.88,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#B4C3B4",
+    "id": "Electronics",
+    "value": 4012
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Puglia (ITF4)",
+    "count": 1028,
+    "rca": 0.66,
+    "share": 2.356,
+    "share_d": 3.5456,
+    "reldens": 37.42,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#C5ABAB",
+    "id": "Energy - Renewables",
+    "value": 1028
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Puglia (ITF4)",
+    "count": 3326,
+    "rca": 0.9,
+    "share": 7.6227,
+    "share_d": 8.4773,
+    "reldens": 62.5,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#CFC8C8",
+    "id": "Energy Intensive Industries",
+    "value": 3326
+  },
+  {
+    "domain": "Health",
+    "geo": "Puglia (ITF4)",
+    "count": 18933,
+    "rca": 1.05,
+    "share": 43.3915,
+    "share_d": 41.1317,
+    "reldens": 46.15,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#B4C3B4",
+    "id": "Health",
+    "value": 18933
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Puglia (ITF4)",
+    "count": 571,
+    "rca": 0.72,
+    "share": 1.3086,
+    "share_d": 1.8241,
+    "reldens": 32.29,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#C8B3B3",
+    "id": "Mobility - Transport - Automotive",
+    "value": 571
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Puglia (ITF4)",
+    "count": 193,
+    "rca": 1.91,
+    "share": 0.4423,
+    "share_d": 0.232,
+    "reldens": 39.66,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#639863",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 193
+  },
+  {
+    "domain": "Retail",
+    "geo": "Puglia (ITF4)",
+    "count": 97,
+    "rca": 0.74,
+    "share": 0.2223,
+    "share_d": 0.3014,
+    "reldens": 21.01,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#C9B6B6",
+    "id": "Retail",
+    "value": 97
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Puglia (ITF4)",
+    "count": 13,
+    "rca": 0.3,
+    "share": 0.0298,
+    "share_d": 0.0983,
+    "reldens": 33.33,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#B27474",
+    "id": "Textiles",
+    "value": 13
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Puglia (ITF4)",
+    "count": 126,
+    "rca": 0.65,
+    "share": 0.2888,
+    "share_d": 0.4414,
+    "reldens": 39.13,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#C5AAAA",
+    "id": "Tourism",
+    "value": 126
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

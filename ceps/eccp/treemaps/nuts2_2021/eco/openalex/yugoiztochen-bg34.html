@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 13,
+    "rca": 0.32,
+    "share": 0.6021,
+    "share_d": 1.8996,
+    "reldens": 3.98,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#B47777",
+    "id": "Aerospace & Defence",
+    "value": 13
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 405,
+    "rca": 1.87,
+    "share": 18.7587,
+    "share_d": 10.0342,
+    "reldens": 30.47,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#659965",
+    "id": "Agrifood",
+    "value": 405
+  },
+  {
+    "domain": "Construction",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 123,
+    "rca": 0.71,
+    "share": 5.6971,
+    "share_d": 8.053,
+    "reldens": 16.16,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#C8B2B2",
+    "id": "Construction",
+    "value": 123
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 122,
+    "rca": 0.72,
+    "share": 5.6508,
+    "share_d": 7.8692,
+    "reldens": 42.4,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#C8B3B3",
+    "id": "Cultural and Creative Industries",
+    "value": 122
+  },
+  {
+    "domain": "Digital",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 142,
+    "rca": 0.9,
+    "share": 6.5771,
+    "share_d": 7.342,
+    "reldens": 14.59,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#CFC8C8",
+    "id": "Digital",
+    "value": 142
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 117,
+    "rca": 0.62,
+    "share": 5.4192,
+    "share_d": 8.7502,
+    "reldens": 10.03,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#C4A6A6",
+    "id": "Electronics",
+    "value": 117
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 76,
+    "rca": 0.99,
+    "share": 3.5201,
+    "share_d": 3.5456,
+    "reldens": 4.49,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#D3D2D2",
+    "id": "Energy - Renewables",
+    "value": 76
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 175,
+    "rca": 0.96,
+    "share": 8.1056,
+    "share_d": 8.4773,
+    "reldens": 21.49,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#D2CFCF",
+    "id": "Energy Intensive Industries",
+    "value": 175
+  },
+  {
+    "domain": "Health",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 894,
+    "rca": 1.01,
+    "share": 41.4081,
+    "share_d": 41.1317,
+    "reldens": 25.47,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#C5CCC5",
+    "id": "Health",
+    "value": 894
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 24,
+    "rca": 0.61,
+    "share": 1.1116,
+    "share_d": 1.8241,
+    "reldens": 9.94,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#C3A5A5",
+    "id": "Mobility - Transport - Automotive",
+    "value": 24
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 3,
+    "rca": 0.6,
+    "share": 0.139,
+    "share_d": 0.232,
+    "reldens": 28.81,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#C3A3A3",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 3
+  },
+  {
+    "domain": "Retail",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 36,
+    "rca": 5.53,
+    "share": 1.6674,
+    "share_d": 0.3014,
+    "reldens": 19.27,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#1D731D",
+    "id": "Retail",
+    "value": 36
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 20,
+    "rca": 9.43,
+    "share": 0.9264,
+    "share_d": 0.0983,
+    "reldens": 19.36,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#036503",
+    "id": "Textiles",
+    "value": 20
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Yugoiztochen (BG34)",
+    "count": 9,
+    "rca": 0.94,
+    "share": 0.4169,
+    "share_d": 0.4414,
+    "reldens": 28.37,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#D1CDCD",
+    "id": "Tourism",
+    "value": 9
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

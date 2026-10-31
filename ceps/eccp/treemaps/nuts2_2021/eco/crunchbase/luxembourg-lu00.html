@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Funding RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Funding RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Luxembourg (LU00)",
+    "count": 124.37,
+    "rca": 2.75,
+    "share": 5.7406,
+    "share_d": 2.0877,
+    "reldens": 31.36,
+    "comp_PA": 86.6,
+    "comp_TCI": 56.38,
+    "parent": "A",
+    "color": "#478947",
+    "id": "Aerospace & Defence",
+    "value": 124.37
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Luxembourg (LU00)",
+    "count": 6.28,
+    "rca": 0.08,
+    "share": 0.2899,
+    "share_d": 3.6719,
+    "reldens": 41.51,
+    "comp_PA": 81.72,
+    "comp_TCI": 50.44,
+    "parent": "A",
+    "color": "#9F3C3C",
+    "id": "Agrifood",
+    "value": 6.28
+  },
+  {
+    "domain": "Construction",
+    "geo": "Luxembourg (LU00)",
+    "count": 2.21,
+    "rca": 0.03,
+    "share": 0.102,
+    "share_d": 3.2759,
+    "reldens": 40.73,
+    "comp_PA": 67.49,
+    "comp_TCI": 80.38,
+    "parent": "A",
+    "color": "#972525",
+    "id": "Construction",
+    "value": 2.21
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Luxembourg (LU00)",
+    "count": 291.69,
+    "rca": 1.2,
+    "share": 13.4636,
+    "share_d": 11.1756,
+    "reldens": 29.09,
+    "comp_PA": 91.47,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#98B498",
+    "id": "Cultural and Creative Industries",
+    "value": 291.69
+  },
+  {
+    "domain": "Digital",
+    "geo": "Luxembourg (LU00)",
+    "count": 522.24,
+    "rca": 0.79,
+    "share": 24.1051,
+    "share_d": 30.6012,
+    "reldens": 48.8,
+    "comp_PA": 88.76,
+    "comp_TCI": 10.64,
+    "parent": "A",
+    "color": "#CBBCBC",
+    "id": "Digital",
+    "value": 522.24
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Luxembourg (LU00)",
+    "count": 157.56,
+    "rca": 1.31,
+    "share": 7.2725,
+    "share_d": 5.5691,
+    "reldens": 30.4,
+    "comp_PA": 70.25,
+    "comp_TCI": 55,
+    "parent": "A",
+    "color": "#8BAD8B",
+    "id": "Electronics",
+    "value": 157.56
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Luxembourg (LU00)",
+    "count": 42.3,
+    "rca": 0.18,
+    "share": 1.9524,
+    "share_d": 10.7065,
+    "reldens": 41.41,
+    "comp_PA": 83.84,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#AA5A5A",
+    "id": "Energy - Renewables",
+    "value": 42.3
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Luxembourg (LU00)",
+    "count": 44.15,
+    "rca": 1.18,
+    "share": 2.0378,
+    "share_d": 1.729,
+    "reldens": 37.9,
+    "comp_PA": 79.74,
+    "comp_TCI": 61.19,
+    "parent": "A",
+    "color": "#9AB59A",
+    "id": "Energy Intensive Industries",
+    "value": 44.15
+  },
+  {
+    "domain": "Health",
+    "geo": "Luxembourg (LU00)",
+    "count": 8.88,
+    "rca": 0.04,
+    "share": 0.4099,
+    "share_d": 9.839,
+    "reldens": 49.49,
+    "comp_PA": 84.27,
+    "comp_TCI": 59.5,
+    "parent": "A",
+    "color": "#992A2A",
+    "id": "Health",
+    "value": 8.88
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Luxembourg (LU00)",
+    "count": 141.48,
+    "rca": 0.69,
+    "share": 6.5303,
+    "share_d": 9.4088,
+    "reldens": 45.41,
+    "comp_PA": 87.29,
+    "comp_TCI": 51.89,
+    "parent": "A",
+    "color": "#C7AFAF",
+    "id": "Mobility - Transport - Automotive",
+    "value": 141.48
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Luxembourg (LU00)",
+    "count": 33.64,
+    "rca": 0.29,
+    "share": 1.5527,
+    "share_d": 5.3611,
+    "reldens": 31.51,
+    "comp_PA": 85.35,
+    "comp_TCI": 26.07,
+    "parent": "A",
+    "color": "#B27272",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 33.64
+  },
+  {
+    "domain": "Retail",
+    "geo": "Luxembourg (LU00)",
+    "count": 767.87,
+    "rca": 8.3,
+    "share": 35.4427,
+    "share_d": 4.271,
+    "reldens": 26.21,
+    "comp_PA": 66.26,
+    "comp_TCI": 32.01,
+    "parent": "A",
+    "color": "#096909",
+    "id": "Retail",
+    "value": 767.87
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Luxembourg (LU00)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1327,
+    "reldens": 69.04,
+    "comp_PA": 70.04,
+    "comp_TCI": 33.82,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Textiles",
+    "value": 0
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Luxembourg (LU00)",
+    "count": 23.84,
+    "rca": 0.51,
+    "share": 1.1004,
+    "share_d": 2.1704,
+    "reldens": 40.84,
+    "comp_PA": 79.86,
+    "comp_TCI": 40.91,
+    "parent": "A",
+    "color": "#BE9797",
+    "id": "Tourism",
+    "value": 23.84
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

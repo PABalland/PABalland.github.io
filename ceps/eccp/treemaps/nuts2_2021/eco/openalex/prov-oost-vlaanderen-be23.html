@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 540,
+    "rca": 0.62,
+    "share": 1.1706,
+    "share_d": 1.8996,
+    "reldens": 35.23,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#C4A6A6",
+    "id": "Aerospace & Defence",
+    "value": 540
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 7123,
+    "rca": 1.54,
+    "share": 15.4411,
+    "share_d": 10.0342,
+    "reldens": 22.35,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#78A378",
+    "id": "Agrifood",
+    "value": 7123
+  },
+  {
+    "domain": "Construction",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 3710,
+    "rca": 1,
+    "share": 8.0425,
+    "share_d": 8.053,
+    "reldens": 18.98,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "lightgrey",
+    "id": "Construction",
+    "value": 3710
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 2987,
+    "rca": 0.82,
+    "share": 6.4752,
+    "share_d": 7.8692,
+    "reldens": 31.62,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#CCBFBF",
+    "id": "Cultural and Creative Industries",
+    "value": 2987
+  },
+  {
+    "domain": "Digital",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 3171,
+    "rca": 0.94,
+    "share": 6.8741,
+    "share_d": 7.342,
+    "reldens": 27.68,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#D1CDCD",
+    "id": "Digital",
+    "value": 3171
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 3568,
+    "rca": 0.88,
+    "share": 7.7347,
+    "share_d": 8.7502,
+    "reldens": 26.52,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#CFC6C6",
+    "id": "Electronics",
+    "value": 3568
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 1152,
+    "rca": 0.7,
+    "share": 2.4973,
+    "share_d": 3.5456,
+    "reldens": 38.17,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#C7B1B1",
+    "id": "Energy - Renewables",
+    "value": 1152
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 3843,
+    "rca": 0.98,
+    "share": 8.3308,
+    "share_d": 8.4773,
+    "reldens": 31.16,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#D2D1D1",
+    "id": "Energy Intensive Industries",
+    "value": 3843
+  },
+  {
+    "domain": "Health",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 18847,
+    "rca": 0.99,
+    "share": 40.8563,
+    "share_d": 41.1317,
+    "reldens": 37.95,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#D3D2D2",
+    "id": "Health",
+    "value": 18847
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 853,
+    "rca": 1.01,
+    "share": 1.8491,
+    "share_d": 1.8241,
+    "reldens": 14.45,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#C5CCC5",
+    "id": "Mobility - Transport - Automotive",
+    "value": 853
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 67,
+    "rca": 0.63,
+    "share": 0.1452,
+    "share_d": 0.232,
+    "reldens": 37.97,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#C4A7A7",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 67
+  },
+  {
+    "domain": "Retail",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 87,
+    "rca": 0.63,
+    "share": 0.1886,
+    "share_d": 0.3014,
+    "reldens": 31.77,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#C4A7A7",
+    "id": "Retail",
+    "value": 87
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 62,
+    "rca": 1.37,
+    "share": 0.1344,
+    "share_d": 0.0983,
+    "reldens": 13.48,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#85AA85",
+    "id": "Textiles",
+    "value": 62
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Prov. Oost-Vlaanderen (BE23)",
+    "count": 120,
+    "rca": 0.59,
+    "share": 0.2601,
+    "share_d": 0.4414,
+    "reldens": 39.01,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#C2A2A2",
+    "id": "Tourism",
+    "value": 120
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

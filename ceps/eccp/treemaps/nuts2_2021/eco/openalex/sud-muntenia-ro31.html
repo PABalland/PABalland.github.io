@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 83,
+    "rca": 2.6,
+    "share": 4.9434,
+    "share_d": 1.8996,
+    "reldens": 96.13,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#4B8B4B",
+    "id": "Aerospace & Defence",
+    "value": 83
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 103,
+    "rca": 0.61,
+    "share": 6.1346,
+    "share_d": 10.0342,
+    "reldens": 72.89,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#C3A5A5",
+    "id": "Agrifood",
+    "value": 103
+  },
+  {
+    "domain": "Construction",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 230,
+    "rca": 1.7,
+    "share": 13.6986,
+    "share_d": 8.053,
+    "reldens": 82.31,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#6E9E6E",
+    "id": "Construction",
+    "value": 230
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 174,
+    "rca": 1.32,
+    "share": 10.3633,
+    "share_d": 7.8692,
+    "reldens": 66.67,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#8AAC8A",
+    "id": "Cultural and Creative Industries",
+    "value": 174
+  },
+  {
+    "domain": "Digital",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 171,
+    "rca": 1.39,
+    "share": 10.1846,
+    "share_d": 7.342,
+    "reldens": 88.98,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#83A983",
+    "id": "Digital",
+    "value": 171
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 216,
+    "rca": 1.47,
+    "share": 12.8648,
+    "share_d": 8.7502,
+    "reldens": 90.13,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#7DA67D",
+    "id": "Electronics",
+    "value": 216
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 185,
+    "rca": 3.11,
+    "share": 11.0185,
+    "share_d": 3.5456,
+    "reldens": 95.56,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#3F853F",
+    "id": "Energy - Renewables",
+    "value": 185
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 234,
+    "rca": 1.64,
+    "share": 13.9369,
+    "share_d": 8.4773,
+    "reldens": 78.63,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#71A071",
+    "id": "Energy Intensive Industries",
+    "value": 234
+  },
+  {
+    "domain": "Health",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 183,
+    "rca": 0.26,
+    "share": 10.8993,
+    "share_d": 41.1317,
+    "reldens": 72.92,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#B06C6C",
+    "id": "Health",
+    "value": 183
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 41,
+    "rca": 1.34,
+    "share": 2.4419,
+    "share_d": 1.8241,
+    "reldens": 92.42,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#88AB88",
+    "id": "Mobility - Transport - Automotive",
+    "value": 41
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 2,
+    "rca": 0.51,
+    "share": 0.1191,
+    "share_d": 0.232,
+    "reldens": 77.63,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#BE9797",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 2
+  },
+  {
+    "domain": "Retail",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 36,
+    "rca": 7.11,
+    "share": 2.1441,
+    "share_d": 0.3014,
+    "reldens": 77.43,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#106D10",
+    "id": "Retail",
+    "value": 36
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 1,
+    "rca": 0.61,
+    "share": 0.0596,
+    "share_d": 0.0983,
+    "reldens": 85.78,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#C3A5A5",
+    "id": "Textiles",
+    "value": 1
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Sud-Muntenia (RO31)",
+    "count": 20,
+    "rca": 2.7,
+    "share": 1.1912,
+    "share_d": 0.4414,
+    "reldens": 71.51,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#488A48",
+    "id": "Tourism",
+    "value": 20
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

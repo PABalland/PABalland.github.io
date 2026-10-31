@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Brandenburg (DE40)",
+    "count": 3,
+    "rca": 0.55,
+    "share": 0.1825,
+    "share_d": 0.3308,
+    "reldens": 41.79,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#C09C9C",
+    "id": "Civil engineering (42)",
+    "value": 3
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Brandenburg (DE40)",
+    "count": 61,
+    "rca": 0.94,
+    "share": 3.7105,
+    "share_d": 3.9331,
+    "reldens": 63.78,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#D1CDCD",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 61
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Brandenburg (DE40)",
+    "count": 8,
+    "rca": 1.05,
+    "share": 0.4866,
+    "share_d": 0.4621,
+    "reldens": 47.52,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#B4C3B4",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 8
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Brandenburg (DE40)",
+    "count": 4,
+    "rca": 0.38,
+    "share": 0.2433,
+    "share_d": 0.6442,
+    "reldens": 40.61,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#B78282",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 4
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Brandenburg (DE40)",
+    "count": 7,
+    "rca": 1.53,
+    "share": 0.4258,
+    "share_d": 0.278,
+    "reldens": 42.95,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#78A378",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 7
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Brandenburg (DE40)",
+    "count": 1,
+    "rca": 2.63,
+    "share": 0.0608,
+    "share_d": 0.0231,
+    "reldens": 48.58,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "#4A8B4A",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Brandenburg (DE40)",
+    "count": 25,
+    "rca": 1.03,
+    "share": 1.5207,
+    "share_d": 1.4733,
+    "reldens": 44.75,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#BBC6BB",
+    "id": "Manufacture of basic metals (24)",
+    "value": 25
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Brandenburg (DE40)",
+    "count": 209,
+    "rca": 1.47,
+    "share": 12.7129,
+    "share_d": 8.6622,
+    "reldens": 20.64,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#7DA67D",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 209
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Brandenburg (DE40)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0686,
+    "reldens": 15.47,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of beverages (11)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Brandenburg (DE40)",
+    "count": 95,
+    "rca": 0.71,
+    "share": 5.7786,
+    "share_d": 8.0999,
+    "reldens": 43.41,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#C8B2B2",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 95
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Brandenburg (DE40)",
+    "count": 2,
+    "rca": 0.3,
+    "share": 0.1217,
+    "share_d": 0.4105,
+    "reldens": 13.05,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#B27474",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Brandenburg (DE40)",
+    "count": 354,
+    "rca": 1.26,
+    "share": 21.5328,
+    "share_d": 17.106,
+    "reldens": 36.8,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#90B090",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 354
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Brandenburg (DE40)",
+    "count": 219,
+    "rca": 1.57,
+    "share": 13.3212,
+    "share_d": 8.4817,
+    "reldens": 40.07,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#76A276",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 219
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Brandenburg (DE40)",
+    "count": 70,
+    "rca": 1.08,
+    "share": 4.2579,
+    "share_d": 3.9362,
+    "reldens": 45.01,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#ACBFAC",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 70
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Brandenburg (DE40)",
+    "count": 17,
+    "rca": 0.8,
+    "share": 1.0341,
+    "share_d": 1.2848,
+    "reldens": 43.4,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#CBBDBD",
+    "id": "Manufacture of food products (10)",
+    "value": 17
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Brandenburg (DE40)",
+    "count": 3,
+    "rca": 0.47,
+    "share": 0.1825,
+    "share_d": 0.3882,
+    "reldens": 52.45,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#BC9191",
+    "id": "Manufacture of furniture (31)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Brandenburg (DE40)",
+    "count": 3,
+    "rca": 0.69,
+    "share": 0.1825,
+    "share_d": 0.2641,
+    "reldens": 34.22,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#C7AFAF",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Brandenburg (DE40)",
+    "count": 178,
+    "rca": 0.77,
+    "share": 10.8273,
+    "share_d": 13.9956,
+    "reldens": 41.92,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#CAB9B9",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 178
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Brandenburg (DE40)",
+    "count": 24,
+    "rca": 0.28,
+    "share": 1.4599,
+    "share_d": 5.2453,
+    "reldens": 46.6,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#B17070",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 24
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Brandenburg (DE40)",
+    "count": 10,
+    "rca": 0.44,
+    "share": 0.6083,
+    "share_d": 1.3671,
+    "reldens": 50.32,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#BB8C8C",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 10
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Brandenburg (DE40)",
+    "count": 23,
+    "rca": 0.78,
+    "share": 1.399,
+    "share_d": 1.7935,
+    "reldens": 38.67,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#CBBABA",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 23
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Brandenburg (DE40)",
+    "count": 13,
+    "rca": 1.33,
+    "share": 0.7908,
+    "share_d": 0.5949,
+    "reldens": 35.44,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#89AC89",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 13
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Brandenburg (DE40)",
+    "count": 44,
+    "rca": 0.58,
+    "share": 2.6764,
+    "share_d": 4.6546,
+    "reldens": 41.57,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#C2A1A1",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 44
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Brandenburg (DE40)",
+    "count": 3,
+    "rca": 0.31,
+    "share": 0.1825,
+    "share_d": 0.5954,
+    "reldens": 32.24,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#B37575",
+    "id": "Manufacture of textiles (13)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Brandenburg (DE40)",
+    "count": 1,
+    "rca": 0.45,
+    "share": 0.0608,
+    "share_d": 0.135,
+    "reldens": 67.16,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "#BB8E8E",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Brandenburg (DE40)",
+    "count": 1,
+    "rca": 0.26,
+    "share": 0.0608,
+    "share_d": 0.2371,
+    "reldens": 40.04,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#B06C6C",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Brandenburg (DE40)",
+    "count": 9,
+    "rca": 3.68,
+    "share": 0.5474,
+    "share_d": 0.1489,
+    "reldens": 36.45,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#348034",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 9
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Brandenburg (DE40)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0488,
+    "reldens": 20.23,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Mining of metal ores (7)",
+    "value": 0
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Brandenburg (DE40)",
+    "count": 2,
+    "rca": 0.33,
+    "share": 0.1217,
+    "share_d": 0.3637,
+    "reldens": 35.62,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#B47979",
+    "id": "Mining support service activities (9)",
+    "value": 2
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Brandenburg (DE40)",
+    "count": 118,
+    "rca": 1.21,
+    "share": 7.1776,
+    "share_d": 5.9525,
+    "reldens": 34.32,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#96B396",
+    "id": "Other manufacturing (32)",
+    "value": 118
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Brandenburg (DE40)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0279,
+    "reldens": 10.59,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Brandenburg (DE40)",
+    "count": 21,
+    "rca": 5.03,
+    "share": 1.2774,
+    "share_d": 0.2538,
+    "reldens": 47.75,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#227622",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 21
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Brandenburg (DE40)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 51.14,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Brandenburg (DE40)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0131,
+    "reldens": 13.01,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Brandenburg (DE40)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0441,
+    "reldens": 30.07,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Sewerage (37)",
+    "value": 0
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Brandenburg (DE40)",
+    "count": 26,
+    "rca": 1.95,
+    "share": 1.5815,
+    "share_d": 0.8093,
+    "reldens": 49.76,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#619761",
+    "id": "Specialised construction activities (43)",
+    "value": 26
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Brandenburg (DE40)",
+    "count": 85,
+    "rca": 0.72,
+    "share": 5.1703,
+    "share_d": 7.2195,
+    "reldens": 56.26,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#C8B3B3",
+    "id": "Telecommunication (61)",
+    "value": 85
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Brandenburg (DE40)",
+    "count": 1,
+    "rca": 0.36,
+    "share": 0.0608,
+    "share_d": 0.1712,
+    "reldens": 26.05,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#B67F7F",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 1
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Brandenburg (DE40)",
+    "count": 4,
+    "rca": 0.52,
+    "share": 0.2433,
+    "share_d": 0.4643,
+    "reldens": 17.1,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#BF9898",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 4
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

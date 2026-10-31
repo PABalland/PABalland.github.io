@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Tirol (AT33)",
+    "count": 115,
+    "rca": 0.31,
+    "share": 0.5898,
+    "share_d": 1.8996,
+    "reldens": 21.7,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#B37575",
+    "id": "Aerospace & Defence",
+    "value": 115
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Tirol (AT33)",
+    "count": 1876,
+    "rca": 0.96,
+    "share": 9.622,
+    "share_d": 10.0342,
+    "reldens": 55.1,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#D2CFCF",
+    "id": "Agrifood",
+    "value": 1876
+  },
+  {
+    "domain": "Construction",
+    "geo": "Tirol (AT33)",
+    "count": 1538,
+    "rca": 0.98,
+    "share": 7.8884,
+    "share_d": 8.053,
+    "reldens": 23.55,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#D2D1D1",
+    "id": "Construction",
+    "value": 1538
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Tirol (AT33)",
+    "count": 1690,
+    "rca": 1.1,
+    "share": 8.668,
+    "share_d": 7.8692,
+    "reldens": 66.24,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#A8BCA8",
+    "id": "Cultural and Creative Industries",
+    "value": 1690
+  },
+  {
+    "domain": "Digital",
+    "geo": "Tirol (AT33)",
+    "count": 1426,
+    "rca": 1,
+    "share": 7.3139,
+    "share_d": 7.342,
+    "reldens": 26.17,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "lightgrey",
+    "id": "Digital",
+    "value": 1426
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Tirol (AT33)",
+    "count": 1317,
+    "rca": 0.77,
+    "share": 6.7549,
+    "share_d": 8.7502,
+    "reldens": 25.91,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#CAB9B9",
+    "id": "Electronics",
+    "value": 1317
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Tirol (AT33)",
+    "count": 313,
+    "rca": 0.45,
+    "share": 1.6054,
+    "share_d": 3.5456,
+    "reldens": 11.35,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#BB8E8E",
+    "id": "Energy - Renewables",
+    "value": 313
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Tirol (AT33)",
+    "count": 1283,
+    "rca": 0.78,
+    "share": 6.5805,
+    "share_d": 8.4773,
+    "reldens": 16.16,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#CBBABA",
+    "id": "Energy Intensive Industries",
+    "value": 1283
+  },
+  {
+    "domain": "Health",
+    "geo": "Tirol (AT33)",
+    "count": 9603,
+    "rca": 1.2,
+    "share": 49.2537,
+    "share_d": 41.1317,
+    "reldens": 29.88,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#98B498",
+    "id": "Health",
+    "value": 9603
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Tirol (AT33)",
+    "count": 126,
+    "rca": 0.35,
+    "share": 0.6463,
+    "share_d": 1.8241,
+    "reldens": 33.42,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#B67D7D",
+    "id": "Mobility - Transport - Automotive",
+    "value": 126
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Tirol (AT33)",
+    "count": 27,
+    "rca": 0.6,
+    "share": 0.1385,
+    "share_d": 0.232,
+    "reldens": 56.61,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#C3A3A3",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 27
+  },
+  {
+    "domain": "Retail",
+    "geo": "Tirol (AT33)",
+    "count": 60,
+    "rca": 1.02,
+    "share": 0.3077,
+    "share_d": 0.3014,
+    "reldens": 63.89,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#BFC9BF",
+    "id": "Retail",
+    "value": 60
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Tirol (AT33)",
+    "count": 24,
+    "rca": 1.25,
+    "share": 0.1231,
+    "share_d": 0.0983,
+    "reldens": 44.36,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#91B091",
+    "id": "Textiles",
+    "value": 24
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Tirol (AT33)",
+    "count": 99,
+    "rca": 1.15,
+    "share": 0.5078,
+    "share_d": 0.4414,
+    "reldens": 49.76,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#9FB89F",
+    "id": "Tourism",
+    "value": 99
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

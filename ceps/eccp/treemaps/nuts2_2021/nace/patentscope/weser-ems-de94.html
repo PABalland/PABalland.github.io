@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 10,
+    "rca": 1.94,
+    "share": 0.6418,
+    "share_d": 0.3308,
+    "reldens": 54.47,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#629762",
+    "id": "Civil engineering (42)",
+    "value": 10
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 18,
+    "rca": 0.29,
+    "share": 1.1553,
+    "share_d": 3.9331,
+    "reldens": 23.52,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#B27272",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 18
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 16,
+    "rca": 2.22,
+    "share": 1.027,
+    "share_d": 0.4621,
+    "reldens": 67.47,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#579257",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 16
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 16,
+    "rca": 1.59,
+    "share": 1.027,
+    "share_d": 0.6442,
+    "reldens": 41.89,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#74A174",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 16
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.278,
+    "reldens": 64.53,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 0
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 1,
+    "rca": 2.77,
+    "share": 0.0642,
+    "share_d": 0.0231,
+    "reldens": 47.17,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "#478947",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 38,
+    "rca": 1.66,
+    "share": 2.439,
+    "share_d": 1.4733,
+    "reldens": 68.6,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#709F70",
+    "id": "Manufacture of basic metals (24)",
+    "value": 38
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 36,
+    "rca": 0.27,
+    "share": 2.3107,
+    "share_d": 8.6622,
+    "reldens": 42.97,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#B06E6E",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 36
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0686,
+    "reldens": 79.47,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of beverages (11)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 57,
+    "rca": 0.45,
+    "share": 3.6585,
+    "share_d": 8.0999,
+    "reldens": 49.02,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#BB8E8E",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 57
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 3,
+    "rca": 0.47,
+    "share": 0.1926,
+    "share_d": 0.4105,
+    "reldens": 42.07,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#BC9191",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 186,
+    "rca": 0.7,
+    "share": 11.9384,
+    "share_d": 17.106,
+    "reldens": 40.94,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#C7B1B1",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 186
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 146,
+    "rca": 1.1,
+    "share": 9.371,
+    "share_d": 8.4817,
+    "reldens": 51.11,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#A8BCA8",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 146
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 77,
+    "rca": 1.26,
+    "share": 4.9422,
+    "share_d": 3.9362,
+    "reldens": 65.08,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#90B090",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 77
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 27,
+    "rca": 1.35,
+    "share": 1.733,
+    "share_d": 1.2848,
+    "reldens": 23.66,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#87AB87",
+    "id": "Manufacture of food products (10)",
+    "value": 27
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 35,
+    "rca": 5.79,
+    "share": 2.2465,
+    "share_d": 0.3882,
+    "reldens": 65.48,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#1B721B",
+    "id": "Manufacture of furniture (31)",
+    "value": 35
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 5,
+    "rca": 1.22,
+    "share": 0.3209,
+    "share_d": 0.2641,
+    "reldens": 47.4,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#95B295",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 477,
+    "rca": 2.19,
+    "share": 30.6162,
+    "share_d": 13.9956,
+    "reldens": 50.25,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#589258",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 477
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 138,
+    "rca": 1.69,
+    "share": 8.8575,
+    "share_d": 5.2453,
+    "reldens": 61.44,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#6E9E6E",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 138
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 14,
+    "rca": 0.66,
+    "share": 0.8986,
+    "share_d": 1.3671,
+    "reldens": 70,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#C5ABAB",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 14
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 22,
+    "rca": 0.79,
+    "share": 1.4121,
+    "share_d": 1.7935,
+    "reldens": 70.33,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#CBBCBC",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 22
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 16,
+    "rca": 1.73,
+    "share": 1.027,
+    "share_d": 0.5949,
+    "reldens": 61.36,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#6C9D6C",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 16
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 89,
+    "rca": 1.23,
+    "share": 5.7125,
+    "share_d": 4.6546,
+    "reldens": 51.89,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#94B294",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 89
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 9,
+    "rca": 0.97,
+    "share": 0.5777,
+    "share_d": 0.5954,
+    "reldens": 53.83,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#D2D0D0",
+    "id": "Manufacture of textiles (13)",
+    "value": 9
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 2,
+    "rca": 0.95,
+    "share": 0.1284,
+    "share_d": 0.135,
+    "reldens": 42.2,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "#D1CECE",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 2,
+    "rca": 0.54,
+    "share": 0.1284,
+    "share_d": 0.2371,
+    "reldens": 33.86,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#C09B9B",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 3,
+    "rca": 1.29,
+    "share": 0.1926,
+    "share_d": 0.1489,
+    "reldens": 68.97,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#8DAE8D",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 3
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0488,
+    "reldens": 63.04,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Mining of metal ores (7)",
+    "value": 0
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 5,
+    "rca": 0.88,
+    "share": 0.3209,
+    "share_d": 0.3637,
+    "reldens": 63.2,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#CFC6C6",
+    "id": "Mining support service activities (9)",
+    "value": 5
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 64,
+    "rca": 0.69,
+    "share": 4.1078,
+    "share_d": 5.9525,
+    "reldens": 37.58,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#C7AFAF",
+    "id": "Other manufacturing (32)",
+    "value": 64
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 1,
+    "rca": 2.3,
+    "share": 0.0642,
+    "share_d": 0.0279,
+    "reldens": 26.08,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "#549054",
+    "id": "Other mining and quarrying (8)",
+    "value": 1
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 5,
+    "rca": 1.26,
+    "share": 0.3209,
+    "share_d": 0.2538,
+    "reldens": 49.65,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#90B090",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 5
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 8.52,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0131,
+    "reldens": 39.23,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0441,
+    "reldens": 65.61,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Sewerage (37)",
+    "value": 0
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 18,
+    "rca": 1.43,
+    "share": 1.1553,
+    "share_d": 0.8093,
+    "reldens": 70.49,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#80A780",
+    "id": "Specialised construction activities (43)",
+    "value": 18
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 12,
+    "rca": 0.11,
+    "share": 0.7702,
+    "share_d": 7.2195,
+    "reldens": 22.4,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#A34646",
+    "id": "Telecommunication (61)",
+    "value": 12
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 4,
+    "rca": 1.5,
+    "share": 0.2567,
+    "share_d": 0.1712,
+    "reldens": 36.81,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#7AA47A",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 4
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Weser-Ems (DE94)",
+    "count": 6,
+    "rca": 0.83,
+    "share": 0.3851,
+    "share_d": 0.4643,
+    "reldens": 46.82,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#CDC0C0",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 6
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

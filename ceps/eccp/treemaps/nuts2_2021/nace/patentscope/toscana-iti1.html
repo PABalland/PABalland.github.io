@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Toscana (ITI1)",
+    "count": 7,
+    "rca": 1.16,
+    "share": 0.3844,
+    "share_d": 0.3308,
+    "reldens": 45.23,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#9DB79D",
+    "id": "Civil engineering (42)",
+    "value": 7
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Toscana (ITI1)",
+    "count": 42,
+    "rca": 0.59,
+    "share": 2.3064,
+    "share_d": 3.9331,
+    "reldens": 35.99,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#C2A2A2",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 42
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Toscana (ITI1)",
+    "count": 13,
+    "rca": 1.54,
+    "share": 0.7139,
+    "share_d": 0.4621,
+    "reldens": 34.53,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#78A378",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 13
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Toscana (ITI1)",
+    "count": 12,
+    "rca": 1.02,
+    "share": 0.659,
+    "share_d": 0.6442,
+    "reldens": 66.81,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#BFC9BF",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 12
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Toscana (ITI1)",
+    "count": 12,
+    "rca": 2.37,
+    "share": 0.659,
+    "share_d": 0.278,
+    "reldens": 51.74,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#528F52",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 12
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Toscana (ITI1)",
+    "count": 4,
+    "rca": 9.49,
+    "share": 0.2197,
+    "share_d": 0.0231,
+    "reldens": 54.72,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "#026502",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 4
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Toscana (ITI1)",
+    "count": 27,
+    "rca": 1.01,
+    "share": 1.4827,
+    "share_d": 1.4733,
+    "reldens": 36.52,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#C5CCC5",
+    "id": "Manufacture of basic metals (24)",
+    "value": 27
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Toscana (ITI1)",
+    "count": 172,
+    "rca": 1.09,
+    "share": 9.4454,
+    "share_d": 8.6622,
+    "reldens": 51.97,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#AABEAA",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 172
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Toscana (ITI1)",
+    "count": 3,
+    "rca": 2.4,
+    "share": 0.1647,
+    "share_d": 0.0686,
+    "reldens": 84.53,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "#518F51",
+    "id": "Manufacture of beverages (11)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Toscana (ITI1)",
+    "count": 92,
+    "rca": 0.62,
+    "share": 5.0522,
+    "share_d": 8.0999,
+    "reldens": 57.53,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#C4A6A6",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 92
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Toscana (ITI1)",
+    "count": 8,
+    "rca": 1.07,
+    "share": 0.4393,
+    "share_d": 0.4105,
+    "reldens": 49.27,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#AFC0AF",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 8
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Toscana (ITI1)",
+    "count": 220,
+    "rca": 0.71,
+    "share": 12.0813,
+    "share_d": 17.106,
+    "reldens": 34.49,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#C8B2B2",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 220
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Toscana (ITI1)",
+    "count": 103,
+    "rca": 0.67,
+    "share": 5.6562,
+    "share_d": 8.4817,
+    "reldens": 41.27,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#C6ADAD",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 103
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Toscana (ITI1)",
+    "count": 50,
+    "rca": 0.7,
+    "share": 2.7457,
+    "share_d": 3.9362,
+    "reldens": 56.29,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#C7B1B1",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 50
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Toscana (ITI1)",
+    "count": 28,
+    "rca": 1.2,
+    "share": 1.5376,
+    "share_d": 1.2848,
+    "reldens": 74.53,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#98B498",
+    "id": "Manufacture of food products (10)",
+    "value": 28
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Toscana (ITI1)",
+    "count": 10,
+    "rca": 1.41,
+    "share": 0.5491,
+    "share_d": 0.3882,
+    "reldens": 49.32,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#81A881",
+    "id": "Manufacture of furniture (31)",
+    "value": 10
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Toscana (ITI1)",
+    "count": 19,
+    "rca": 3.95,
+    "share": 1.0434,
+    "share_d": 0.2641,
+    "reldens": 58.52,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#307D30",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 19
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Toscana (ITI1)",
+    "count": 401,
+    "rca": 1.57,
+    "share": 22.0209,
+    "share_d": 13.9956,
+    "reldens": 46,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#76A276",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 401
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Toscana (ITI1)",
+    "count": 46,
+    "rca": 0.48,
+    "share": 2.5261,
+    "share_d": 5.2453,
+    "reldens": 44.85,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#BD9292",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 46
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Toscana (ITI1)",
+    "count": 15,
+    "rca": 0.6,
+    "share": 0.8237,
+    "share_d": 1.3671,
+    "reldens": 49.28,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#C3A3A3",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 15
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Toscana (ITI1)",
+    "count": 118,
+    "rca": 3.61,
+    "share": 6.48,
+    "share_d": 1.7935,
+    "reldens": 49.12,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#358035",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 118
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Toscana (ITI1)",
+    "count": 37,
+    "rca": 3.42,
+    "share": 2.0319,
+    "share_d": 0.5949,
+    "reldens": 31.36,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#398239",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 37
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Toscana (ITI1)",
+    "count": 60,
+    "rca": 0.71,
+    "share": 3.2949,
+    "share_d": 4.6546,
+    "reldens": 51.01,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#C8B2B2",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 60
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Toscana (ITI1)",
+    "count": 32,
+    "rca": 2.95,
+    "share": 1.7573,
+    "share_d": 0.5954,
+    "reldens": 50.14,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#428742",
+    "id": "Manufacture of textiles (13)",
+    "value": 32
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Toscana (ITI1)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.135,
+    "reldens": 90.09,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Toscana (ITI1)",
+    "count": 10,
+    "rca": 2.32,
+    "share": 0.5491,
+    "share_d": 0.2371,
+    "reldens": 78.3,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#539053",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 10
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Toscana (ITI1)",
+    "count": 2,
+    "rca": 0.74,
+    "share": 0.1098,
+    "share_d": 0.1489,
+    "reldens": 54.35,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#C9B6B6",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 2
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Toscana (ITI1)",
+    "count": 1,
+    "rca": 1.13,
+    "share": 0.0549,
+    "share_d": 0.0488,
+    "reldens": 75.59,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "#A2B9A2",
+    "id": "Mining of metal ores (7)",
+    "value": 1
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Toscana (ITI1)",
+    "count": 6,
+    "rca": 0.91,
+    "share": 0.3295,
+    "share_d": 0.3637,
+    "reldens": 36.8,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#D0C9C9",
+    "id": "Mining support service activities (9)",
+    "value": 6
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Toscana (ITI1)",
+    "count": 160,
+    "rca": 1.48,
+    "share": 8.7864,
+    "share_d": 5.9525,
+    "reldens": 40.9,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#7CA57C",
+    "id": "Other manufacturing (32)",
+    "value": 160
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Toscana (ITI1)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0279,
+    "reldens": 28.04,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Toscana (ITI1)",
+    "count": 2,
+    "rca": 0.43,
+    "share": 0.1098,
+    "share_d": 0.2538,
+    "reldens": 50.95,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#BA8A8A",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 2
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Toscana (ITI1)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 10.23,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Toscana (ITI1)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0131,
+    "reldens": 79.27,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Toscana (ITI1)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0441,
+    "reldens": 70.76,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Sewerage (37)",
+    "value": 0
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Toscana (ITI1)",
+    "count": 11,
+    "rca": 0.75,
+    "share": 0.6041,
+    "share_d": 0.8093,
+    "reldens": 55.5,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#C9B7B7",
+    "id": "Specialised construction activities (43)",
+    "value": 11
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Toscana (ITI1)",
+    "count": 82,
+    "rca": 0.62,
+    "share": 4.503,
+    "share_d": 7.2195,
+    "reldens": 15.54,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#C4A6A6",
+    "id": "Telecommunication (61)",
+    "value": 82
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Toscana (ITI1)",
+    "count": 7,
+    "rca": 2.24,
+    "share": 0.3844,
+    "share_d": 0.1712,
+    "reldens": 62.08,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#569156",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 7
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Toscana (ITI1)",
+    "count": 9,
+    "rca": 1.06,
+    "share": 0.4942,
+    "share_d": 0.4643,
+    "reldens": 59.05,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#B1C1B1",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 9
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

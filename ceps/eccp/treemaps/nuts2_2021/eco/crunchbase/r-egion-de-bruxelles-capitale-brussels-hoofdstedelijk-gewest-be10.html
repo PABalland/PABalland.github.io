@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Funding RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Funding RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 2.0877,
+    "reldens": 35.79,
+    "comp_PA": 86.6,
+    "comp_TCI": 56.38,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Aerospace & Defence",
+    "value": 0
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 18.01,
+    "rca": 0.19,
+    "share": 0.6895,
+    "share_d": 3.6719,
+    "reldens": 19.29,
+    "comp_PA": 81.72,
+    "comp_TCI": 50.44,
+    "parent": "A",
+    "color": "#AA5C5C",
+    "id": "Agrifood",
+    "value": 18.01
+  },
+  {
+    "domain": "Construction",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 380.6,
+    "rca": 4.45,
+    "share": 14.5707,
+    "share_d": 3.2759,
+    "reldens": 33.95,
+    "comp_PA": 67.49,
+    "comp_TCI": 80.38,
+    "parent": "A",
+    "color": "#297A29",
+    "id": "Construction",
+    "value": 380.6
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 281.19,
+    "rca": 0.96,
+    "share": 10.7649,
+    "share_d": 11.1756,
+    "reldens": 37.45,
+    "comp_PA": 91.47,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#D2CFCF",
+    "id": "Cultural and Creative Industries",
+    "value": 281.19
+  },
+  {
+    "domain": "Digital",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 1012.32,
+    "rca": 1.27,
+    "share": 38.7552,
+    "share_d": 30.6012,
+    "reldens": 11.83,
+    "comp_PA": 88.76,
+    "comp_TCI": 10.64,
+    "parent": "A",
+    "color": "#8FAF8F",
+    "id": "Digital",
+    "value": 1012.32
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 49.48,
+    "rca": 0.34,
+    "share": 1.8943,
+    "share_d": 5.5691,
+    "reldens": 37.96,
+    "comp_PA": 70.25,
+    "comp_TCI": 55,
+    "parent": "A",
+    "color": "#B57B7B",
+    "id": "Electronics",
+    "value": 49.48
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 320.6,
+    "rca": 1.15,
+    "share": 12.2737,
+    "share_d": 10.7065,
+    "reldens": 32.67,
+    "comp_PA": 83.84,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#9FB89F",
+    "id": "Energy - Renewables",
+    "value": 320.6
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 1.729,
+    "reldens": 35.98,
+    "comp_PA": 79.74,
+    "comp_TCI": 61.19,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Energy Intensive Industries",
+    "value": 0
+  },
+  {
+    "domain": "Health",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 147.86,
+    "rca": 0.58,
+    "share": 5.6606,
+    "share_d": 9.839,
+    "reldens": 30.34,
+    "comp_PA": 84.27,
+    "comp_TCI": 59.5,
+    "parent": "A",
+    "color": "#C2A1A1",
+    "id": "Health",
+    "value": 147.86
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 162.64,
+    "rca": 0.66,
+    "share": 6.2264,
+    "share_d": 9.4088,
+    "reldens": 35.38,
+    "comp_PA": 87.29,
+    "comp_TCI": 51.89,
+    "parent": "A",
+    "color": "#C5ABAB",
+    "id": "Mobility - Transport - Automotive",
+    "value": 162.64
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 118.75,
+    "rca": 0.85,
+    "share": 4.5462,
+    "share_d": 5.3611,
+    "reldens": 32.21,
+    "comp_PA": 85.35,
+    "comp_TCI": 26.07,
+    "parent": "A",
+    "color": "#CDC3C3",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 118.75
+  },
+  {
+    "domain": "Retail",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 78.33,
+    "rca": 0.7,
+    "share": 2.9987,
+    "share_d": 4.271,
+    "reldens": 29.99,
+    "comp_PA": 66.26,
+    "comp_TCI": 32.01,
+    "parent": "A",
+    "color": "#C7B1B1",
+    "id": "Retail",
+    "value": 78.33
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 4.96,
+    "rca": 1.43,
+    "share": 0.1899,
+    "share_d": 0.1327,
+    "reldens": 12.7,
+    "comp_PA": 70.04,
+    "comp_TCI": 33.82,
+    "parent": "A",
+    "color": "#80A780",
+    "id": "Textiles",
+    "value": 4.96
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Région de Bruxelles-Capitale/ Brussels Hoofdstedelijk Gewest (BE10)",
+    "count": 37.35,
+    "rca": 0.66,
+    "share": 1.4299,
+    "share_d": 2.1704,
+    "reldens": 24.57,
+    "comp_PA": 79.86,
+    "comp_TCI": 40.91,
+    "parent": "A",
+    "color": "#C5ABAB",
+    "id": "Tourism",
+    "value": 37.35
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

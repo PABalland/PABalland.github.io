@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 344,
+    "rca": 0.78,
+    "share": 1.4905,
+    "share_d": 1.8996,
+    "reldens": 38.78,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#CBBABA",
+    "id": "Aerospace & Defence",
+    "value": 344
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 2075,
+    "rca": 0.9,
+    "share": 8.9909,
+    "share_d": 10.0342,
+    "reldens": 59.6,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#CFC8C8",
+    "id": "Agrifood",
+    "value": 2075
+  },
+  {
+    "domain": "Construction",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1086,
+    "rca": 0.58,
+    "share": 4.7056,
+    "share_d": 8.053,
+    "reldens": 40.93,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#C2A1A1",
+    "id": "Construction",
+    "value": 1086
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 2011,
+    "rca": 1.11,
+    "share": 8.7135,
+    "share_d": 7.8692,
+    "reldens": 70.77,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#A6BBA6",
+    "id": "Cultural and Creative Industries",
+    "value": 2011
+  },
+  {
+    "domain": "Digital",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1962,
+    "rca": 1.16,
+    "share": 8.5012,
+    "share_d": 7.342,
+    "reldens": 47.16,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#9DB79D",
+    "id": "Digital",
+    "value": 1962
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1686,
+    "rca": 0.83,
+    "share": 7.3053,
+    "share_d": 8.7502,
+    "reldens": 45.81,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#CDC0C0",
+    "id": "Electronics",
+    "value": 1686
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1014,
+    "rca": 1.24,
+    "share": 4.3936,
+    "share_d": 3.5456,
+    "reldens": 34.34,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#93B193",
+    "id": "Energy - Renewables",
+    "value": 1014
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 1929,
+    "rca": 0.99,
+    "share": 8.3582,
+    "share_d": 8.4773,
+    "reldens": 35.91,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#D3D2D2",
+    "id": "Energy Intensive Industries",
+    "value": 1929
+  },
+  {
+    "domain": "Health",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 10194,
+    "rca": 1.07,
+    "share": 44.17,
+    "share_d": 41.1317,
+    "reldens": 36.27,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#AFC0AF",
+    "id": "Health",
+    "value": 10194
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 474,
+    "rca": 1.13,
+    "share": 2.0538,
+    "share_d": 1.8241,
+    "reldens": 57.93,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#A2B9A2",
+    "id": "Mobility - Transport - Automotive",
+    "value": 474
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 52,
+    "rca": 0.97,
+    "share": 0.2253,
+    "share_d": 0.232,
+    "reldens": 75.25,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#D2D0D0",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 52
+  },
+  {
+    "domain": "Retail",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 93,
+    "rca": 1.34,
+    "share": 0.403,
+    "share_d": 0.3014,
+    "reldens": 81.25,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#88AB88",
+    "id": "Retail",
+    "value": 93
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 44,
+    "rca": 1.94,
+    "share": 0.1906,
+    "share_d": 0.0983,
+    "reldens": 45.34,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#629762",
+    "id": "Textiles",
+    "value": 44
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Etelä-Suomi (FI1C)",
+    "count": 115,
+    "rca": 1.13,
+    "share": 0.4983,
+    "share_d": 0.4414,
+    "reldens": 62.41,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#A2B9A2",
+    "id": "Tourism",
+    "value": 115
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

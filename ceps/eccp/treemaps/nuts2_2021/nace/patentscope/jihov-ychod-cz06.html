@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 2,
+    "rca": 1.66,
+    "share": 0.5479,
+    "share_d": 0.3308,
+    "reldens": 64.4,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#709F70",
+    "id": "Civil engineering (42)",
+    "value": 2
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 20,
+    "rca": 1.39,
+    "share": 5.4795,
+    "share_d": 3.9331,
+    "reldens": 16.47,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#83A983",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 20
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 2,
+    "rca": 1.19,
+    "share": 0.5479,
+    "share_d": 0.4621,
+    "reldens": 74.73,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#99B499",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 2
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 3,
+    "rca": 1.28,
+    "share": 0.8219,
+    "share_d": 0.6442,
+    "reldens": 58.28,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#8EAF8E",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 3
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 1,
+    "rca": 0.99,
+    "share": 0.274,
+    "share_d": 0.278,
+    "reldens": 54.99,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#D3D2D2",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 1
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0231,
+    "reldens": 36.79,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "darkred",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 5,
+    "rca": 0.93,
+    "share": 1.3699,
+    "share_d": 1.4733,
+    "reldens": 56.36,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#D0CBCB",
+    "id": "Manufacture of basic metals (24)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 58,
+    "rca": 1.83,
+    "share": 15.8904,
+    "share_d": 8.6622,
+    "reldens": 27.17,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#679A67",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 58
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 1,
+    "rca": 3.99,
+    "share": 0.274,
+    "share_d": 0.0686,
+    "reldens": 27.73,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "#2F7D2F",
+    "id": "Manufacture of beverages (11)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 26,
+    "rca": 0.88,
+    "share": 7.1233,
+    "share_d": 8.0999,
+    "reldens": 50.8,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#CFC6C6",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 26
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 2,
+    "rca": 1.33,
+    "share": 0.5479,
+    "share_d": 0.4105,
+    "reldens": 26.88,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#89AC89",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 55,
+    "rca": 0.88,
+    "share": 15.0685,
+    "share_d": 17.106,
+    "reldens": 42.74,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#CFC6C6",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 55
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 24,
+    "rca": 0.78,
+    "share": 6.5753,
+    "share_d": 8.4817,
+    "reldens": 36.51,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#CBBABA",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 24
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 18,
+    "rca": 1.25,
+    "share": 4.9315,
+    "share_d": 3.9362,
+    "reldens": 38,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#91B091",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 18
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 1,
+    "rca": 0.21,
+    "share": 0.274,
+    "share_d": 1.2848,
+    "reldens": 72.41,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#AC6161",
+    "id": "Manufacture of food products (10)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 3,
+    "rca": 2.12,
+    "share": 0.8219,
+    "share_d": 0.3882,
+    "reldens": 48.28,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#5A945A",
+    "id": "Manufacture of furniture (31)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 1,
+    "rca": 1.04,
+    "share": 0.274,
+    "share_d": 0.2641,
+    "reldens": 45.34,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#B7C5B7",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 60,
+    "rca": 1.17,
+    "share": 16.4384,
+    "share_d": 13.9956,
+    "reldens": 37.97,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#9CB69C",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 60
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 7,
+    "rca": 0.37,
+    "share": 1.9178,
+    "share_d": 5.2453,
+    "reldens": 46.12,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#B78080",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 7
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 9,
+    "rca": 1.8,
+    "share": 2.4658,
+    "share_d": 1.3671,
+    "reldens": 51.95,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#689B68",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 9
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 4,
+    "rca": 0.61,
+    "share": 1.0959,
+    "share_d": 1.7935,
+    "reldens": 51.55,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#C3A5A5",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 4
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 1,
+    "rca": 0.46,
+    "share": 0.274,
+    "share_d": 0.5949,
+    "reldens": 32,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#BC8F8F",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 14,
+    "rca": 0.82,
+    "share": 3.8356,
+    "share_d": 4.6546,
+    "reldens": 45.04,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#CCBFBF",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 14
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 9,
+    "rca": 4.14,
+    "share": 2.4658,
+    "share_d": 0.5954,
+    "reldens": 41.16,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#2D7C2D",
+    "id": "Manufacture of textiles (13)",
+    "value": 9
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.135,
+    "reldens": 27.34,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 2,
+    "rca": 2.31,
+    "share": 0.5479,
+    "share_d": 0.2371,
+    "reldens": 44.76,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#549054",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1489,
+    "reldens": 49.26,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 0
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0488,
+    "reldens": 42.98,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Mining of metal ores (7)",
+    "value": 0
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.3637,
+    "reldens": 35.86,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Mining support service activities (9)",
+    "value": 0
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 10,
+    "rca": 0.46,
+    "share": 2.7397,
+    "share_d": 5.9525,
+    "reldens": 53.33,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#BC8F8F",
+    "id": "Other manufacturing (32)",
+    "value": 10
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0279,
+    "reldens": 24.51,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.2538,
+    "reldens": 28.84,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 0
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 19.32,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0131,
+    "reldens": 55.08,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 5,
+    "rca": 31.09,
+    "share": 1.3699,
+    "share_d": 0.0441,
+    "reldens": 82.72,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "#006400",
+    "id": "Sewerage (37)",
+    "value": 5
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 6,
+    "rca": 2.03,
+    "share": 1.6438,
+    "share_d": 0.8093,
+    "reldens": 58.87,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#5E955E",
+    "id": "Specialised construction activities (43)",
+    "value": 6
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 8,
+    "rca": 0.3,
+    "share": 2.1918,
+    "share_d": 7.2195,
+    "reldens": 33.85,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#B27474",
+    "id": "Telecommunication (61)",
+    "value": 8
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1712,
+    "reldens": 45.86,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 0
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Jihovýchod (CZ06)",
+    "count": 8,
+    "rca": 4.72,
+    "share": 2.1918,
+    "share_d": 0.4643,
+    "reldens": 49.94,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#267826",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 8
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

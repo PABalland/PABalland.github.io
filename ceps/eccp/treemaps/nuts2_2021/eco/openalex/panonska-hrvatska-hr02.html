@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 110,
+    "rca": 0.9,
+    "share": 1.7145,
+    "share_d": 1.8996,
+    "reldens": 21.8,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#CFC8C8",
+    "id": "Aerospace & Defence",
+    "value": 110
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 1048,
+    "rca": 1.63,
+    "share": 16.3342,
+    "share_d": 10.0342,
+    "reldens": 42.28,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#72A072",
+    "id": "Agrifood",
+    "value": 1048
+  },
+  {
+    "domain": "Construction",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 484,
+    "rca": 0.94,
+    "share": 7.5436,
+    "share_d": 8.053,
+    "reldens": 35.81,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#D1CDCD",
+    "id": "Construction",
+    "value": 484
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 434,
+    "rca": 0.86,
+    "share": 6.7643,
+    "share_d": 7.8692,
+    "reldens": 58.64,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#CEC4C4",
+    "id": "Cultural and Creative Industries",
+    "value": 434
+  },
+  {
+    "domain": "Digital",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 379,
+    "rca": 0.8,
+    "share": 5.9071,
+    "share_d": 7.342,
+    "reldens": 35.73,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#CBBDBD",
+    "id": "Digital",
+    "value": 379
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 345,
+    "rca": 0.61,
+    "share": 5.3772,
+    "share_d": 8.7502,
+    "reldens": 28.42,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#C3A5A5",
+    "id": "Electronics",
+    "value": 345
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 245,
+    "rca": 1.08,
+    "share": 3.8186,
+    "share_d": 3.5456,
+    "reldens": 27.89,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#ACBFAC",
+    "id": "Energy - Renewables",
+    "value": 245
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 427,
+    "rca": 0.79,
+    "share": 6.6552,
+    "share_d": 8.4773,
+    "reldens": 37.46,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#CBBCBC",
+    "id": "Energy Intensive Industries",
+    "value": 427
+  },
+  {
+    "domain": "Health",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 2693,
+    "rca": 1.02,
+    "share": 41.9732,
+    "share_d": 41.1317,
+    "reldens": 32.73,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#BFC9BF",
+    "id": "Health",
+    "value": 2693
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 153,
+    "rca": 1.31,
+    "share": 2.3847,
+    "share_d": 1.8241,
+    "reldens": 39.55,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#8BAD8B",
+    "id": "Mobility - Transport - Automotive",
+    "value": 153
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 5,
+    "rca": 0.34,
+    "share": 0.0779,
+    "share_d": 0.232,
+    "reldens": 65.76,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#B57B7B",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 5
+  },
+  {
+    "domain": "Retail",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 43,
+    "rca": 2.22,
+    "share": 0.6702,
+    "share_d": 0.3014,
+    "reldens": 42.19,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#579257",
+    "id": "Retail",
+    "value": 43
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 5,
+    "rca": 0.79,
+    "share": 0.0779,
+    "share_d": 0.0983,
+    "reldens": 21.81,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#CBBCBC",
+    "id": "Textiles",
+    "value": 5
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Panonska Hrvatska (HR02)",
+    "count": 45,
+    "rca": 1.59,
+    "share": 0.7014,
+    "share_d": 0.4414,
+    "reldens": 40.31,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#74A174",
+    "id": "Tourism",
+    "value": 45
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

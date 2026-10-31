@@ -1,0 +1,849 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --ink:#1f2328; --muted:#6b7280; --faint:#9ca3af; --grid:#eef0f3; --axis:#d1d5db;
+  --pos:#3f7f4f; --neg:#9b3b34;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;}
+body{font-family:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--ink);overflow:hidden;}
+.wrap{display:flex;flex-direction:column;height:100vh;padding:18px 22px 10px;}
+#chart{flex:1 1 auto;position:relative;min-height:0;}
+svg{display:block;width:100%;height:100%;}
+.footer{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;
+  padding-top:8px;font-size:12.5px;color:var(--muted);}
+.lg{display:flex;align-items:center;gap:8px;}
+.dot{width:11px;height:11px;border-radius:50%;}
+.ramp{width:90px;height:8px;border-radius:4px;
+  background:linear-gradient(90deg,#9b3b34,#c49a96,#e6e1e1,#9cbc9f,#3f7f4f);}
+.axis-title{font-size:19px;font-weight:600;fill:var(--ink);letter-spacing:.01em;}
+.tick text{font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums;}
+.quad{font-size:10.5px;fill:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+.label{font-size:14px;fill:#374151;font-weight:500;pointer-events:none;
+  paint-order:stroke;stroke:#fff;stroke-width:3.5px;stroke-linejoin:round;transition:opacity .15s;}
+.pt{cursor:pointer;transition:r .15s, opacity .15s;}
+.dim .pt:not(.on), .dim .label:not(.on), .dim .leader:not(.on){opacity:.25;}
+.label.on{font-weight:700;fill:var(--ink);}
+.leader{stroke:#c7cbd1;stroke-width:1;}
+.tip{position:absolute;pointer-events:none;background:#fff;border:1px solid #e5e7eb;border-radius:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);padding:10px 12px;font-size:12px;min-width:190px;
+  opacity:0;transition:opacity .12s;z-index:5;}
+.tip h4{margin:0 0 6px;font-size:13px;}
+.tip table{width:100%;border-collapse:collapse;}
+.tip td{padding:2px 0;color:var(--muted);}
+.tip td.v{text-align:right;padding-left:14px;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="chart"><div class="tip" id="tip"></div></div>
+<div class="footer">
+  <span class="lg">
+    Scientific RCA &lt; 1
+    <span class="dot" style="background:var(--neg)"></span>
+    <span class="ramp"></span>
+    <span class="dot" style="background:var(--pos)"></span>
+    Scientific RCA &gt; 1
+  </span>
+  <span class="lg" style="color:var(--faint)">Dashed lines = medians</span>
+</div>
+</div>
+<script>
+var data=
+  [
+  {
+    "id": "Activities auxiliary to financial services and insurance activities (66)",
+    "x": 4,
+    "y": 34.01,
+    "color": "#AF6A6A",
+    "rca": 0.25,
+    "value": 0.5
+  },
+  {
+    "id": "Activities of advertising, market research and public relations (73)",
+    "x": 7.93,
+    "y": 28.92,
+    "color": "#C3A3A3",
+    "rca": 0.6,
+    "value": 0.5
+  },
+  {
+    "id": "Activities of extraterritorial organisations and bodies (99)",
+    "x": 23.88,
+    "y": 31.595,
+    "color": "#9DB79D",
+    "rca": 1.16,
+    "value": 0.5
+  },
+  {
+    "id": "Activities of head offices and management consultancy (70)",
+    "x": 15.31,
+    "y": 20.47,
+    "color": "#B98787",
+    "rca": 0.41,
+    "value": 0.5
+  },
+  {
+    "id": "Activities of membership organisations (94)",
+    "x": 9.9,
+    "y": 24.445,
+    "color": "#B88484",
+    "rca": 0.39,
+    "value": 0.5
+  },
+  {
+    "id": "Air transport (51)",
+    "x": 17.33,
+    "y": 37.115,
+    "color": "#B88484",
+    "rca": 0.39,
+    "value": 0.5
+  },
+  {
+    "id": "Architectural and engineering activities; technical testing and analysis (71)",
+    "x": 40.37,
+    "y": 29.62,
+    "color": "#95B295",
+    "rca": 1.22,
+    "value": 0.5
+  },
+  {
+    "id": "Arts creation and performing arts activities (90)",
+    "x": 18.2,
+    "y": 23.41,
+    "color": "#BA8989",
+    "rca": 0.42,
+    "value": 0.5
+  },
+  {
+    "id": "Civil engineering (42)",
+    "x": 45.725,
+    "y": 62.695,
+    "color": "lightgrey",
+    "rca": 1,
+    "value": 0.5
+  },
+  {
+    "id": "Computer programming, consultancy and related activities (62)",
+    "x": 28.4,
+    "y": 73.9,
+    "color": "#C4A6A6",
+    "rca": 0.62,
+    "value": 0.5
+  },
+  {
+    "id": "Computing infrastructure, data processing, hosting and other information service activities (63)",
+    "x": 10.12,
+    "y": 31.37,
+    "color": "#D2D1D1",
+    "rca": 0.98,
+    "value": 0.5
+  },
+  {
+    "id": "Construction of residential and non-residential buildings (41)",
+    "x": 44.72,
+    "y": 63.35,
+    "color": "#AA5A5A",
+    "rca": 0.18,
+    "value": 0.5
+  },
+  {
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "x": 47.77,
+    "y": 52.62,
+    "color": "#CDC0C0",
+    "rca": 0.83,
+    "value": 0.5
+  },
+  {
+    "id": "Education (85)",
+    "x": 20.71,
+    "y": 18.24,
+    "color": "#C7B1B1",
+    "rca": 0.7,
+    "value": 0.5
+  },
+  {
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "x": 42.635,
+    "y": 63.515,
+    "color": "#CCBFBF",
+    "rca": 0.82,
+    "value": 0.5
+  },
+  {
+    "id": "Employment activities (78)",
+    "x": 8.41,
+    "y": 25.77,
+    "color": "#C09C9C",
+    "rca": 0.55,
+    "value": 0.5
+  },
+  {
+    "id": "Extraction of crude petroleum and natural gas (6)",
+    "x": 69.43,
+    "y": 34.775,
+    "color": "#2D7C2D",
+    "rca": 4.15,
+    "value": 0.5
+  },
+  {
+    "id": "Financial service activities, except insurance and pension funding (64)",
+    "x": 7.43,
+    "y": 28.435,
+    "color": "#C5AAAA",
+    "rca": 0.65,
+    "value": 0.5
+  },
+  {
+    "id": "Fishing and aquaculture (3)",
+    "x": 52.53,
+    "y": 22.895,
+    "color": "#448844",
+    "rca": 2.87,
+    "value": 0.5
+  },
+  {
+    "id": "Food and beverage service activities (56)",
+    "x": 8.6,
+    "y": 22.665,
+    "color": "darkred",
+    "rca": 0,
+    "value": 0.5
+  },
+  {
+    "id": "Forestry and logging (2)",
+    "x": 22.99,
+    "y": 23.435,
+    "color": "#BE9797",
+    "rca": 0.51,
+    "value": 0.5
+  },
+  {
+    "id": "Gambling and betting activities (92)",
+    "x": 31.71,
+    "y": 28.805,
+    "color": "#9AB59A",
+    "rca": 1.18,
+    "value": 0.5
+  },
+  {
+    "id": "Human health activities (86)",
+    "x": 33.96,
+    "y": 26.675,
+    "color": "#A6BBA6",
+    "rca": 1.11,
+    "value": 0.5
+  },
+  {
+    "id": "Insurance, reinsurance and pension funding, except compulsory social security (65)",
+    "x": 7.66,
+    "y": 30.075,
+    "color": "#B67F7F",
+    "rca": 0.36,
+    "value": 0.5
+  },
+  {
+    "id": "Investigation and security activities (80)",
+    "x": 9.64,
+    "y": 31.66,
+    "color": "#B27272",
+    "rca": 0.29,
+    "value": 0.5
+  },
+  {
+    "id": "Land transport and transport via pipelines (49)",
+    "x": 22.055,
+    "y": 68.425,
+    "color": "#B17070",
+    "rca": 0.28,
+    "value": 0.5
+  },
+  {
+    "id": "Legal and accounting activities (69)",
+    "x": 13.33,
+    "y": 26.53,
+    "color": "#B78282",
+    "rca": 0.38,
+    "value": 0.5
+  },
+  {
+    "id": "Libraries, archives, museums and other cultural activities (91)",
+    "x": 21.4,
+    "y": 23.53,
+    "color": "#C4A7A7",
+    "rca": 0.63,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of basic metals (24)",
+    "x": 56.155,
+    "y": 65.16,
+    "color": "#4D8C4D",
+    "rca": 2.54,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "x": 47.15,
+    "y": 65.04,
+    "color": "#9DB79D",
+    "rca": 1.16,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of beverages (11)",
+    "x": 23.205,
+    "y": 55.865,
+    "color": "#B06E6E",
+    "rca": 0.27,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "x": 45.785,
+    "y": 65.32,
+    "color": "#D1CECE",
+    "rca": 0.95,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "x": 54.88,
+    "y": 62.415,
+    "color": "#CDC3C3",
+    "rca": 0.85,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "x": 38.055,
+    "y": 74.97,
+    "color": "#A6BBA6",
+    "rca": 1.11,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of electrical equipment (27)",
+    "x": 38.43,
+    "y": 73.42,
+    "color": "#D1CECE",
+    "rca": 0.95,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "x": 50.62,
+    "y": 66.01,
+    "color": "#72A072",
+    "rca": 1.62,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of food products (10)",
+    "x": 51.445,
+    "y": 54.425,
+    "color": "#C09B9B",
+    "rca": 0.54,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of furniture (31)",
+    "x": 50.57,
+    "color": "darkred",
+    "rca": 0,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "x": 51.51,
+    "color": "darkred",
+    "rca": 0,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "x": 37.925,
+    "y": 66.15,
+    "color": "#CBBDBD",
+    "rca": 0.8,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "x": 33.375,
+    "y": 71.53,
+    "color": "#B88484",
+    "rca": 0.39,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "x": 47.315,
+    "y": 61.5,
+    "color": "#C8B2B2",
+    "rca": 0.71,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of other transport equipment (30)",
+    "x": 42.65,
+    "y": 73.355,
+    "color": "#C3A3A3",
+    "rca": 0.6,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of paper and paper products (17)",
+    "x": 40.565,
+    "y": 65.695,
+    "color": "#B27272",
+    "rca": 0.29,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of rubber and plastic products (22)",
+    "x": 43.115,
+    "y": 66.03,
+    "color": "#CCBFBF",
+    "rca": 0.82,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of textiles (13)",
+    "x": 36.66,
+    "y": 60.96,
+    "color": "#AC6161",
+    "rca": 0.21,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of tobacco products (12)",
+    "x": 65.87,
+    "color": "darkred",
+    "rca": 0,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of wearing apparel (14)",
+    "x": 31.07,
+    "y": 64.445,
+    "color": "#B78282",
+    "rca": 0.38,
+    "value": 0.5
+  },
+  {
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "x": 30.14,
+    "y": 61.255,
+    "color": "#B98585",
+    "rca": 0.4,
+    "value": 0.5
+  },
+  {
+    "id": "Mining of coal and lignite (5)",
+    "x": 56.51,
+    "y": 18.095,
+    "color": "#BC8F8F",
+    "rca": 0.46,
+    "value": 0.5
+  },
+  {
+    "id": "Mining of metal ores (7)",
+    "x": 46.525,
+    "y": 56.085,
+    "color": "#BD9292",
+    "rca": 0.48,
+    "value": 0.5
+  },
+  {
+    "id": "Mining support service activities (9)",
+    "x": 50.13,
+    "y": 66.125,
+    "color": "#549054",
+    "rca": 2.29,
+    "value": 0.5
+  },
+  {
+    "id": "Motion picture, video and television programme production, sound recording and music publishing activities (59)",
+    "x": 15.88,
+    "y": 30.55,
+    "color": "#AB5E5E",
+    "rca": 0.2,
+    "value": 0.5
+  },
+  {
+    "id": "Office administrative, office support and other business support activities (82)",
+    "x": 16.84,
+    "y": 28.96,
+    "color": "#9AB59A",
+    "rca": 1.18,
+    "value": 0.5
+  },
+  {
+    "id": "Other manufacturing (32)",
+    "x": 37.995,
+    "y": 68.565,
+    "color": "#A4BAA4",
+    "rca": 1.12,
+    "value": 0.5
+  },
+  {
+    "id": "Other mining and quarrying (8)",
+    "x": 35.87,
+    "y": 54.66,
+    "color": "#C19F9F",
+    "rca": 0.57,
+    "value": 0.5
+  },
+  {
+    "id": "Other professional, scientific and technical activities (74)",
+    "x": 45.52,
+    "y": 37.19,
+    "color": "#7AA47A",
+    "rca": 1.51,
+    "value": 0.5
+  },
+  {
+    "id": "Personal service activities (96)",
+    "x": 22.52,
+    "y": 26.02,
+    "color": "#A75252",
+    "rca": 0.15,
+    "value": 0.5
+  },
+  {
+    "id": "Printing and reproduction of recorded media (18)",
+    "x": 40.9,
+    "color": "darkred",
+    "rca": 0,
+    "value": 0.5
+  },
+  {
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "x": 14.505,
+    "y": 66.025,
+    "color": "#BE9797",
+    "rca": 0.51,
+    "value": 0.5
+  },
+  {
+    "id": "Public administration and defence; compulsory social security (84)",
+    "x": 20.32,
+    "y": 22.315,
+    "color": "#C5A9A9",
+    "rca": 0.64,
+    "value": 0.5
+  },
+  {
+    "id": "Publishing activities (58)",
+    "x": 31.79,
+    "y": 26.735,
+    "color": "#99B499",
+    "rca": 1.19,
+    "value": 0.5
+  },
+  {
+    "id": "Real estate activities (68)",
+    "x": 7.77,
+    "y": 35.635,
+    "color": "#B67F7F",
+    "rca": 0.36,
+    "value": 0.5
+  },
+  {
+    "id": "Remediation activities and other waste management service activities (39)",
+    "x": 42.54,
+    "y": 59.77,
+    "color": "#A2B9A2",
+    "rca": 1.13,
+    "value": 0.5
+  },
+  {
+    "id": "Rental and leasing activities (77)",
+    "x": 2.81,
+    "y": 33.33,
+    "color": "#C4A7A7",
+    "rca": 0.63,
+    "value": 0.5
+  },
+  {
+    "id": "Repair, maintenance and installation of machinery and equipment (33)",
+    "x": 38.01,
+    "y": 30.69,
+    "color": "#B67D7D",
+    "rca": 0.35,
+    "value": 0.5
+  },
+  {
+    "id": "Residential care activities (87)",
+    "x": 63.12,
+    "y": 21.985,
+    "color": "#BF9A9A",
+    "rca": 0.53,
+    "value": 0.5
+  },
+  {
+    "id": "Retail trade (47)",
+    "x": 6.73,
+    "y": 29.12,
+    "color": "#B78282",
+    "rca": 0.38,
+    "value": 0.5
+  },
+  {
+    "id": "Scientific research and development (72)",
+    "x": 53.72,
+    "y": 28.865,
+    "color": "#6C9D6C",
+    "rca": 1.73,
+    "value": 0.5
+  },
+  {
+    "id": "Services to buildings and landscape activities (81)",
+    "x": 18.41,
+    "y": 18.425,
+    "color": "#A13F3F",
+    "rca": 0.09,
+    "value": 0.5
+  },
+  {
+    "id": "Sewerage (37)",
+    "x": 52.685,
+    "y": 59.21,
+    "color": "#C09C9C",
+    "rca": 0.55,
+    "value": 0.5
+  },
+  {
+    "id": "Social work activities without accommodation (88)",
+    "x": 22.23,
+    "y": 25.135,
+    "color": "#BE9797",
+    "rca": 0.51,
+    "value": 0.5
+  },
+  {
+    "id": "Specialised construction activities (43)",
+    "x": 47.5,
+    "y": 71.255,
+    "color": "#A34646",
+    "rca": 0.11,
+    "value": 0.5
+  },
+  {
+    "id": "Sports activities and amusement and recreation activities (93)",
+    "x": 36.14,
+    "y": 20.125,
+    "color": "#BB8C8C",
+    "rca": 0.44,
+    "value": 0.5
+  },
+  {
+    "id": "Telecommunication (61)",
+    "x": 21.15,
+    "y": 77.305,
+    "color": "#C09C9C",
+    "rca": 0.55,
+    "value": 0.5
+  },
+  {
+    "id": "Travel agency, tour operator and other reservation service and related activities (79)",
+    "x": 28.8,
+    "y": 23.77,
+    "color": "#B27474",
+    "rca": 0.3,
+    "value": 0.5
+  },
+  {
+    "id": "Veterinary activities (75)",
+    "x": 61.93,
+    "y": 18.76,
+    "color": "#C9B6B6",
+    "rca": 0.74,
+    "value": 0.5
+  },
+  {
+    "id": "Warehousing, storage and support activities for transportation (52)",
+    "x": 13.27,
+    "y": 30.6,
+    "color": "#B78080",
+    "rca": 0.37,
+    "value": 0.5
+  },
+  {
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "x": 29.63,
+    "y": 59.79,
+    "color": "#C8B2B2",
+    "rca": 0.71,
+    "value": 0.5
+  },
+  {
+    "id": "Water collection, treatment and supply (36)",
+    "x": 52.895,
+    "y": 60.21,
+    "color": "#B1C1B1",
+    "rca": 1.06,
+    "value": 0.5
+  },
+  {
+    "id": "Water transport (50)",
+    "x": 16.8,
+    "y": 30.405,
+    "color": "#78A378",
+    "rca": 1.53,
+    "value": 0.5
+  },
+  {
+    "id": "Wholesale trade (46)",
+    "x": 22.87,
+    "y": 26.665,
+    "color": "#ACBFAC",
+    "rca": 1.08,
+    "value": 0.5
+  }
+]   ;
+
+/* ---------- config ---------- */
+var X_TITLE="Technological + Scientific Relatedness Density", Y_TITLE="Technological + Scientific Complexity Index";
+var FIXED_X_DOMAIN=null;      // e.g. [0,110] to force a domain; null = fit to data
+var R=8;                      // bubble radius
+
+/* ---------- helpers ---------- */
+function median(v){v=[...v].sort((a,b)=>a-b);var h=Math.floor(v.length/2);return v.length%2?v[h]:(v[h-1]+v[h])/2;}
+function niceStep(span,target){var raw=span/target,p=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/p;
+  return (n<1.5?1:n<3?2:n<7?5:10)*p;}
+function niceDomain(min,max,target){var s=niceStep(max-min,target);return [Math.floor(min/s)*s,Math.ceil(max/s)*s,s];}
+function fmt(v,d){return (v===undefined||v===null||v==="")?"–":(typeof v==="number"?v.toFixed(d):v);}
+function el(tag,attrs,parent){var e=document.createElementNS("http://www.w3.org/2000/svg",tag);
+  for(var k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function overlap(a,b,pad){pad=pad||0;return !(a.x+a.w+pad<b.x||b.x+b.w+pad<a.x||a.y+a.h+pad<b.y||b.y+b.h+pad<a.y);}
+
+var mx=median(data.map(d=>d.x)), my=median(data.map(d=>d.y));
+var host=document.getElementById("chart"), tip=document.getElementById("tip");
+
+function draw(){
+  host.querySelectorAll("svg").forEach(s=>s.remove());
+  var W=host.clientWidth, H=host.clientHeight;
+  var m={top:16,right:28,bottom:64,left:78};
+  var iw=W-m.left-m.right, ih=H-m.top-m.bottom;
+
+  var xs=data.map(d=>d.x), ys=data.map(d=>d.y);
+  var xpad=(Math.max(...xs)-Math.min(...xs))*0.12, ypad=(Math.max(...ys)-Math.min(...ys))*0.08;
+  var xd=FIXED_X_DOMAIN?[...FIXED_X_DOMAIN,niceStep(FIXED_X_DOMAIN[1]-FIXED_X_DOMAIN[0],10)]
+                       :niceDomain(Math.min(...xs)-xpad,Math.max(...xs)+xpad,8);
+  var yd=niceDomain(Math.min(...ys)-ypad,Math.max(...ys)+ypad,7);
+  var sx=v=>m.left+(v-xd[0])/(xd[1]-xd[0])*iw;
+  var sy=v=>m.top+ih-(v-yd[0])/(yd[1]-yd[0])*ih;
+
+  var svg=el("svg",{viewBox:`0 0 ${W} ${H}`},null); host.appendChild(svg);
+
+  // quadrant tint (top-right = most promising)
+  el("rect",{x:sx(mx),y:m.top,width:m.left+iw-sx(mx),height:sy(my)-m.top,fill:"#f3f8f4"},svg);
+
+  // grid + ticks
+  var g=el("g",{},svg);
+  for(var v=xd[0];v<=xd[1]+1e-9;v+=xd[2]){var x=sx(v);
+    el("line",{x1:x,x2:x,y1:m.top,y2:m.top+ih,stroke:"var(--grid)"},g);
+    var t=el("g",{class:"tick"},g);var tx=el("text",{x:x,y:m.top+ih+18,"text-anchor":"middle"},t);tx.textContent=+v.toFixed(2);}
+  for(var v=yd[0];v<=yd[1]+1e-9;v+=yd[2]){var y=sy(v);
+    el("line",{x1:m.left,x2:m.left+iw,y1:y,y2:y,stroke:"var(--grid)"},g);
+    var t=el("g",{class:"tick"},g);var ty=el("text",{x:m.left-10,y:y+4,"text-anchor":"end"},t);ty.textContent=+v.toFixed(2);}
+  el("line",{x1:m.left,x2:m.left+iw,y1:m.top+ih,y2:m.top+ih,stroke:"var(--axis)"},g);
+  el("line",{x1:m.left,x2:m.left,y1:m.top,y2:m.top+ih,stroke:"var(--axis)"},g);
+
+  // medians
+  el("line",{x1:sx(mx),x2:sx(mx),y1:m.top,y2:m.top+ih,stroke:"#b8bdc4","stroke-dasharray":"5 5"},svg);
+  el("line",{x1:m.left,x2:m.left+iw,y1:sy(my),y2:sy(my),stroke:"#b8bdc4","stroke-dasharray":"5 5"},svg);
+
+  // quadrant captions
+  var q=[["High complexity · High relatedness",m.left+iw-8,m.top+16,"end"],
+         ["High complexity · Low relatedness",m.left+8,m.top+16,"start"],
+         ["Low complexity · Low relatedness",m.left+8,m.top+ih-10,"start"],
+         ["Low complexity · High relatedness",m.left+iw-8,m.top+ih-10,"end"]];
+  var blocked=[];
+  q.forEach(a=>{var t=el("text",{class:"quad",x:a[1],y:a[2],"text-anchor":a[3]},svg);t.textContent=a[0];
+    var b=t.getBBox();blocked.push({x:b.x,y:b.y,w:b.width,h:b.height});});
+
+  // axis titles
+  var xt=el("text",{class:"axis-title",x:m.left+iw/2,y:H-14,"text-anchor":"middle"},svg);xt.textContent=X_TITLE+"";
+  var yt=el("text",{class:"axis-title",transform:`translate(22,${m.top+ih/2}) rotate(-90)`,"text-anchor":"middle"},svg);yt.textContent=Y_TITLE+"";
+
+  // points
+  var pts=data.map(d=>({d:d,cx:sx(d.x),cy:sy(d.y)}));
+  var circBoxes=pts.map(p=>({x:p.cx-R,y:p.cy-R,w:2*R,h:2*R}));
+  var leaders=el("g",{},svg), dots=el("g",{},svg), labs=el("g",{},svg);
+
+  pts.forEach(p=>{
+    p.c=el("circle",{class:"pt",cx:p.cx,cy:p.cy,r:R,fill:p.d.color,stroke:"#fff","stroke-width":2,
+      style:"filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.18))"},dots);
+    var ring=el("circle",{cx:p.cx,cy:p.cy,r:R+0.5,fill:"none",stroke:p.d.rca>=1?"var(--pos)":"var(--neg)","stroke-width":1,opacity:.55,"pointer-events":"none"},dots);
+  });
+
+  // label placement: greedy, try candidate offsets, avoid circles, other labels, captions, bounds
+  var placed=[];
+  var order=[...pts].sort((a,b)=>b.d.id.length-a.d.id.length);
+  order.forEach(p=>{
+    var t=el("text",{class:"label"},labs);t.textContent=p.d.id;
+    var bb=t.getBBox(), w=bb.width, h=bb.height, gap=R+5;
+    var cands=[];
+    [[1,0],[-1,0],[0,-1],[0,1],[1,-1],[1,1],[-1,-1],[-1,1]].forEach(([dx,dy])=>{
+      [1,1.9,2.8].forEach(k=>cands.push({dx,dy,k}));});
+    var best=null,bestScore=1e9;
+    cands.forEach(c=>{
+      var ax=p.cx+c.dx*gap*c.k, ay=p.cy+c.dy*gap*c.k;
+      var x= c.dx>0?ax: c.dx<0?ax-w: ax-w/2;
+      var y= c.dy>0?ay: c.dy<0?ay-h: ay-h/2;
+      var box={x:x,y:y,w:w,h:h};
+      var s=(c.k-1)*6+(c.dx===0?2:0)+(c.dy!==0&&c.dx!==0?1.5:0);
+      if(x<m.left+2||x+w>m.left+iw-2||y<m.top||y+h>m.top+ih-2)s+=1000;
+      circBoxes.forEach(cb=>{if(overlap(box,cb,2))s+=200;});
+      placed.forEach(pb=>{if(overlap(box,pb,3))s+=300;});
+      blocked.forEach(qb=>{if(overlap(box,qb,2))s+=60;});
+      if(s<bestScore){bestScore=s;best={box,c};}
+    });
+    var b=best.box;
+    t.setAttribute("x",b.x);t.setAttribute("y",b.y+h*0.78);
+    placed.push(b);p.t=t;
+    if(best.c.k>1){ // leader line for pushed-out labels
+      var lx=Math.max(b.x,Math.min(p.cx,b.x+b.w)), ly=Math.max(b.y,Math.min(p.cy,b.y+b.h));
+      var dx=lx-p.cx, dy=ly-p.cy, dist=Math.hypot(dx,dy)||1;
+      p.l=el("line",{class:"leader",x1:p.cx+dx/dist*(R+2),y1:p.cy+dy/dist*(R+2),x2:lx,y2:ly},leaders);
+    }
+  });
+
+  // interaction
+  pts.forEach(p=>{
+    p.c.addEventListener("mouseenter",()=>{
+      svg.classList.add("dim");[p.c,p.t,p.l].forEach(e=>e&&e.classList.add("on"));p.c.setAttribute("r",R+3);
+      var d=p.d;
+      tip.innerHTML=`<h4>${d.id}</h4><table>
+        <tr><td>${X_TITLE}</td><td class="v">${fmt(d.x,1)}</td></tr>
+        <tr><td>${Y_TITLE}</td><td class="v">${fmt(d.y,1)}</td></tr>
+        <tr><td>Scientific RCA</td><td class="v" style="color:${d.rca>=1?"var(--pos)":"var(--neg)"}">${fmt(d.rca,2)}</td></tr>
+        ${d.crunchbase!==undefined?`<tr><td>Investment index</td><td class="v">${fmt(d.crunchbase,2)}</td></tr>`:""}
+        ${d.regpat!==undefined?`<tr><td>Technology index</td><td class="v">${fmt(d.regpat,2)}</td></tr>`:""}
+        ${d.openalex!==undefined?`<tr><td>Scientific index</td><td class="v">${fmt(d.openalex,2)}</td></tr>`:""}
+      </table>`;
+      tip.style.opacity=1;
+      var tw=tip.offsetWidth, th=tip.offsetHeight;
+      var left=p.cx+16+tw>W?p.cx-16-tw:p.cx+16, top=Math.max(4,Math.min(H-th-4,p.cy-th/2));
+      tip.style.left=left+"px";tip.style.top=top+"px";
+    });
+    p.c.addEventListener("mouseleave",()=>{
+      svg.classList.remove("dim");[p.c,p.t,p.l].forEach(e=>e&&e.classList.remove("on"));p.c.setAttribute("r",R);
+      tip.style.opacity=0;
+    });
+  });
+}
+
+draw();
+var rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,120);});
+</script>
+</body>
+</html>

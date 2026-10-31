@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Funding RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Funding RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 2.0877,
+    "reldens": 25.37,
+    "comp_PA": 86.6,
+    "comp_TCI": 56.38,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Aerospace & Defence",
+    "value": 0
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 0.16,
+    "rca": 0.01,
+    "share": 0.0505,
+    "share_d": 3.6719,
+    "reldens": 17.4,
+    "comp_PA": 81.72,
+    "comp_TCI": 50.44,
+    "parent": "A",
+    "color": "#921515",
+    "id": "Agrifood",
+    "value": 0.16
+  },
+  {
+    "domain": "Construction",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 1.6,
+    "rca": 0.15,
+    "share": 0.5054,
+    "share_d": 3.2759,
+    "reldens": 24.69,
+    "comp_PA": 67.49,
+    "comp_TCI": 80.38,
+    "parent": "A",
+    "color": "#A75252",
+    "id": "Construction",
+    "value": 1.6
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 0.57,
+    "rca": 0.02,
+    "share": 0.1801,
+    "share_d": 11.1756,
+    "reldens": 13.14,
+    "comp_PA": 91.47,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#951E1E",
+    "id": "Cultural and Creative Industries",
+    "value": 0.57
+  },
+  {
+    "domain": "Digital",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 6.45,
+    "rca": 0.07,
+    "share": 2.0375,
+    "share_d": 30.6012,
+    "reldens": 14.28,
+    "comp_PA": 88.76,
+    "comp_TCI": 10.64,
+    "parent": "A",
+    "color": "#9E3838",
+    "id": "Digital",
+    "value": 6.45
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 146.45,
+    "rca": 8.31,
+    "share": 46.263,
+    "share_d": 5.5691,
+    "reldens": 12.19,
+    "comp_PA": 70.25,
+    "comp_TCI": 55,
+    "parent": "A",
+    "color": "#096909",
+    "id": "Electronics",
+    "value": 146.45
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 3.1,
+    "rca": 0.09,
+    "share": 0.9793,
+    "share_d": 10.7065,
+    "reldens": 32.78,
+    "comp_PA": 83.84,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#A13F3F",
+    "id": "Energy - Renewables",
+    "value": 3.1
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 139.3,
+    "rca": 25.45,
+    "share": 44.0043,
+    "share_d": 1.729,
+    "reldens": 23.29,
+    "comp_PA": 79.74,
+    "comp_TCI": 61.19,
+    "parent": "A",
+    "color": "#006400",
+    "id": "Energy Intensive Industries",
+    "value": 139.3
+  },
+  {
+    "domain": "Health",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 12.56,
+    "rca": 0.4,
+    "share": 3.9677,
+    "share_d": 9.839,
+    "reldens": 28.01,
+    "comp_PA": 84.27,
+    "comp_TCI": 59.5,
+    "parent": "A",
+    "color": "#B98585",
+    "id": "Health",
+    "value": 12.56
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 1.3,
+    "rca": 0.04,
+    "share": 0.4107,
+    "share_d": 9.4088,
+    "reldens": 17.99,
+    "comp_PA": 87.29,
+    "comp_TCI": 51.89,
+    "parent": "A",
+    "color": "#992A2A",
+    "id": "Mobility - Transport - Automotive",
+    "value": 1.3
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 5.3611,
+    "reldens": 9.91,
+    "comp_PA": 85.35,
+    "comp_TCI": 26.07,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 0
+  },
+  {
+    "domain": "Retail",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 2.52,
+    "rca": 0.19,
+    "share": 0.7961,
+    "share_d": 4.271,
+    "reldens": 20.06,
+    "comp_PA": 66.26,
+    "comp_TCI": 32.01,
+    "parent": "A",
+    "color": "#AA5C5C",
+    "id": "Retail",
+    "value": 2.52
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 2.47,
+    "rca": 5.88,
+    "share": 0.7803,
+    "share_d": 0.1327,
+    "reldens": 22.61,
+    "comp_PA": 70.04,
+    "comp_TCI": 33.82,
+    "parent": "A",
+    "color": "#1A721A",
+    "id": "Textiles",
+    "value": 2.47
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Sachsen-Anhalt (DEE0)",
+    "count": 0.08,
+    "rca": 0.01,
+    "share": 0.0253,
+    "share_d": 2.1704,
+    "reldens": 6.45,
+    "comp_PA": 79.86,
+    "comp_TCI": 40.91,
+    "parent": "A",
+    "color": "#921515",
+    "id": "Tourism",
+    "value": 0.08
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

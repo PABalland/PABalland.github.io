@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Hovedstaden (DK01)",
+    "count": 1371,
+    "rca": 0.7,
+    "share": 1.3213,
+    "share_d": 1.8996,
+    "reldens": 11.3,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#C7B1B1",
+    "id": "Aerospace & Defence",
+    "value": 1371
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Hovedstaden (DK01)",
+    "count": 10775,
+    "rca": 1.03,
+    "share": 10.3847,
+    "share_d": 10.0342,
+    "reldens": 34.36,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#BBC6BB",
+    "id": "Agrifood",
+    "value": 10775
+  },
+  {
+    "domain": "Construction",
+    "geo": "Hovedstaden (DK01)",
+    "count": 8067,
+    "rca": 0.97,
+    "share": 7.7748,
+    "share_d": 8.053,
+    "reldens": 27.1,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#D2D0D0",
+    "id": "Construction",
+    "value": 8067
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Hovedstaden (DK01)",
+    "count": 6391,
+    "rca": 0.78,
+    "share": 6.1595,
+    "share_d": 7.8692,
+    "reldens": 45.89,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#CBBABA",
+    "id": "Cultural and Creative Industries",
+    "value": 6391
+  },
+  {
+    "domain": "Digital",
+    "geo": "Hovedstaden (DK01)",
+    "count": 6644,
+    "rca": 0.87,
+    "share": 6.4034,
+    "share_d": 7.342,
+    "reldens": 21.64,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#CEC5C5",
+    "id": "Digital",
+    "value": 6644
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Hovedstaden (DK01)",
+    "count": 7109,
+    "rca": 0.78,
+    "share": 6.8515,
+    "share_d": 8.7502,
+    "reldens": 22.69,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#CBBABA",
+    "id": "Electronics",
+    "value": 7109
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Hovedstaden (DK01)",
+    "count": 4668,
+    "rca": 1.27,
+    "share": 4.4989,
+    "share_d": 3.5456,
+    "reldens": 5.35,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#8FAF8F",
+    "id": "Energy - Renewables",
+    "value": 4668
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Hovedstaden (DK01)",
+    "count": 7819,
+    "rca": 0.89,
+    "share": 7.5358,
+    "share_d": 8.4773,
+    "reldens": 38.63,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#CFC7C7",
+    "id": "Energy Intensive Industries",
+    "value": 7819
+  },
+  {
+    "domain": "Health",
+    "geo": "Hovedstaden (DK01)",
+    "count": 48313,
+    "rca": 1.13,
+    "share": 46.5632,
+    "share_d": 41.1317,
+    "reldens": 30.19,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#A2B9A2",
+    "id": "Health",
+    "value": 48313
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Hovedstaden (DK01)",
+    "count": 1595,
+    "rca": 0.84,
+    "share": 1.5372,
+    "share_d": 1.8241,
+    "reldens": 36.49,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#CDC1C1",
+    "id": "Mobility - Transport - Automotive",
+    "value": 1595
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Hovedstaden (DK01)",
+    "count": 299,
+    "rca": 1.24,
+    "share": 0.2882,
+    "share_d": 0.232,
+    "reldens": 34.58,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#93B193",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 299
+  },
+  {
+    "domain": "Retail",
+    "geo": "Hovedstaden (DK01)",
+    "count": 312,
+    "rca": 1,
+    "share": 0.3007,
+    "share_d": 0.3014,
+    "reldens": 25.69,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "lightgrey",
+    "id": "Retail",
+    "value": 312
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Hovedstaden (DK01)",
+    "count": 113,
+    "rca": 1.11,
+    "share": 0.1089,
+    "share_d": 0.0983,
+    "reldens": 20.1,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#A6BBA6",
+    "id": "Textiles",
+    "value": 113
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Hovedstaden (DK01)",
+    "count": 282,
+    "rca": 0.62,
+    "share": 0.2718,
+    "share_d": 0.4414,
+    "reldens": 36.05,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#C4A6A6",
+    "id": "Tourism",
+    "value": 282
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

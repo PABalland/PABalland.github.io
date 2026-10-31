@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Münster (DEA3)",
+    "count": 194,
+    "rca": 0.42,
+    "share": 0.7884,
+    "share_d": 1.8996,
+    "reldens": 34.32,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#BA8989",
+    "id": "Aerospace & Defence",
+    "value": 194
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Münster (DEA3)",
+    "count": 1517,
+    "rca": 0.61,
+    "share": 6.1649,
+    "share_d": 10.0342,
+    "reldens": 42.55,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#C3A5A5",
+    "id": "Agrifood",
+    "value": 1517
+  },
+  {
+    "domain": "Construction",
+    "geo": "Münster (DEA3)",
+    "count": 1398,
+    "rca": 0.71,
+    "share": 5.6813,
+    "share_d": 8.053,
+    "reldens": 38.14,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#C8B2B2",
+    "id": "Construction",
+    "value": 1398
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Münster (DEA3)",
+    "count": 1380,
+    "rca": 0.71,
+    "share": 5.6082,
+    "share_d": 7.8692,
+    "reldens": 19.24,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#C8B2B2",
+    "id": "Cultural and Creative Industries",
+    "value": 1380
+  },
+  {
+    "domain": "Digital",
+    "geo": "Münster (DEA3)",
+    "count": 1212,
+    "rca": 0.67,
+    "share": 4.9254,
+    "share_d": 7.342,
+    "reldens": 30.6,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#C6ADAD",
+    "id": "Digital",
+    "value": 1212
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Münster (DEA3)",
+    "count": 1759,
+    "rca": 0.82,
+    "share": 7.1484,
+    "share_d": 8.7502,
+    "reldens": 49.89,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#CCBFBF",
+    "id": "Electronics",
+    "value": 1759
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Münster (DEA3)",
+    "count": 950,
+    "rca": 1.09,
+    "share": 3.8607,
+    "share_d": 3.5456,
+    "reldens": 47.5,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#AABEAA",
+    "id": "Energy - Renewables",
+    "value": 950
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Münster (DEA3)",
+    "count": 2482,
+    "rca": 1.19,
+    "share": 10.0866,
+    "share_d": 8.4773,
+    "reldens": 29.49,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#99B499",
+    "id": "Energy Intensive Industries",
+    "value": 2482
+  },
+  {
+    "domain": "Health",
+    "geo": "Münster (DEA3)",
+    "count": 13092,
+    "rca": 1.29,
+    "share": 53.2044,
+    "share_d": 41.1317,
+    "reldens": 22.42,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#8DAE8D",
+    "id": "Health",
+    "value": 13092
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Münster (DEA3)",
+    "count": 456,
+    "rca": 1.02,
+    "share": 1.8531,
+    "share_d": 1.8241,
+    "reldens": 32.03,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#BFC9BF",
+    "id": "Mobility - Transport - Automotive",
+    "value": 456
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Münster (DEA3)",
+    "count": 49,
+    "rca": 0.86,
+    "share": 0.1991,
+    "share_d": 0.232,
+    "reldens": 33.56,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#CEC4C4",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 49
+  },
+  {
+    "domain": "Retail",
+    "geo": "Münster (DEA3)",
+    "count": 62,
+    "rca": 0.84,
+    "share": 0.252,
+    "share_d": 0.3014,
+    "reldens": 21.01,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#CDC1C1",
+    "id": "Retail",
+    "value": 62
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Münster (DEA3)",
+    "count": 7,
+    "rca": 0.29,
+    "share": 0.0284,
+    "share_d": 0.0983,
+    "reldens": 33.58,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#B27272",
+    "id": "Textiles",
+    "value": 7
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Münster (DEA3)",
+    "count": 49,
+    "rca": 0.45,
+    "share": 0.1991,
+    "share_d": 0.4414,
+    "reldens": 18.2,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#BB8E8E",
+    "id": "Tourism",
+    "value": 49
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

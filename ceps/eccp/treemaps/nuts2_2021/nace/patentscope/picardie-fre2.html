@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Picardie (FRE2)",
+    "count": 8,
+    "rca": 1.6,
+    "share": 0.5305,
+    "share_d": 0.3308,
+    "reldens": 66.84,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#74A174",
+    "id": "Civil engineering (42)",
+    "value": 8
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Picardie (FRE2)",
+    "count": 16,
+    "rca": 0.27,
+    "share": 1.061,
+    "share_d": 3.9331,
+    "reldens": 18.51,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#B06E6E",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 16
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Picardie (FRE2)",
+    "count": 8,
+    "rca": 1.15,
+    "share": 0.5305,
+    "share_d": 0.4621,
+    "reldens": 77.04,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#9FB89F",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 8
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Picardie (FRE2)",
+    "count": 13,
+    "rca": 1.34,
+    "share": 0.8621,
+    "share_d": 0.6442,
+    "reldens": 58.19,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#88AB88",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 13
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Picardie (FRE2)",
+    "count": 1,
+    "rca": 0.24,
+    "share": 0.0663,
+    "share_d": 0.278,
+    "reldens": 55.75,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#AE6767",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 1
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Picardie (FRE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0231,
+    "reldens": 34.91,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "darkred",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Picardie (FRE2)",
+    "count": 14,
+    "rca": 0.63,
+    "share": 0.9284,
+    "share_d": 1.4733,
+    "reldens": 66.07,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#C4A7A7",
+    "id": "Manufacture of basic metals (24)",
+    "value": 14
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Picardie (FRE2)",
+    "count": 159,
+    "rca": 1.22,
+    "share": 10.5438,
+    "share_d": 8.6622,
+    "reldens": 65.47,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#95B295",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 159
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Picardie (FRE2)",
+    "count": 1,
+    "rca": 0.97,
+    "share": 0.0663,
+    "share_d": 0.0686,
+    "reldens": 81.6,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "#D2D0D0",
+    "id": "Manufacture of beverages (11)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Picardie (FRE2)",
+    "count": 296,
+    "rca": 2.42,
+    "share": 19.6286,
+    "share_d": 8.0999,
+    "reldens": 63.39,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#508E50",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 296
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Picardie (FRE2)",
+    "count": 2,
+    "rca": 0.32,
+    "share": 0.1326,
+    "share_d": 0.4105,
+    "reldens": 75.25,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#B47777",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Picardie (FRE2)",
+    "count": 102,
+    "rca": 0.4,
+    "share": 6.7639,
+    "share_d": 17.106,
+    "reldens": 39.7,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#B98585",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 102
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Picardie (FRE2)",
+    "count": 83,
+    "rca": 0.65,
+    "share": 5.504,
+    "share_d": 8.4817,
+    "reldens": 50.35,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#C5AAAA",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 83
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Picardie (FRE2)",
+    "count": 62,
+    "rca": 1.04,
+    "share": 4.1114,
+    "share_d": 3.9362,
+    "reldens": 42.24,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#B7C5B7",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 62
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Picardie (FRE2)",
+    "count": 27,
+    "rca": 1.39,
+    "share": 1.7905,
+    "share_d": 1.2848,
+    "reldens": 62.5,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#83A983",
+    "id": "Manufacture of food products (10)",
+    "value": 27
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Picardie (FRE2)",
+    "count": 4,
+    "rca": 0.68,
+    "share": 0.2653,
+    "share_d": 0.3882,
+    "reldens": 55.37,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#C6AEAE",
+    "id": "Manufacture of furniture (31)",
+    "value": 4
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Picardie (FRE2)",
+    "count": 1,
+    "rca": 0.25,
+    "share": 0.0663,
+    "share_d": 0.2641,
+    "reldens": 48.37,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#AF6A6A",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Picardie (FRE2)",
+    "count": 156,
+    "rca": 0.74,
+    "share": 10.3448,
+    "share_d": 13.9956,
+    "reldens": 61.35,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#C9B6B6",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 156
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Picardie (FRE2)",
+    "count": 138,
+    "rca": 1.74,
+    "share": 9.1512,
+    "share_d": 5.2453,
+    "reldens": 37.76,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#6C9D6C",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 138
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Picardie (FRE2)",
+    "count": 118,
+    "rca": 5.72,
+    "share": 7.8249,
+    "share_d": 1.3671,
+    "reldens": 66.65,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#1B721B",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 118
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Picardie (FRE2)",
+    "count": 27,
+    "rca": 1,
+    "share": 1.7905,
+    "share_d": 1.7935,
+    "reldens": 46.57,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "lightgrey",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 27
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Picardie (FRE2)",
+    "count": 5,
+    "rca": 0.56,
+    "share": 0.3316,
+    "share_d": 0.5949,
+    "reldens": 75.44,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#C19E9E",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Picardie (FRE2)",
+    "count": 132,
+    "rca": 1.88,
+    "share": 8.7533,
+    "share_d": 4.6546,
+    "reldens": 55.69,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#659965",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 132
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Picardie (FRE2)",
+    "count": 22,
+    "rca": 2.45,
+    "share": 1.4589,
+    "share_d": 0.5954,
+    "reldens": 54.25,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#4F8E4F",
+    "id": "Manufacture of textiles (13)",
+    "value": 22
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Picardie (FRE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.135,
+    "reldens": 26.79,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Picardie (FRE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.2371,
+    "reldens": 45.18,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Picardie (FRE2)",
+    "count": 5,
+    "rca": 2.23,
+    "share": 0.3316,
+    "share_d": 0.1489,
+    "reldens": 62.73,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#569156",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 5
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Picardie (FRE2)",
+    "count": 2,
+    "rca": 2.72,
+    "share": 0.1326,
+    "share_d": 0.0488,
+    "reldens": 55.02,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "#488A48",
+    "id": "Mining of metal ores (7)",
+    "value": 2
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Picardie (FRE2)",
+    "count": 8,
+    "rca": 1.46,
+    "share": 0.5305,
+    "share_d": 0.3637,
+    "reldens": 33.41,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#7DA67D",
+    "id": "Mining support service activities (9)",
+    "value": 8
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Picardie (FRE2)",
+    "count": 48,
+    "rca": 0.53,
+    "share": 3.183,
+    "share_d": 5.9525,
+    "reldens": 31.3,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#BF9A9A",
+    "id": "Other manufacturing (32)",
+    "value": 48
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Picardie (FRE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0279,
+    "reldens": 81.57,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Picardie (FRE2)",
+    "count": 6,
+    "rca": 1.57,
+    "share": 0.3979,
+    "share_d": 0.2538,
+    "reldens": 41.25,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#76A276",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 6
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Picardie (FRE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 5.11,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Picardie (FRE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0131,
+    "reldens": 85.57,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Picardie (FRE2)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0441,
+    "reldens": 78.41,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Sewerage (37)",
+    "value": 0
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Picardie (FRE2)",
+    "count": 19,
+    "rca": 1.56,
+    "share": 1.2599,
+    "share_d": 0.8093,
+    "reldens": 66.7,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#76A276",
+    "id": "Specialised construction activities (43)",
+    "value": 19
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Picardie (FRE2)",
+    "count": 4,
+    "rca": 0.04,
+    "share": 0.2653,
+    "share_d": 7.2195,
+    "reldens": 12.59,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#992A2A",
+    "id": "Telecommunication (61)",
+    "value": 4
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Picardie (FRE2)",
+    "count": 6,
+    "rca": 2.32,
+    "share": 0.3979,
+    "share_d": 0.1712,
+    "reldens": 52.6,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#539053",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 6
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Picardie (FRE2)",
+    "count": 15,
+    "rca": 2.14,
+    "share": 0.9947,
+    "share_d": 0.4643,
+    "reldens": 48.31,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#5A935A",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 15
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

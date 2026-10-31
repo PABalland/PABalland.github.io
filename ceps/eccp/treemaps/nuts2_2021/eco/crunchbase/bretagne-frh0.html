@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Funding RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Funding RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Bretagne (FRH0)",
+    "count": 51.62,
+    "rca": 3.86,
+    "share": 8.0491,
+    "share_d": 2.0877,
+    "reldens": 59.95,
+    "comp_PA": 86.6,
+    "comp_TCI": 56.38,
+    "parent": "A",
+    "color": "#317E31",
+    "id": "Aerospace & Defence",
+    "value": 51.62
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Bretagne (FRH0)",
+    "count": 44.75,
+    "rca": 1.9,
+    "share": 6.9779,
+    "share_d": 3.6719,
+    "reldens": 31.39,
+    "comp_PA": 81.72,
+    "comp_TCI": 50.44,
+    "parent": "A",
+    "color": "#649864",
+    "id": "Agrifood",
+    "value": 44.75
+  },
+  {
+    "domain": "Construction",
+    "geo": "Bretagne (FRH0)",
+    "count": 45.6,
+    "rca": 2.17,
+    "share": 7.1104,
+    "share_d": 3.2759,
+    "reldens": 57.97,
+    "comp_PA": 67.49,
+    "comp_TCI": 80.38,
+    "parent": "A",
+    "color": "#599359",
+    "id": "Construction",
+    "value": 45.6
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Bretagne (FRH0)",
+    "count": 15.65,
+    "rca": 0.22,
+    "share": 2.4403,
+    "share_d": 11.1756,
+    "reldens": 49.63,
+    "comp_PA": 91.47,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#AD6363",
+    "id": "Cultural and Creative Industries",
+    "value": 15.65
+  },
+  {
+    "domain": "Digital",
+    "geo": "Bretagne (FRH0)",
+    "count": 229.59,
+    "rca": 1.17,
+    "share": 35.8002,
+    "share_d": 30.6012,
+    "reldens": 32.89,
+    "comp_PA": 88.76,
+    "comp_TCI": 10.64,
+    "parent": "A",
+    "color": "#9CB69C",
+    "id": "Digital",
+    "value": 229.59
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Bretagne (FRH0)",
+    "count": 71.85,
+    "rca": 2.01,
+    "share": 11.2036,
+    "share_d": 5.5691,
+    "reldens": 50.78,
+    "comp_PA": 70.25,
+    "comp_TCI": 55,
+    "parent": "A",
+    "color": "#5F965F",
+    "id": "Electronics",
+    "value": 71.85
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Bretagne (FRH0)",
+    "count": 82.05,
+    "rca": 1.19,
+    "share": 12.7941,
+    "share_d": 10.7065,
+    "reldens": 59.91,
+    "comp_PA": 83.84,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#99B499",
+    "id": "Energy - Renewables",
+    "value": 82.05
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Bretagne (FRH0)",
+    "count": 1.79,
+    "rca": 0.16,
+    "share": 0.2791,
+    "share_d": 1.729,
+    "reldens": 61.54,
+    "comp_PA": 79.74,
+    "comp_TCI": 61.19,
+    "parent": "A",
+    "color": "#A85454",
+    "id": "Energy Intensive Industries",
+    "value": 1.79
+  },
+  {
+    "domain": "Health",
+    "geo": "Bretagne (FRH0)",
+    "count": 44.38,
+    "rca": 0.7,
+    "share": 6.9202,
+    "share_d": 9.839,
+    "reldens": 59.61,
+    "comp_PA": 84.27,
+    "comp_TCI": 59.5,
+    "parent": "A",
+    "color": "#C7B1B1",
+    "id": "Health",
+    "value": 44.38
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Bretagne (FRH0)",
+    "count": 25.85,
+    "rca": 0.43,
+    "share": 4.0308,
+    "share_d": 9.4088,
+    "reldens": 61.34,
+    "comp_PA": 87.29,
+    "comp_TCI": 51.89,
+    "parent": "A",
+    "color": "#BA8A8A",
+    "id": "Mobility - Transport - Automotive",
+    "value": 25.85
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Bretagne (FRH0)",
+    "count": 18.53,
+    "rca": 0.54,
+    "share": 2.8894,
+    "share_d": 5.3611,
+    "reldens": 57.44,
+    "comp_PA": 85.35,
+    "comp_TCI": 26.07,
+    "parent": "A",
+    "color": "#C09B9B",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 18.53
+  },
+  {
+    "domain": "Retail",
+    "geo": "Bretagne (FRH0)",
+    "count": 8.14,
+    "rca": 0.3,
+    "share": 1.2693,
+    "share_d": 4.271,
+    "reldens": 42.83,
+    "comp_PA": 66.26,
+    "comp_TCI": 32.01,
+    "parent": "A",
+    "color": "#B27474",
+    "id": "Retail",
+    "value": 8.14
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Bretagne (FRH0)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1327,
+    "reldens": 30.78,
+    "comp_PA": 70.04,
+    "comp_TCI": 33.82,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Textiles",
+    "value": 0
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Bretagne (FRH0)",
+    "count": 1.51,
+    "rca": 0.11,
+    "share": 0.2355,
+    "share_d": 2.1704,
+    "reldens": 43.1,
+    "comp_PA": 79.86,
+    "comp_TCI": 40.91,
+    "parent": "A",
+    "color": "#A34646",
+    "id": "Tourism",
+    "value": 1.51
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

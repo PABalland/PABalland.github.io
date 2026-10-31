@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Lombardia (ITC4)",
+    "count": 33,
+    "rca": 1.44,
+    "share": 0.4753,
+    "share_d": 0.3308,
+    "reldens": 53.71,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#7FA77F",
+    "id": "Civil engineering (42)",
+    "value": 33
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Lombardia (ITC4)",
+    "count": 172,
+    "rca": 0.63,
+    "share": 2.4773,
+    "share_d": 3.9331,
+    "reldens": 39.66,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#C4A7A7",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 172
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Lombardia (ITC4)",
+    "count": 32,
+    "rca": 1,
+    "share": 0.4609,
+    "share_d": 0.4621,
+    "reldens": 46.81,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "lightgrey",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 32
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Lombardia (ITC4)",
+    "count": 49,
+    "rca": 1.1,
+    "share": 0.7057,
+    "share_d": 0.6442,
+    "reldens": 78.16,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#A8BCA8",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 49
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Lombardia (ITC4)",
+    "count": 42,
+    "rca": 2.18,
+    "share": 0.6049,
+    "share_d": 0.278,
+    "reldens": 64.1,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#589258",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 42
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Lombardia (ITC4)",
+    "count": 5,
+    "rca": 3.11,
+    "share": 0.072,
+    "share_d": 0.0231,
+    "reldens": 75,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "#3F853F",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Lombardia (ITC4)",
+    "count": 134,
+    "rca": 1.31,
+    "share": 1.93,
+    "share_d": 1.4733,
+    "reldens": 69.29,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#8BAD8B",
+    "id": "Manufacture of basic metals (24)",
+    "value": 134
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Lombardia (ITC4)",
+    "count": 745,
+    "rca": 1.24,
+    "share": 10.7302,
+    "share_d": 8.6622,
+    "reldens": 81.96,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#93B193",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 745
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Lombardia (ITC4)",
+    "count": 8,
+    "rca": 1.68,
+    "share": 0.1152,
+    "share_d": 0.0686,
+    "reldens": 93.33,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "#6F9E6F",
+    "id": "Manufacture of beverages (11)",
+    "value": 8
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Lombardia (ITC4)",
+    "count": 692,
+    "rca": 1.23,
+    "share": 9.9669,
+    "share_d": 8.0999,
+    "reldens": 69.12,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#94B294",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 692
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Lombardia (ITC4)",
+    "count": 24,
+    "rca": 0.84,
+    "share": 0.3457,
+    "share_d": 0.4105,
+    "reldens": 80.2,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#CDC1C1",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 24
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Lombardia (ITC4)",
+    "count": 878,
+    "rca": 0.74,
+    "share": 12.6458,
+    "share_d": 17.106,
+    "reldens": 52.62,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#C9B6B6",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 878
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Lombardia (ITC4)",
+    "count": 478,
+    "rca": 0.81,
+    "share": 6.8846,
+    "share_d": 8.4817,
+    "reldens": 58.33,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#CCBEBE",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 478
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Lombardia (ITC4)",
+    "count": 301,
+    "rca": 1.1,
+    "share": 4.3353,
+    "share_d": 3.9362,
+    "reldens": 67.01,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#A8BCA8",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 301
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Lombardia (ITC4)",
+    "count": 92,
+    "rca": 1.03,
+    "share": 1.3251,
+    "share_d": 1.2848,
+    "reldens": 90.57,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#BBC6BB",
+    "id": "Manufacture of food products (10)",
+    "value": 92
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Lombardia (ITC4)",
+    "count": 71,
+    "rca": 2.63,
+    "share": 1.0226,
+    "share_d": 0.3882,
+    "reldens": 67.57,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#4A8B4A",
+    "id": "Manufacture of furniture (31)",
+    "value": 71
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Lombardia (ITC4)",
+    "count": 39,
+    "rca": 2.13,
+    "share": 0.5617,
+    "share_d": 0.2641,
+    "reldens": 82.22,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#5A935A",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 39
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Lombardia (ITC4)",
+    "count": 1202,
+    "rca": 1.24,
+    "share": 17.3124,
+    "share_d": 13.9956,
+    "reldens": 63.46,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#93B193",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 1202
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Lombardia (ITC4)",
+    "count": 176,
+    "rca": 0.48,
+    "share": 2.5349,
+    "share_d": 5.2453,
+    "reldens": 58.74,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#BD9292",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 176
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Lombardia (ITC4)",
+    "count": 84,
+    "rca": 0.88,
+    "share": 1.2099,
+    "share_d": 1.3671,
+    "reldens": 69.91,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#CFC6C6",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 84
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Lombardia (ITC4)",
+    "count": 178,
+    "rca": 1.43,
+    "share": 2.5637,
+    "share_d": 1.7935,
+    "reldens": 62.98,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#80A780",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 178
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Lombardia (ITC4)",
+    "count": 36,
+    "rca": 0.87,
+    "share": 0.5185,
+    "share_d": 0.5949,
+    "reldens": 78.24,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#CEC5C5",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 36
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Lombardia (ITC4)",
+    "count": 555,
+    "rca": 1.72,
+    "share": 7.9937,
+    "share_d": 4.6546,
+    "reldens": 66.06,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#6D9D6D",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 555
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Lombardia (ITC4)",
+    "count": 154,
+    "rca": 3.73,
+    "share": 2.2181,
+    "share_d": 0.5954,
+    "reldens": 78.27,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#337F33",
+    "id": "Manufacture of textiles (13)",
+    "value": 154
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Lombardia (ITC4)",
+    "count": 13,
+    "rca": 1.39,
+    "share": 0.1872,
+    "share_d": 0.135,
+    "reldens": 80.92,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "#83A983",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 13
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Lombardia (ITC4)",
+    "count": 42,
+    "rca": 2.55,
+    "share": 0.6049,
+    "share_d": 0.2371,
+    "reldens": 88.57,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#4C8C4C",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 42
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Lombardia (ITC4)",
+    "count": 1,
+    "rca": 0.1,
+    "share": 0.0144,
+    "share_d": 0.1489,
+    "reldens": 62.73,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#A24343",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 1
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Lombardia (ITC4)",
+    "count": 4,
+    "rca": 1.18,
+    "share": 0.0576,
+    "share_d": 0.0488,
+    "reldens": 56.19,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "#9AB59A",
+    "id": "Mining of metal ores (7)",
+    "value": 4
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Lombardia (ITC4)",
+    "count": 34,
+    "rca": 1.35,
+    "share": 0.4897,
+    "share_d": 0.3637,
+    "reldens": 47.6,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#87AB87",
+    "id": "Mining support service activities (9)",
+    "value": 34
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Lombardia (ITC4)",
+    "count": 441,
+    "rca": 1.07,
+    "share": 6.3517,
+    "share_d": 5.9525,
+    "reldens": 59,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#AFC0AF",
+    "id": "Other manufacturing (32)",
+    "value": 441
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Lombardia (ITC4)",
+    "count": 1,
+    "rca": 0.52,
+    "share": 0.0144,
+    "share_d": 0.0279,
+    "reldens": 89.22,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "#BF9898",
+    "id": "Other mining and quarrying (8)",
+    "value": 1
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Lombardia (ITC4)",
+    "count": 19,
+    "rca": 1.08,
+    "share": 0.2737,
+    "share_d": 0.2538,
+    "reldens": 53.9,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#ACBFAC",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 19
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Lombardia (ITC4)",
+    "count": 1,
+    "rca": 0.82,
+    "share": 0.0144,
+    "share_d": 0.0176,
+    "reldens": 11.36,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "#CCBFBF",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 1
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Lombardia (ITC4)",
+    "count": 1,
+    "rca": 1.1,
+    "share": 0.0144,
+    "share_d": 0.0131,
+    "reldens": 67.89,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "#A8BCA8",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 1
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Lombardia (ITC4)",
+    "count": 1,
+    "rca": 0.33,
+    "share": 0.0144,
+    "share_d": 0.0441,
+    "reldens": 74.58,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "#B47979",
+    "id": "Sewerage (37)",
+    "value": 1
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Lombardia (ITC4)",
+    "count": 49,
+    "rca": 0.87,
+    "share": 0.7057,
+    "share_d": 0.8093,
+    "reldens": 68.98,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#CEC5C5",
+    "id": "Specialised construction activities (43)",
+    "value": 49
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Lombardia (ITC4)",
+    "count": 97,
+    "rca": 0.19,
+    "share": 1.3971,
+    "share_d": 7.2195,
+    "reldens": 18.81,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#AA5C5C",
+    "id": "Telecommunication (61)",
+    "value": 97
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Lombardia (ITC4)",
+    "count": 10,
+    "rca": 0.84,
+    "share": 0.144,
+    "share_d": 0.1712,
+    "reldens": 74.47,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#CDC1C1",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 10
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Lombardia (ITC4)",
+    "count": 49,
+    "rca": 1.52,
+    "share": 0.7057,
+    "share_d": 0.4643,
+    "reldens": 72.28,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#79A479",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 49
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

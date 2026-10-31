@@ -1,0 +1,351 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --ink:#1f2328; --muted:#6b7280; --faint:#9ca3af; --grid:#eef0f3; --axis:#d1d5db;
+  --pos:#3f7f4f; --neg:#9b3b34;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;}
+body{font-family:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--ink);overflow:hidden;}
+.wrap{display:flex;flex-direction:column;height:100vh;padding:18px 22px 10px;}
+#chart{flex:1 1 auto;position:relative;min-height:0;}
+svg{display:block;width:100%;height:100%;}
+.footer{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;
+  padding-top:8px;font-size:12.5px;color:var(--muted);}
+.lg{display:flex;align-items:center;gap:8px;}
+.dot{width:11px;height:11px;border-radius:50%;}
+.ramp{width:90px;height:8px;border-radius:4px;
+  background:linear-gradient(90deg,#9b3b34,#c49a96,#e6e1e1,#9cbc9f,#3f7f4f);}
+.axis-title{font-size:19px;font-weight:600;fill:var(--ink);letter-spacing:.01em;}
+.tick text{font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums;}
+.quad{font-size:10.5px;fill:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+.label{font-size:14px;fill:#374151;font-weight:500;pointer-events:none;
+  paint-order:stroke;stroke:#fff;stroke-width:3.5px;stroke-linejoin:round;transition:opacity .15s;}
+.pt{cursor:pointer;transition:r .15s, opacity .15s;}
+.dim .pt:not(.on), .dim .label:not(.on), .dim .leader:not(.on){opacity:.25;}
+.label.on{font-weight:700;fill:var(--ink);}
+.leader{stroke:#c7cbd1;stroke-width:1;}
+.tip{position:absolute;pointer-events:none;background:#fff;border:1px solid #e5e7eb;border-radius:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);padding:10px 12px;font-size:12px;min-width:190px;
+  opacity:0;transition:opacity .12s;z-index:5;}
+.tip h4{margin:0 0 6px;font-size:13px;}
+.tip table{width:100%;border-collapse:collapse;}
+.tip td{padding:2px 0;color:var(--muted);}
+.tip td.v{text-align:right;padding-left:14px;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="chart"><div class="tip" id="tip"></div></div>
+<div class="footer">
+  <span class="lg">
+    Investment RCA &lt; 1
+    <span class="dot" style="background:var(--neg)"></span>
+    <span class="ramp"></span>
+    <span class="dot" style="background:var(--pos)"></span>
+    Investment RCA &gt; 1
+  </span>
+  <span class="lg" style="color:var(--faint)">Dashed lines = medians</span>
+</div>
+</div>
+<script>
+var data=
+  [
+  {
+    "id": "Aerospace & Defence",
+    "x": 48.5967,
+    "y": 77.7833,
+    "color": "#9E3838",
+    "rca": 0.07,
+    "value": 0.5,
+    "rca_pub": 0.07,
+    "reldens_pub": 20.5,
+    "comp_pub": 86.6
+  },
+  {
+    "id": "Agrifood",
+    "x": 43.43,
+    "y": 64.2133,
+    "color": "#B37575",
+    "rca": 0.31,
+    "value": 0.5,
+    "rca_pub": 0.31,
+    "reldens_pub": 13.99,
+    "comp_pub": 81.72
+  },
+  {
+    "id": "Construction",
+    "x": 40.74,
+    "y": 65.53,
+    "color": "darkred",
+    "rca": 0,
+    "value": 0.5,
+    "rca_pub": 0,
+    "reldens_pub": 16.56,
+    "comp_pub": 67.49
+  },
+  {
+    "id": "Cultural and Creative Industries",
+    "x": 38.4367,
+    "y": 74.8933,
+    "color": "#3C833C",
+    "rca": 3.27,
+    "value": 0.5,
+    "rca_pub": 3.27,
+    "reldens_pub": 29.41,
+    "comp_pub": 91.47
+  },
+  {
+    "id": "Digital",
+    "x": 44.6267,
+    "y": 79.9767,
+    "color": "#7DA67D",
+    "rca": 1.47,
+    "value": 0.5,
+    "rca_pub": 1.47,
+    "reldens_pub": 17.21,
+    "comp_pub": 88.76
+  },
+  {
+    "id": "Electronics",
+    "x": 38.9833,
+    "y": 71.7367,
+    "color": "#AE6767",
+    "rca": 0.24,
+    "value": 0.5,
+    "rca_pub": 0.24,
+    "reldens_pub": 20.95,
+    "comp_pub": 70.25
+  },
+  {
+    "id": "Energy - Renewables",
+    "x": 51.59,
+    "y": 74.74,
+    "color": "#951E1E",
+    "rca": 0.02,
+    "value": 0.5,
+    "rca_pub": 0.02,
+    "reldens_pub": 11.59,
+    "comp_pub": 83.84
+  },
+  {
+    "id": "Energy Intensive Industries",
+    "x": 44.2367,
+    "y": 70.0833,
+    "color": "darkred",
+    "rca": 0,
+    "value": 0.5,
+    "rca_pub": 0,
+    "reldens_pub": 7.17,
+    "comp_pub": 79.74
+  },
+  {
+    "id": "Health",
+    "x": 52.06,
+    "y": 71.66,
+    "color": "#B67F7F",
+    "rca": 0.36,
+    "value": 0.5,
+    "rca_pub": 0.36,
+    "reldens_pub": 34.23,
+    "comp_pub": 84.27
+  },
+  {
+    "id": "Mobility - Transport - Automotive",
+    "x": 35.8833,
+    "y": 76.8167,
+    "color": "#D1CECE",
+    "rca": 0.95,
+    "value": 0.5,
+    "rca_pub": 0.95,
+    "reldens_pub": 22.38,
+    "comp_pub": 87.29
+  },
+  {
+    "id": "Proximity, Social Economy and Civil Security",
+    "x": 32.7567,
+    "y": 52.3367,
+    "color": "#A54C4C",
+    "rca": 0.13,
+    "value": 0.5,
+    "rca_pub": 0.13,
+    "reldens_pub": 23.01,
+    "comp_pub": 85.35
+  },
+  {
+    "id": "Retail",
+    "x": 29.5,
+    "y": 40.4567,
+    "color": "#BB8E8E",
+    "rca": 0.45,
+    "value": 0.5,
+    "rca_pub": 0.45,
+    "reldens_pub": 29.12,
+    "comp_pub": 66.26
+  },
+  {
+    "id": "Textiles",
+    "x": 43.9933,
+    "y": 64.4067,
+    "color": "darkred",
+    "rca": 0,
+    "value": 0.5,
+    "rca_pub": 0,
+    "reldens_pub": 14.61,
+    "comp_pub": 70.04
+  },
+  {
+    "id": "Tourism",
+    "x": 39.44,
+    "y": 42.5933,
+    "color": "#AC6161",
+    "rca": 0.21,
+    "value": 0.5,
+    "rca_pub": 0.21,
+    "reldens_pub": 33.22,
+    "comp_pub": 79.86
+  }
+]   ;
+
+/* ---------- config ---------- */
+var X_TITLE="Technological + Scientific + Investment Relatedness Density", Y_TITLE="Technological + Scientific + Investment Complexity Index";
+var FIXED_X_DOMAIN=null;      // e.g. [0,110] to force a domain; null = fit to data
+var R=8;                      // bubble radius
+
+/* ---------- helpers ---------- */
+function median(v){v=[...v].sort((a,b)=>a-b);var h=Math.floor(v.length/2);return v.length%2?v[h]:(v[h-1]+v[h])/2;}
+function niceStep(span,target){var raw=span/target,p=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/p;
+  return (n<1.5?1:n<3?2:n<7?5:10)*p;}
+function niceDomain(min,max,target){var s=niceStep(max-min,target);return [Math.floor(min/s)*s,Math.ceil(max/s)*s,s];}
+function fmt(v,d){return (v===undefined||v===null||v==="")?"–":(typeof v==="number"?v.toFixed(d):v);}
+function el(tag,attrs,parent){var e=document.createElementNS("http://www.w3.org/2000/svg",tag);
+  for(var k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function overlap(a,b,pad){pad=pad||0;return !(a.x+a.w+pad<b.x||b.x+b.w+pad<a.x||a.y+a.h+pad<b.y||b.y+b.h+pad<a.y);}
+
+var mx=median(data.map(d=>d.x)), my=median(data.map(d=>d.y));
+var host=document.getElementById("chart"), tip=document.getElementById("tip");
+
+function draw(){
+  host.querySelectorAll("svg").forEach(s=>s.remove());
+  var W=host.clientWidth, H=host.clientHeight;
+  var m={top:16,right:28,bottom:64,left:78};
+  var iw=W-m.left-m.right, ih=H-m.top-m.bottom;
+
+  var xs=data.map(d=>d.x), ys=data.map(d=>d.y);
+  var xpad=(Math.max(...xs)-Math.min(...xs))*0.12, ypad=(Math.max(...ys)-Math.min(...ys))*0.08;
+  var xd=FIXED_X_DOMAIN?[...FIXED_X_DOMAIN,niceStep(FIXED_X_DOMAIN[1]-FIXED_X_DOMAIN[0],10)]
+                       :niceDomain(Math.min(...xs)-xpad,Math.max(...xs)+xpad,8);
+  var yd=niceDomain(Math.min(...ys)-ypad,Math.max(...ys)+ypad,7);
+  var sx=v=>m.left+(v-xd[0])/(xd[1]-xd[0])*iw;
+  var sy=v=>m.top+ih-(v-yd[0])/(yd[1]-yd[0])*ih;
+
+  var svg=el("svg",{viewBox:`0 0 ${W} ${H}`},null); host.appendChild(svg);
+
+  // quadrant tint (top-right = most promising)
+  el("rect",{x:sx(mx),y:m.top,width:m.left+iw-sx(mx),height:sy(my)-m.top,fill:"#f3f8f4"},svg);
+
+  // grid + ticks
+  var g=el("g",{},svg);
+  for(var v=xd[0];v<=xd[1]+1e-9;v+=xd[2]){var x=sx(v);
+    el("line",{x1:x,x2:x,y1:m.top,y2:m.top+ih,stroke:"var(--grid)"},g);
+    var t=el("g",{class:"tick"},g);var tx=el("text",{x:x,y:m.top+ih+18,"text-anchor":"middle"},t);tx.textContent=+v.toFixed(2);}
+  for(var v=yd[0];v<=yd[1]+1e-9;v+=yd[2]){var y=sy(v);
+    el("line",{x1:m.left,x2:m.left+iw,y1:y,y2:y,stroke:"var(--grid)"},g);
+    var t=el("g",{class:"tick"},g);var ty=el("text",{x:m.left-10,y:y+4,"text-anchor":"end"},t);ty.textContent=+v.toFixed(2);}
+  el("line",{x1:m.left,x2:m.left+iw,y1:m.top+ih,y2:m.top+ih,stroke:"var(--axis)"},g);
+  el("line",{x1:m.left,x2:m.left,y1:m.top,y2:m.top+ih,stroke:"var(--axis)"},g);
+
+  // medians
+  el("line",{x1:sx(mx),x2:sx(mx),y1:m.top,y2:m.top+ih,stroke:"#b8bdc4","stroke-dasharray":"5 5"},svg);
+  el("line",{x1:m.left,x2:m.left+iw,y1:sy(my),y2:sy(my),stroke:"#b8bdc4","stroke-dasharray":"5 5"},svg);
+
+  // quadrant captions
+  var q=[["High complexity · High relatedness",m.left+iw-8,m.top+16,"end"],
+         ["High complexity · Low relatedness",m.left+8,m.top+16,"start"],
+         ["Low complexity · Low relatedness",m.left+8,m.top+ih-10,"start"],
+         ["Low complexity · High relatedness",m.left+iw-8,m.top+ih-10,"end"]];
+  var blocked=[];
+  q.forEach(a=>{var t=el("text",{class:"quad",x:a[1],y:a[2],"text-anchor":a[3]},svg);t.textContent=a[0];
+    var b=t.getBBox();blocked.push({x:b.x,y:b.y,w:b.width,h:b.height});});
+
+  // axis titles
+  var xt=el("text",{class:"axis-title",x:m.left+iw/2,y:H-14,"text-anchor":"middle"},svg);xt.textContent=X_TITLE+"";
+  var yt=el("text",{class:"axis-title",transform:`translate(22,${m.top+ih/2}) rotate(-90)`,"text-anchor":"middle"},svg);yt.textContent=Y_TITLE+"";
+
+  // points
+  var pts=data.map(d=>({d:d,cx:sx(d.x),cy:sy(d.y)}));
+  var circBoxes=pts.map(p=>({x:p.cx-R,y:p.cy-R,w:2*R,h:2*R}));
+  var leaders=el("g",{},svg), dots=el("g",{},svg), labs=el("g",{},svg);
+
+  pts.forEach(p=>{
+    p.c=el("circle",{class:"pt",cx:p.cx,cy:p.cy,r:R,fill:p.d.color,stroke:"#fff","stroke-width":2,
+      style:"filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.18))"},dots);
+    var ring=el("circle",{cx:p.cx,cy:p.cy,r:R+0.5,fill:"none",stroke:p.d.rca>=1?"var(--pos)":"var(--neg)","stroke-width":1,opacity:.55,"pointer-events":"none"},dots);
+  });
+
+  // label placement: greedy, try candidate offsets, avoid circles, other labels, captions, bounds
+  var placed=[];
+  var order=[...pts].sort((a,b)=>b.d.id.length-a.d.id.length);
+  order.forEach(p=>{
+    var t=el("text",{class:"label"},labs);t.textContent=p.d.id;
+    var bb=t.getBBox(), w=bb.width, h=bb.height, gap=R+5;
+    var cands=[];
+    [[1,0],[-1,0],[0,-1],[0,1],[1,-1],[1,1],[-1,-1],[-1,1]].forEach(([dx,dy])=>{
+      [1,1.9,2.8].forEach(k=>cands.push({dx,dy,k}));});
+    var best=null,bestScore=1e9;
+    cands.forEach(c=>{
+      var ax=p.cx+c.dx*gap*c.k, ay=p.cy+c.dy*gap*c.k;
+      var x= c.dx>0?ax: c.dx<0?ax-w: ax-w/2;
+      var y= c.dy>0?ay: c.dy<0?ay-h: ay-h/2;
+      var box={x:x,y:y,w:w,h:h};
+      var s=(c.k-1)*6+(c.dx===0?2:0)+(c.dy!==0&&c.dx!==0?1.5:0);
+      if(x<m.left+2||x+w>m.left+iw-2||y<m.top||y+h>m.top+ih-2)s+=1000;
+      circBoxes.forEach(cb=>{if(overlap(box,cb,2))s+=200;});
+      placed.forEach(pb=>{if(overlap(box,pb,3))s+=300;});
+      blocked.forEach(qb=>{if(overlap(box,qb,2))s+=60;});
+      if(s<bestScore){bestScore=s;best={box,c};}
+    });
+    var b=best.box;
+    t.setAttribute("x",b.x);t.setAttribute("y",b.y+h*0.78);
+    placed.push(b);p.t=t;
+    if(best.c.k>1){ // leader line for pushed-out labels
+      var lx=Math.max(b.x,Math.min(p.cx,b.x+b.w)), ly=Math.max(b.y,Math.min(p.cy,b.y+b.h));
+      var dx=lx-p.cx, dy=ly-p.cy, dist=Math.hypot(dx,dy)||1;
+      p.l=el("line",{class:"leader",x1:p.cx+dx/dist*(R+2),y1:p.cy+dy/dist*(R+2),x2:lx,y2:ly},leaders);
+    }
+  });
+
+  // interaction
+  pts.forEach(p=>{
+    p.c.addEventListener("mouseenter",()=>{
+      svg.classList.add("dim");[p.c,p.t,p.l].forEach(e=>e&&e.classList.add("on"));p.c.setAttribute("r",R+3);
+      var d=p.d;
+      tip.innerHTML=`<h4>${d.id}</h4><table>
+        <tr><td>${X_TITLE}</td><td class="v">${fmt(d.x,1)}</td></tr>
+        <tr><td>${Y_TITLE}</td><td class="v">${fmt(d.y,1)}</td></tr>
+        <tr><td>Investment RCA</td><td class="v" style="color:${d.rca>=1?"var(--pos)":"var(--neg)"}">${fmt(d.rca,2)}</td></tr>
+        ${d.crunchbase!==undefined?`<tr><td>Investment index</td><td class="v">${fmt(d.crunchbase,2)}</td></tr>`:""}
+        ${d.regpat!==undefined?`<tr><td>Technology index</td><td class="v">${fmt(d.regpat,2)}</td></tr>`:""}
+        ${d.openalex!==undefined?`<tr><td>Scientific index</td><td class="v">${fmt(d.openalex,2)}</td></tr>`:""}
+      </table>`;
+      tip.style.opacity=1;
+      var tw=tip.offsetWidth, th=tip.offsetHeight;
+      var left=p.cx+16+tw>W?p.cx-16-tw:p.cx+16, top=Math.max(4,Math.min(H-th-4,p.cy-th/2));
+      tip.style.left=left+"px";tip.style.top=top+"px";
+    });
+    p.c.addEventListener("mouseleave",()=>{
+      svg.classList.remove("dim");[p.c,p.t,p.l].forEach(e=>e&&e.classList.remove("on"));p.c.setAttribute("r",R);
+      tip.style.opacity=0;
+    });
+  });
+}
+
+draw();
+var rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,120);});
+</script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 68,
+    "rca": 0.36,
+    "share": 0.689,
+    "share_d": 1.8996,
+    "reldens": 4.67,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#B67F7F",
+    "id": "Aerospace & Defence",
+    "value": 68
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 1709,
+    "rca": 1.73,
+    "share": 17.3169,
+    "share_d": 10.0342,
+    "reldens": 26.38,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#6C9D6C",
+    "id": "Agrifood",
+    "value": 1709
+  },
+  {
+    "domain": "Construction",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 701,
+    "rca": 0.88,
+    "share": 7.103,
+    "share_d": 8.053,
+    "reldens": 19.05,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#CFC6C6",
+    "id": "Construction",
+    "value": 701
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 882,
+    "rca": 1.14,
+    "share": 8.9371,
+    "share_d": 7.8692,
+    "reldens": 41.18,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#A1B9A1",
+    "id": "Cultural and Creative Industries",
+    "value": 882
+  },
+  {
+    "domain": "Digital",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 593,
+    "rca": 0.82,
+    "share": 6.0087,
+    "share_d": 7.342,
+    "reldens": 19.72,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#CCBFBF",
+    "id": "Digital",
+    "value": 593
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 680,
+    "rca": 0.79,
+    "share": 6.8903,
+    "share_d": 8.7502,
+    "reldens": 3.34,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#CBBCBC",
+    "id": "Electronics",
+    "value": 680
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 247,
+    "rca": 0.71,
+    "share": 2.5028,
+    "share_d": 3.5456,
+    "reldens": 4.24,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#C8B2B2",
+    "id": "Energy - Renewables",
+    "value": 247
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 779,
+    "rca": 0.93,
+    "share": 7.8934,
+    "share_d": 8.4773,
+    "reldens": 9.06,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#D0CBCB",
+    "id": "Energy Intensive Industries",
+    "value": 779
+  },
+  {
+    "domain": "Health",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 3929,
+    "rca": 0.97,
+    "share": 39.8115,
+    "share_d": 41.1317,
+    "reldens": 39.44,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#D2D0D0",
+    "id": "Health",
+    "value": 3929
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 150,
+    "rca": 0.83,
+    "share": 1.5199,
+    "share_d": 1.8241,
+    "reldens": 14.19,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#CDC0C0",
+    "id": "Mobility - Transport - Automotive",
+    "value": 150
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 4,
+    "rca": 0.17,
+    "share": 0.0405,
+    "share_d": 0.232,
+    "reldens": 45.08,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#A95757",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 4
+  },
+  {
+    "domain": "Retail",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 52,
+    "rca": 1.75,
+    "share": 0.5269,
+    "share_d": 0.3014,
+    "reldens": 53.99,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#6B9C6B",
+    "id": "Retail",
+    "value": 52
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 5,
+    "rca": 0.52,
+    "share": 0.0507,
+    "share_d": 0.0983,
+    "reldens": 38.73,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#BF9898",
+    "id": "Textiles",
+    "value": 5
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Észak-Alföld (HU32)",
+    "count": 70,
+    "rca": 1.61,
+    "share": 0.7093,
+    "share_d": 0.4414,
+    "reldens": 57.21,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#73A173",
+    "id": "Tourism",
+    "value": 70
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

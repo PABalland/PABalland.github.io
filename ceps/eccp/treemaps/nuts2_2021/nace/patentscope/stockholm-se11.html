@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Stockholm (SE11)",
+    "count": 2,
+    "rca": 0.07,
+    "share": 0.0225,
+    "share_d": 0.3308,
+    "reldens": 14.29,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#9E3838",
+    "id": "Civil engineering (42)",
+    "value": 2
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Stockholm (SE11)",
+    "count": 593,
+    "rca": 1.7,
+    "share": 6.6832,
+    "share_d": 3.9331,
+    "reldens": 51.11,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#6E9E6E",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 593
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Stockholm (SE11)",
+    "count": 18,
+    "rca": 0.44,
+    "share": 0.2029,
+    "share_d": 0.4621,
+    "reldens": 6.61,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#BB8C8C",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 18
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Stockholm (SE11)",
+    "count": 54,
+    "rca": 0.94,
+    "share": 0.6086,
+    "share_d": 0.6442,
+    "reldens": 14.33,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#D1CDCD",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 54
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Stockholm (SE11)",
+    "count": 13,
+    "rca": 0.53,
+    "share": 0.1465,
+    "share_d": 0.278,
+    "reldens": 11.17,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#BF9A9A",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 13
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Stockholm (SE11)",
+    "count": 1,
+    "rca": 0.49,
+    "share": 0.0113,
+    "share_d": 0.0231,
+    "reldens": 16.04,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "#BD9494",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Stockholm (SE11)",
+    "count": 75,
+    "rca": 0.57,
+    "share": 0.8453,
+    "share_d": 1.4733,
+    "reldens": 6.07,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#C19F9F",
+    "id": "Manufacture of basic metals (24)",
+    "value": 75
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Stockholm (SE11)",
+    "count": 493,
+    "rca": 0.64,
+    "share": 5.5562,
+    "share_d": 8.6622,
+    "reldens": 14.54,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#C5A9A9",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 493
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Stockholm (SE11)",
+    "count": 1,
+    "rca": 0.16,
+    "share": 0.0113,
+    "share_d": 0.0686,
+    "reldens": 3.2,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "#A85454",
+    "id": "Manufacture of beverages (11)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Stockholm (SE11)",
+    "count": 202,
+    "rca": 0.28,
+    "share": 2.2766,
+    "share_d": 8.0999,
+    "reldens": 11.59,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#B17070",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 202
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Stockholm (SE11)",
+    "count": 21,
+    "rca": 0.58,
+    "share": 0.2367,
+    "share_d": 0.4105,
+    "reldens": 4.5,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#C2A1A1",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 21
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Stockholm (SE11)",
+    "count": 1604,
+    "rca": 1.06,
+    "share": 18.0773,
+    "share_d": 17.106,
+    "reldens": 29.46,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#B1C1B1",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 1604
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Stockholm (SE11)",
+    "count": 404,
+    "rca": 0.54,
+    "share": 4.5531,
+    "share_d": 8.4817,
+    "reldens": 22.48,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#C09B9B",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 404
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Stockholm (SE11)",
+    "count": 199,
+    "rca": 0.57,
+    "share": 2.2428,
+    "share_d": 3.9362,
+    "reldens": 11.14,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#C19F9F",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 199
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Stockholm (SE11)",
+    "count": 9,
+    "rca": 0.08,
+    "share": 0.1014,
+    "share_d": 1.2848,
+    "reldens": 3.62,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#9F3C3C",
+    "id": "Manufacture of food products (10)",
+    "value": 9
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Stockholm (SE11)",
+    "count": 11,
+    "rca": 0.32,
+    "share": 0.124,
+    "share_d": 0.3882,
+    "reldens": 11.68,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#B47777",
+    "id": "Manufacture of furniture (31)",
+    "value": 11
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Stockholm (SE11)",
+    "count": 11,
+    "rca": 0.47,
+    "share": 0.124,
+    "share_d": 0.2641,
+    "reldens": 22.73,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#BC9191",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 11
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Stockholm (SE11)",
+    "count": 564,
+    "rca": 0.45,
+    "share": 6.3564,
+    "share_d": 13.9956,
+    "reldens": 14.41,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#BB8E8E",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 564
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Stockholm (SE11)",
+    "count": 177,
+    "rca": 0.38,
+    "share": 1.9948,
+    "share_d": 5.2453,
+    "reldens": 17.49,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#B78282",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 177
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Stockholm (SE11)",
+    "count": 25,
+    "rca": 0.21,
+    "share": 0.2818,
+    "share_d": 1.3671,
+    "reldens": 12.97,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#AC6161",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 25
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Stockholm (SE11)",
+    "count": 92,
+    "rca": 0.58,
+    "share": 1.0369,
+    "share_d": 1.7935,
+    "reldens": 13.37,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#C2A1A1",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 92
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Stockholm (SE11)",
+    "count": 69,
+    "rca": 1.31,
+    "share": 0.7776,
+    "share_d": 0.5949,
+    "reldens": 9.84,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#8BAD8B",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 69
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Stockholm (SE11)",
+    "count": 116,
+    "rca": 0.28,
+    "share": 1.3073,
+    "share_d": 4.6546,
+    "reldens": 17.89,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#B17070",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 116
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Stockholm (SE11)",
+    "count": 10,
+    "rca": 0.19,
+    "share": 0.1127,
+    "share_d": 0.5954,
+    "reldens": 24.65,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#AA5C5C",
+    "id": "Manufacture of textiles (13)",
+    "value": 10
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Stockholm (SE11)",
+    "count": 3,
+    "rca": 0.25,
+    "share": 0.0338,
+    "share_d": 0.135,
+    "reldens": 15.41,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "#AF6A6A",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Stockholm (SE11)",
+    "count": 48,
+    "rca": 2.28,
+    "share": 0.541,
+    "share_d": 0.2371,
+    "reldens": 5.87,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#559155",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 48
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Stockholm (SE11)",
+    "count": 14,
+    "rca": 1.06,
+    "share": 0.1578,
+    "share_d": 0.1489,
+    "reldens": 17.24,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#B1C1B1",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 14
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Stockholm (SE11)",
+    "count": 2,
+    "rca": 0.46,
+    "share": 0.0225,
+    "share_d": 0.0488,
+    "reldens": 7.36,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "#BC8F8F",
+    "id": "Mining of metal ores (7)",
+    "value": 2
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Stockholm (SE11)",
+    "count": 19,
+    "rca": 0.59,
+    "share": 0.2141,
+    "share_d": 0.3637,
+    "reldens": 13.71,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#C2A2A2",
+    "id": "Mining support service activities (9)",
+    "value": 19
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Stockholm (SE11)",
+    "count": 284,
+    "rca": 0.54,
+    "share": 3.2007,
+    "share_d": 5.9525,
+    "reldens": 40.63,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#C09B9B",
+    "id": "Other manufacturing (32)",
+    "value": 284
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Stockholm (SE11)",
+    "count": 1,
+    "rca": 0.4,
+    "share": 0.0113,
+    "share_d": 0.0279,
+    "reldens": 4.12,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "#B98585",
+    "id": "Other mining and quarrying (8)",
+    "value": 1
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Stockholm (SE11)",
+    "count": 3,
+    "rca": 0.13,
+    "share": 0.0338,
+    "share_d": 0.2538,
+    "reldens": 42.2,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#A54C4C",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 3
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Stockholm (SE11)",
+    "count": 2,
+    "rca": 1.28,
+    "share": 0.0225,
+    "share_d": 0.0176,
+    "reldens": 84.66,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "#8EAF8E",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 2
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Stockholm (SE11)",
+    "count": 1,
+    "rca": 0.86,
+    "share": 0.0113,
+    "share_d": 0.0131,
+    "reldens": 3.46,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "#CEC4C4",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 1
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Stockholm (SE11)",
+    "count": 6,
+    "rca": 1.53,
+    "share": 0.0676,
+    "share_d": 0.0441,
+    "reldens": 2.16,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "#78A378",
+    "id": "Sewerage (37)",
+    "value": 6
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Stockholm (SE11)",
+    "count": 19,
+    "rca": 0.26,
+    "share": 0.2141,
+    "share_d": 0.8093,
+    "reldens": 12.1,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#B06C6C",
+    "id": "Specialised construction activities (43)",
+    "value": 19
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Stockholm (SE11)",
+    "count": 3672,
+    "rca": 5.73,
+    "share": 41.384,
+    "share_d": 7.2195,
+    "reldens": 68.85,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#1B721B",
+    "id": "Telecommunication (61)",
+    "value": 3672
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Stockholm (SE11)",
+    "count": 2,
+    "rca": 0.13,
+    "share": 0.0225,
+    "share_d": 0.1712,
+    "reldens": 9.05,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#A54C4C",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 2
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Stockholm (SE11)",
+    "count": 33,
+    "rca": 0.8,
+    "share": 0.3719,
+    "share_d": 0.4643,
+    "reldens": 11.42,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#CBBDBD",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 33
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

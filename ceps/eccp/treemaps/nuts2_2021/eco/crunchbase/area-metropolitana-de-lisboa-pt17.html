@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Funding RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Funding RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 22.91,
+    "rca": 0.53,
+    "share": 1.0993,
+    "share_d": 2.0877,
+    "reldens": 23.98,
+    "comp_PA": 86.6,
+    "comp_TCI": 56.38,
+    "parent": "A",
+    "color": "#BF9A9A",
+    "id": "Aerospace & Defence",
+    "value": 22.91
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 17.86,
+    "rca": 0.23,
+    "share": 0.857,
+    "share_d": 3.6719,
+    "reldens": 45.28,
+    "comp_PA": 81.72,
+    "comp_TCI": 50.44,
+    "parent": "A",
+    "color": "#AE6565",
+    "id": "Agrifood",
+    "value": 17.86
+  },
+  {
+    "domain": "Construction",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 159.55,
+    "rca": 2.34,
+    "share": 7.6559,
+    "share_d": 3.2759,
+    "reldens": 37.27,
+    "comp_PA": 67.49,
+    "comp_TCI": 80.38,
+    "parent": "A",
+    "color": "#539053",
+    "id": "Construction",
+    "value": 159.55
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 165.88,
+    "rca": 0.71,
+    "share": 7.9597,
+    "share_d": 11.1756,
+    "reldens": 28.49,
+    "comp_PA": 91.47,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#C8B2B2",
+    "id": "Cultural and Creative Industries",
+    "value": 165.88
+  },
+  {
+    "domain": "Digital",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 392.16,
+    "rca": 0.61,
+    "share": 18.8176,
+    "share_d": 30.6012,
+    "reldens": 31.59,
+    "comp_PA": 88.76,
+    "comp_TCI": 10.64,
+    "parent": "A",
+    "color": "#C3A5A5",
+    "id": "Digital",
+    "value": 392.16
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 59.72,
+    "rca": 0.51,
+    "share": 2.8656,
+    "share_d": 5.5691,
+    "reldens": 30.84,
+    "comp_PA": 70.25,
+    "comp_TCI": 55,
+    "parent": "A",
+    "color": "#BE9797",
+    "id": "Electronics",
+    "value": 59.72
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 721.46,
+    "rca": 3.23,
+    "share": 34.6188,
+    "share_d": 10.7065,
+    "reldens": 29.93,
+    "comp_PA": 83.84,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#3C843C",
+    "id": "Energy - Renewables",
+    "value": 721.46
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 0.74,
+    "rca": 0.02,
+    "share": 0.0355,
+    "share_d": 1.729,
+    "reldens": 44.04,
+    "comp_PA": 79.74,
+    "comp_TCI": 61.19,
+    "parent": "A",
+    "color": "#951E1E",
+    "id": "Energy Intensive Industries",
+    "value": 0.74
+  },
+  {
+    "domain": "Health",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 50.2,
+    "rca": 0.24,
+    "share": 2.4088,
+    "share_d": 9.839,
+    "reldens": 17.83,
+    "comp_PA": 84.27,
+    "comp_TCI": 59.5,
+    "parent": "A",
+    "color": "#AE6767",
+    "id": "Health",
+    "value": 50.2
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 177.62,
+    "rca": 0.91,
+    "share": 8.523,
+    "share_d": 9.4088,
+    "reldens": 36.64,
+    "comp_PA": 87.29,
+    "comp_TCI": 51.89,
+    "parent": "A",
+    "color": "#D0C9C9",
+    "id": "Mobility - Transport - Automotive",
+    "value": 177.62
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 199.59,
+    "rca": 1.79,
+    "share": 9.5772,
+    "share_d": 5.3611,
+    "reldens": 29.13,
+    "comp_PA": 85.35,
+    "comp_TCI": 26.07,
+    "parent": "A",
+    "color": "#699B69",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 199.59
+  },
+  {
+    "domain": "Retail",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 116.21,
+    "rca": 1.31,
+    "share": 5.5763,
+    "share_d": 4.271,
+    "reldens": 14.47,
+    "comp_PA": 66.26,
+    "comp_TCI": 32.01,
+    "parent": "A",
+    "color": "#8BAD8B",
+    "id": "Retail",
+    "value": 116.21
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1327,
+    "reldens": 46.96,
+    "comp_PA": 70.04,
+    "comp_TCI": 33.82,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Textiles",
+    "value": 0
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Área Metropolitana de Lisboa (PT17)",
+    "count": 0.11,
+    "rca": 0,
+    "share": 0.0053,
+    "share_d": 2.1704,
+    "reldens": 31.98,
+    "comp_PA": 79.86,
+    "comp_TCI": 40.91,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Tourism",
+    "value": 0.11
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

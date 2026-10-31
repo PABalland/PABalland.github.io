@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Tübingen (DE14)",
+    "count": 10,
+    "rca": 0.52,
+    "share": 0.1729,
+    "share_d": 0.3308,
+    "reldens": 30.71,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#BF9898",
+    "id": "Civil engineering (42)",
+    "value": 10
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Tübingen (DE14)",
+    "count": 158,
+    "rca": 0.69,
+    "share": 2.7321,
+    "share_d": 3.9331,
+    "reldens": 52.41,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#C7AFAF",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 158
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Tübingen (DE14)",
+    "count": 6,
+    "rca": 0.22,
+    "share": 0.1038,
+    "share_d": 0.4621,
+    "reldens": 24.56,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#AD6363",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 6
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Tübingen (DE14)",
+    "count": 30,
+    "rca": 0.81,
+    "share": 0.5188,
+    "share_d": 0.6442,
+    "reldens": 30.03,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#CCBEBE",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 30
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Tübingen (DE14)",
+    "count": 10,
+    "rca": 0.62,
+    "share": 0.1729,
+    "share_d": 0.278,
+    "reldens": 59.44,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#C4A6A6",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 10
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Tübingen (DE14)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0231,
+    "reldens": 37.26,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "darkred",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Tübingen (DE14)",
+    "count": 69,
+    "rca": 0.81,
+    "share": 1.1932,
+    "share_d": 1.4733,
+    "reldens": 51.56,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#CCBEBE",
+    "id": "Manufacture of basic metals (24)",
+    "value": 69
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Tübingen (DE14)",
+    "count": 278,
+    "rca": 0.55,
+    "share": 4.8072,
+    "share_d": 8.6622,
+    "reldens": 21.94,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#C09C9C",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 278
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Tübingen (DE14)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0686,
+    "reldens": 17.6,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of beverages (11)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Tübingen (DE14)",
+    "count": 108,
+    "rca": 0.23,
+    "share": 1.8675,
+    "share_d": 8.0999,
+    "reldens": 32.51,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#AE6565",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 108
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Tübingen (DE14)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.4105,
+    "reldens": 23.28,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Tübingen (DE14)",
+    "count": 1211,
+    "rca": 1.22,
+    "share": 20.9407,
+    "share_d": 17.106,
+    "reldens": 29.98,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#95B295",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 1211
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Tübingen (DE14)",
+    "count": 783,
+    "rca": 1.6,
+    "share": 13.5397,
+    "share_d": 8.4817,
+    "reldens": 48.59,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#74A174",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 783
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Tübingen (DE14)",
+    "count": 260,
+    "rca": 1.14,
+    "share": 4.4959,
+    "share_d": 3.9362,
+    "reldens": 39.23,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#A1B9A1",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 260
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Tübingen (DE14)",
+    "count": 24,
+    "rca": 0.32,
+    "share": 0.415,
+    "share_d": 1.2848,
+    "reldens": 15.57,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#B47777",
+    "id": "Manufacture of food products (10)",
+    "value": 24
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Tübingen (DE14)",
+    "count": 20,
+    "rca": 0.89,
+    "share": 0.3458,
+    "share_d": 0.3882,
+    "reldens": 52.45,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#CFC7C7",
+    "id": "Manufacture of furniture (31)",
+    "value": 20
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Tübingen (DE14)",
+    "count": 5,
+    "rca": 0.33,
+    "share": 0.0865,
+    "share_d": 0.2641,
+    "reldens": 35.07,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#B47979",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Tübingen (DE14)",
+    "count": 1220,
+    "rca": 1.51,
+    "share": 21.0963,
+    "share_d": 13.9956,
+    "reldens": 35.9,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#7AA47A",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 1220
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Tübingen (DE14)",
+    "count": 655,
+    "rca": 2.16,
+    "share": 11.3263,
+    "share_d": 5.2453,
+    "reldens": 64.98,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#599359",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 655
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Tübingen (DE14)",
+    "count": 24,
+    "rca": 0.3,
+    "share": 0.415,
+    "share_d": 1.3671,
+    "reldens": 35.37,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#B27474",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 24
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Tübingen (DE14)",
+    "count": 150,
+    "rca": 1.45,
+    "share": 2.5938,
+    "share_d": 1.7935,
+    "reldens": 51.27,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#7EA67E",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 150
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Tübingen (DE14)",
+    "count": 43,
+    "rca": 1.25,
+    "share": 0.7436,
+    "share_d": 0.5949,
+    "reldens": 27.68,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#91B091",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 43
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Tübingen (DE14)",
+    "count": 154,
+    "rca": 0.57,
+    "share": 2.663,
+    "share_d": 4.6546,
+    "reldens": 44.46,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#C19F9F",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 154
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Tübingen (DE14)",
+    "count": 59,
+    "rca": 1.71,
+    "share": 1.0202,
+    "share_d": 0.5954,
+    "reldens": 23.54,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#6D9D6D",
+    "id": "Manufacture of textiles (13)",
+    "value": 59
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Tübingen (DE14)",
+    "count": 1,
+    "rca": 0.13,
+    "share": 0.0173,
+    "share_d": 0.135,
+    "reldens": 33.76,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "#A54C4C",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Tübingen (DE14)",
+    "count": 3,
+    "rca": 0.22,
+    "share": 0.0519,
+    "share_d": 0.2371,
+    "reldens": 38.68,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#AD6363",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Tübingen (DE14)",
+    "count": 16,
+    "rca": 1.86,
+    "share": 0.2767,
+    "share_d": 0.1489,
+    "reldens": 33.33,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#659965",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 16
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Tübingen (DE14)",
+    "count": 1,
+    "rca": 0.35,
+    "share": 0.0173,
+    "share_d": 0.0488,
+    "reldens": 26.92,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "#B67D7D",
+    "id": "Mining of metal ores (7)",
+    "value": 1
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Tübingen (DE14)",
+    "count": 2,
+    "rca": 0.1,
+    "share": 0.0346,
+    "share_d": 0.3637,
+    "reldens": 31.76,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#A24343",
+    "id": "Mining support service activities (9)",
+    "value": 2
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Tübingen (DE14)",
+    "count": 279,
+    "rca": 0.81,
+    "share": 4.8245,
+    "share_d": 5.9525,
+    "reldens": 36.42,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#CCBEBE",
+    "id": "Other manufacturing (32)",
+    "value": 279
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Tübingen (DE14)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0279,
+    "reldens": 19.41,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Tübingen (DE14)",
+    "count": 3,
+    "rca": 0.2,
+    "share": 0.0519,
+    "share_d": 0.2538,
+    "reldens": 58.75,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#AB5E5E",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 3
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Tübingen (DE14)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 46.02,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Tübingen (DE14)",
+    "count": 1,
+    "rca": 1.32,
+    "share": 0.0173,
+    "share_d": 0.0131,
+    "reldens": 9.96,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "#8AAC8A",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 1
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Tübingen (DE14)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0441,
+    "reldens": 16.11,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Sewerage (37)",
+    "value": 0
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Tübingen (DE14)",
+    "count": 45,
+    "rca": 0.96,
+    "share": 0.7781,
+    "share_d": 0.8093,
+    "reldens": 32.97,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#D2CFCF",
+    "id": "Specialised construction activities (43)",
+    "value": 45
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Tübingen (DE14)",
+    "count": 142,
+    "rca": 0.34,
+    "share": 2.4555,
+    "share_d": 7.2195,
+    "reldens": 58.87,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#B57B7B",
+    "id": "Telecommunication (61)",
+    "value": 142
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Tübingen (DE14)",
+    "count": 1,
+    "rca": 0.1,
+    "share": 0.0173,
+    "share_d": 0.1712,
+    "reldens": 29.72,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#A24343",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 1
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Tübingen (DE14)",
+    "count": 12,
+    "rca": 0.45,
+    "share": 0.2075,
+    "share_d": 0.4643,
+    "reldens": 36.95,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#BB8E8E",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 12
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

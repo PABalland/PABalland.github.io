@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1,
+    "rca": 1.37,
+    "share": 0.4545,
+    "share_d": 0.3308,
+    "reldens": 21.77,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#85AA85",
+    "id": "Civil engineering (42)",
+    "value": 1
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 15,
+    "rca": 1.73,
+    "share": 6.8182,
+    "share_d": 3.9331,
+    "reldens": 73.1,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#6C9D6C",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 15
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1,
+    "rca": 0.98,
+    "share": 0.4545,
+    "share_d": 0.4621,
+    "reldens": 22.37,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#D2D1D1",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 1
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.6442,
+    "reldens": 31.23,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 0
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.278,
+    "reldens": 34.38,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 0
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0231,
+    "reldens": 37.74,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "darkred",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 1.4733,
+    "reldens": 17.89,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of basic metals (24)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 8,
+    "rca": 0.42,
+    "share": 3.6364,
+    "share_d": 8.6622,
+    "reldens": 26.09,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#BA8989",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 8
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0686,
+    "reldens": 3.73,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of beverages (11)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 14,
+    "rca": 0.79,
+    "share": 6.3636,
+    "share_d": 8.0999,
+    "reldens": 27.19,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#CBBCBC",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 14
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 3,
+    "rca": 3.32,
+    "share": 1.3636,
+    "share_d": 0.4105,
+    "reldens": 21.71,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#3B833B",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 51,
+    "rca": 1.36,
+    "share": 23.1818,
+    "share_d": 17.106,
+    "reldens": 47.17,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#86AA86",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 51
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 11,
+    "rca": 0.59,
+    "share": 5,
+    "share_d": 8.4817,
+    "reldens": 38.98,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#C2A2A2",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 11
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 2,
+    "rca": 0.23,
+    "share": 0.9091,
+    "share_d": 3.9362,
+    "reldens": 29.18,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#AE6565",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1,
+    "rca": 0.35,
+    "share": 0.4545,
+    "share_d": 1.2848,
+    "reldens": 9.36,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#B67D7D",
+    "id": "Manufacture of food products (10)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 3,
+    "rca": 3.51,
+    "share": 1.3636,
+    "share_d": 0.3882,
+    "reldens": 34.83,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#378137",
+    "id": "Manufacture of furniture (31)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 3,
+    "rca": 5.16,
+    "share": 1.3636,
+    "share_d": 0.2641,
+    "reldens": 49.33,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#217521",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 18,
+    "rca": 0.58,
+    "share": 8.1818,
+    "share_d": 13.9956,
+    "reldens": 31.73,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#C2A1A1",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 18
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 5,
+    "rca": 0.43,
+    "share": 2.2727,
+    "share_d": 5.2453,
+    "reldens": 37.67,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#BA8A8A",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 2,
+    "rca": 0.66,
+    "share": 0.9091,
+    "share_d": 1.3671,
+    "reldens": 21.02,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#C5ABAB",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 5,
+    "rca": 1.27,
+    "share": 2.2727,
+    "share_d": 1.7935,
+    "reldens": 32.1,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#8FAF8F",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.5949,
+    "reldens": 33.6,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 4.6546,
+    "reldens": 26.37,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.5954,
+    "reldens": 37.81,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of textiles (13)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1,
+    "rca": 3.37,
+    "share": 0.4545,
+    "share_d": 0.135,
+    "reldens": 44.77,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "#3A823A",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 2,
+    "rca": 3.83,
+    "share": 0.9091,
+    "share_d": 0.2371,
+    "reldens": 53.67,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#327E32",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1489,
+    "reldens": 15.44,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 0
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0488,
+    "reldens": 37.79,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Mining of metal ores (7)",
+    "value": 0
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 26,
+    "rca": 32.5,
+    "share": 11.8182,
+    "share_d": 0.3637,
+    "reldens": 25.61,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#006400",
+    "id": "Mining support service activities (9)",
+    "value": 26
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 17,
+    "rca": 1.3,
+    "share": 7.7273,
+    "share_d": 5.9525,
+    "reldens": 59.1,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#8CAE8C",
+    "id": "Other manufacturing (32)",
+    "value": 17
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0279,
+    "reldens": 76.47,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1,
+    "rca": 1.79,
+    "share": 0.4545,
+    "share_d": 0.2538,
+    "reldens": 26,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#699B69",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 1
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 92.61,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1,
+    "rca": 34.68,
+    "share": 0.4545,
+    "share_d": 0.0131,
+    "reldens": 31.91,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "#006400",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 1
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0441,
+    "reldens": 28.24,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Sewerage (37)",
+    "value": 0
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1,
+    "rca": 0.56,
+    "share": 0.4545,
+    "share_d": 0.8093,
+    "reldens": 23.91,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#C19E9E",
+    "id": "Specialised construction activities (43)",
+    "value": 1
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 26,
+    "rca": 1.64,
+    "share": 11.8182,
+    "share_d": 7.2195,
+    "reldens": 75.63,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#71A071",
+    "id": "Telecommunication (61)",
+    "value": 26
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1,
+    "rca": 2.65,
+    "share": 0.4545,
+    "share_d": 0.1712,
+    "reldens": 27.07,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#4A8B4A",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 1
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1,
+    "rca": 0.98,
+    "share": 0.4545,
+    "share_d": 0.4643,
+    "reldens": 29.96,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#D2D1D1",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 1
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

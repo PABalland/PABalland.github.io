@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Funding RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Funding RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Galicia (ES11)",
+    "count": 0.9,
+    "rca": 0.1,
+    "share": 0.2015,
+    "share_d": 2.0877,
+    "reldens": 3.04,
+    "comp_PA": 86.6,
+    "comp_TCI": 56.38,
+    "parent": "A",
+    "color": "#A24343",
+    "id": "Aerospace & Defence",
+    "value": 0.9
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Galicia (ES11)",
+    "count": 355.7,
+    "rca": 21.69,
+    "share": 79.6534,
+    "share_d": 3.6719,
+    "reldens": 0,
+    "comp_PA": 81.72,
+    "comp_TCI": 50.44,
+    "parent": "A",
+    "color": "#006400",
+    "id": "Agrifood",
+    "value": 355.7
+  },
+  {
+    "domain": "Construction",
+    "geo": "Galicia (ES11)",
+    "count": 0.88,
+    "rca": 0.06,
+    "share": 0.1971,
+    "share_d": 3.2759,
+    "reldens": 3.36,
+    "comp_PA": 67.49,
+    "comp_TCI": 80.38,
+    "parent": "A",
+    "color": "#9D3434",
+    "id": "Construction",
+    "value": 0.88
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Galicia (ES11)",
+    "count": 12.48,
+    "rca": 0.25,
+    "share": 2.7947,
+    "share_d": 11.1756,
+    "reldens": 3.81,
+    "comp_PA": 91.47,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#AF6A6A",
+    "id": "Cultural and Creative Industries",
+    "value": 12.48
+  },
+  {
+    "domain": "Digital",
+    "geo": "Galicia (ES11)",
+    "count": 44.58,
+    "rca": 0.33,
+    "share": 9.983,
+    "share_d": 30.6012,
+    "reldens": 4.95,
+    "comp_PA": 88.76,
+    "comp_TCI": 10.64,
+    "parent": "A",
+    "color": "#B47979",
+    "id": "Digital",
+    "value": 44.58
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Galicia (ES11)",
+    "count": 5.94,
+    "rca": 0.24,
+    "share": 1.3302,
+    "share_d": 5.5691,
+    "reldens": 7.26,
+    "comp_PA": 70.25,
+    "comp_TCI": 55,
+    "parent": "A",
+    "color": "#AE6767",
+    "id": "Electronics",
+    "value": 5.94
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Galicia (ES11)",
+    "count": 0.88,
+    "rca": 0.02,
+    "share": 0.1971,
+    "share_d": 10.7065,
+    "reldens": 5.33,
+    "comp_PA": 83.84,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#951E1E",
+    "id": "Energy - Renewables",
+    "value": 0.88
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 1.729,
+    "reldens": 6.34,
+    "comp_PA": 79.74,
+    "comp_TCI": 61.19,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Energy Intensive Industries",
+    "value": 0
+  },
+  {
+    "domain": "Health",
+    "geo": "Galicia (ES11)",
+    "count": 8.21,
+    "rca": 0.19,
+    "share": 1.8385,
+    "share_d": 9.839,
+    "reldens": 14.06,
+    "comp_PA": 84.27,
+    "comp_TCI": 59.5,
+    "parent": "A",
+    "color": "#AA5C5C",
+    "id": "Health",
+    "value": 8.21
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Galicia (ES11)",
+    "count": 1.41,
+    "rca": 0.03,
+    "share": 0.3157,
+    "share_d": 9.4088,
+    "reldens": 4.54,
+    "comp_PA": 87.29,
+    "comp_TCI": 51.89,
+    "parent": "A",
+    "color": "#972525",
+    "id": "Mobility - Transport - Automotive",
+    "value": 1.41
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 5.3611,
+    "reldens": 18.3,
+    "comp_PA": 85.35,
+    "comp_TCI": 26.07,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 0
+  },
+  {
+    "domain": "Retail",
+    "geo": "Galicia (ES11)",
+    "count": 14.55,
+    "rca": 0.76,
+    "share": 3.2582,
+    "share_d": 4.271,
+    "reldens": 12.63,
+    "comp_PA": 66.26,
+    "comp_TCI": 32.01,
+    "parent": "A",
+    "color": "#CAB8B8",
+    "id": "Retail",
+    "value": 14.55
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1327,
+    "reldens": 3.83,
+    "comp_PA": 70.04,
+    "comp_TCI": 33.82,
+    "parent": "A",
+    "color": "darkred",
+    "id": "Textiles",
+    "value": 0
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Galicia (ES11)",
+    "count": 1.03,
+    "rca": 0.11,
+    "share": 0.2307,
+    "share_d": 2.1704,
+    "reldens": 5.83,
+    "comp_PA": 79.86,
+    "comp_TCI": 40.91,
+    "parent": "A",
+    "color": "#A34646",
+    "id": "Tourism",
+    "value": 1.03
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

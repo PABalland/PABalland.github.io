@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Overijssel (NL21)",
+    "count": 570,
+    "rca": 1.35,
+    "share": 2.5736,
+    "share_d": 1.8996,
+    "reldens": 92.94,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#87AB87",
+    "id": "Aerospace & Defence",
+    "value": 570
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Overijssel (NL21)",
+    "count": 1481,
+    "rca": 0.67,
+    "share": 6.6868,
+    "share_d": 10.0342,
+    "reldens": 46.51,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#C6ADAD",
+    "id": "Agrifood",
+    "value": 1481
+  },
+  {
+    "domain": "Construction",
+    "geo": "Overijssel (NL21)",
+    "count": 2449,
+    "rca": 1.37,
+    "share": 11.0574,
+    "share_d": 8.053,
+    "reldens": 72.97,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#85AA85",
+    "id": "Construction",
+    "value": 2449
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Overijssel (NL21)",
+    "count": 1035,
+    "rca": 0.59,
+    "share": 4.6731,
+    "share_d": 7.8692,
+    "reldens": 37.07,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#C2A2A2",
+    "id": "Cultural and Creative Industries",
+    "value": 1035
+  },
+  {
+    "domain": "Digital",
+    "geo": "Overijssel (NL21)",
+    "count": 2548,
+    "rca": 1.57,
+    "share": 11.5044,
+    "share_d": 7.342,
+    "reldens": 71.32,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#76A276",
+    "id": "Digital",
+    "value": 2548
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Overijssel (NL21)",
+    "count": 3060,
+    "rca": 1.58,
+    "share": 13.8161,
+    "share_d": 8.7502,
+    "reldens": 88.91,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#75A275",
+    "id": "Electronics",
+    "value": 3060
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Overijssel (NL21)",
+    "count": 987,
+    "rca": 1.26,
+    "share": 4.4564,
+    "share_d": 3.5456,
+    "reldens": 93.19,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#90B090",
+    "id": "Energy - Renewables",
+    "value": 987
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Overijssel (NL21)",
+    "count": 1893,
+    "rca": 1.01,
+    "share": 8.547,
+    "share_d": 8.4773,
+    "reldens": 77.42,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#C5CCC5",
+    "id": "Energy Intensive Industries",
+    "value": 1893
+  },
+  {
+    "domain": "Health",
+    "geo": "Overijssel (NL21)",
+    "count": 7482,
+    "rca": 0.82,
+    "share": 33.7818,
+    "share_d": 41.1317,
+    "reldens": 55.78,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#CCBFBF",
+    "id": "Health",
+    "value": 7482
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Overijssel (NL21)",
+    "count": 491,
+    "rca": 1.22,
+    "share": 2.2169,
+    "share_d": 1.8241,
+    "reldens": 79.85,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#95B295",
+    "id": "Mobility - Transport - Automotive",
+    "value": 491
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Overijssel (NL21)",
+    "count": 38,
+    "rca": 0.74,
+    "share": 0.1716,
+    "share_d": 0.232,
+    "reldens": 39.66,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#C9B6B6",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 38
+  },
+  {
+    "domain": "Retail",
+    "geo": "Overijssel (NL21)",
+    "count": 39,
+    "rca": 0.58,
+    "share": 0.1761,
+    "share_d": 0.3014,
+    "reldens": 35.76,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#C2A1A1",
+    "id": "Retail",
+    "value": 39
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Overijssel (NL21)",
+    "count": 14,
+    "rca": 0.64,
+    "share": 0.0632,
+    "share_d": 0.0983,
+    "reldens": 52.94,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#C5A9A9",
+    "id": "Textiles",
+    "value": 14
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Overijssel (NL21)",
+    "count": 61,
+    "rca": 0.62,
+    "share": 0.2754,
+    "share_d": 0.4414,
+    "reldens": 30.02,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#C4A6A6",
+    "id": "Tourism",
+    "value": 61
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

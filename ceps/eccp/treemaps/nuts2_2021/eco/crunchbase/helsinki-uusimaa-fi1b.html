@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Funding RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Funding RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 284.4,
+    "rca": 1.35,
+    "share": 2.8091,
+    "share_d": 2.0877,
+    "reldens": 22.94,
+    "comp_PA": 86.6,
+    "comp_TCI": 56.38,
+    "parent": "A",
+    "color": "#87AB87",
+    "id": "Aerospace & Defence",
+    "value": 284.4
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 193.13,
+    "rca": 0.52,
+    "share": 1.9076,
+    "share_d": 3.6719,
+    "reldens": 49.42,
+    "comp_PA": 81.72,
+    "comp_TCI": 50.44,
+    "parent": "A",
+    "color": "#BF9898",
+    "id": "Agrifood",
+    "value": 193.13
+  },
+  {
+    "domain": "Construction",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 124.31,
+    "rca": 0.37,
+    "share": 1.2278,
+    "share_d": 3.2759,
+    "reldens": 36.44,
+    "comp_PA": 67.49,
+    "comp_TCI": 80.38,
+    "parent": "A",
+    "color": "#B78080",
+    "id": "Construction",
+    "value": 124.31
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 1108.73,
+    "rca": 0.98,
+    "share": 10.9511,
+    "share_d": 11.1756,
+    "reldens": 56.25,
+    "comp_PA": 91.47,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#D2D1D1",
+    "id": "Cultural and Creative Industries",
+    "value": 1108.73
+  },
+  {
+    "domain": "Digital",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 3510.44,
+    "rca": 1.13,
+    "share": 34.6733,
+    "share_d": 30.6012,
+    "reldens": 26.89,
+    "comp_PA": 88.76,
+    "comp_TCI": 10.64,
+    "parent": "A",
+    "color": "#A2B9A2",
+    "id": "Digital",
+    "value": 3510.44
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 464.6,
+    "rca": 0.82,
+    "share": 4.5889,
+    "share_d": 5.5691,
+    "reldens": 35.36,
+    "comp_PA": 70.25,
+    "comp_TCI": 55,
+    "parent": "A",
+    "color": "#CCBFBF",
+    "id": "Electronics",
+    "value": 464.6
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 431.42,
+    "rca": 0.4,
+    "share": 4.2612,
+    "share_d": 10.7065,
+    "reldens": 22.62,
+    "comp_PA": 83.84,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#B98585",
+    "id": "Energy - Renewables",
+    "value": 431.42
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 78.61,
+    "rca": 0.45,
+    "share": 0.7764,
+    "share_d": 1.729,
+    "reldens": 26.46,
+    "comp_PA": 79.74,
+    "comp_TCI": 61.19,
+    "parent": "A",
+    "color": "#BB8E8E",
+    "id": "Energy Intensive Industries",
+    "value": 78.61
+  },
+  {
+    "domain": "Health",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 424.83,
+    "rca": 0.43,
+    "share": 4.1961,
+    "share_d": 9.839,
+    "reldens": 39.62,
+    "comp_PA": 84.27,
+    "comp_TCI": 59.5,
+    "parent": "A",
+    "color": "#BA8A8A",
+    "id": "Health",
+    "value": 424.83
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 786.36,
+    "rca": 0.83,
+    "share": 7.767,
+    "share_d": 9.4088,
+    "reldens": 46.93,
+    "comp_PA": 87.29,
+    "comp_TCI": 51.89,
+    "parent": "A",
+    "color": "#CDC0C0",
+    "id": "Mobility - Transport - Automotive",
+    "value": 786.36
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 888.1,
+    "rca": 1.64,
+    "share": 8.7719,
+    "share_d": 5.3611,
+    "reldens": 31.62,
+    "comp_PA": 85.35,
+    "comp_TCI": 26.07,
+    "parent": "A",
+    "color": "#71A071",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 888.1
+  },
+  {
+    "domain": "Retail",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 1708.5,
+    "rca": 3.95,
+    "share": 16.8752,
+    "share_d": 4.271,
+    "reldens": 33.88,
+    "comp_PA": 66.26,
+    "comp_TCI": 32.01,
+    "parent": "A",
+    "color": "#307D30",
+    "id": "Retail",
+    "value": 1708.5
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 49.5,
+    "rca": 3.69,
+    "share": 0.4889,
+    "share_d": 0.1327,
+    "reldens": 46.61,
+    "comp_PA": 70.04,
+    "comp_TCI": 33.82,
+    "parent": "A",
+    "color": "#347F34",
+    "id": "Textiles",
+    "value": 49.5
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Helsinki-Uusimaa (FI1B)",
+    "count": 71.41,
+    "rca": 0.32,
+    "share": 0.7053,
+    "share_d": 2.1704,
+    "reldens": 52.09,
+    "comp_PA": 79.86,
+    "comp_TCI": 40.91,
+    "parent": "A",
+    "color": "#B47777",
+    "id": "Tourism",
+    "value": 71.41
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

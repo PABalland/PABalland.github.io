@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Småland med öarna (SE21)",
+    "count": 121,
+    "rca": 0.92,
+    "share": 1.7486,
+    "share_d": 1.8996,
+    "reldens": 21.7,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#D0CACA",
+    "id": "Aerospace & Defence",
+    "value": 121
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Småland med öarna (SE21)",
+    "count": 555,
+    "rca": 0.8,
+    "share": 8.0202,
+    "share_d": 10.0342,
+    "reldens": 56.51,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#CBBDBD",
+    "id": "Agrifood",
+    "value": 555
+  },
+  {
+    "domain": "Construction",
+    "geo": "Småland med öarna (SE21)",
+    "count": 474,
+    "rca": 0.85,
+    "share": 6.8497,
+    "share_d": 8.053,
+    "reldens": 25.36,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#CDC3C3",
+    "id": "Construction",
+    "value": 474
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Småland med öarna (SE21)",
+    "count": 836,
+    "rca": 1.54,
+    "share": 12.0809,
+    "share_d": 7.8692,
+    "reldens": 68.57,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#78A378",
+    "id": "Cultural and Creative Industries",
+    "value": 836
+  },
+  {
+    "domain": "Digital",
+    "geo": "Småland med öarna (SE21)",
+    "count": 541,
+    "rca": 1.06,
+    "share": 7.8179,
+    "share_d": 7.342,
+    "reldens": 26.62,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#B1C1B1",
+    "id": "Digital",
+    "value": 541
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Småland med öarna (SE21)",
+    "count": 231,
+    "rca": 0.38,
+    "share": 3.3382,
+    "share_d": 8.7502,
+    "reldens": 25.91,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#B78282",
+    "id": "Electronics",
+    "value": 231
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Småland med öarna (SE21)",
+    "count": 179,
+    "rca": 0.73,
+    "share": 2.5867,
+    "share_d": 3.5456,
+    "reldens": 12.2,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#C9B4B4",
+    "id": "Energy - Renewables",
+    "value": 179
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Småland med öarna (SE21)",
+    "count": 407,
+    "rca": 0.69,
+    "share": 5.8815,
+    "share_d": 8.4773,
+    "reldens": 16.16,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#C7AFAF",
+    "id": "Energy Intensive Industries",
+    "value": 407
+  },
+  {
+    "domain": "Health",
+    "geo": "Småland med öarna (SE21)",
+    "count": 3252,
+    "rca": 1.14,
+    "share": 46.9942,
+    "share_d": 41.1317,
+    "reldens": 32.61,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#A1B9A1",
+    "id": "Health",
+    "value": 3252
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Småland med öarna (SE21)",
+    "count": 123,
+    "rca": 0.97,
+    "share": 1.7775,
+    "share_d": 1.8241,
+    "reldens": 35.46,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#D2D0D0",
+    "id": "Mobility - Transport - Automotive",
+    "value": 123
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Småland med öarna (SE21)",
+    "count": 39,
+    "rca": 2.43,
+    "share": 0.5636,
+    "share_d": 0.232,
+    "reldens": 56.61,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#508E50",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 39
+  },
+  {
+    "domain": "Retail",
+    "geo": "Småland med öarna (SE21)",
+    "count": 38,
+    "rca": 1.82,
+    "share": 0.5491,
+    "share_d": 0.3014,
+    "reldens": 67.19,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#679A67",
+    "id": "Retail",
+    "value": 38
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Småland med öarna (SE21)",
+    "count": 15,
+    "rca": 2.21,
+    "share": 0.2168,
+    "share_d": 0.0983,
+    "reldens": 44.61,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#579257",
+    "id": "Textiles",
+    "value": 15
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Småland med öarna (SE21)",
+    "count": 109,
+    "rca": 3.57,
+    "share": 1.5751,
+    "share_d": 0.4414,
+    "reldens": 56.26,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#368036",
+    "id": "Tourism",
+    "value": 109
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

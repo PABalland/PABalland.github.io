@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Västsverige (SE23)",
+    "count": 1309,
+    "rca": 1.39,
+    "share": 2.6397,
+    "share_d": 1.8996,
+    "reldens": 71.09,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#83A983",
+    "id": "Aerospace & Defence",
+    "value": 1309
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Västsverige (SE23)",
+    "count": 3297,
+    "rca": 0.66,
+    "share": 6.6487,
+    "share_d": 10.0342,
+    "reldens": 29.4,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#C5ABAB",
+    "id": "Agrifood",
+    "value": 3297
+  },
+  {
+    "domain": "Construction",
+    "geo": "Västsverige (SE23)",
+    "count": 3775,
+    "rca": 0.95,
+    "share": 7.6126,
+    "share_d": 8.053,
+    "reldens": 73.98,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#D1CECE",
+    "id": "Construction",
+    "value": 3775
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Västsverige (SE23)",
+    "count": 2948,
+    "rca": 0.76,
+    "share": 5.9449,
+    "share_d": 7.8692,
+    "reldens": 33.39,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#CAB8B8",
+    "id": "Cultural and Creative Industries",
+    "value": 2948
+  },
+  {
+    "domain": "Digital",
+    "geo": "Västsverige (SE23)",
+    "count": 4575,
+    "rca": 1.26,
+    "share": 9.2258,
+    "share_d": 7.342,
+    "reldens": 61.39,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#90B090",
+    "id": "Digital",
+    "value": 4575
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Västsverige (SE23)",
+    "count": 4579,
+    "rca": 1.06,
+    "share": 9.2339,
+    "share_d": 8.7502,
+    "reldens": 74.9,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#B1C1B1",
+    "id": "Electronics",
+    "value": 4579
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Västsverige (SE23)",
+    "count": 2344,
+    "rca": 1.33,
+    "share": 4.7269,
+    "share_d": 3.5456,
+    "reldens": 80.08,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#89AC89",
+    "id": "Energy - Renewables",
+    "value": 2344
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Västsverige (SE23)",
+    "count": 4280,
+    "rca": 1.02,
+    "share": 8.6309,
+    "share_d": 8.4773,
+    "reldens": 64.27,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#BFC9BF",
+    "id": "Energy Intensive Industries",
+    "value": 4280
+  },
+  {
+    "domain": "Health",
+    "geo": "Västsverige (SE23)",
+    "count": 20085,
+    "rca": 0.98,
+    "share": 40.5029,
+    "share_d": 41.1317,
+    "reldens": 48.63,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#D2D1D1",
+    "id": "Health",
+    "value": 20085
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Västsverige (SE23)",
+    "count": 1983,
+    "rca": 2.19,
+    "share": 3.9989,
+    "share_d": 1.8241,
+    "reldens": 67.22,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#589258",
+    "id": "Mobility - Transport - Automotive",
+    "value": 1983
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Västsverige (SE23)",
+    "count": 98,
+    "rca": 0.85,
+    "share": 0.1976,
+    "share_d": 0.232,
+    "reldens": 22.37,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#CDC3C3",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 98
+  },
+  {
+    "domain": "Retail",
+    "geo": "Västsverige (SE23)",
+    "count": 91,
+    "rca": 0.61,
+    "share": 0.1835,
+    "share_d": 0.3014,
+    "reldens": 38.19,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#C3A5A5",
+    "id": "Retail",
+    "value": 91
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Västsverige (SE23)",
+    "count": 115,
+    "rca": 2.36,
+    "share": 0.2319,
+    "share_d": 0.0983,
+    "reldens": 45.83,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#528F52",
+    "id": "Textiles",
+    "value": 115
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Västsverige (SE23)",
+    "count": 110,
+    "rca": 0.5,
+    "share": 0.2218,
+    "share_d": 0.4414,
+    "reldens": 19.62,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#BE9595",
+    "id": "Tourism",
+    "value": 110
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

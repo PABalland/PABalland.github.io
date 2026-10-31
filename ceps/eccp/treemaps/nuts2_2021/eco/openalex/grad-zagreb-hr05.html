@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 568,
+    "rca": 0.86,
+    "share": 1.6348,
+    "share_d": 1.8996,
+    "reldens": 22.81,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#CEC4C4",
+    "id": "Aerospace & Defence",
+    "value": 568
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 4050,
+    "rca": 1.16,
+    "share": 11.6567,
+    "share_d": 10.0342,
+    "reldens": 32.48,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#9DB79D",
+    "id": "Agrifood",
+    "value": 4050
+  },
+  {
+    "domain": "Construction",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 2777,
+    "rca": 0.99,
+    "share": 7.9927,
+    "share_d": 8.053,
+    "reldens": 37.44,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#D3D2D2",
+    "id": "Construction",
+    "value": 2777
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 3844,
+    "rca": 1.41,
+    "share": 11.0638,
+    "share_d": 7.8692,
+    "reldens": 52.21,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#81A881",
+    "id": "Cultural and Creative Industries",
+    "value": 3844
+  },
+  {
+    "domain": "Digital",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 2112,
+    "rca": 0.83,
+    "share": 6.0787,
+    "share_d": 7.342,
+    "reldens": 41.35,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#CDC0C0",
+    "id": "Digital",
+    "value": 2112
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 2387,
+    "rca": 0.79,
+    "share": 6.8703,
+    "share_d": 8.7502,
+    "reldens": 24.82,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#CBBCBC",
+    "id": "Electronics",
+    "value": 2387
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 1530,
+    "rca": 1.24,
+    "share": 4.4036,
+    "share_d": 3.5456,
+    "reldens": 27.33,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#93B193",
+    "id": "Energy - Renewables",
+    "value": 1530
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 2640,
+    "rca": 0.9,
+    "share": 7.5984,
+    "share_d": 8.4773,
+    "reldens": 32.59,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#CFC8C8",
+    "id": "Energy Intensive Industries",
+    "value": 2640
+  },
+  {
+    "domain": "Health",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 13068,
+    "rca": 0.91,
+    "share": 37.6122,
+    "share_d": 41.1317,
+    "reldens": 47.89,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#D0C9C9",
+    "id": "Health",
+    "value": 13068
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 928,
+    "rca": 1.46,
+    "share": 2.671,
+    "share_d": 1.8241,
+    "reldens": 38.8,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#7DA67D",
+    "id": "Mobility - Transport - Automotive",
+    "value": 928
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 49,
+    "rca": 0.61,
+    "share": 0.141,
+    "share_d": 0.232,
+    "reldens": 64.07,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#C3A5A5",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 49
+  },
+  {
+    "domain": "Retail",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 210,
+    "rca": 2.01,
+    "share": 0.6044,
+    "share_d": 0.3014,
+    "reldens": 75.17,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#5F965F",
+    "id": "Retail",
+    "value": 210
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 156,
+    "rca": 4.57,
+    "share": 0.449,
+    "share_d": 0.0983,
+    "reldens": 39.71,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#287928",
+    "id": "Textiles",
+    "value": 156
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Grad Zagreb (HR05)",
+    "count": 425,
+    "rca": 2.77,
+    "share": 1.2232,
+    "share_d": 0.4414,
+    "reldens": 70.57,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#478947",
+    "id": "Tourism",
+    "value": 425
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

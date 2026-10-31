@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 310,
+    "rca": 3.53,
+    "share": 6.7013,
+    "share_d": 1.8996,
+    "reldens": 95.92,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#378137",
+    "id": "Aerospace & Defence",
+    "value": 310
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 442,
+    "rca": 0.95,
+    "share": 9.5547,
+    "share_d": 10.0342,
+    "reldens": 61.81,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#D1CECE",
+    "id": "Agrifood",
+    "value": 442
+  },
+  {
+    "domain": "Construction",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 758,
+    "rca": 2.03,
+    "share": 16.3856,
+    "share_d": 8.053,
+    "reldens": 77.53,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#5E955E",
+    "id": "Construction",
+    "value": 758
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 289,
+    "rca": 0.79,
+    "share": 6.2473,
+    "share_d": 7.8692,
+    "reldens": 73.16,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#CBBCBC",
+    "id": "Cultural and Creative Industries",
+    "value": 289
+  },
+  {
+    "domain": "Digital",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 448,
+    "rca": 1.32,
+    "share": 9.6844,
+    "share_d": 7.342,
+    "reldens": 76.76,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#8AAC8A",
+    "id": "Digital",
+    "value": 448
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 620,
+    "rca": 1.53,
+    "share": 13.4025,
+    "share_d": 8.7502,
+    "reldens": 90.71,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#78A378",
+    "id": "Electronics",
+    "value": 620
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 246,
+    "rca": 1.5,
+    "share": 5.3178,
+    "share_d": 3.5456,
+    "reldens": 94.7,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#7AA47A",
+    "id": "Energy - Renewables",
+    "value": 246
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 716,
+    "rca": 1.83,
+    "share": 15.4777,
+    "share_d": 8.4773,
+    "reldens": 81.31,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#679A67",
+    "id": "Energy Intensive Industries",
+    "value": 716
+  },
+  {
+    "domain": "Health",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 556,
+    "rca": 0.29,
+    "share": 12.019,
+    "share_d": 41.1317,
+    "reldens": 61.86,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#B27272",
+    "id": "Health",
+    "value": 556
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 181,
+    "rca": 2.14,
+    "share": 3.9127,
+    "share_d": 1.8241,
+    "reldens": 89.58,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#5A935A",
+    "id": "Mobility - Transport - Automotive",
+    "value": 181
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 5,
+    "rca": 0.47,
+    "share": 0.1081,
+    "share_d": 0.232,
+    "reldens": 65.08,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#BC9191",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 5
+  },
+  {
+    "domain": "Retail",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 25,
+    "rca": 1.79,
+    "share": 0.5404,
+    "share_d": 0.3014,
+    "reldens": 48.96,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#699B69",
+    "id": "Retail",
+    "value": 25
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 8,
+    "rca": 1.76,
+    "share": 0.1729,
+    "share_d": 0.0983,
+    "reldens": 59.8,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#6A9C6A",
+    "id": "Textiles",
+    "value": 8
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Észak-Magyarország (HU31)",
+    "count": 22,
+    "rca": 1.08,
+    "share": 0.4756,
+    "share_d": 0.4414,
+    "reldens": 37.12,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#ACBFAC",
+    "id": "Tourism",
+    "value": 22
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

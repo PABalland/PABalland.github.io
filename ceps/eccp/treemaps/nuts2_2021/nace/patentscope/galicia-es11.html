@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Galicia (ES11)",
+    "count": 2,
+    "rca": 1.48,
+    "share": 0.4902,
+    "share_d": 0.3308,
+    "reldens": 67.3,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#7CA57C",
+    "id": "Civil engineering (42)",
+    "value": 2
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Galicia (ES11)",
+    "count": 12,
+    "rca": 0.75,
+    "share": 2.9412,
+    "share_d": 3.9331,
+    "reldens": 29.5,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#C9B7B7",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 12
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Galicia (ES11)",
+    "count": 6,
+    "rca": 3.18,
+    "share": 1.4706,
+    "share_d": 0.4621,
+    "reldens": 58.15,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#3D843D",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 6
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Galicia (ES11)",
+    "count": 3,
+    "rca": 1.14,
+    "share": 0.7353,
+    "share_d": 0.6442,
+    "reldens": 56.91,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#A1B9A1",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 3
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Galicia (ES11)",
+    "count": 2,
+    "rca": 1.76,
+    "share": 0.4902,
+    "share_d": 0.278,
+    "reldens": 51.52,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#6A9C6A",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 2
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0231,
+    "reldens": 29.25,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "darkred",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Galicia (ES11)",
+    "count": 5,
+    "rca": 0.83,
+    "share": 1.2255,
+    "share_d": 1.4733,
+    "reldens": 50.08,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#CDC0C0",
+    "id": "Manufacture of basic metals (24)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Galicia (ES11)",
+    "count": 68,
+    "rca": 1.92,
+    "share": 16.6667,
+    "share_d": 8.6622,
+    "reldens": 60.49,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#639863",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 68
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0686,
+    "reldens": 76.53,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of beverages (11)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Galicia (ES11)",
+    "count": 43,
+    "rca": 1.3,
+    "share": 10.5392,
+    "share_d": 8.0999,
+    "reldens": 39.26,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#8CAE8C",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 43
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.4105,
+    "reldens": 64,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Galicia (ES11)",
+    "count": 41,
+    "rca": 0.59,
+    "share": 10.049,
+    "share_d": 17.106,
+    "reldens": 43.18,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#C2A2A2",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 41
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Galicia (ES11)",
+    "count": 12,
+    "rca": 0.35,
+    "share": 2.9412,
+    "share_d": 8.4817,
+    "reldens": 48.69,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#B67D7D",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 12
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Galicia (ES11)",
+    "count": 16,
+    "rca": 1,
+    "share": 3.9216,
+    "share_d": 3.9362,
+    "reldens": 33.27,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "lightgrey",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 16
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Galicia (ES11)",
+    "count": 6,
+    "rca": 1.14,
+    "share": 1.4706,
+    "share_d": 1.2848,
+    "reldens": 58.1,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#A1B9A1",
+    "id": "Manufacture of food products (10)",
+    "value": 6
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Galicia (ES11)",
+    "count": 1,
+    "rca": 0.63,
+    "share": 0.2451,
+    "share_d": 0.3882,
+    "reldens": 50.16,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#C4A7A7",
+    "id": "Manufacture of furniture (31)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.2641,
+    "reldens": 41.23,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Galicia (ES11)",
+    "count": 38,
+    "rca": 0.67,
+    "share": 9.3137,
+    "share_d": 13.9956,
+    "reldens": 51.55,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#C6ADAD",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 38
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Galicia (ES11)",
+    "count": 36,
+    "rca": 1.68,
+    "share": 8.8235,
+    "share_d": 5.2453,
+    "reldens": 32.84,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#6F9E6F",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 36
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Galicia (ES11)",
+    "count": 4,
+    "rca": 0.72,
+    "share": 0.9804,
+    "share_d": 1.3671,
+    "reldens": 55.8,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#C8B3B3",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 4
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Galicia (ES11)",
+    "count": 12,
+    "rca": 1.64,
+    "share": 2.9412,
+    "share_d": 1.7935,
+    "reldens": 49.78,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#71A071",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 12
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Galicia (ES11)",
+    "count": 1,
+    "rca": 0.41,
+    "share": 0.2451,
+    "share_d": 0.5949,
+    "reldens": 44.8,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#B98787",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Galicia (ES11)",
+    "count": 14,
+    "rca": 0.74,
+    "share": 3.4314,
+    "share_d": 4.6546,
+    "reldens": 46.58,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#C9B6B6",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 14
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.5954,
+    "reldens": 51.46,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of textiles (13)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.135,
+    "reldens": 20.18,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Galicia (ES11)",
+    "count": 1,
+    "rca": 1.03,
+    "share": 0.2451,
+    "share_d": 0.2371,
+    "reldens": 18.55,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#BBC6BB",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Galicia (ES11)",
+    "count": 4,
+    "rca": 6.58,
+    "share": 0.9804,
+    "share_d": 0.1489,
+    "reldens": 35.8,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#146F14",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 4
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0488,
+    "reldens": 49.5,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Mining of metal ores (7)",
+    "value": 0
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Galicia (ES11)",
+    "count": 1,
+    "rca": 0.67,
+    "share": 0.2451,
+    "share_d": 0.3637,
+    "reldens": 33.57,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#C6ADAD",
+    "id": "Mining support service activities (9)",
+    "value": 1
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Galicia (ES11)",
+    "count": 23,
+    "rca": 0.95,
+    "share": 5.6373,
+    "share_d": 5.9525,
+    "reldens": 32.62,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#D1CECE",
+    "id": "Other manufacturing (32)",
+    "value": 23
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0279,
+    "reldens": 18.63,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Galicia (ES11)",
+    "count": 3,
+    "rca": 2.9,
+    "share": 0.7353,
+    "share_d": 0.2538,
+    "reldens": 22.22,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#448844",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 3
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 34.66,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Galicia (ES11)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0131,
+    "reldens": 72.36,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Galicia (ES11)",
+    "count": 1,
+    "rca": 5.56,
+    "share": 0.2451,
+    "share_d": 0.0441,
+    "reldens": 68.6,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "#1D731D",
+    "id": "Sewerage (37)",
+    "value": 1
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Galicia (ES11)",
+    "count": 10,
+    "rca": 3.03,
+    "share": 2.451,
+    "share_d": 0.8093,
+    "reldens": 57.73,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#418641",
+    "id": "Specialised construction activities (43)",
+    "value": 10
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Galicia (ES11)",
+    "count": 36,
+    "rca": 1.22,
+    "share": 8.8235,
+    "share_d": 7.2195,
+    "reldens": 11.86,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#95B295",
+    "id": "Telecommunication (61)",
+    "value": 36
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Galicia (ES11)",
+    "count": 3,
+    "rca": 4.29,
+    "share": 0.7353,
+    "share_d": 0.1712,
+    "reldens": 31.77,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#2B7B2B",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 3
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Galicia (ES11)",
+    "count": 4,
+    "rca": 2.11,
+    "share": 0.9804,
+    "share_d": 0.4643,
+    "reldens": 46.5,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#5B945B",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 4
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

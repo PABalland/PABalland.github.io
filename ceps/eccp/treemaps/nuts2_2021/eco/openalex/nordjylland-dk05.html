@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Nordjylland (DK05)",
+    "count": 491,
+    "rca": 1.02,
+    "share": 1.9443,
+    "share_d": 1.8996,
+    "reldens": 57.08,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#BFC9BF",
+    "id": "Aerospace & Defence",
+    "value": 491
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Nordjylland (DK05)",
+    "count": 770,
+    "rca": 0.3,
+    "share": 3.0491,
+    "share_d": 10.0342,
+    "reldens": 30.54,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#B27474",
+    "id": "Agrifood",
+    "value": 770
+  },
+  {
+    "domain": "Construction",
+    "geo": "Nordjylland (DK05)",
+    "count": 1727,
+    "rca": 0.85,
+    "share": 6.8388,
+    "share_d": 8.053,
+    "reldens": 63.74,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#CDC3C3",
+    "id": "Construction",
+    "value": 1727
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Nordjylland (DK05)",
+    "count": 1465,
+    "rca": 0.74,
+    "share": 5.8013,
+    "share_d": 7.8692,
+    "reldens": 63.54,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#C9B6B6",
+    "id": "Cultural and Creative Industries",
+    "value": 1465
+  },
+  {
+    "domain": "Digital",
+    "geo": "Nordjylland (DK05)",
+    "count": 2899,
+    "rca": 1.56,
+    "share": 11.4798,
+    "share_d": 7.342,
+    "reldens": 64.91,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#76A276",
+    "id": "Digital",
+    "value": 2899
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Nordjylland (DK05)",
+    "count": 2323,
+    "rca": 1.05,
+    "share": 9.1989,
+    "share_d": 8.7502,
+    "reldens": 51.3,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#B4C3B4",
+    "id": "Electronics",
+    "value": 2323
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Nordjylland (DK05)",
+    "count": 4185,
+    "rca": 4.67,
+    "share": 16.5723,
+    "share_d": 3.5456,
+    "reldens": 59.46,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#267826",
+    "id": "Energy - Renewables",
+    "value": 4185
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Nordjylland (DK05)",
+    "count": 977,
+    "rca": 0.46,
+    "share": 3.8688,
+    "share_d": 8.4773,
+    "reldens": 64.39,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#BC8F8F",
+    "id": "Energy Intensive Industries",
+    "value": 977
+  },
+  {
+    "domain": "Health",
+    "geo": "Nordjylland (DK05)",
+    "count": 8854,
+    "rca": 0.85,
+    "share": 35.0612,
+    "share_d": 41.1317,
+    "reldens": 39.38,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#CDC3C3",
+    "id": "Health",
+    "value": 8854
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Nordjylland (DK05)",
+    "count": 1261,
+    "rca": 2.74,
+    "share": 4.9935,
+    "share_d": 1.8241,
+    "reldens": 75.17,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#478A47",
+    "id": "Mobility - Transport - Automotive",
+    "value": 1261
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Nordjylland (DK05)",
+    "count": 70,
+    "rca": 1.19,
+    "share": 0.2772,
+    "share_d": 0.232,
+    "reldens": 47.46,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#99B499",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 70
+  },
+  {
+    "domain": "Retail",
+    "geo": "Nordjylland (DK05)",
+    "count": 78,
+    "rca": 1.02,
+    "share": 0.3089,
+    "share_d": 0.3014,
+    "reldens": 50.35,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#BFC9BF",
+    "id": "Retail",
+    "value": 78
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Nordjylland (DK05)",
+    "count": 29,
+    "rca": 1.17,
+    "share": 0.1148,
+    "share_d": 0.0983,
+    "reldens": 28.43,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#9CB69C",
+    "id": "Textiles",
+    "value": 29
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Nordjylland (DK05)",
+    "count": 124,
+    "rca": 1.11,
+    "share": 0.491,
+    "share_d": 0.4414,
+    "reldens": 32.51,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#A6BBA6",
+    "id": "Tourism",
+    "value": 124
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

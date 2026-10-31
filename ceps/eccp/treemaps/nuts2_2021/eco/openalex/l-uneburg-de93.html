@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Lüneburg (DE93)",
+    "count": 123,
+    "rca": 2.14,
+    "share": 4.0661,
+    "share_d": 1.8996,
+    "reldens": 15.49,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#5A935A",
+    "id": "Aerospace & Defence",
+    "value": 123
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Lüneburg (DE93)",
+    "count": 333,
+    "rca": 1.1,
+    "share": 11.0083,
+    "share_d": 10.0342,
+    "reldens": 33.29,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#A8BCA8",
+    "id": "Agrifood",
+    "value": 333
+  },
+  {
+    "domain": "Construction",
+    "geo": "Lüneburg (DE93)",
+    "count": 163,
+    "rca": 0.67,
+    "share": 5.3884,
+    "share_d": 8.053,
+    "reldens": 45.18,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#C6ADAD",
+    "id": "Construction",
+    "value": 163
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Lüneburg (DE93)",
+    "count": 442,
+    "rca": 1.86,
+    "share": 14.6116,
+    "share_d": 7.8692,
+    "reldens": 54.84,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#659965",
+    "id": "Cultural and Creative Industries",
+    "value": 442
+  },
+  {
+    "domain": "Digital",
+    "geo": "Lüneburg (DE93)",
+    "count": 194,
+    "rca": 0.87,
+    "share": 6.4132,
+    "share_d": 7.342,
+    "reldens": 49.13,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#CEC5C5",
+    "id": "Digital",
+    "value": 194
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Lüneburg (DE93)",
+    "count": 134,
+    "rca": 0.51,
+    "share": 4.4298,
+    "share_d": 8.7502,
+    "reldens": 24.82,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#BE9797",
+    "id": "Electronics",
+    "value": 134
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Lüneburg (DE93)",
+    "count": 86,
+    "rca": 0.8,
+    "share": 2.843,
+    "share_d": 3.5456,
+    "reldens": 35.15,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#CBBDBD",
+    "id": "Energy - Renewables",
+    "value": 86
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Lüneburg (DE93)",
+    "count": 204,
+    "rca": 0.8,
+    "share": 6.7438,
+    "share_d": 8.4773,
+    "reldens": 26.77,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#CBBDBD",
+    "id": "Energy Intensive Industries",
+    "value": 204
+  },
+  {
+    "domain": "Health",
+    "geo": "Lüneburg (DE93)",
+    "count": 1221,
+    "rca": 0.98,
+    "share": 40.3636,
+    "share_d": 41.1317,
+    "reldens": 50.19,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#D2D1D1",
+    "id": "Health",
+    "value": 1221
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Lüneburg (DE93)",
+    "count": 74,
+    "rca": 1.34,
+    "share": 2.4463,
+    "share_d": 1.8241,
+    "reldens": 26.22,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#88AB88",
+    "id": "Mobility - Transport - Automotive",
+    "value": 74
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Lüneburg (DE93)",
+    "count": 11,
+    "rca": 1.57,
+    "share": 0.3636,
+    "share_d": 0.232,
+    "reldens": 58.31,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#76A276",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 11
+  },
+  {
+    "domain": "Retail",
+    "geo": "Lüneburg (DE93)",
+    "count": 19,
+    "rca": 2.08,
+    "share": 0.6281,
+    "share_d": 0.3014,
+    "reldens": 75.69,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#5C945C",
+    "id": "Retail",
+    "value": 19
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Lüneburg (DE93)",
+    "count": 3,
+    "rca": 1.01,
+    "share": 0.0992,
+    "share_d": 0.0983,
+    "reldens": 44.36,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#C5CCC5",
+    "id": "Textiles",
+    "value": 3
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Lüneburg (DE93)",
+    "count": 18,
+    "rca": 1.35,
+    "share": 0.595,
+    "share_d": 0.4414,
+    "reldens": 79.91,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#87AB87",
+    "id": "Tourism",
+    "value": 18
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

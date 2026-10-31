@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1220,
+    "rca": 1.39,
+    "share": 2.6334,
+    "share_d": 1.8996,
+    "reldens": 95.92,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#83A983",
+    "id": "Aerospace & Defence",
+    "value": 1220
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 3740,
+    "rca": 0.8,
+    "share": 8.0729,
+    "share_d": 10.0342,
+    "reldens": 61.81,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#CBBDBD",
+    "id": "Agrifood",
+    "value": 3740
+  },
+  {
+    "domain": "Construction",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 4297,
+    "rca": 1.15,
+    "share": 9.2752,
+    "share_d": 8.053,
+    "reldens": 77.53,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#9FB89F",
+    "id": "Construction",
+    "value": 4297
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 3262,
+    "rca": 0.89,
+    "share": 7.0411,
+    "share_d": 7.8692,
+    "reldens": 73.16,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#CFC7C7",
+    "id": "Cultural and Creative Industries",
+    "value": 3262
+  },
+  {
+    "domain": "Digital",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 4412,
+    "rca": 1.3,
+    "share": 9.5234,
+    "share_d": 7.342,
+    "reldens": 76.76,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#8CAE8C",
+    "id": "Digital",
+    "value": 4412
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 5260,
+    "rca": 1.3,
+    "share": 11.3538,
+    "share_d": 8.7502,
+    "reldens": 90.71,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#8CAE8C",
+    "id": "Electronics",
+    "value": 5260
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 2611,
+    "rca": 1.59,
+    "share": 5.6359,
+    "share_d": 3.5456,
+    "reldens": 94.7,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#74A174",
+    "id": "Energy - Renewables",
+    "value": 2611
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 5109,
+    "rca": 1.3,
+    "share": 11.0279,
+    "share_d": 8.4773,
+    "reldens": 81.31,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#8CAE8C",
+    "id": "Energy Intensive Industries",
+    "value": 5109
+  },
+  {
+    "domain": "Health",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 14249,
+    "rca": 0.75,
+    "share": 30.7568,
+    "share_d": 41.1317,
+    "reldens": 61.86,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#C9B7B7",
+    "id": "Health",
+    "value": 14249
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 1169,
+    "rca": 1.38,
+    "share": 2.5233,
+    "share_d": 1.8241,
+    "reldens": 89.58,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#84A984",
+    "id": "Mobility - Transport - Automotive",
+    "value": 1169
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 100,
+    "rca": 0.93,
+    "share": 0.2159,
+    "share_d": 0.232,
+    "reldens": 65.08,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#D0CBCB",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 100
+  },
+  {
+    "domain": "Retail",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 402,
+    "rca": 2.88,
+    "share": 0.8677,
+    "share_d": 0.3014,
+    "reldens": 48.96,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#448844",
+    "id": "Retail",
+    "value": 402
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 93,
+    "rca": 2.04,
+    "share": 0.2007,
+    "share_d": 0.0983,
+    "reldens": 59.8,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#5E955E",
+    "id": "Textiles",
+    "value": 93
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Bucureşti-Ilfov (RO32)",
+    "count": 404,
+    "rca": 1.98,
+    "share": 0.872,
+    "share_d": 0.4414,
+    "reldens": 37.12,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#609760",
+    "id": "Tourism",
+    "value": 404
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

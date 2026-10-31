@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 495,
+    "rca": 0.99,
+    "share": 1.8793,
+    "share_d": 1.8996,
+    "reldens": 21.59,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#D3D2D2",
+    "id": "Aerospace & Defence",
+    "value": 495
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 2443,
+    "rca": 0.92,
+    "share": 9.2749,
+    "share_d": 10.0342,
+    "reldens": 50.34,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#D0CACA",
+    "id": "Agrifood",
+    "value": 2443
+  },
+  {
+    "domain": "Construction",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 1695,
+    "rca": 0.8,
+    "share": 6.4351,
+    "share_d": 8.053,
+    "reldens": 23.27,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#CBBDBD",
+    "id": "Construction",
+    "value": 1695
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 2199,
+    "rca": 1.06,
+    "share": 8.3485,
+    "share_d": 7.8692,
+    "reldens": 54.84,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#B1C1B1",
+    "id": "Cultural and Creative Industries",
+    "value": 2199
+  },
+  {
+    "domain": "Digital",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 3136,
+    "rca": 1.62,
+    "share": 11.9058,
+    "share_d": 7.342,
+    "reldens": 22.14,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#72A072",
+    "id": "Digital",
+    "value": 3136
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 1938,
+    "rca": 0.84,
+    "share": 7.3576,
+    "share_d": 8.7502,
+    "reldens": 25.75,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#CDC1C1",
+    "id": "Electronics",
+    "value": 1938
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 607,
+    "rca": 0.65,
+    "share": 2.3045,
+    "share_d": 3.5456,
+    "reldens": 10.44,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#C5AAAA",
+    "id": "Energy - Renewables",
+    "value": 607
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 2003,
+    "rca": 0.9,
+    "share": 7.6044,
+    "share_d": 8.4773,
+    "reldens": 16.05,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#CFC8C8",
+    "id": "Energy Intensive Industries",
+    "value": 2003
+  },
+  {
+    "domain": "Health",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 11083,
+    "rca": 1.02,
+    "share": 42.0767,
+    "share_d": 41.1317,
+    "reldens": 28.76,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#BFC9BF",
+    "id": "Health",
+    "value": 11083
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 369,
+    "rca": 0.77,
+    "share": 1.4009,
+    "share_d": 1.8241,
+    "reldens": 29.02,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#CAB9B9",
+    "id": "Mobility - Transport - Automotive",
+    "value": 369
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 31,
+    "rca": 0.51,
+    "share": 0.1177,
+    "share_d": 0.232,
+    "reldens": 50.17,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#BE9797",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 31
+  },
+  {
+    "domain": "Retail",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 62,
+    "rca": 0.78,
+    "share": 0.2354,
+    "share_d": 0.3014,
+    "reldens": 63.89,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#CBBABA",
+    "id": "Retail",
+    "value": 62
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 42,
+    "rca": 1.62,
+    "share": 0.1595,
+    "share_d": 0.0983,
+    "reldens": 38.97,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#72A072",
+    "id": "Textiles",
+    "value": 42
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Pohjois- ja Itä-Suomi (FI1D)",
+    "count": 237,
+    "rca": 2.04,
+    "share": 0.8998,
+    "share_d": 0.4414,
+    "reldens": 43.38,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#5E955E",
+    "id": "Tourism",
+    "value": 237
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

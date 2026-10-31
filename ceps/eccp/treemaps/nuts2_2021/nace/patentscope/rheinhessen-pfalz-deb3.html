@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 7,
+    "rca": 0.38,
+    "share": 0.127,
+    "share_d": 0.3308,
+    "reldens": 25.21,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#B78282",
+    "id": "Civil engineering (42)",
+    "value": 7
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 209,
+    "rca": 0.96,
+    "share": 3.7931,
+    "share_d": 3.9331,
+    "reldens": 5.84,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#D2CFCF",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 209
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 8,
+    "rca": 0.31,
+    "share": 0.1452,
+    "share_d": 0.4621,
+    "reldens": 26.56,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#B37575",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 8
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 23,
+    "rca": 0.65,
+    "share": 0.4174,
+    "share_d": 0.6442,
+    "reldens": 41.38,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#C5AAAA",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 23
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 4,
+    "rca": 0.26,
+    "share": 0.0726,
+    "share_d": 0.278,
+    "reldens": 9.33,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#B06C6C",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 4
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 1,
+    "rca": 0.78,
+    "share": 0.0181,
+    "share_d": 0.0231,
+    "reldens": 16.04,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "#CBBABA",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 70,
+    "rca": 0.86,
+    "share": 1.2704,
+    "share_d": 1.4733,
+    "reldens": 24.38,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#CEC4C4",
+    "id": "Manufacture of basic metals (24)",
+    "value": 70
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 885,
+    "rca": 1.85,
+    "share": 16.0617,
+    "share_d": 8.6622,
+    "reldens": 54.74,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#669A66",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 885
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 4,
+    "rca": 1.06,
+    "share": 0.0726,
+    "share_d": 0.0686,
+    "reldens": 78.4,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "#B1C1B1",
+    "id": "Manufacture of beverages (11)",
+    "value": 4
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 1537,
+    "rca": 3.44,
+    "share": 27.8947,
+    "share_d": 8.0999,
+    "reldens": 50.88,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#388238",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 1537
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 56,
+    "rca": 2.48,
+    "share": 1.0163,
+    "share_d": 0.4105,
+    "reldens": 55.12,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#4E8D4E",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 56
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 636,
+    "rca": 0.67,
+    "share": 11.5426,
+    "share_d": 17.106,
+    "reldens": 17.94,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#C6ADAD",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 636
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 275,
+    "rca": 0.59,
+    "share": 4.9909,
+    "share_d": 8.4817,
+    "reldens": 17.59,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#C2A2A2",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 275
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 126,
+    "rca": 0.58,
+    "share": 2.2868,
+    "share_d": 3.9362,
+    "reldens": 17.86,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#C2A1A1",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 126
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 77,
+    "rca": 1.09,
+    "share": 1.3975,
+    "share_d": 1.2848,
+    "reldens": 72.33,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#AABEAA",
+    "id": "Manufacture of food products (10)",
+    "value": 77
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 6,
+    "rca": 0.28,
+    "share": 0.1089,
+    "share_d": 0.3882,
+    "reldens": 11.68,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#B17070",
+    "id": "Manufacture of furniture (31)",
+    "value": 6
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 11,
+    "rca": 0.76,
+    "share": 0.1996,
+    "share_d": 0.2641,
+    "reldens": 20.68,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#CAB8B8",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 11
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 631,
+    "rca": 0.82,
+    "share": 11.4519,
+    "share_d": 13.9956,
+    "reldens": 31.54,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#CCBFBF",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 631
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 131,
+    "rca": 0.45,
+    "share": 2.3775,
+    "share_d": 5.2453,
+    "reldens": 10.35,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#BB8E8E",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 131
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 95,
+    "rca": 1.26,
+    "share": 1.7241,
+    "share_d": 1.3671,
+    "reldens": 26.15,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#90B090",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 95
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 10,
+    "rca": 0.1,
+    "share": 0.1815,
+    "share_d": 1.7935,
+    "reldens": 7.79,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#A24343",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 10
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 15,
+    "rca": 0.46,
+    "share": 0.2722,
+    "share_d": 0.5949,
+    "reldens": 44.96,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#BC8F8F",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 15
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 309,
+    "rca": 1.2,
+    "share": 5.608,
+    "share_d": 4.6546,
+    "reldens": 30.95,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#98B498",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 309
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 26,
+    "rca": 0.79,
+    "share": 0.4719,
+    "share_d": 0.5954,
+    "reldens": 37.53,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#CBBCBC",
+    "id": "Manufacture of textiles (13)",
+    "value": 26
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.135,
+    "reldens": 18.9,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 5,
+    "rca": 0.38,
+    "share": 0.0907,
+    "share_d": 0.2371,
+    "reldens": 14.05,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#B78282",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 9,
+    "rca": 1.1,
+    "share": 0.1633,
+    "share_d": 0.1489,
+    "reldens": 36.95,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#A8BCA8",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 9
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 15,
+    "rca": 5.58,
+    "share": 0.2722,
+    "share_d": 0.0488,
+    "reldens": 34.62,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "#1D731D",
+    "id": "Mining of metal ores (7)",
+    "value": 15
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 10,
+    "rca": 0.5,
+    "share": 0.1815,
+    "share_d": 0.3637,
+    "reldens": 15.13,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#BE9595",
+    "id": "Mining support service activities (9)",
+    "value": 10
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 125,
+    "rca": 0.38,
+    "share": 2.2686,
+    "share_d": 5.9525,
+    "reldens": 16.8,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#B78282",
+    "id": "Other manufacturing (32)",
+    "value": 125
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0279,
+    "reldens": 6.27,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 12,
+    "rca": 0.86,
+    "share": 0.2178,
+    "share_d": 0.2538,
+    "reldens": 29.31,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#CEC4C4",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 12
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 0.57,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0131,
+    "reldens": 56.91,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 3,
+    "rca": 1.24,
+    "share": 0.0544,
+    "share_d": 0.0441,
+    "reldens": 30.4,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "#93B193",
+    "id": "Sewerage (37)",
+    "value": 3
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 20,
+    "rca": 0.45,
+    "share": 0.363,
+    "share_d": 0.8093,
+    "reldens": 20.59,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#BB8E8E",
+    "id": "Specialised construction activities (43)",
+    "value": 20
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 126,
+    "rca": 0.32,
+    "share": 2.2868,
+    "share_d": 7.2195,
+    "reldens": 1.47,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#B47777",
+    "id": "Telecommunication (61)",
+    "value": 126
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 1,
+    "rca": 0.11,
+    "share": 0.0181,
+    "share_d": 0.1712,
+    "reldens": 51.58,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#A34646",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 1
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Rheinhessen-Pfalz (DEB3)",
+    "count": 32,
+    "rca": 1.25,
+    "share": 0.5808,
+    "share_d": 0.4643,
+    "reldens": 38.58,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#91B091",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 32
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

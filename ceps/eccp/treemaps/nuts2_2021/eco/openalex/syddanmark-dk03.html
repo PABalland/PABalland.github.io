@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Syddanmark (DK03)",
+    "count": 203,
+    "rca": 0.41,
+    "share": 0.7696,
+    "share_d": 1.8996,
+    "reldens": 2.39,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#B98787",
+    "id": "Aerospace & Defence",
+    "value": 203
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Syddanmark (DK03)",
+    "count": 1252,
+    "rca": 0.47,
+    "share": 4.7466,
+    "share_d": 10.0342,
+    "reldens": 25.7,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#BC9191",
+    "id": "Agrifood",
+    "value": 1252
+  },
+  {
+    "domain": "Construction",
+    "geo": "Syddanmark (DK03)",
+    "count": 1077,
+    "rca": 0.51,
+    "share": 4.0831,
+    "share_d": 8.053,
+    "reldens": 6.17,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#BE9797",
+    "id": "Construction",
+    "value": 1077
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Syddanmark (DK03)",
+    "count": 1518,
+    "rca": 0.73,
+    "share": 5.755,
+    "share_d": 7.8692,
+    "reldens": 19.42,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#C9B4B4",
+    "id": "Cultural and Creative Industries",
+    "value": 1518
+  },
+  {
+    "domain": "Digital",
+    "geo": "Syddanmark (DK03)",
+    "count": 1413,
+    "rca": 0.73,
+    "share": 5.3569,
+    "share_d": 7.342,
+    "reldens": 8.51,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#C9B4B4",
+    "id": "Digital",
+    "value": 1413
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Syddanmark (DK03)",
+    "count": 1563,
+    "rca": 0.68,
+    "share": 5.9256,
+    "share_d": 8.7502,
+    "reldens": 7.75,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#C6AEAE",
+    "id": "Electronics",
+    "value": 1563
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Syddanmark (DK03)",
+    "count": 805,
+    "rca": 0.86,
+    "share": 3.0519,
+    "share_d": 3.5456,
+    "reldens": 1.71,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#CEC4C4",
+    "id": "Energy - Renewables",
+    "value": 805
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Syddanmark (DK03)",
+    "count": 1098,
+    "rca": 0.49,
+    "share": 4.1627,
+    "share_d": 8.4773,
+    "reldens": 13.52,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#BD9494",
+    "id": "Energy Intensive Industries",
+    "value": 1098
+  },
+  {
+    "domain": "Health",
+    "geo": "Syddanmark (DK03)",
+    "count": 16897,
+    "rca": 1.56,
+    "share": 64.0596,
+    "share_d": 41.1317,
+    "reldens": 2.05,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#76A276",
+    "id": "Health",
+    "value": 16897
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Syddanmark (DK03)",
+    "count": 331,
+    "rca": 0.69,
+    "share": 1.2549,
+    "share_d": 1.8241,
+    "reldens": 3.92,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#C7AFAF",
+    "id": "Mobility - Transport - Automotive",
+    "value": 331
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Syddanmark (DK03)",
+    "count": 45,
+    "rca": 0.74,
+    "share": 0.1706,
+    "share_d": 0.232,
+    "reldens": 15.25,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#C9B6B6",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 45
+  },
+  {
+    "domain": "Retail",
+    "geo": "Syddanmark (DK03)",
+    "count": 59,
+    "rca": 0.74,
+    "share": 0.2237,
+    "share_d": 0.3014,
+    "reldens": 6.94,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#C9B6B6",
+    "id": "Retail",
+    "value": 59
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Syddanmark (DK03)",
+    "count": 39,
+    "rca": 1.5,
+    "share": 0.1479,
+    "share_d": 0.0983,
+    "reldens": 8.09,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#7AA47A",
+    "id": "Textiles",
+    "value": 39
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Syddanmark (DK03)",
+    "count": 77,
+    "rca": 0.66,
+    "share": 0.2919,
+    "share_d": 0.4414,
+    "reldens": 6.26,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#C5ABAB",
+    "id": "Tourism",
+    "value": 77
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

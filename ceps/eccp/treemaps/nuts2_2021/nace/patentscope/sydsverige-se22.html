@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Sydsverige (SE22)",
+    "count": 6,
+    "rca": 0.41,
+    "share": 0.1353,
+    "share_d": 0.3308,
+    "reldens": 47.9,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#B98787",
+    "id": "Civil engineering (42)",
+    "value": 6
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Sydsverige (SE22)",
+    "count": 206,
+    "rca": 1.18,
+    "share": 4.6459,
+    "share_d": 3.9331,
+    "reldens": 34.18,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#9AB59A",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 206
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Sydsverige (SE22)",
+    "count": 41,
+    "rca": 2,
+    "share": 0.9247,
+    "share_d": 0.4621,
+    "reldens": 45.1,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#5F965F",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 41
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Sydsverige (SE22)",
+    "count": 17,
+    "rca": 0.6,
+    "share": 0.3834,
+    "share_d": 0.6442,
+    "reldens": 34.73,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#C3A3A3",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 17
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Sydsverige (SE22)",
+    "count": 4,
+    "rca": 0.32,
+    "share": 0.0902,
+    "share_d": 0.278,
+    "reldens": 30.15,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#B47777",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 4
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Sydsverige (SE22)",
+    "count": 1,
+    "rca": 0.97,
+    "share": 0.0226,
+    "share_d": 0.0231,
+    "reldens": 21.7,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "#D2D0D0",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Sydsverige (SE22)",
+    "count": 48,
+    "rca": 0.73,
+    "share": 1.0825,
+    "share_d": 1.4733,
+    "reldens": 36.25,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#C9B4B4",
+    "id": "Manufacture of basic metals (24)",
+    "value": 48
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Sydsverige (SE22)",
+    "count": 282,
+    "rca": 0.73,
+    "share": 6.3599,
+    "share_d": 8.6622,
+    "reldens": 35.05,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#C9B4B4",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 282
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Sydsverige (SE22)",
+    "count": 1,
+    "rca": 0.33,
+    "share": 0.0226,
+    "share_d": 0.0686,
+    "reldens": 62.4,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "#B47979",
+    "id": "Manufacture of beverages (11)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Sydsverige (SE22)",
+    "count": 162,
+    "rca": 0.45,
+    "share": 3.6536,
+    "share_d": 8.0999,
+    "reldens": 19.95,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#BB8E8E",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 162
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Sydsverige (SE22)",
+    "count": 9,
+    "rca": 0.49,
+    "share": 0.203,
+    "share_d": 0.4105,
+    "reldens": 14.74,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#BD9494",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 9
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Sydsverige (SE22)",
+    "count": 735,
+    "rca": 0.97,
+    "share": 16.5765,
+    "share_d": 17.106,
+    "reldens": 45.93,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#D2D0D0",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 735
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Sydsverige (SE22)",
+    "count": 141,
+    "rca": 0.37,
+    "share": 3.18,
+    "share_d": 8.4817,
+    "reldens": 28.2,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#B78080",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 141
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Sydsverige (SE22)",
+    "count": 192,
+    "rca": 1.1,
+    "share": 4.3302,
+    "share_d": 3.9362,
+    "reldens": 19.72,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#A8BCA8",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 192
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Sydsverige (SE22)",
+    "count": 85,
+    "rca": 1.49,
+    "share": 1.917,
+    "share_d": 1.2848,
+    "reldens": 6.68,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#7BA57B",
+    "id": "Manufacture of food products (10)",
+    "value": 85
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Sydsverige (SE22)",
+    "count": 60,
+    "rca": 3.49,
+    "share": 1.3532,
+    "share_d": 0.3882,
+    "reldens": 45.99,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#388138",
+    "id": "Manufacture of furniture (31)",
+    "value": 60
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Sydsverige (SE22)",
+    "count": 4,
+    "rca": 0.34,
+    "share": 0.0902,
+    "share_d": 0.2641,
+    "reldens": 47.04,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#B57B7B",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 4
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Sydsverige (SE22)",
+    "count": 396,
+    "rca": 0.64,
+    "share": 8.931,
+    "share_d": 13.9956,
+    "reldens": 30.88,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#C5A9A9",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 396
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Sydsverige (SE22)",
+    "count": 51,
+    "rca": 0.22,
+    "share": 1.1502,
+    "share_d": 5.2453,
+    "reldens": 27.27,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#AD6363",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 51
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Sydsverige (SE22)",
+    "count": 31,
+    "rca": 0.51,
+    "share": 0.6991,
+    "share_d": 1.3671,
+    "reldens": 41.59,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#BE9797",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 31
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Sydsverige (SE22)",
+    "count": 20,
+    "rca": 0.25,
+    "share": 0.4511,
+    "share_d": 1.7935,
+    "reldens": 26.19,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#AF6A6A",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 20
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Sydsverige (SE22)",
+    "count": 43,
+    "rca": 1.63,
+    "share": 0.9698,
+    "share_d": 0.5949,
+    "reldens": 18.8,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#72A072",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 43
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Sydsverige (SE22)",
+    "count": 140,
+    "rca": 0.68,
+    "share": 3.1574,
+    "share_d": 4.6546,
+    "reldens": 30.38,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#C6AEAE",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 140
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Sydsverige (SE22)",
+    "count": 2,
+    "rca": 0.08,
+    "share": 0.0451,
+    "share_d": 0.5954,
+    "reldens": 35.86,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#9F3C3C",
+    "id": "Manufacture of textiles (13)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Sydsverige (SE22)",
+    "count": 3,
+    "rca": 0.5,
+    "share": 0.0677,
+    "share_d": 0.135,
+    "reldens": 64.4,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "#BE9595",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Sydsverige (SE22)",
+    "count": 11,
+    "rca": 1.05,
+    "share": 0.2481,
+    "share_d": 0.2371,
+    "reldens": 35.53,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#B4C3B4",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 11
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Sydsverige (SE22)",
+    "count": 19,
+    "rca": 2.88,
+    "share": 0.4285,
+    "share_d": 0.1489,
+    "reldens": 39.24,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#448844",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 19
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Sydsverige (SE22)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0488,
+    "reldens": 21.4,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Mining of metal ores (7)",
+    "value": 0
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Sydsverige (SE22)",
+    "count": 2,
+    "rca": 0.12,
+    "share": 0.0451,
+    "share_d": 0.3637,
+    "reldens": 19.46,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#A44949",
+    "id": "Mining support service activities (9)",
+    "value": 2
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Sydsverige (SE22)",
+    "count": 283,
+    "rca": 1.07,
+    "share": 6.3825,
+    "share_d": 5.9525,
+    "reldens": 34.76,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#AFC0AF",
+    "id": "Other manufacturing (32)",
+    "value": 283
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Sydsverige (SE22)",
+    "count": 1,
+    "rca": 0.81,
+    "share": 0.0226,
+    "share_d": 0.0279,
+    "reldens": 6.67,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "#CCBEBE",
+    "id": "Other mining and quarrying (8)",
+    "value": 1
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Sydsverige (SE22)",
+    "count": 6,
+    "rca": 0.53,
+    "share": 0.1353,
+    "share_d": 0.2538,
+    "reldens": 34.4,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#BF9A9A",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 6
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Sydsverige (SE22)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 53.98,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Sydsverige (SE22)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0131,
+    "reldens": 36.59,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Sydsverige (SE22)",
+    "count": 3,
+    "rca": 1.54,
+    "share": 0.0677,
+    "share_d": 0.0441,
+    "reldens": 40.53,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "#78A378",
+    "id": "Sewerage (37)",
+    "value": 3
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Sydsverige (SE22)",
+    "count": 90,
+    "rca": 2.51,
+    "share": 2.0298,
+    "share_d": 0.8093,
+    "reldens": 37.76,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#4E8D4E",
+    "id": "Specialised construction activities (43)",
+    "value": 90
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Sydsverige (SE22)",
+    "count": 1294,
+    "rca": 4.04,
+    "share": 29.1836,
+    "share_d": 7.2195,
+    "reldens": 31.56,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#2F7D2F",
+    "id": "Telecommunication (61)",
+    "value": 1294
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Sydsverige (SE22)",
+    "count": 3,
+    "rca": 0.4,
+    "share": 0.0677,
+    "share_d": 0.1712,
+    "reldens": 24,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#B98585",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 3
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Sydsverige (SE22)",
+    "count": 42,
+    "rca": 2.04,
+    "share": 0.9472,
+    "share_d": 0.4643,
+    "reldens": 16.17,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#5E955E",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 42
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

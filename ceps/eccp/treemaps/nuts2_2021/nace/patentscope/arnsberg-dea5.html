@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 8,
+    "rca": 0.56,
+    "share": 0.1841,
+    "share_d": 0.3308,
+    "reldens": 75.94,
+    "comp_PA": 66.69,
+    "comp_TCI": 12.31,
+    "parent": "Industry & Construction",
+    "color": "#C19E9E",
+    "id": "Civil engineering (42)",
+    "value": 8
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 65,
+    "rca": 0.38,
+    "share": 1.496,
+    "share_d": 3.9331,
+    "reldens": 21.94,
+    "comp_PA": 84.72,
+    "comp_TCI": 68.67,
+    "parent": "Information & Communication",
+    "color": "#B78282",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 65
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 26,
+    "rca": 1.29,
+    "share": 0.5984,
+    "share_d": 0.4621,
+    "reldens": 75.91,
+    "comp_PA": 68.2,
+    "comp_TCI": 15.24,
+    "parent": "Industry & Construction",
+    "color": "#8DAE8D",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 26
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 12,
+    "rca": 0.43,
+    "share": 0.2762,
+    "share_d": 0.6442,
+    "reldens": 45.31,
+    "comp_PA": 70.56,
+    "comp_TCI": 15.66,
+    "parent": "Primary & Extractive",
+    "color": "#BA8A8A",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 12
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 9,
+    "rca": 0.74,
+    "share": 0.2071,
+    "share_d": 0.278,
+    "reldens": 66.81,
+    "comp_PA": 72.76,
+    "comp_TCI": 16.83,
+    "parent": "Industry & Construction",
+    "color": "#C9B6B6",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 9
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 2,
+    "rca": 1.99,
+    "share": 0.046,
+    "share_d": 0.0231,
+    "reldens": 66.98,
+    "comp_PA": 66.72,
+    "comp_TCI": 6.57,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "#609660",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 291,
+    "rca": 4.55,
+    "share": 6.6974,
+    "share_d": 1.4733,
+    "reldens": 82.27,
+    "comp_PA": 73.95,
+    "comp_TCI": 13.04,
+    "parent": "Industry & Construction",
+    "color": "#287928",
+    "id": "Manufacture of basic metals (24)",
+    "value": 291
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 232,
+    "rca": 0.62,
+    "share": 5.3395,
+    "share_d": 8.6622,
+    "reldens": 45.31,
+    "comp_PA": 77.77,
+    "comp_TCI": 25.61,
+    "parent": "Industry & Construction",
+    "color": "#C4A6A6",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 232
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0686,
+    "reldens": 31.73,
+    "comp_PA": 70.07,
+    "comp_TCI": 12.45,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of beverages (11)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 386,
+    "rca": 1.1,
+    "share": 8.8838,
+    "share_d": 8.0999,
+    "reldens": 51.37,
+    "comp_PA": 76.79,
+    "comp_TCI": 2.01,
+    "parent": "Industry & Construction",
+    "color": "#A8BCA8",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 386
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 15,
+    "rca": 0.84,
+    "share": 0.3452,
+    "share_d": 0.4105,
+    "reldens": 72.33,
+    "comp_PA": 69.75,
+    "comp_TCI": 5.36,
+    "parent": "Industry & Construction",
+    "color": "#CDC1C1",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 15
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 574,
+    "rca": 0.77,
+    "share": 13.2106,
+    "share_d": 17.106,
+    "reldens": 45.66,
+    "comp_PA": 84.42,
+    "comp_TCI": 77.06,
+    "parent": "Industry & Construction",
+    "color": "#CAB9B9",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 574
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 502,
+    "rca": 1.36,
+    "share": 11.5535,
+    "share_d": 8.4817,
+    "reldens": 56.8,
+    "comp_PA": 81.19,
+    "comp_TCI": 41.76,
+    "parent": "Industry & Construction",
+    "color": "#86AA86",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 502
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 342,
+    "rca": 2,
+    "share": 7.8711,
+    "share_d": 3.9362,
+    "reldens": 72.29,
+    "comp_PA": 76.35,
+    "comp_TCI": 18.06,
+    "parent": "Industry & Construction",
+    "color": "#5F965F",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 342
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 22,
+    "rca": 0.39,
+    "share": 0.5063,
+    "share_d": 1.2848,
+    "reldens": 32.23,
+    "comp_PA": 73.88,
+    "comp_TCI": 12.66,
+    "parent": "Industry & Construction",
+    "color": "#B88484",
+    "id": "Manufacture of food products (10)",
+    "value": 22
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 18,
+    "rca": 1.07,
+    "share": 0.4143,
+    "share_d": 0.3882,
+    "reldens": 61.11,
+    "comp_PA": 70.61,
+    "comp_TCI": 19.44,
+    "parent": "Industry & Construction",
+    "color": "#AFC0AF",
+    "id": "Manufacture of furniture (31)",
+    "value": 18
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 6,
+    "rca": 0.52,
+    "share": 0.1381,
+    "share_d": 0.2641,
+    "reldens": 51.75,
+    "comp_PA": 71.34,
+    "comp_TCI": 10.32,
+    "parent": "Industry & Construction",
+    "color": "#BF9898",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 6
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 881,
+    "rca": 1.45,
+    "share": 20.2762,
+    "share_d": 13.9956,
+    "reldens": 57.8,
+    "comp_PA": 75.84,
+    "comp_TCI": 12.27,
+    "parent": "Industry & Construction",
+    "color": "#7EA67E",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 881
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 304,
+    "rca": 1.33,
+    "share": 6.9965,
+    "share_d": 5.2453,
+    "reldens": 65.69,
+    "comp_PA": 78.81,
+    "comp_TCI": 49.22,
+    "parent": "Industry & Construction",
+    "color": "#89AC89",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 304
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 78,
+    "rca": 1.31,
+    "share": 1.7952,
+    "share_d": 1.3671,
+    "reldens": 75.48,
+    "comp_PA": 73.11,
+    "comp_TCI": 11.79,
+    "parent": "Industry & Construction",
+    "color": "#8BAD8B",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 78
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 36,
+    "rca": 0.46,
+    "share": 0.8285,
+    "share_d": 1.7935,
+    "reldens": 64.59,
+    "comp_PA": 72.89,
+    "comp_TCI": 26.64,
+    "parent": "Industry & Construction",
+    "color": "#BC8F8F",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 36
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 8,
+    "rca": 0.31,
+    "share": 0.1841,
+    "share_d": 0.5949,
+    "reldens": 63.44,
+    "comp_PA": 71.22,
+    "comp_TCI": 14.59,
+    "parent": "Industry & Construction",
+    "color": "#B37575",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 8
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 204,
+    "rca": 1.01,
+    "share": 4.6951,
+    "share_d": 4.6546,
+    "reldens": 63.11,
+    "comp_PA": 76.82,
+    "comp_TCI": 3.05,
+    "parent": "Industry & Construction",
+    "color": "#C5CCC5",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 204
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 28,
+    "rca": 1.08,
+    "share": 0.6444,
+    "share_d": 0.5954,
+    "reldens": 52.23,
+    "comp_PA": 72.16,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#ACBFAC",
+    "id": "Manufacture of textiles (13)",
+    "value": 28
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.135,
+    "reldens": 24.22,
+    "comp_PA": 76.72,
+    "comp_TCI": 10.37,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 6,
+    "rca": 0.58,
+    "share": 0.1381,
+    "share_d": 0.2371,
+    "reldens": 44.65,
+    "comp_PA": 71.84,
+    "comp_TCI": 21.62,
+    "parent": "Industry & Construction",
+    "color": "#C2A1A1",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 6
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 7,
+    "rca": 1.08,
+    "share": 0.1611,
+    "share_d": 0.1489,
+    "reldens": 68.31,
+    "comp_PA": 66.31,
+    "comp_TCI": 28.94,
+    "parent": "Industry & Construction",
+    "color": "#ACBFAC",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 7
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 2,
+    "rca": 0.94,
+    "share": 0.046,
+    "share_d": 0.0488,
+    "reldens": 62.54,
+    "comp_PA": 60.76,
+    "comp_TCI": 18.93,
+    "parent": "Primary & Extractive",
+    "color": "#D1CDCD",
+    "id": "Mining of metal ores (7)",
+    "value": 2
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 16,
+    "rca": 1.01,
+    "share": 0.3682,
+    "share_d": 0.3637,
+    "reldens": 72.97,
+    "comp_PA": 70.39,
+    "comp_TCI": 28.62,
+    "parent": "Primary & Extractive",
+    "color": "#C5CCC5",
+    "id": "Mining support service activities (9)",
+    "value": 16
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 98,
+    "rca": 0.38,
+    "share": 2.2555,
+    "share_d": 5.9525,
+    "reldens": 36.01,
+    "comp_PA": 78.26,
+    "comp_TCI": 26.24,
+    "parent": "Industry & Construction",
+    "color": "#B78282",
+    "id": "Other manufacturing (32)",
+    "value": 98
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 6,
+    "rca": 4.95,
+    "share": 0.1381,
+    "share_d": 0.0279,
+    "reldens": 80,
+    "comp_PA": 57.07,
+    "comp_TCI": 25.92,
+    "parent": "Primary & Extractive",
+    "color": "#237623",
+    "id": "Other mining and quarrying (8)",
+    "value": 6
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 6,
+    "rca": 0.54,
+    "share": 0.1381,
+    "share_d": 0.2538,
+    "reldens": 50.24,
+    "comp_PA": 79.23,
+    "comp_TCI": 22.16,
+    "parent": "Industry & Construction",
+    "color": "#C09B9B",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 6
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0176,
+    "reldens": 8.52,
+    "comp_PA": 81.29,
+    "comp_TCI": 58.03,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 1,
+    "rca": 1.76,
+    "share": 0.023,
+    "share_d": 0.0131,
+    "reldens": 57.52,
+    "comp_PA": 67.32,
+    "comp_TCI": 18.1,
+    "parent": "Industry & Construction",
+    "color": "#6A9C6A",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 1
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 2,
+    "rca": 1.04,
+    "share": 0.046,
+    "share_d": 0.0441,
+    "reldens": 68.44,
+    "comp_PA": 70.18,
+    "comp_TCI": 23.48,
+    "parent": "Industry & Construction",
+    "color": "#B7C5B7",
+    "id": "Sewerage (37)",
+    "value": 2
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 55,
+    "rca": 1.56,
+    "share": 1.2658,
+    "share_d": 0.8093,
+    "reldens": 75.14,
+    "comp_PA": 71.12,
+    "comp_TCI": 9.21,
+    "parent": "Industry & Construction",
+    "color": "#76A276",
+    "id": "Specialised construction activities (43)",
+    "value": 55
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 71,
+    "rca": 0.23,
+    "share": 1.6341,
+    "share_d": 7.2195,
+    "reldens": 19.54,
+    "comp_PA": 89.68,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#AE6565",
+    "id": "Telecommunication (61)",
+    "value": 71
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 5,
+    "rca": 0.67,
+    "share": 0.1151,
+    "share_d": 0.1712,
+    "reldens": 61.74,
+    "comp_PA": 70.97,
+    "comp_TCI": 9.19,
+    "parent": "Industry & Construction",
+    "color": "#C6ADAD",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 5
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Arnsberg (DEA5)",
+    "count": 21,
+    "rca": 1.04,
+    "share": 0.4833,
+    "share_d": 0.4643,
+    "reldens": 61.74,
+    "comp_PA": 71.82,
+    "comp_TCI": 22.31,
+    "parent": "Industry & Construction",
+    "color": "#B7C5B7",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 21
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

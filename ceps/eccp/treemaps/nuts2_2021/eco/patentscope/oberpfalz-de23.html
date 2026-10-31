@@ -1,0 +1,211 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Oberpfalz (DE23)",
+    "count": 120,
+    "rca": 0.63,
+    "share": 4.4037,
+    "share_d": 7.005,
+    "reldens": 38.71,
+    "comp_PA": 79.13,
+    "comp_TCI": 40.05,
+    "parent": "A",
+    "color": "#C4A7A7",
+    "id": "Aerospace & Defence",
+    "value": 120
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Oberpfalz (DE23)",
+    "count": 26,
+    "rca": 0.43,
+    "share": 0.9541,
+    "share_d": 2.2113,
+    "reldens": 22.81,
+    "comp_PA": 73.15,
+    "comp_TCI": 13.58,
+    "parent": "A",
+    "color": "#BA8A8A",
+    "id": "Agrifood",
+    "value": 26
+  },
+  {
+    "domain": "Construction",
+    "geo": "Oberpfalz (DE23)",
+    "count": 28,
+    "rca": 0.53,
+    "share": 1.0275,
+    "share_d": 1.9338,
+    "reldens": 33.76,
+    "comp_PA": 69.76,
+    "comp_TCI": 18.85,
+    "parent": "A",
+    "color": "#BF9A9A",
+    "id": "Construction",
+    "value": 28
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Oberpfalz (DE23)",
+    "count": 35,
+    "rca": 0.75,
+    "share": 1.2844,
+    "share_d": 1.7034,
+    "reldens": 40.48,
+    "comp_PA": 81.8,
+    "comp_TCI": 21.76,
+    "parent": "A",
+    "color": "#C9B7B7",
+    "id": "Cultural and Creative Industries",
+    "value": 35
+  },
+  {
+    "domain": "Digital",
+    "geo": "Oberpfalz (DE23)",
+    "count": 162,
+    "rca": 0.44,
+    "share": 5.945,
+    "share_d": 13.6441,
+    "reldens": 41.17,
+    "comp_PA": 87.47,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#BB8C8C",
+    "id": "Digital",
+    "value": 162
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Oberpfalz (DE23)",
+    "count": 1370,
+    "rca": 1.85,
+    "share": 50.2752,
+    "share_d": 27.2252,
+    "reldens": 17.06,
+    "comp_PA": 81.21,
+    "comp_TCI": 29.15,
+    "parent": "A",
+    "color": "#669A66",
+    "id": "Electronics",
+    "value": 1370
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Oberpfalz (DE23)",
+    "count": 365,
+    "rca": 1.62,
+    "share": 13.3945,
+    "share_d": 8.25,
+    "reldens": 29.56,
+    "comp_PA": 80.76,
+    "comp_TCI": 37.37,
+    "parent": "A",
+    "color": "#72A072",
+    "id": "Energy - Renewables",
+    "value": 365
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Oberpfalz (DE23)",
+    "count": 271,
+    "rca": 0.64,
+    "share": 9.945,
+    "share_d": 15.4933,
+    "reldens": 44.36,
+    "comp_PA": 75.74,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#C5A9A9",
+    "id": "Energy Intensive Industries",
+    "value": 271
+  },
+  {
+    "domain": "Health",
+    "geo": "Oberpfalz (DE23)",
+    "count": 133,
+    "rca": 0.35,
+    "share": 4.8807,
+    "share_d": 13.8872,
+    "reldens": 31.61,
+    "comp_PA": 77.46,
+    "comp_TCI": 18.61,
+    "parent": "A",
+    "color": "#B67D7D",
+    "id": "Health",
+    "value": 133
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Oberpfalz (DE23)",
+    "count": 176,
+    "rca": 0.86,
+    "share": 6.4587,
+    "share_d": 7.5318,
+    "reldens": 45.35,
+    "comp_PA": 78.38,
+    "comp_TCI": 50.37,
+    "parent": "A",
+    "color": "#CEC4C4",
+    "id": "Mobility - Transport - Automotive",
+    "value": 176
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Oberpfalz (DE23)",
+    "count": 39,
+    "rca": 1.28,
+    "share": 1.4312,
+    "share_d": 1.1151,
+    "reldens": 16.52,
+    "comp_PA": 71.88,
+    "comp_TCI": 13.4,
+    "parent": "A",
+    "color": "#8EAF8E",
+    "id": "Textiles",
+    "value": 39
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

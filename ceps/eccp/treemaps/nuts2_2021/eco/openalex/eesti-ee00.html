@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Eesti (EE00)",
+    "count": 449,
+    "rca": 1.09,
+    "share": 2.0775,
+    "share_d": 1.8996,
+    "reldens": 82.76,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#AABEAA",
+    "id": "Aerospace & Defence",
+    "value": 449
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Eesti (EE00)",
+    "count": 3296,
+    "rca": 1.52,
+    "share": 15.2501,
+    "share_d": 10.0342,
+    "reldens": 61.95,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#79A479",
+    "id": "Agrifood",
+    "value": 3296
+  },
+  {
+    "domain": "Construction",
+    "geo": "Eesti (EE00)",
+    "count": 1790,
+    "rca": 1.03,
+    "share": 8.2821,
+    "share_d": 8.053,
+    "reldens": 79.24,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#BBC6BB",
+    "id": "Construction",
+    "value": 1790
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Eesti (EE00)",
+    "count": 2175,
+    "rca": 1.28,
+    "share": 10.0634,
+    "share_d": 7.8692,
+    "reldens": 85.29,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#8EAF8E",
+    "id": "Cultural and Creative Industries",
+    "value": 2175
+  },
+  {
+    "domain": "Digital",
+    "geo": "Eesti (EE00)",
+    "count": 2042,
+    "rca": 1.29,
+    "share": 9.448,
+    "share_d": 7.342,
+    "reldens": 90.39,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#8DAE8D",
+    "id": "Digital",
+    "value": 2042
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Eesti (EE00)",
+    "count": 1901,
+    "rca": 1.01,
+    "share": 8.7956,
+    "share_d": 8.7502,
+    "reldens": 70.01,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#C5CCC5",
+    "id": "Electronics",
+    "value": 1901
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Eesti (EE00)",
+    "count": 1342,
+    "rca": 1.75,
+    "share": 6.2092,
+    "share_d": 3.5456,
+    "reldens": 75.49,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#6B9C6B",
+    "id": "Energy - Renewables",
+    "value": 1342
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Eesti (EE00)",
+    "count": 1792,
+    "rca": 0.98,
+    "share": 8.2913,
+    "share_d": 8.4773,
+    "reldens": 90.26,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#D2D1D1",
+    "id": "Energy Intensive Industries",
+    "value": 1792
+  },
+  {
+    "domain": "Health",
+    "geo": "Eesti (EE00)",
+    "count": 5956,
+    "rca": 0.67,
+    "share": 27.5575,
+    "share_d": 41.1317,
+    "reldens": 83.98,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#C6ADAD",
+    "id": "Health",
+    "value": 5956
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Eesti (EE00)",
+    "count": 599,
+    "rca": 1.52,
+    "share": 2.7715,
+    "share_d": 1.8241,
+    "reldens": 92.48,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#79A479",
+    "id": "Mobility - Transport - Automotive",
+    "value": 599
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Eesti (EE00)",
+    "count": 60,
+    "rca": 1.2,
+    "share": 0.2776,
+    "share_d": 0.232,
+    "reldens": 85.08,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#98B498",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 60
+  },
+  {
+    "domain": "Retail",
+    "geo": "Eesti (EE00)",
+    "count": 68,
+    "rca": 1.04,
+    "share": 0.3146,
+    "share_d": 0.3014,
+    "reldens": 96.35,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#B7C5B7",
+    "id": "Retail",
+    "value": 68
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Eesti (EE00)",
+    "count": 35,
+    "rca": 1.65,
+    "share": 0.1619,
+    "share_d": 0.0983,
+    "reldens": 67.4,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#719F71",
+    "id": "Textiles",
+    "value": 35
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Eesti (EE00)",
+    "count": 108,
+    "rca": 1.13,
+    "share": 0.4997,
+    "share_d": 0.4414,
+    "reldens": 94.44,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#A2B9A2",
+    "id": "Tourism",
+    "value": 108
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Liguria (ITC3)",
+    "count": 547,
+    "rca": 0.87,
+    "share": 1.6512,
+    "share_d": 1.8996,
+    "reldens": 55.23,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#CEC5C5",
+    "id": "Aerospace & Defence",
+    "value": 547
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Liguria (ITC3)",
+    "count": 1653,
+    "rca": 0.5,
+    "share": 4.9897,
+    "share_d": 10.0342,
+    "reldens": 46.98,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#BE9595",
+    "id": "Agrifood",
+    "value": 1653
+  },
+  {
+    "domain": "Construction",
+    "geo": "Liguria (ITC3)",
+    "count": 2348,
+    "rca": 0.88,
+    "share": 7.0877,
+    "share_d": 8.053,
+    "reldens": 55.03,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#CFC6C6",
+    "id": "Construction",
+    "value": 2348
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Liguria (ITC3)",
+    "count": 1245,
+    "rca": 0.48,
+    "share": 3.7582,
+    "share_d": 7.8692,
+    "reldens": 21.14,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#BD9292",
+    "id": "Cultural and Creative Industries",
+    "value": 1245
+  },
+  {
+    "domain": "Digital",
+    "geo": "Liguria (ITC3)",
+    "count": 2066,
+    "rca": 0.85,
+    "share": 6.2364,
+    "share_d": 7.342,
+    "reldens": 54.71,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#CDC3C3",
+    "id": "Digital",
+    "value": 2066
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Liguria (ITC3)",
+    "count": 4955,
+    "rca": 1.71,
+    "share": 14.9571,
+    "share_d": 8.7502,
+    "reldens": 49.89,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#6D9D6D",
+    "id": "Electronics",
+    "value": 4955
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Liguria (ITC3)",
+    "count": 1288,
+    "rca": 1.1,
+    "share": 3.8879,
+    "share_d": 3.5456,
+    "reldens": 67.37,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#A8BCA8",
+    "id": "Energy - Renewables",
+    "value": 1288
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Liguria (ITC3)",
+    "count": 3056,
+    "rca": 1.09,
+    "share": 9.2248,
+    "share_d": 8.4773,
+    "reldens": 57.48,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#AABEAA",
+    "id": "Energy Intensive Industries",
+    "value": 3056
+  },
+  {
+    "domain": "Health",
+    "geo": "Liguria (ITC3)",
+    "count": 15146,
+    "rca": 1.11,
+    "share": 45.7196,
+    "share_d": 41.1317,
+    "reldens": 34.35,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#A6BBA6",
+    "id": "Health",
+    "value": 15146
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Liguria (ITC3)",
+    "count": 683,
+    "rca": 1.13,
+    "share": 2.0617,
+    "share_d": 1.8241,
+    "reldens": 44.12,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#A2B9A2",
+    "id": "Mobility - Transport - Automotive",
+    "value": 683
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Liguria (ITC3)",
+    "count": 52,
+    "rca": 0.68,
+    "share": 0.157,
+    "share_d": 0.232,
+    "reldens": 33.56,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#C6AEAE",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 52
+  },
+  {
+    "domain": "Retail",
+    "geo": "Liguria (ITC3)",
+    "count": 21,
+    "rca": 0.21,
+    "share": 0.0634,
+    "share_d": 0.3014,
+    "reldens": 21.87,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#AC6161",
+    "id": "Retail",
+    "value": 21
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Liguria (ITC3)",
+    "count": 13,
+    "rca": 0.4,
+    "share": 0.0392,
+    "share_d": 0.0983,
+    "reldens": 45.59,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#B98585",
+    "id": "Textiles",
+    "value": 13
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Liguria (ITC3)",
+    "count": 55,
+    "rca": 0.38,
+    "share": 0.166,
+    "share_d": 0.4414,
+    "reldens": 18.44,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#B78282",
+    "id": "Tourism",
+    "value": 55
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

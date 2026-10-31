@@ -1,0 +1,646 @@
+<!doctype html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <title>Forced Network</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #legend-container {
+            flex: 0 0 auto;
+            max-height: 12%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(4px, 1.2vh, 12px) clamp(8px, 3vw, 32px);
+            background: rgba(255, 255, 255, 0.96);
+            order: 2;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .custom-legend {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(6px, 1.5vw, 16px);
+            width: 100%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: clamp(4px, 0.5vw, 8px);
+            font-weight: 600;
+            color: #1b1d21;
+            font-size: clamp(10px, 1.3vw, 16px);
+            cursor: default;
+            white-space: nowrap;
+        }
+
+        .legend-item.dim {
+            opacity: 0.35;
+        }
+
+        .legend-square {
+            width: clamp(10px, 1.2vw, 16px);
+            height: clamp(10px, 1.2vw, 16px);
+            flex-shrink: 0;
+        }
+
+        .legend-label {
+            pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            #legend-container {
+                padding: 4px 8px;
+                max-height: 18%;
+            }
+
+            .custom-legend {
+                gap: 4px 8px;
+            }
+
+            .legend-item {
+                font-size: 10px;
+                gap: 3px;
+            }
+
+            .legend-square {
+                width: 8px;
+                height: 8px;
+            }
+        }
+
+        svg.network {
+            flex: 1 1 auto;
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: move;
+            background: #ffffff;
+            order: 1;
+        }
+
+        .link {
+            stroke: rgba(140, 150, 170, 0.45);
+        }
+
+        .link.highlighted {
+            stroke: rgba(80, 90, 110, 0.9);
+            stroke-width: 6px;
+        }
+
+        .link.dimmed {
+            opacity: 0.2;
+        }
+
+        .node.dimmed {
+            opacity: 0.25;
+        }
+
+        .node.highlighted circle {
+            stroke-width: 3px;
+        }
+
+        .node.highlighted text {
+            font-weight: 700;
+        }
+
+        .node circle {
+            stroke: #ffffff;
+            stroke-width: 2px;
+        }
+
+        .node text {
+            font-weight: 400;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="legend-container">
+        <div class="custom-legend" id="legend"></div>
+    </div>
+
+    <svg class="network"></svg>
+
+    <script>
+
+        var nodes = [{"id":"Construction","id2":0,"x":1.8951,"y":0.6553,"color":"#365a94","parent":"A","size":1.5},{"id":"Cultural and Creative Industries","id2":1,"x":0.0711,"y":0.714,"color":"#365a94","parent":"A","size":1.5},{"id":"Digital","id2":2,"x":0.8178,"y":0.3131,"color":"#365a94","parent":"A","size":1.5},{"id":"Electronics","id2":3,"x":0.9534,"y":0.8336,"color":"#365a94","parent":"A","size":1.5},{"id":"Energy - Renewables","id2":7,"x":1.8586,"y":0.0499,"color":"#365a94","parent":"A","size":1.5},{"id":"Health","id2":5,"x":0.7536,"y":1.5382,"color":"#365a94","parent":"A","size":1.5},{"id":"Mobility - Transport - Automotive","id2":8,"x":1.1222,"y":-0.206,"color":"#365a94","parent":"A","size":1.5},{"id":"Proximity, Social Economy and Civil Security","id2":6,"x":-0.4282,"y":-0.1045,"color":"#365a94","parent":"A","size":1.5},{"id":"Retail","id2":4,"x":0.1434,"y":0.2918,"color":"#365a94","parent":"A","size":1.5},{"id":"Textiles","id2":9,"x":-0.2125,"y":1.4829,"color":"#365a94","parent":"A","size":1.5},{"id":"Tourism","id2":10,"x":0.2036,"y":-0.4253,"color":"#365a94","parent":"A","size":1.5}] ;
+
+        var links =  [{"source":"Construction","target":"Energy - Renewables","weight":0.0392},{"source":"Cultural and Creative Industries","target":"Digital","weight":0.0671},{"source":"Cultural and Creative Industries","target":"Health","weight":0.0794},{"source":"Digital","target":"Electronics","weight":0.0449},{"source":"Digital","target":"Proximity, Social Economy and Civil Security","weight":0.065},{"source":"Digital","target":"Tourism","weight":0.0244},{"source":"Electronics","target":"Energy - Renewables","weight":0.0361},{"source":"Digital","target":"Mobility - Transport - Automotive","weight":0.032},{"source":"Digital","target":"Retail","weight":0.0442},{"source":"Retail","target":"Textiles","weight":0.0253},{"source":"Health","target":"Cultural and Creative Industries","weight":0.0794},{"source":"Digital","target":"Cultural and Creative Industries","weight":0.0671},{"source":"Proximity, Social Economy and Civil Security","target":"Digital","weight":0.065},{"source":"Electronics","target":"Digital","weight":0.0449},{"source":"Retail","target":"Digital","weight":0.0442},{"source":"Energy - Renewables","target":"Construction","weight":0.0392},{"source":"Energy - Renewables","target":"Electronics","weight":0.0361},{"source":"Retail","target":"Cultural and Creative Industries","weight":0.0327},{"source":"Cultural and Creative Industries","target":"Retail","weight":0.0327},{"source":"Mobility - Transport - Automotive","target":"Digital","weight":0.032},{"source":"Mobility - Transport - Automotive","target":"Electronics","weight":0.0314},{"source":"Electronics","target":"Mobility - Transport - Automotive","weight":0.0314},{"source":"Health","target":"Digital","weight":0.0296},{"source":"Digital","target":"Health","weight":0.0296},{"source":"Electronics","target":"Construction","weight":0.0292},{"source":"Construction","target":"Electronics","weight":0.0292},{"source":"Retail","target":"Mobility - Transport - Automotive","weight":0.0255},{"source":"Mobility - Transport - Automotive","target":"Retail","weight":0.0255},{"source":"Electronics","target":"Cultural and Creative Industries","weight":0.0254},{"source":"Cultural and Creative Industries","target":"Electronics","weight":0.0254},{"source":"Textiles","target":"Retail","weight":0.0253},{"source":"Retail","target":"Proximity, Social Economy and Civil Security","weight":0.0251},{"source":"Proximity, Social Economy and Civil Security","target":"Retail","weight":0.0251},{"source":"Digital","target":"Construction","weight":0.0244},{"source":"Construction","target":"Digital","weight":0.0244},{"source":"Tourism","target":"Digital","weight":0.0244},{"source":"Health","target":"Electronics","weight":0.0234},{"source":"Electronics","target":"Health","weight":0.0234},{"source":"Mobility - Transport - Automotive","target":"Energy - Renewables","weight":0.023},{"source":"Energy - Renewables","target":"Mobility - Transport - Automotive","weight":0.023},{"source":"Retail","target":"Electronics","weight":0.0189},{"source":"Electronics","target":"Retail","weight":0.0189},{"source":"Proximity, Social Economy and Civil Security","target":"Cultural and Creative Industries","weight":0.0178},{"source":"Cultural and Creative Industries","target":"Proximity, Social Economy and Civil Security","weight":0.0178},{"source":"Tourism","target":"Mobility - Transport - Automotive","weight":0.0173},{"source":"Mobility - Transport - Automotive","target":"Tourism","weight":0.0173},{"source":"Energy - Renewables","target":"Digital","weight":0.0168},{"source":"Digital","target":"Energy - Renewables","weight":0.0168},{"source":"Tourism","target":"Retail","weight":0.0153},{"source":"Retail","target":"Tourism","weight":0.0153},{"source":"Tourism","target":"Cultural and Creative Industries","weight":0.0151},{"source":"Cultural and Creative Industries","target":"Tourism","weight":0.0151},{"source":"Tourism","target":"Proximity, Social Economy and Civil Security","weight":0.0144},{"source":"Proximity, Social Economy and Civil Security","target":"Tourism","weight":0.0144},{"source":"Mobility - Transport - Automotive","target":"Construction","weight":0.0127},{"source":"Textiles","target":"Electronics","weight":0.0086},{"source":"Electronics","target":"Textiles","weight":0.0086}] ;
+
+        var svg = d3.select("svg.network");
+        var svgNode = svg.node();
+        var REFERENCE_WIDTH = 1100;
+        var BASE_RADIUS = 46;
+
+        var extentX = d3.extent(nodes, function (d) { return d.x; });
+        var extentY = d3.extent(nodes, function (d) { return d.y; });
+
+        nodes.forEach(function (node) {
+            node.dataX = node.x;
+            node.dataY = node.y;
+        });
+
+        var width, height, nodeRadius, horizontalBounds;
+
+        function recalcLayout() {
+            width = (svgNode && svgNode.clientWidth) || window.innerWidth;
+            height = (svgNode && svgNode.clientHeight) || Math.round(window.innerHeight * 0.9);
+            nodeRadius = Math.max(20, Math.min(BASE_RADIUS, Math.round(BASE_RADIUS * (width / REFERENCE_WIDTH))));
+            var padding = nodeRadius * 2;
+            var horPadding = Math.max(10, nodeRadius * 0.25);
+
+            var availableWidth = Math.max(width - padding * 2, padding);
+            var availableHeight = Math.max(height - padding * 2, padding);
+
+            var baseLeft = padding;
+            var baseRight = padding + availableWidth;
+
+            var minXBound = baseLeft + horPadding + nodeRadius;
+            var maxXBound = baseRight - horPadding - nodeRadius;
+
+            if (maxXBound <= minXBound) {
+                var midpoint = (baseLeft + baseRight) / 2;
+                minXBound = midpoint - 1;
+                maxXBound = midpoint + 1;
+            }
+
+            horizontalBounds = { min: minXBound, max: maxXBound };
+
+            var scaleX = d3.scaleLinear().domain(extentX).range([horizontalBounds.min, horizontalBounds.max]);
+            var scaleY = d3.scaleLinear().domain(extentY).range([padding, padding + availableHeight]);
+
+            nodes.forEach(function (node) {
+                var targetX = clampX(scaleX(node.dataX));
+                var targetY = scaleY(node.dataY);
+                node.originalX = targetX;
+                node.originalY = targetY;
+            });
+
+            svg.attr("viewBox", [0, 0, width, height]).attr("preserveAspectRatio", "xMidYMid meet");
+        }
+
+        function clampX(value) {
+            return Math.max(horizontalBounds.min, Math.min(horizontalBounds.max, value));
+        }
+
+        recalcLayout();
+
+        nodes.forEach(function (node) {
+            node.x = node.originalX;
+            node.y = node.originalY;
+        });
+
+        var container = svg.append("g");
+
+        var zoomBehavior = d3.zoom()
+            .scaleExtent([0.6, 3])
+            .on("zoom", function (event) {
+                container.attr("transform", event.transform);
+            });
+
+        svg.call(zoomBehavior);
+
+        var nodeById = new Map(nodes.map(function (node) {
+            return [node.id, node];
+        }));
+
+        var linkData = links.map(function (link) {
+            return {
+                source: nodeById.get(link.source),
+                target: nodeById.get(link.target),
+                weight: link.weight
+            };
+        }).filter(function (link) {
+            return link.source && link.target;
+        });
+
+        var linkExtent = linkData.length ? d3.extent(linkData, function (d) { return d.weight || 1; }) : [1, 1];
+        if (linkExtent[0] === linkExtent[1]) {
+            linkExtent[1] = linkExtent[0] + 1;
+        }
+
+        var linkWidth = d3.scaleSqrt()
+            .domain(linkExtent)
+            .range([0.6, 4]);
+
+        var link = container.append("g")
+            .attr("stroke-linecap", "round")
+            .selectAll("line")
+            .data(linkData)
+            .join("line")
+            .attr("class", "link")
+            .attr("stroke-width", function (d) { return linkWidth(d.weight || 1); });
+
+        var adjacency = new Map();
+
+        linkData.forEach(function (link) {
+            var sourceId = link.source.id;
+            var targetId = link.target.id;
+
+            if (!adjacency.has(sourceId)) {
+                adjacency.set(sourceId, new Set());
+            }
+
+            if (!adjacency.has(targetId)) {
+                adjacency.set(targetId, new Set());
+            }
+
+            adjacency.get(sourceId).add(targetId);
+            adjacency.get(targetId).add(sourceId);
+        });
+
+        var node = container.append("g")
+            .selectAll("g")
+            .data(nodes)
+            .join("g")
+            .attr("class", "node")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended))
+            .on("mouseenter", highlightConnected)
+            .on("mouseleave", resetHighlight);
+
+        node.append("circle")
+            .attr("r", nodeRadius)
+            .attr("fill", function (d) { return d.color; });
+
+        node.append("text")
+            .attr("class", "node-label")
+            .attr("fill", function (d) {
+                return getContrastingTextColor(d.color);
+            })
+            .style("fill", function (d) {
+                return getContrastingTextColor(d.color);
+            })
+            .call(wrapText, nodeRadius);
+
+        node.append("title")
+            .text(function (d) {
+                return d.id + (d.parent ? " (" + d.parent + ")" : "");
+            });
+
+        renderLegend();
+
+        var simulation = d3.forceSimulation(nodes)
+            .alpha(0.9)
+            .alphaDecay(0.09)
+            .force("collide", d3.forceCollide(nodeRadius + 8).strength(0.95).iterations(4))
+            .force("x", d3.forceX(function (d) { return d.originalX; }).strength(1))
+            .force("y", d3.forceY(function (d) { return d.originalY; }).strength(1))
+            .on("tick", ticked);
+
+        var resizeTimer;
+        window.addEventListener("resize", function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                recalcLayout();
+
+                node.select("circle").attr("r", nodeRadius);
+                node.select("text").call(wrapText, nodeRadius);
+
+                simulation
+                    .force("collide", d3.forceCollide(nodeRadius + 8).strength(0.95).iterations(4))
+                    .force("x", d3.forceX(function (d) { return d.originalX; }).strength(1))
+                    .force("y", d3.forceY(function (d) { return d.originalY; }).strength(1))
+                    .alpha(0.8)
+                    .restart();
+            }, 150);
+        });
+
+        function ticked() {
+            nodes.forEach(function (d) {
+                d.x = clampX(d.x);
+                if (d.fx != null) {
+                    d.fx = clampX(d.fx);
+                }
+            });
+
+            link
+                .attr("x1", function (d) { return d.source.x; })
+                .attr("y1", function (d) { return d.source.y; })
+                .attr("x2", function (d) { return d.target.x; })
+                .attr("y2", function (d) { return d.target.y; });
+
+            node.attr("transform", function (d) {
+                return "translate(" + d.x + "," + d.y + ")";
+            });
+        }
+
+        function dragstarted(event, d) {
+            if (!event.active) {
+                simulation.alphaTarget(0.3).restart();
+            }
+            d.fx = clampX(d.x);
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            var clampedX = clampX(event.x);
+            d.fx = clampedX;
+            d.fy = event.y;
+            d.x = clampedX;
+            d.y = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) {
+                simulation.alphaTarget(0);
+            }
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function darkenColor(hexColor, factor) {
+            factor = factor || 0.5;
+            var hex = hexColor.trim().replace("#", "");
+            if (hex.length === 3) {
+                hex = hex.split("").map(function (ch) { return ch + ch; }).join("");
+            }
+
+            var r = parseInt(hex.slice(0, 2), 16);
+            var g = parseInt(hex.slice(2, 4), 16);
+            var b = parseInt(hex.slice(4, 6), 16);
+
+            r = Math.round(r * factor);
+            g = Math.round(g * factor);
+            b = Math.round(b * factor);
+
+            return "#" + [r, g, b].map(function (val) {
+                var hexVal = val.toString(16);
+                return hexVal.length === 1 ? "0" + hexVal : hexVal;
+            }).join("");
+        }
+
+        function highlightConnected(event, nodeDatum) {
+            var neighbors = adjacency.get(nodeDatum.id) || new Set();
+            var activeIds = new Set(neighbors);
+            activeIds.add(nodeDatum.id);
+
+            node.each(function (d) {
+                var isActive = activeIds.has(d.id);
+                var nodeElement = d3.select(this);
+                nodeElement
+                    .classed("highlighted", isActive)
+                    .classed("dimmed", !isActive);
+
+                if (isActive) {
+                    var darkerColor = darkenColor(d.color, 0.6);
+                    nodeElement.select("circle").style("stroke", darkerColor);
+                }
+            });
+
+            link.each(function (l) {
+                var isActive = l.source.id === nodeDatum.id || l.target.id === nodeDatum.id;
+                d3.select(this)
+                    .classed("highlighted", isActive)
+                    .classed("dimmed", !isActive);
+            });
+        }
+
+        function resetHighlight() {
+            node.classed("highlighted", false)
+                .classed("dimmed", false)
+                .select("circle").style("stroke", null);
+            link.classed("highlighted", false)
+                .classed("dimmed", false);
+        }
+
+        function renderLegend() {
+            var legend = d3.select("#legend");
+            if (legend.empty()) {
+                return;
+            }
+
+            legend.attr("role", "list");
+
+            var parentColorMap = new Map();
+            nodes.forEach(function (node) {
+                var parentName = node.parent || "Other";
+                if (!parentColorMap.has(parentName)) {
+                    parentColorMap.set(parentName, node.color || "#6c6f7d");
+                }
+            });
+
+            var legendData = Array.from(parentColorMap, function (entry) {
+                return { parent: entry[0], color: entry[1] };
+            });
+
+            var legendItems = legend.selectAll(".legend-item")
+                .data(legendData, function (d) { return d.parent; });
+
+            legendItems.exit().remove();
+
+            var legendEnter = legendItems.enter()
+                .append("div")
+                .attr("class", "legend-item")
+                .attr("role", "listitem");
+
+            legendEnter.append("span")
+                .attr("class", "legend-square");
+
+            legendEnter.append("span")
+                .attr("class", "legend-label");
+
+            legendItems = legendEnter.merge(legendItems);
+
+            legendItems.select(".legend-square")
+                .style("background-color", function (d) { return d.color; });
+
+            legendItems.select(".legend-label")
+                .text(function (d) { return d.parent; });
+        }
+
+        function isColorDark(hexColor) {
+            if (!hexColor) {
+                return false;
+            }
+
+            var hex = hexColor.trim().replace("#", "");
+            if (hex.length === 3) {
+                hex = hex.split("").map(function (ch) { return ch + ch; }).join("");
+            }
+
+            if (hex.length !== 6) {
+                return false;
+            }
+
+            var r = parseInt(hex.slice(0, 2), 16) / 255;
+            var g = parseInt(hex.slice(2, 4), 16) / 255;
+            var b = parseInt(hex.slice(4, 6), 16) / 255;
+
+            var convert = function (channel) {
+                return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+            };
+
+            var lum = 0.2126 * convert(r) + 0.7152 * convert(g) + 0.0722 * convert(b);
+            return lum < 0.55;
+        }
+
+        function getContrastingTextColor(hexColor) {
+            return isColorDark(hexColor) ? "#ffffff" : "#1b1d21";
+        }
+
+        function wrapText(selection, radius) {
+            var diameter = radius * 2;
+            var maxWidth = diameter * 0.85;
+            var maxHeight = diameter * 0.85;
+            var lineHeightMultiplier = 1.15;
+            var minFontSize = 4;
+
+            selection.each(function (d) {
+                var text = d3.select(this);
+                var label = (d.id || "").trim();
+
+                text.selectAll("tspan").remove();
+                text.text("");
+
+                if (!label) {
+                    return;
+                }
+
+                var words = label.split(/\s+/).filter(function (word) { return word.length; });
+                if (!words.length) {
+                    text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(label);
+                    return;
+                }
+
+                var maxFontSize = Math.min(13, radius * 0.45);
+                var startingFontSize = Math.max(Math.round(maxFontSize), minFontSize);
+                var bestFit = null;
+
+                for (var fontSize = startingFontSize; fontSize >= minFontSize; fontSize -= 1) {
+                    var layout = layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth);
+                    bestFit = layout;
+                    var totalHeight = layout.lines.length * layout.lineHeight;
+
+                    if (layout.maxLineWidth <= maxWidth && totalHeight <= maxHeight) {
+                        break;
+                    }
+                }
+
+                if (!bestFit) {
+                    bestFit = {
+                        lines: [label],
+                        fontSize: minFontSize,
+                        lineHeight: Math.round(minFontSize * lineHeightMultiplier)
+                    };
+                }
+
+                text.style("font-size", bestFit.fontSize + "px");
+                text.selectAll("tspan").remove();
+
+                var offset = (bestFit.lines.length - 1) * bestFit.lineHeight / 2;
+
+                bestFit.lines.forEach(function (line, index) {
+                    text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", -offset + index * bestFit.lineHeight)
+                        .text(line);
+                });
+            });
+
+            function layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth) {
+                text.style("font-size", fontSize + "px");
+                text.selectAll("tspan").remove();
+
+                var lines = [];
+                var currentLine = [];
+                var maxLineWidth = 0;
+
+                words.forEach(function (word) {
+                    currentLine.push(word);
+                    var tester = text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(currentLine.join(" "));
+                    var lineLength = tester.node().getComputedTextLength();
+                    tester.remove();
+
+                    if (lineLength > maxWidth && currentLine.length > 1) {
+                        currentLine.pop();
+                        var finalized = currentLine.join(" ");
+                        var measureFinal = text.append("tspan")
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .text(finalized);
+                        var finalLength = measureFinal.node().getComputedTextLength();
+                        measureFinal.remove();
+
+                        lines.push(finalized);
+                        maxLineWidth = Math.max(maxLineWidth, finalLength);
+
+                        currentLine = [word];
+                        var measureWord = text.append("tspan")
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .text(word);
+                        var wordLength = measureWord.node().getComputedTextLength();
+                        measureWord.remove();
+                        maxLineWidth = Math.max(maxLineWidth, wordLength);
+                    } else {
+                        maxLineWidth = Math.max(maxLineWidth, lineLength);
+                    }
+                });
+
+                if (currentLine.length) {
+                    var finalLine = currentLine.join(" ");
+                    var finalTester = text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(finalLine);
+                    var finalLineLength = finalTester.node().getComputedTextLength();
+                    finalTester.remove();
+
+                    lines.push(finalLine);
+                    maxLineWidth = Math.max(maxLineWidth, finalLineLength);
+                }
+
+                var lineHeight = Math.max(Math.round(fontSize * lineHeightMultiplier), Math.ceil(fontSize));
+
+                return {
+                    lines: lines,
+                    fontSize: fontSize,
+                    lineHeight: lineHeight,
+                    maxLineWidth: maxLineWidth
+                };
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>

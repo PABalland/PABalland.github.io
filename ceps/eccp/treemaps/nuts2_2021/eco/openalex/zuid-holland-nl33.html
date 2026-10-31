@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 3307,
+    "rca": 1.53,
+    "share": 2.9009,
+    "share_d": 1.8996,
+    "reldens": 50.13,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#78A378",
+    "id": "Aerospace & Defence",
+    "value": 3307
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 7949,
+    "rca": 0.69,
+    "share": 6.9729,
+    "share_d": 10.0342,
+    "reldens": 51.14,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#C7AFAF",
+    "id": "Agrifood",
+    "value": 7949
+  },
+  {
+    "domain": "Construction",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 11095,
+    "rca": 1.21,
+    "share": 9.7325,
+    "share_d": 8.053,
+    "reldens": 38.31,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#96B396",
+    "id": "Construction",
+    "value": 11095
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 7223,
+    "rca": 0.81,
+    "share": 6.336,
+    "share_d": 7.8692,
+    "reldens": 47.49,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#CCBEBE",
+    "id": "Cultural and Creative Industries",
+    "value": 7223
+  },
+  {
+    "domain": "Digital",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 9487,
+    "rca": 1.13,
+    "share": 8.322,
+    "share_d": 7.342,
+    "reldens": 47.21,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#A2B9A2",
+    "id": "Digital",
+    "value": 9487
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 8137,
+    "rca": 0.82,
+    "share": 7.1378,
+    "share_d": 8.7502,
+    "reldens": 58.6,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#CCBFBF",
+    "id": "Electronics",
+    "value": 8137
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 3648,
+    "rca": 0.9,
+    "share": 3.2,
+    "share_d": 3.5456,
+    "reldens": 52.9,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#CFC8C8",
+    "id": "Energy - Renewables",
+    "value": 3648
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 6222,
+    "rca": 0.64,
+    "share": 5.4579,
+    "share_d": 8.4773,
+    "reldens": 42.03,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#C5A9A9",
+    "id": "Energy Intensive Industries",
+    "value": 6222
+  },
+  {
+    "domain": "Health",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 52421,
+    "rca": 1.12,
+    "share": 45.9837,
+    "share_d": 41.1317,
+    "reldens": 28.57,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#A4BAA4",
+    "id": "Health",
+    "value": 52421
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 3206,
+    "rca": 1.54,
+    "share": 2.8123,
+    "share_d": 1.8241,
+    "reldens": 45.41,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#78A378",
+    "id": "Mobility - Transport - Automotive",
+    "value": 3206
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 488,
+    "rca": 1.85,
+    "share": 0.4281,
+    "share_d": 0.232,
+    "reldens": 48.81,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#669A66",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 488
+  },
+  {
+    "domain": "Retail",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 319,
+    "rca": 0.93,
+    "share": 0.2798,
+    "share_d": 0.3014,
+    "reldens": 37.67,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#D0CBCB",
+    "id": "Retail",
+    "value": 319
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 83,
+    "rca": 0.74,
+    "share": 0.0728,
+    "share_d": 0.0983,
+    "reldens": 24.26,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#C9B6B6",
+    "id": "Textiles",
+    "value": 83
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 414,
+    "rca": 0.82,
+    "share": 0.3632,
+    "share_d": 0.4414,
+    "reldens": 40.66,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#CCBFBF",
+    "id": "Tourism",
+    "value": 414
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

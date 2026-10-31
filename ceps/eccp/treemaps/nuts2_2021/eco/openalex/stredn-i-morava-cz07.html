@@ -1,0 +1,256 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Aerospace & Defence",
+    "geo": "Střední Morava (CZ07)",
+    "count": 122,
+    "rca": 0.54,
+    "share": 1.0328,
+    "share_d": 1.8996,
+    "reldens": 57.61,
+    "comp_PA": 67.62,
+    "comp_TCI": 100,
+    "parent": "A",
+    "color": "#C09B9B",
+    "id": "Aerospace & Defence",
+    "value": 122
+  },
+  {
+    "domain": "Agrifood",
+    "geo": "Střední Morava (CZ07)",
+    "count": 1707,
+    "rca": 1.44,
+    "share": 14.4514,
+    "share_d": 10.0342,
+    "reldens": 47.79,
+    "comp_PA": 37.77,
+    "comp_TCI": 35.39,
+    "parent": "A",
+    "color": "#7FA77F",
+    "id": "Agrifood",
+    "value": 1707
+  },
+  {
+    "domain": "Construction",
+    "geo": "Střední Morava (CZ07)",
+    "count": 753,
+    "rca": 0.79,
+    "share": 6.3749,
+    "share_d": 8.053,
+    "reldens": 59.6,
+    "comp_PA": 59.34,
+    "comp_TCI": 88.49,
+    "parent": "A",
+    "color": "#CBBCBC",
+    "id": "Construction",
+    "value": 753
+  },
+  {
+    "domain": "Cultural and Creative Industries",
+    "geo": "Střední Morava (CZ07)",
+    "count": 950,
+    "rca": 1.02,
+    "share": 8.0427,
+    "share_d": 7.8692,
+    "reldens": 62.07,
+    "comp_PA": 51.41,
+    "comp_TCI": 46.53,
+    "parent": "A",
+    "color": "#BFC9BF",
+    "id": "Cultural and Creative Industries",
+    "value": 950
+  },
+  {
+    "domain": "Digital",
+    "geo": "Střední Morava (CZ07)",
+    "count": 892,
+    "rca": 1.03,
+    "share": 7.5516,
+    "share_d": 7.342,
+    "reldens": 45.56,
+    "comp_PA": 63.7,
+    "comp_TCI": 81.1,
+    "parent": "A",
+    "color": "#BBC6BB",
+    "id": "Digital",
+    "value": 892
+  },
+  {
+    "domain": "Electronics",
+    "geo": "Střední Morava (CZ07)",
+    "count": 1145,
+    "rca": 1.11,
+    "share": 9.6935,
+    "share_d": 8.7502,
+    "reldens": 44.1,
+    "comp_PA": 63.75,
+    "comp_TCI": 96.3,
+    "parent": "A",
+    "color": "#A6BBA6",
+    "id": "Electronics",
+    "value": 1145
+  },
+  {
+    "domain": "Energy - Renewables",
+    "geo": "Střední Morava (CZ07)",
+    "count": 267,
+    "rca": 0.64,
+    "share": 2.2604,
+    "share_d": 3.5456,
+    "reldens": 54.26,
+    "comp_PA": 59.62,
+    "comp_TCI": 88.61,
+    "parent": "A",
+    "color": "#C5A9A9",
+    "id": "Energy - Renewables",
+    "value": 267
+  },
+  {
+    "domain": "Energy Intensive Industries",
+    "geo": "Střední Morava (CZ07)",
+    "count": 1794,
+    "rca": 1.79,
+    "share": 15.1879,
+    "share_d": 8.4773,
+    "reldens": 38.48,
+    "comp_PA": 54.77,
+    "comp_TCI": 89.15,
+    "parent": "A",
+    "color": "#699B69",
+    "id": "Energy Intensive Industries",
+    "value": 1794
+  },
+  {
+    "domain": "Health",
+    "geo": "Střední Morava (CZ07)",
+    "count": 3897,
+    "rca": 0.8,
+    "share": 32.9919,
+    "share_d": 41.1317,
+    "reldens": 78.07,
+    "comp_PA": 53.25,
+    "comp_TCI": 0,
+    "parent": "A",
+    "color": "#CBBDBD",
+    "id": "Health",
+    "value": 3897
+  },
+  {
+    "domain": "Mobility - Transport - Automotive",
+    "geo": "Střední Morava (CZ07)",
+    "count": 148,
+    "rca": 0.69,
+    "share": 1.253,
+    "share_d": 1.8241,
+    "reldens": 46.91,
+    "comp_PA": 64.78,
+    "comp_TCI": 87.85,
+    "parent": "A",
+    "color": "#C7AFAF",
+    "id": "Mobility - Transport - Automotive",
+    "value": 148
+  },
+  {
+    "domain": "Proximity, Social Economy and Civil Security",
+    "geo": "Střední Morava (CZ07)",
+    "count": 19,
+    "rca": 0.69,
+    "share": 0.1609,
+    "share_d": 0.232,
+    "reldens": 48.47,
+    "comp_PA": 71.66,
+    "comp_TCI": 36.64,
+    "parent": "A",
+    "color": "#C7AFAF",
+    "id": "Proximity, Social Economy and Civil Security",
+    "value": 19
+  },
+  {
+    "domain": "Retail",
+    "geo": "Střední Morava (CZ07)",
+    "count": 41,
+    "rca": 1.15,
+    "share": 0.3471,
+    "share_d": 0.3014,
+    "reldens": 70.66,
+    "comp_PA": 55.11,
+    "comp_TCI": 54.55,
+    "parent": "A",
+    "color": "#9FB89F",
+    "id": "Retail",
+    "value": 41
+  },
+  {
+    "domain": "Textiles",
+    "geo": "Střední Morava (CZ07)",
+    "count": 8,
+    "rca": 0.69,
+    "share": 0.0677,
+    "share_d": 0.0983,
+    "reldens": 78.68,
+    "comp_PA": 51.3,
+    "comp_TCI": 74.81,
+    "parent": "A",
+    "color": "#C7AFAF",
+    "id": "Textiles",
+    "value": 8
+  },
+  {
+    "domain": "Tourism",
+    "geo": "Střední Morava (CZ07)",
+    "count": 69,
+    "rca": 1.32,
+    "share": 0.5842,
+    "share_d": 0.4414,
+    "reldens": 59.46,
+    "comp_PA": 47.92,
+    "comp_TCI": 43.92,
+    "parent": "A",
+    "color": "#8AAC8A",
+    "id": "Tourism",
+    "value": 69
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>
