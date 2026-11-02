@@ -2,175 +2,75 @@
 <html>
 <head>
 <meta charset="utf-8">
-<script src="https://www.paballand.com/js/d3plus-plot.v0.9.full.min.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
-.container{display:flex;flex-direction:column;height:100vh;}
-#chart{flex:1 1 auto;}
-.legend{display:flex;justify-content:center;padding:12px 0;}
-.legend-item{display:flex;align-items:center;margin:0 24px;font-size:14px;}
-.box{width:14px;height:14px;margin-right:10px;border:none;}
-.pos{background:#2d7c2d;}
-.neg{background:#8B1A0F;}
-.tooltip-table{width:100%;}
-.tooltip-table .data{text-align:right;}
-.tooltip-footer{opacity:.5;}
-tspan{font-family:"Helvetica","Arial",sans-serif;font-size:100px;font-style:oblique;}
-
-.custom-label {
-  font-family: Arial, Helvetica, sans-serif;
-  font-size: 10px;
-  fill: #000;
-  opacity: 1;
-  font-weight: normal;
-  transition: opacity 0.4s ease, font-size 0.4s ease, font-weight 0.4s ease;
-  pointer-events: none;
-  transform-origin: center;
+:root{
+  --ink:#1f2328; --muted:#6b7280; --faint:#9ca3af; --grid:#eef0f3; --axis:#d1d5db;
+  --pos:#3f7f4f; --neg:#9b3b34;
 }
-
-.custom-label.collision {
-  opacity: 0.3;
-}
-
-.custom-label.hover {
-  opacity: 1 !important;
-  font-size: 16px !important;
-  font-weight: bold !important;
-}
-
-.custom-label, text.custom-label {
-  font-family: Arial, Helvetica, sans-serif !important;
-  font-size: 10px !important;
-  fill: #000 !important;
-  stroke: none !important;
-  font-weight: normal !important;
-}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;}
+body{font-family:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--ink);overflow:hidden;}
+.wrap{display:flex;flex-direction:column;height:100vh;padding:18px 22px 10px;}
+#chart{flex:1 1 auto;position:relative;min-height:0;}
+svg{display:block;width:100%;height:100%;}
+.footer{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;
+  padding-top:8px;font-size:12.5px;color:var(--muted);}
+.lg{display:flex;align-items:center;gap:8px;}
+.dot{width:11px;height:11px;border-radius:50%;}
+.ramp{width:90px;height:8px;border-radius:4px;
+  background:linear-gradient(90deg,#9b3b34,#c49a96,#e6e1e1,#9cbc9f,#3f7f4f);}
+.axis-title{font-size:19px;font-weight:600;fill:var(--ink);letter-spacing:.01em;}
+.tick text{font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums;}
+.quad{font-size:10.5px;fill:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+.label{font-size:14px;fill:#374151;font-weight:500;pointer-events:none;
+  paint-order:stroke;stroke:#fff;stroke-width:3.5px;stroke-linejoin:round;transition:opacity .15s;}
+.pt{cursor:pointer;transition:r .15s, opacity .15s;}
+.dim .pt:not(.on), .dim .label:not(.on), .dim .leader:not(.on){opacity:.25;}
+.label.on{font-weight:700;fill:var(--ink);}
+.leader{stroke:#c7cbd1;stroke-width:1;}
+.tip{position:absolute;pointer-events:none;background:#fff;border:1px solid #e5e7eb;border-radius:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);padding:10px 12px;font-size:12px;min-width:190px;
+  opacity:0;transition:opacity .12s;z-index:5;}
+.tip h4{margin:0 0 6px;font-size:13px;}
+.tip table{width:100%;border-collapse:collapse;}
+.tip td{padding:2px 0;color:var(--muted);}
+.tip td.v{text-align:right;padding-left:14px;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600;}
 </style>
 </head>
 <body>
-<div class="container">
-  <div id="chart"></div>
-  <div class="legend">
-    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
-    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+<div class="wrap">
+  <div id="chart"><div class="tip" id="tip"></div></div>
+  <div class="footer" id="footer">
+    <span class="lg" id="lg-rca">
+      Scientific RCA &lt; 1
+      <span class="dot" style="background:var(--neg)"></span>
+      <span class="ramp"></span>
+      <span class="dot" style="background:var(--pos)"></span>
+      Scientific RCA &gt; 1
+    </span>
+    <span class="lg" style="color:var(--faint)">Dashed lines = medians</span>
   </div>
 </div>
 <script>
+var RCA_LABEL="Scientific RCA";
+
+/* ---------- helpers ---------- */
 function median(v){
   if(!v.length)throw new Error("empty");
   v=[...v].sort((a,b)=>a-b);
   const h=Math.floor(v.length/2);
   return v.length%2?v[h]:(v[h-1]+v[h])/2;
 }
+function niceStep(span,target){var raw=span/target,p=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/p;
+  return (n<1.5?1:n<3?2:n<7?5:10)*p;}
+function niceDomain(min,max,target){var s=niceStep(max-min,target);return [Math.floor(min/s)*s,Math.ceil(max/s)*s,s];}
+function fmt(v,d){return (v===undefined||v===null||v==="")?"–":(typeof v==="number"?v.toFixed(d):v);}
+function el(tag,attrs,parent){var e=document.createElementNS("http://www.w3.org/2000/svg",tag);
+  for(var k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function overlap(a,b,pad){pad=pad||0;return !(a.x+a.w+pad<b.x||b.x+b.w+pad<a.x||a.y+a.h+pad<b.y||b.y+b.h+pad<a.y);}
 
-function truncateText(text, maxLength = 20) {
-  if (text.length <= maxLength) {
-    return text;
-  }
-  return text.substring(0, maxLength) + "...";
-}
-
-function rectanglesOverlap(rect1, rect2) {
-  return !(rect1.x + rect1.width < rect2.x || 
-           rect2.x + rect2.width < rect1.x || 
-           rect1.y + rect1.height < rect2.y || 
-           rect2.y + rect2.height < rect1.y);
-}
-
-function getPositionOptions(centerX, centerY, radius, padding = 5) {
-  return [
-    { name: 'right', x: centerX + radius + padding, y: centerY + 3, anchor: 'start' },
-    { name: 'left', x: centerX - radius - padding, y: centerY + 3, anchor: 'end' },
-    { name: 'below', x: centerX, y: centerY + radius + padding + 10, anchor: 'middle' },
-    { name: 'above', x: centerX, y: centerY - radius - padding, anchor: 'middle' }
-  ];
-}
-
-function hasCollision(textElement, allCircles) {
-  try {
-    const textBBox = textElement.getBBox();
-    
-    for (const circleData of allCircles) {
-      const r = parseFloat(circleData.circle.getAttribute('r')) || 7.5;
-      const circleBBox = {
-        x: circleData.coords.x - r,
-        y: circleData.coords.y - r,
-        width: r * 2,
-        height: r * 2
-      };
-      
-      if (rectanglesOverlap(textBBox, circleBBox)) {
-        return true;
-      }
-    }
-    return false;
-  } catch (e) {
-    return false;
-  }
-}
-
-function findBestPosition(textElement, centerX, centerY, radius, allCircles, fullText) {
-  const positions = getPositionOptions(centerX, centerY, radius);
-  let hasCollisionWithFull = false;
-  
-  textElement.textContent = fullText;
-  for (const pos of positions) {
-    textElement.setAttribute('x', pos.x);
-    textElement.setAttribute('y', pos.y);
-    textElement.setAttribute('text-anchor', pos.anchor);
-    
-    if (!hasCollision(textElement, allCircles)) {
-      return { ...pos, text: fullText, hasCollision: false };
-    }
-  }
-  
-  hasCollisionWithFull = true;
-  
-  const truncatedText = truncateText(fullText, 20);
-  textElement.textContent = truncatedText;
-  for (const pos of positions) {
-    textElement.setAttribute('x', pos.x);
-    textElement.setAttribute('y', pos.y);
-    textElement.setAttribute('text-anchor', pos.anchor);
-    
-    if (!hasCollision(textElement, allCircles)) {
-      return { ...pos, text: truncatedText, hasCollision: hasCollisionWithFull };
-    }
-  }
-  
-  return { ...positions[0], text: truncatedText, hasCollision: true };
-}
-
-// Function to get data bound to DOM element
-function getBoundData(element) {
-  // Try to get data from d3plus binding
-  if (element.__data__) {
-    return element.__data__;
-  }
-  
-  // Try to get data from parent elements
-  let parent = element.parentElement;
-  while (parent) {
-    if (parent.__data__) {
-      return parent.__data__;
-    }
-    parent = parent.parentElement;
-  }
-  
-  return null;
-}
-
-function findMatchingDataPoint(circle) {
-  // Prefer the bound data directly from D3
-  const bound = circle.__data__ || d3.select(circle).datum();
-  if (bound) return bound;
-  // No fallback by position to avoid mismatches
-  console.warn('No data bound to circle:', circle);
-  return null;
-}
-
-var data=
- [
+var data= [
   {
     "id": "Artificial Intelligence",
     "x": 12.72,
@@ -525,237 +425,148 @@ var data=
   }
 ] ;
 
-const xVals=data.map(d=>d.x);
-const yVals=data.map(d=>d.y);
+data = data.filter(d => Number.isFinite(+d.x) && Number.isFinite(+d.y) && d.x !== "" && d.y !== "");
+
+const xVals=data.map(d=>+d.x);
+const yVals=data.map(d=>+d.y);
 const medianX=median(xVals);
 const medianY=median(yVals);
 const xDomain=[0,100];
 const minY=Math.min(...yVals)-1;
 const maxY=Math.max(...yVals)+2;
 
-let customLabels = [];
-let isUpdating = false;
-let hoveringElements = new Set();
+/* ---------- config ---------- */
+const X_TITLE="Technological Relatedness Density", Y_TITLE="Technological Complexity Index";
+const USE_FIXED_X_DOMAIN=false;   // true = use xDomain above; false = fit to data
+const R=8;                        // bubble radius
+const QUADS=["High complexity · High relatedness","High complexity · Low relatedness",
+             "Low complexity · Low relatedness","Low complexity · High relatedness"]; // TR, TL, BL, BR
+const NOTE="";
+const nameOf=d=>String(d.id);
+function tipRows(d){return [
+  [X_TITLE,fmt(+d.x,1)],
+  [Y_TITLE,fmt(+d.y,1)],
+  [RCA_LABEL,fmt(+d.rca,2),+d.rca>=1?"var(--pos)":"var(--neg)"]
+];}
 
-new d3plus.Plot()
-  .select("#chart")
-  .data(data)
-  .annotations([{data:[{id:"Trend",x:medianX,y:minY},
-  {id:"Trend",x:medianX,y:maxY},
-  {id:"Baseline",x:xDomain[0],y:medianY},
-  {id:"Baseline",x:xDomain[1],y:medianY}],shape:"Line",stroke:"#c3c3c3",strokeDasharray:"10",strokeWidth:2}])
-  .groupBy(["parent","id"])
-  .tooltipConfig({
-    body:d=>`<table class='tooltip-table'>
-      <tr><td class='title'>Relatedness Density:</td><td class='data'>${d.x}</td></tr>
-      <tr><td class='title'>Complexity:</td><td class='data'>${d.y}</td></tr>
-      <tr><td class='title'>RCA:</td><td class='data'>${d.rca}</td></tr>
-      <tr><td class='title'>ID:</td><td class='data'>${d.id}</td></tr>
-    </table>`,
-     title:d=>d.id
-  })
-  .size("value")
-  .sizeMin(15)
-  .sizeMax(15)
-  .color("color")
-  .label("")
-  .shapeConfig({
-    Circle:{
-      labelConfig:{fontSize:0}
-    }
-  })
-  .yConfig({
-    title:"Technological Complexity",
-    titleConfig:{fontSize:()=>16},
-    gridConfig:{stroke:"transparent"},
-    shapeConfig:{labelConfig:{fontSize:()=>16}}
-  })
-  .xDomain(xDomain)
-  .xConfig({
-    title:"Technological Relatedness Density",
-    titleConfig:{fontSize:()=>16},
-    gridConfig:{stroke:"transparent"},
-    shapeConfig:{labelConfig:{fontSize:()=>16}}
-  })
-  .legend(false)
-  .downloadButton(false)
-  .render();
+/* ---------- render (shared style) ---------- */
+const host=document.getElementById("chart"), tip=document.getElementById("tip");
+const hasRCA=data.some(d=>d.rca!==undefined&&d.rca!==null&&d.rca!=="");
+if(!hasRCA){var lgr=document.getElementById("lg-rca");if(lgr)lgr.style.display="none";}
+if(NOTE){var ft=document.getElementById("footer");if(ft){var n=document.createElement("span");
+  n.className="lg";n.style.color="var(--faint)";n.textContent=NOTE;ft.appendChild(n);}}
 
-setTimeout(() => {
-  initializeCustomLabels();
-  startPositionUpdater();
-}, 500);
+function draw(){
+  host.querySelectorAll("svg").forEach(s=>s.remove());
+  var W=host.clientWidth, H=host.clientHeight;
+  var m={top:16,right:28,bottom:64,left:78};
+  var iw=W-m.left-m.right, ih=H-m.top-m.bottom;
 
-function initializeCustomLabels() {
-  const svg = document.querySelector('#chart svg');
-  if (!svg) {
-    setTimeout(initializeCustomLabels, 100);
-    return;
-  }
-  
-  const circles = svg.querySelectorAll('circle');
-  console.log('Found circles:', circles.length);
-  
-  circles.forEach((circle, index) => {
-    const matchingData = findMatchingDataPoint(circle);
-    
-    if (matchingData) {
-      console.log('Circle', index, 'matched to data:', matchingData.id);
-      
-      const fullText = matchingData.id;
-      
-      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      text.setAttribute('class', 'custom-label');
-      text.setAttribute('data-id', matchingData.id);
-      text.setAttribute('text-anchor', 'start');
-      text.setAttribute('font-family', 'Arial, Helvetica, sans-serif');
-      text.setAttribute('font-size', '10');
-      text.setAttribute('fill', '#000');
-      text.setAttribute('font-weight', 'normal');
-      text.textContent = fullText;
-      
-      svg.appendChild(text);
-      
-      customLabels.push({
-        circle: circle,
-        text: text,
-        data: matchingData,
-        fullText: fullText,
-        defaultText: fullText,
-        savedPosition: null
-      });
-      
-      circle.addEventListener('mouseenter', () => {
-        hoveringElements.add(text);
-        
-        const labelData = customLabels.find(l => l.circle === circle);
-        if (labelData) {
-          labelData.savedPosition = {
-            x: text.getAttribute('x'),
-            y: text.getAttribute('y'),
-            anchor: text.getAttribute('text-anchor'),
-            content: text.textContent
-          };
-        }
-        
-        text.classList.add('hover');
-        text.textContent = fullText;
-        
-        // Show in console for debugging
-        console.log('Hovering over:', matchingData.id);
-      });
-      
-      circle.addEventListener('mouseleave', () => {
-        hoveringElements.delete(text);
-        
-        text.classList.remove('hover');
-        
-        const labelData = customLabels.find(l => l.circle === circle);
-        if (labelData && labelData.savedPosition) {
-          text.setAttribute('x', labelData.savedPosition.x);
-          text.setAttribute('y', labelData.savedPosition.y);
-          text.setAttribute('text-anchor', labelData.savedPosition.anchor);
-          text.textContent = labelData.savedPosition.content;
-        }
-      });
-    } else {
-      console.log('Circle', index, 'could not be matched to data');
+  var xs=xVals, ys=yVals;
+  var xpad=(Math.max(...xs)-Math.min(...xs))*0.12||1, ypad=(Math.max(...ys)-Math.min(...ys))*0.08||1;
+  var xd=USE_FIXED_X_DOMAIN?[xDomain[0],xDomain[1],niceStep(xDomain[1]-xDomain[0],10)]
+                           :niceDomain(Math.min(...xs)-xpad,Math.max(...xs)+xpad,8);
+  var yd=niceDomain(Math.min(...ys)-ypad,Math.max(...ys)+ypad,7);
+  var sx=v=>m.left+(v-xd[0])/(xd[1]-xd[0])*iw;
+  var sy=v=>m.top+ih-(v-yd[0])/(yd[1]-yd[0])*ih;
+
+  var svg=el("svg",{viewBox:`0 0 ${W} ${H}`},null); host.appendChild(svg);
+
+  // quadrant tint (top-right = most promising)
+  el("rect",{x:sx(medianX),y:m.top,width:m.left+iw-sx(medianX),height:sy(medianY)-m.top,fill:"#f3f8f4"},svg);
+
+  // grid + ticks
+  var g=el("g",{},svg);
+  for(var v=xd[0];v<=xd[1]+1e-9;v+=xd[2]){var x=sx(v);
+    el("line",{x1:x,x2:x,y1:m.top,y2:m.top+ih,stroke:"var(--grid)"},g);
+    var t=el("g",{class:"tick"},g);var tx=el("text",{x:x,y:m.top+ih+18,"text-anchor":"middle"},t);tx.textContent=+v.toFixed(2);}
+  for(var v=yd[0];v<=yd[1]+1e-9;v+=yd[2]){var y=sy(v);
+    el("line",{x1:m.left,x2:m.left+iw,y1:y,y2:y,stroke:"var(--grid)"},g);
+    var t=el("g",{class:"tick"},g);var ty=el("text",{x:m.left-10,y:y+4,"text-anchor":"end"},t);ty.textContent=+v.toFixed(2);}
+  el("line",{x1:m.left,x2:m.left+iw,y1:m.top+ih,y2:m.top+ih,stroke:"var(--axis)"},g);
+  el("line",{x1:m.left,x2:m.left,y1:m.top,y2:m.top+ih,stroke:"var(--axis)"},g);
+
+  // medians
+  el("line",{x1:sx(medianX),x2:sx(medianX),y1:m.top,y2:m.top+ih,stroke:"#b8bdc4","stroke-dasharray":"5 5"},svg);
+  el("line",{x1:m.left,x2:m.left+iw,y1:sy(medianY),y2:sy(medianY),stroke:"#b8bdc4","stroke-dasharray":"5 5"},svg);
+
+  // quadrant captions (TR, TL, BL, BR)
+  var q=[[QUADS[0],m.left+iw-8,m.top+16,"end"],
+         [QUADS[1],m.left+8,m.top+16,"start"],
+         [QUADS[2],m.left+8,m.top+ih-10,"start"],
+         [QUADS[3],m.left+iw-8,m.top+ih-10,"end"]];
+  var blocked=[];
+  q.forEach(a=>{var t=el("text",{class:"quad",x:a[1],y:a[2],"text-anchor":a[3]},svg);t.textContent=a[0];
+    var b=t.getBBox();blocked.push({x:b.x,y:b.y,w:b.width,h:b.height});});
+
+  // axis titles
+  var xt=el("text",{class:"axis-title",x:m.left+iw/2,y:H-14,"text-anchor":"middle"},svg);xt.textContent=X_TITLE;
+  var yt=el("text",{class:"axis-title",transform:`translate(22,${m.top+ih/2}) rotate(-90)`,"text-anchor":"middle"},svg);yt.textContent=Y_TITLE;
+
+  // points
+  var pts=data.map(d=>({d:d,cx:sx(+d.x),cy:sy(+d.y)}));
+  var circBoxes=pts.map(p=>({x:p.cx-R,y:p.cy-R,w:2*R,h:2*R}));
+  var leaders=el("g",{},svg), dots=el("g",{},svg), labs=el("g",{},svg);
+
+  pts.forEach(p=>{
+    p.c=el("circle",{class:"pt",cx:p.cx,cy:p.cy,r:R,fill:p.d.color||"#9ca3af",stroke:"#fff","stroke-width":2,
+      style:"filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.18))"},dots);
+    if(hasRCA&&p.d.rca!==undefined&&p.d.rca!==null)
+      el("circle",{cx:p.cx,cy:p.cy,r:R+0.5,fill:"none",stroke:+p.d.rca>=1?"var(--pos)":"var(--neg)","stroke-width":1,opacity:.55,"pointer-events":"none"},dots);
+  });
+
+  // label placement: greedy, avoid circles, other labels, captions, bounds
+  var placed=[];
+  var order=[...pts].sort((a,b)=>nameOf(b.d).length-nameOf(a.d).length);
+  order.forEach(p=>{
+    var t=el("text",{class:"label"},labs);t.textContent=nameOf(p.d);
+    var bb=t.getBBox(), w=bb.width, h=bb.height, gap=R+5;
+    var cands=[];
+    [[1,0],[-1,0],[0,-1],[0,1],[1,-1],[1,1],[-1,-1],[-1,1]].forEach(([dx,dy])=>{
+      [1,1.9,2.8].forEach(k=>cands.push({dx,dy,k}));});
+    var best=null,bestScore=1e9;
+    cands.forEach(c=>{
+      var ax=p.cx+c.dx*gap*c.k, ay=p.cy+c.dy*gap*c.k;
+      var x= c.dx>0?ax: c.dx<0?ax-w: ax-w/2;
+      var y= c.dy>0?ay: c.dy<0?ay-h: ay-h/2;
+      var box={x:x,y:y,w:w,h:h};
+      var s=(c.k-1)*6+(c.dx===0?2:0)+(c.dy!==0&&c.dx!==0?1.5:0);
+      if(x<m.left+2||x+w>m.left+iw-2||y<m.top||y+h>m.top+ih-2)s+=1000;
+      circBoxes.forEach(cb=>{if(overlap(box,cb,2))s+=200;});
+      placed.forEach(pb=>{if(overlap(box,pb,3))s+=300;});
+      blocked.forEach(qb=>{if(overlap(box,qb,2))s+=60;});
+      if(s<bestScore){bestScore=s;best={box,c};}
+    });
+    var b=best.box;
+    t.setAttribute("x",b.x);t.setAttribute("y",b.y+h*0.78);
+    placed.push(b);p.t=t;
+    if(best.c.k>1){
+      var lx=Math.max(b.x,Math.min(p.cx,b.x+b.w)), ly=Math.max(b.y,Math.min(p.cy,b.y+b.h));
+      var dx=lx-p.cx, dy=ly-p.cy, dist=Math.hypot(dx,dy)||1;
+      p.l=el("line",{class:"leader",x1:p.cx+dx/dist*(R+2),y1:p.cy+dy/dist*(R+2),x2:lx,y2:ly},leaders);
     }
   });
-  
-  updateLabelPositions();
+
+  // interaction
+  pts.forEach(p=>{
+    p.c.addEventListener("mouseenter",()=>{
+      svg.classList.add("dim");[p.c,p.t,p.l].forEach(e=>e&&e.classList.add("on"));p.c.setAttribute("r",R+3);
+      tip.innerHTML=`<h4>${nameOf(p.d)}</h4><table>${tipRows(p.d).map(r=>
+        `<tr><td>${r[0]}</td><td class="v"${r[2]?` style="color:${r[2]}"`:""}>${r[1]}</td></tr>`).join("")}</table>`;
+      tip.style.opacity=1;
+      var tw=tip.offsetWidth, th=tip.offsetHeight;
+      var left=p.cx+16+tw>W?p.cx-16-tw:p.cx+16, top=Math.max(4,Math.min(H-th-4,p.cy-th/2));
+      tip.style.left=left+"px";tip.style.top=top+"px";
+    });
+    p.c.addEventListener("mouseleave",()=>{
+      svg.classList.remove("dim");[p.c,p.t,p.l].forEach(e=>e&&e.classList.remove("on"));p.c.setAttribute("r",R);
+      tip.style.opacity=0;
+    });
+  });
 }
 
-function updateLabelPositions() {
-  if (isUpdating) return;
-  isUpdating = true;
-  
-  const svg = document.querySelector('#chart svg');
-  if (!svg) {
-    isUpdating = false;
-    return;
-  }
-  
-  const circlePositions = [];
-  
-  customLabels.forEach(({circle, text}) => {
-    if (circle && text) {
-      const bbox = circle.getBoundingClientRect();
-      const svgRect = svg.getBoundingClientRect();
-      
-      const svgPoint = svg.createSVGPoint();
-      svgPoint.x = bbox.left + bbox.width/2 - svgRect.left;
-      svgPoint.y = bbox.top + bbox.height/2 - svgRect.top;
-      
-      const screenCTM = svg.getScreenCTM();
-      if (screenCTM) {
-        const svgCoords = svgPoint.matrixTransform(screenCTM.inverse());
-        circlePositions.push({
-          circle: circle,
-          coords: svgCoords
-        });
-      }
-    }
-  });
-  
-  customLabels.forEach((labelData) => {
-    const {circle, text, fullText} = labelData;
-    
-    if (hoveringElements.has(text)) {
-      return;
-    }
-    
-    if (circle && text) {
-      const circleData = circlePositions.find(cp => cp.circle === circle);
-      if (circleData) {
-        const r = parseFloat(circle.getAttribute('r')) || 7.5;
-        const bestPosition = findBestPosition(
-          text, 
-          circleData.coords.x, 
-          circleData.coords.y, 
-          r,
-          circlePositions,
-          fullText
-        );
-        
-        text.setAttribute('x', bestPosition.x);
-        text.setAttribute('y', bestPosition.y);
-        text.setAttribute('text-anchor', bestPosition.anchor);
-        text.textContent = bestPosition.text;
-        labelData.defaultText = bestPosition.text;
-        
-        if (bestPosition.hasCollision) {
-          text.classList.add('collision');
-          text.setAttribute('opacity', '0.3');
-        } else {
-          text.classList.remove('collision');
-          text.setAttribute('opacity', '1');
-        }
-      }
-    }
-  });
-  
-  isUpdating = false;
-}
-
-function startPositionUpdater() {
-  function updateLoop() {
-    updateLabelPositions();
-    requestAnimationFrame(updateLoop);
-  }
-  
-  updateLoop();
-  
-  const chartElement = document.getElementById('chart');
-  if (chartElement) {
-    chartElement.addEventListener('wheel', updateLabelPositions, { passive: true });
-    chartElement.addEventListener('mousedown', updateLabelPositions);
-    chartElement.addEventListener('mousemove', updateLabelPositions);
-    chartElement.addEventListener('mouseup', updateLabelPositions);
-  }
-}
+draw();
+var rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,120);});
 </script>
-<div style="position:fixed;right:10px;bottom:10px;font-size:11px;color:#888;z-index:9999;">
-</div>
 </body>
 </html>
