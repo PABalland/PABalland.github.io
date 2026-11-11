@@ -1,0 +1,572 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --ink:#1f2328; --muted:#6b7280; --faint:#9ca3af; --grid:#eef0f3; --axis:#d1d5db;
+  --pos:#3f7f4f; --neg:#9b3b34;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;}
+body{font-family:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--ink);overflow:hidden;}
+.wrap{display:flex;flex-direction:column;height:100vh;padding:18px 22px 10px;}
+#chart{flex:1 1 auto;position:relative;min-height:0;}
+svg{display:block;width:100%;height:100%;}
+.footer{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;
+  padding-top:8px;font-size:12.5px;color:var(--muted);}
+.lg{display:flex;align-items:center;gap:8px;}
+.dot{width:11px;height:11px;border-radius:50%;}
+.ramp{width:90px;height:8px;border-radius:4px;
+  background:linear-gradient(90deg,#9b3b34,#c49a96,#e6e1e1,#9cbc9f,#3f7f4f);}
+.axis-title{font-size:19px;font-weight:600;fill:var(--ink);letter-spacing:.01em;}
+.tick text{font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums;}
+.quad{font-size:10.5px;fill:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+.label{font-size:14px;fill:#374151;font-weight:500;pointer-events:none;
+  paint-order:stroke;stroke:#fff;stroke-width:3.5px;stroke-linejoin:round;transition:opacity .15s;}
+.pt{cursor:pointer;transition:r .15s, opacity .15s;}
+.dim .pt:not(.on), .dim .label:not(.on), .dim .leader:not(.on){opacity:.25;}
+.label.on{font-weight:700;fill:var(--ink);}
+.leader{stroke:#c7cbd1;stroke-width:1;}
+.tip{position:absolute;pointer-events:none;background:#fff;border:1px solid #e5e7eb;border-radius:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);padding:10px 12px;font-size:12px;min-width:190px;
+  opacity:0;transition:opacity .12s;z-index:5;}
+.tip h4{margin:0 0 6px;font-size:13px;}
+.tip table{width:100%;border-collapse:collapse;}
+.tip td{padding:2px 0;color:var(--muted);}
+.tip td.v{text-align:right;padding-left:14px;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="chart"><div class="tip" id="tip"></div></div>
+  <div class="footer" id="footer">
+    <span class="lg" id="lg-rca">
+      Scientific RCA &lt; 1
+      <span class="dot" style="background:var(--neg)"></span>
+      <span class="ramp"></span>
+      <span class="dot" style="background:var(--pos)"></span>
+      Scientific RCA &gt; 1
+    </span>
+    <span class="lg" style="color:var(--faint)">Dashed lines = medians</span>
+  </div>
+</div>
+<script>
+var RCA_LABEL="Scientific RCA";
+
+/* ---------- helpers ---------- */
+function median(v){
+  if(!v.length)throw new Error("empty");
+  v=[...v].sort((a,b)=>a-b);
+  const h=Math.floor(v.length/2);
+  return v.length%2?v[h]:(v[h-1]+v[h])/2;
+}
+function niceStep(span,target){var raw=span/target,p=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/p;
+  return (n<1.5?1:n<3?2:n<7?5:10)*p;}
+function niceDomain(min,max,target){var s=niceStep(max-min,target);return [Math.floor(min/s)*s,Math.ceil(max/s)*s,s];}
+function fmt(v,d){return (v===undefined||v===null||v==="")?"–":(typeof v==="number"?v.toFixed(d):v);}
+function el(tag,attrs,parent){var e=document.createElementNS("http://www.w3.org/2000/svg",tag);
+  for(var k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function overlap(a,b,pad){pad=pad||0;return !(a.x+a.w+pad<b.x||b.x+b.w+pad<a.x||a.y+a.h+pad<b.y||b.y+b.h+pad<a.y);}
+
+var data= [
+  {
+    "id": "Artificial Intelligence",
+    "x": 22.39,
+    "y": 76.46,
+    "rca": 0.93,
+    "color": "#D0CBCB",
+    "value": 0.5,
+    "rca_pub": 0.93
+  },
+  {
+    "id": "Battery",
+    "x": 33.58,
+    "y": 66.94,
+    "rca": 0.46,
+    "color": "#BC8F8F",
+    "value": 0.5,
+    "rca_pub": 0.46
+  },
+  {
+    "id": "Biofuels",
+    "x": 21.24,
+    "y": 61.3,
+    "rca": 1.53,
+    "color": "#78A378",
+    "value": 0.5,
+    "rca_pub": 1.53
+  },
+  {
+    "id": "Biomass Energy",
+    "x": 71.66,
+    "y": 24.39,
+    "rca": 0.97,
+    "color": "#D2D0D0",
+    "value": 0.5,
+    "rca_pub": 0.97
+  },
+  {
+    "id": "Biomaterials",
+    "x": 53.77,
+    "y": 50.93,
+    "rca": 1.55,
+    "color": "#77A377",
+    "value": 0.5,
+    "rca_pub": 1.55
+  },
+  {
+    "id": "Blockchain Technologies",
+    "x": 28.23,
+    "y": 68.46,
+    "rca": 0.67,
+    "color": "#C6ADAD",
+    "value": 0.5,
+    "rca_pub": 0.67
+  },
+  {
+    "id": "Carbon Capture & Storage",
+    "x": 40.57,
+    "y": 59.21,
+    "rca": 0.8,
+    "color": "#CBBDBD",
+    "value": 0.5,
+    "rca_pub": 0.8
+  },
+  {
+    "id": "Cloud Computing & Edge Computing",
+    "x": 33.52,
+    "y": 74.57,
+    "rca": 0.88,
+    "color": "#CFC6C6",
+    "value": 0.5,
+    "rca_pub": 0.88
+  },
+  {
+    "id": "Computer Vision, Language Processing & Object Recognition",
+    "x": 20.76,
+    "y": 75.23,
+    "rca": 0.76,
+    "color": "#CAB8B8",
+    "value": 0.5,
+    "rca_pub": 0.76
+  },
+  {
+    "id": "Cybersecurity Technologies",
+    "x": 28.51,
+    "y": 76.86,
+    "rca": 0.94,
+    "color": "#D1CDCD",
+    "value": 0.5,
+    "rca_pub": 0.94
+  },
+  {
+    "id": "Drones",
+    "x": 40.54,
+    "y": 66.53,
+    "rca": 1.09,
+    "color": "#AABEAA",
+    "value": 0.5,
+    "rca_pub": 1.09
+  },
+  {
+    "id": "Energy Efficiency",
+    "x": 51.28,
+    "y": 71.69,
+    "rca": 0.95,
+    "color": "#D1CECE",
+    "value": 0.5,
+    "rca_pub": 0.95
+  },
+  {
+    "id": "Environmental Consulting",
+    "rca": 0.34,
+    "color": "#B57B7B",
+    "value": 0.5,
+    "rca_pub": 0.34
+  },
+  {
+    "id": "Environmental Engineering",
+    "x": 46.33,
+    "y": 56.74,
+    "rca": 1.24,
+    "color": "#93B193",
+    "value": 0.5,
+    "rca_pub": 1.24
+  },
+  {
+    "id": "EVs & Charging Infrastructure",
+    "x": 47.4,
+    "y": 65.93,
+    "rca": 1.28,
+    "color": "#8EAF8E",
+    "value": 0.5,
+    "rca_pub": 1.28
+  },
+  {
+    "id": "Generative AI",
+    "x": 20.25,
+    "y": 73.39,
+    "rca": 0.43,
+    "color": "#BA8A8A",
+    "value": 0.5,
+    "rca_pub": 0.43
+  },
+  {
+    "id": "Geothermal Energy",
+    "x": 21.25,
+    "y": 46.47,
+    "rca": 1.56,
+    "color": "#76A276",
+    "value": 0.5,
+    "rca_pub": 1.56
+  },
+  {
+    "id": "Green Building",
+    "x": 36.79,
+    "y": 65.48,
+    "rca": 2.37,
+    "color": "#528F52",
+    "value": 0.5,
+    "rca_pub": 2.37
+  },
+  {
+    "id": "Green Consumer Goods",
+    "x": 42.22,
+    "y": 60.47,
+    "rca": 1.83,
+    "color": "#679A67",
+    "value": 0.5,
+    "rca_pub": 1.83
+  },
+  {
+    "id": "Heat Pumps",
+    "x": 35.14,
+    "y": 64.04,
+    "rca": 0.76,
+    "color": "#CAB8B8",
+    "value": 0.5,
+    "rca_pub": 0.76
+  },
+  {
+    "id": "High-Performance Computing (HPC)",
+    "x": 24.7,
+    "y": 71.25,
+    "rca": 0.76,
+    "color": "#CAB8B8",
+    "value": 0.5,
+    "rca_pub": 0.76
+  },
+  {
+    "id": "Hydroelectric Power",
+    "x": 34.5,
+    "y": 38.99,
+    "rca": 1.56,
+    "color": "#76A276",
+    "value": 0.5,
+    "rca_pub": 1.56
+  },
+  {
+    "id": "Hydrogen Fuel Cells",
+    "x": 38.03,
+    "y": 66.05,
+    "rca": 0.46,
+    "color": "#BC8F8F",
+    "value": 0.5,
+    "rca_pub": 0.46
+  },
+  {
+    "id": "Internet of Things (IoT)",
+    "x": 33.9,
+    "y": 76.94,
+    "rca": 0.62,
+    "color": "#C4A6A6",
+    "value": 0.5,
+    "rca_pub": 0.62
+  },
+  {
+    "id": "Mobile Networks (5G/6G)",
+    "x": 28.08,
+    "y": 75,
+    "rca": 0.54,
+    "color": "#C09B9B",
+    "value": 0.5,
+    "rca_pub": 0.54
+  },
+  {
+    "id": "Nuclear Energy",
+    "x": 8.09,
+    "y": 54.56,
+    "rca": 0.63,
+    "color": "#C4A7A7",
+    "value": 0.5,
+    "rca_pub": 0.63
+  },
+  {
+    "id": "Other",
+    "rca": 1,
+    "color": "lightgrey",
+    "value": 0.5,
+    "rca_pub": 1
+  },
+  {
+    "id": "Pollution Control",
+    "rca": 2.6,
+    "color": "#4B8B4B",
+    "value": 0.5,
+    "rca_pub": 2.6
+  },
+  {
+    "id": "Quantum Technologies",
+    "x": 14.49,
+    "y": 74.11,
+    "rca": 1.44,
+    "color": "#7FA77F",
+    "value": 0.5,
+    "rca_pub": 1.44
+  },
+  {
+    "id": "Recycling",
+    "x": 70.94,
+    "y": 51.27,
+    "rca": 1.91,
+    "color": "#639863",
+    "value": 0.5,
+    "rca_pub": 1.91
+  },
+  {
+    "id": "Robotics",
+    "x": 27.69,
+    "y": 62.18,
+    "rca": 0.84,
+    "color": "#CDC1C1",
+    "value": 0.5,
+    "rca_pub": 0.84
+  },
+  {
+    "id": "Satellite Connectivity",
+    "x": 24.66,
+    "y": 73.96,
+    "rca": 1.75,
+    "color": "#6B9C6B",
+    "value": 0.5,
+    "rca_pub": 1.75
+  },
+  {
+    "id": "Semiconductors/Chips",
+    "x": 16.87,
+    "y": 74.13,
+    "rca": 0.54,
+    "color": "#C09B9B",
+    "value": 0.5,
+    "rca_pub": 0.54
+  },
+  {
+    "id": "Smart Grid",
+    "x": 51.02,
+    "y": 62.16,
+    "rca": 0.94,
+    "color": "#D1CDCD",
+    "value": 0.5,
+    "rca_pub": 0.94
+  },
+  {
+    "id": "Software Engineering & System Development",
+    "x": 32.39,
+    "y": 71.66,
+    "rca": 1.65,
+    "color": "#719F71",
+    "value": 0.5,
+    "rca_pub": 1.65
+  },
+  {
+    "id": "Solar Energy",
+    "x": 32.41,
+    "y": 65.99,
+    "rca": 0.82,
+    "color": "#CCBFBF",
+    "value": 0.5,
+    "rca_pub": 0.82
+  },
+  {
+    "id": "Sustainable Agriculture",
+    "x": 44.1,
+    "y": 45.04,
+    "rca": 0.8,
+    "color": "#CBBDBD",
+    "value": 0.5,
+    "rca_pub": 0.8
+  },
+  {
+    "id": "Waste Management",
+    "x": 55.92,
+    "y": 50.62,
+    "rca": 1.44,
+    "color": "#7FA77F",
+    "value": 0.5,
+    "rca_pub": 1.44
+  },
+  {
+    "id": "Water Management",
+    "rca": 0.8,
+    "color": "#CBBDBD",
+    "value": 0.5,
+    "rca_pub": 0.8
+  },
+  {
+    "id": "Wind Energy",
+    "x": 38.92,
+    "y": 57.15,
+    "rca": 0.86,
+    "color": "#CEC4C4",
+    "value": 0.5,
+    "rca_pub": 0.86
+  }
+] ;
+
+data = data.filter(d => Number.isFinite(+d.x) && Number.isFinite(+d.y) && d.x !== "" && d.y !== "");
+
+const xVals=data.map(d=>+d.x);
+const yVals=data.map(d=>+d.y);
+const medianX=median(xVals);
+const medianY=median(yVals);
+const xDomain=[0,100];
+const minY=Math.min(...yVals)-1;
+const maxY=Math.max(...yVals)+2;
+
+/* ---------- config ---------- */
+const X_TITLE="Technological Relatedness Density", Y_TITLE="Technological Complexity Index";
+const USE_FIXED_X_DOMAIN=false;   // true = use xDomain above; false = fit to data
+const R=8;                        // bubble radius
+const QUADS=["High complexity · High relatedness","High complexity · Low relatedness",
+             "Low complexity · Low relatedness","Low complexity · High relatedness"]; // TR, TL, BL, BR
+const NOTE="";
+const nameOf=d=>String(d.id);
+function tipRows(d){return [
+  [X_TITLE,fmt(+d.x,1)],
+  [Y_TITLE,fmt(+d.y,1)],
+  [RCA_LABEL,fmt(+d.rca,2),+d.rca>=1?"var(--pos)":"var(--neg)"]
+];}
+
+/* ---------- render (shared style) ---------- */
+const host=document.getElementById("chart"), tip=document.getElementById("tip");
+const hasRCA=data.some(d=>d.rca!==undefined&&d.rca!==null&&d.rca!=="");
+if(!hasRCA){var lgr=document.getElementById("lg-rca");if(lgr)lgr.style.display="none";}
+if(NOTE){var ft=document.getElementById("footer");if(ft){var n=document.createElement("span");
+  n.className="lg";n.style.color="var(--faint)";n.textContent=NOTE;ft.appendChild(n);}}
+
+function draw(){
+  host.querySelectorAll("svg").forEach(s=>s.remove());
+  var W=host.clientWidth, H=host.clientHeight;
+  var m={top:16,right:28,bottom:64,left:78};
+  var iw=W-m.left-m.right, ih=H-m.top-m.bottom;
+
+  var xs=xVals, ys=yVals;
+  var xpad=(Math.max(...xs)-Math.min(...xs))*0.12||1, ypad=(Math.max(...ys)-Math.min(...ys))*0.08||1;
+  var xd=USE_FIXED_X_DOMAIN?[xDomain[0],xDomain[1],niceStep(xDomain[1]-xDomain[0],10)]
+                           :niceDomain(Math.min(...xs)-xpad,Math.max(...xs)+xpad,8);
+  var yd=niceDomain(Math.min(...ys)-ypad,Math.max(...ys)+ypad,7);
+  var sx=v=>m.left+(v-xd[0])/(xd[1]-xd[0])*iw;
+  var sy=v=>m.top+ih-(v-yd[0])/(yd[1]-yd[0])*ih;
+
+  var svg=el("svg",{viewBox:`0 0 ${W} ${H}`},null); host.appendChild(svg);
+
+  // quadrant tint (top-right = most promising)
+  el("rect",{x:sx(medianX),y:m.top,width:m.left+iw-sx(medianX),height:sy(medianY)-m.top,fill:"#f3f8f4"},svg);
+
+  // grid + ticks
+  var g=el("g",{},svg);
+  for(var v=xd[0];v<=xd[1]+1e-9;v+=xd[2]){var x=sx(v);
+    el("line",{x1:x,x2:x,y1:m.top,y2:m.top+ih,stroke:"var(--grid)"},g);
+    var t=el("g",{class:"tick"},g);var tx=el("text",{x:x,y:m.top+ih+18,"text-anchor":"middle"},t);tx.textContent=+v.toFixed(2);}
+  for(var v=yd[0];v<=yd[1]+1e-9;v+=yd[2]){var y=sy(v);
+    el("line",{x1:m.left,x2:m.left+iw,y1:y,y2:y,stroke:"var(--grid)"},g);
+    var t=el("g",{class:"tick"},g);var ty=el("text",{x:m.left-10,y:y+4,"text-anchor":"end"},t);ty.textContent=+v.toFixed(2);}
+  el("line",{x1:m.left,x2:m.left+iw,y1:m.top+ih,y2:m.top+ih,stroke:"var(--axis)"},g);
+  el("line",{x1:m.left,x2:m.left,y1:m.top,y2:m.top+ih,stroke:"var(--axis)"},g);
+
+  // medians
+  el("line",{x1:sx(medianX),x2:sx(medianX),y1:m.top,y2:m.top+ih,stroke:"#b8bdc4","stroke-dasharray":"5 5"},svg);
+  el("line",{x1:m.left,x2:m.left+iw,y1:sy(medianY),y2:sy(medianY),stroke:"#b8bdc4","stroke-dasharray":"5 5"},svg);
+
+  // quadrant captions (TR, TL, BL, BR)
+  var q=[[QUADS[0],m.left+iw-8,m.top+16,"end"],
+         [QUADS[1],m.left+8,m.top+16,"start"],
+         [QUADS[2],m.left+8,m.top+ih-10,"start"],
+         [QUADS[3],m.left+iw-8,m.top+ih-10,"end"]];
+  var blocked=[];
+  q.forEach(a=>{var t=el("text",{class:"quad",x:a[1],y:a[2],"text-anchor":a[3]},svg);t.textContent=a[0];
+    var b=t.getBBox();blocked.push({x:b.x,y:b.y,w:b.width,h:b.height});});
+
+  // axis titles
+  var xt=el("text",{class:"axis-title",x:m.left+iw/2,y:H-14,"text-anchor":"middle"},svg);xt.textContent=X_TITLE;
+  var yt=el("text",{class:"axis-title",transform:`translate(22,${m.top+ih/2}) rotate(-90)`,"text-anchor":"middle"},svg);yt.textContent=Y_TITLE;
+
+  // points
+  var pts=data.map(d=>({d:d,cx:sx(+d.x),cy:sy(+d.y)}));
+  var circBoxes=pts.map(p=>({x:p.cx-R,y:p.cy-R,w:2*R,h:2*R}));
+  var leaders=el("g",{},svg), dots=el("g",{},svg), labs=el("g",{},svg);
+
+  pts.forEach(p=>{
+    p.c=el("circle",{class:"pt",cx:p.cx,cy:p.cy,r:R,fill:p.d.color||"#9ca3af",stroke:"#fff","stroke-width":2,
+      style:"filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.18))"},dots);
+    if(hasRCA&&p.d.rca!==undefined&&p.d.rca!==null)
+      el("circle",{cx:p.cx,cy:p.cy,r:R+0.5,fill:"none",stroke:+p.d.rca>=1?"var(--pos)":"var(--neg)","stroke-width":1,opacity:.55,"pointer-events":"none"},dots);
+  });
+
+  // label placement: greedy, avoid circles, other labels, captions, bounds
+  var placed=[];
+  var order=[...pts].sort((a,b)=>nameOf(b.d).length-nameOf(a.d).length);
+  order.forEach(p=>{
+    var t=el("text",{class:"label"},labs);t.textContent=nameOf(p.d);
+    var bb=t.getBBox(), w=bb.width, h=bb.height, gap=R+5;
+    var cands=[];
+    [[1,0],[-1,0],[0,-1],[0,1],[1,-1],[1,1],[-1,-1],[-1,1]].forEach(([dx,dy])=>{
+      [1,1.9,2.8].forEach(k=>cands.push({dx,dy,k}));});
+    var best=null,bestScore=1e9;
+    cands.forEach(c=>{
+      var ax=p.cx+c.dx*gap*c.k, ay=p.cy+c.dy*gap*c.k;
+      var x= c.dx>0?ax: c.dx<0?ax-w: ax-w/2;
+      var y= c.dy>0?ay: c.dy<0?ay-h: ay-h/2;
+      var box={x:x,y:y,w:w,h:h};
+      var s=(c.k-1)*6+(c.dx===0?2:0)+(c.dy!==0&&c.dx!==0?1.5:0);
+      if(x<m.left+2||x+w>m.left+iw-2||y<m.top||y+h>m.top+ih-2)s+=1000;
+      circBoxes.forEach(cb=>{if(overlap(box,cb,2))s+=200;});
+      placed.forEach(pb=>{if(overlap(box,pb,3))s+=300;});
+      blocked.forEach(qb=>{if(overlap(box,qb,2))s+=60;});
+      if(s<bestScore){bestScore=s;best={box,c};}
+    });
+    var b=best.box;
+    t.setAttribute("x",b.x);t.setAttribute("y",b.y+h*0.78);
+    placed.push(b);p.t=t;
+    if(best.c.k>1){
+      var lx=Math.max(b.x,Math.min(p.cx,b.x+b.w)), ly=Math.max(b.y,Math.min(p.cy,b.y+b.h));
+      var dx=lx-p.cx, dy=ly-p.cy, dist=Math.hypot(dx,dy)||1;
+      p.l=el("line",{class:"leader",x1:p.cx+dx/dist*(R+2),y1:p.cy+dy/dist*(R+2),x2:lx,y2:ly},leaders);
+    }
+  });
+
+  // interaction
+  pts.forEach(p=>{
+    p.c.addEventListener("mouseenter",()=>{
+      svg.classList.add("dim");[p.c,p.t,p.l].forEach(e=>e&&e.classList.add("on"));p.c.setAttribute("r",R+3);
+      tip.innerHTML=`<h4>${nameOf(p.d)}</h4><table>${tipRows(p.d).map(r=>
+        `<tr><td>${r[0]}</td><td class="v"${r[2]?` style="color:${r[2]}"`:""}>${r[1]}</td></tr>`).join("")}</table>`;
+      tip.style.opacity=1;
+      var tw=tip.offsetWidth, th=tip.offsetHeight;
+      var left=p.cx+16+tw>W?p.cx-16-tw:p.cx+16, top=Math.max(4,Math.min(H-th-4,p.cy-th/2));
+      tip.style.left=left+"px";tip.style.top=top+"px";
+    });
+    p.c.addEventListener("mouseleave",()=>{
+      svg.classList.remove("dim");[p.c,p.t,p.l].forEach(e=>e&&e.classList.remove("on"));p.c.setAttribute("r",R);
+      tip.style.opacity=0;
+    });
+  });
+}
+
+draw();
+var rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,120);});
+</script>
+</body>
+</html>
