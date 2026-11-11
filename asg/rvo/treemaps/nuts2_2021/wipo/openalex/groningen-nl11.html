@@ -1,0 +1,511 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Groningen (NL11)",
+    "count": 4159,
+    "rca": 1.07,
+    "share": 8.4206,
+    "share_d": 7.8893,
+    "reldens": 64.58,
+    "comp_PA": 38.25,
+    "comp_TCI": 0,
+    "parent": "Instruments",
+    "color": "#AFC0AF",
+    "id": "Analysis of biological materials",
+    "value": 4159
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Groningen (NL11)",
+    "count": 462,
+    "rca": 0.92,
+    "share": 0.9354,
+    "share_d": 1.0114,
+    "reldens": 18.71,
+    "comp_PA": 83.97,
+    "comp_TCI": 68.28,
+    "parent": "Electrical engineering",
+    "color": "#D0CACA",
+    "id": "Audio-visual technology",
+    "value": 462
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Groningen (NL11)",
+    "count": 151,
+    "rca": 2.42,
+    "share": 0.3057,
+    "share_d": 0.1264,
+    "reldens": 53.66,
+    "comp_PA": 64.75,
+    "comp_TCI": 24.76,
+    "parent": "Electrical engineering",
+    "color": "#508E50",
+    "id": "Basic communication processes",
+    "value": 151
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Groningen (NL11)",
+    "count": 385,
+    "rca": 0.56,
+    "share": 0.7795,
+    "share_d": 1.4028,
+    "reldens": 12.63,
+    "comp_PA": 61.76,
+    "comp_TCI": 76.67,
+    "parent": "Chemistry",
+    "color": "#C19E9E",
+    "id": "Basic materials chemistry",
+    "value": 385
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Groningen (NL11)",
+    "count": 9284,
+    "rca": 1.14,
+    "share": 18.7969,
+    "share_d": 16.5396,
+    "reldens": 55.21,
+    "comp_PA": 39.94,
+    "comp_TCI": 2.53,
+    "parent": "Chemistry",
+    "color": "#A1B9A1",
+    "id": "Biotechnology",
+    "value": 9284
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Groningen (NL11)",
+    "count": 273,
+    "rca": 0.69,
+    "share": 0.5527,
+    "share_d": 0.798,
+    "reldens": 7.12,
+    "comp_PA": 58.48,
+    "comp_TCI": 85.81,
+    "parent": "Chemistry",
+    "color": "#C7AFAF",
+    "id": "Chemical engineering",
+    "value": 273
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Groningen (NL11)",
+    "count": 478,
+    "rca": 0.31,
+    "share": 0.9678,
+    "share_d": 3.1148,
+    "reldens": 6.81,
+    "comp_PA": 58.93,
+    "comp_TCI": 82.59,
+    "parent": "Other fields",
+    "color": "#B37575",
+    "id": "Civil engineering",
+    "value": 478
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Groningen (NL11)",
+    "count": 1695,
+    "rca": 0.71,
+    "share": 3.4318,
+    "share_d": 4.8639,
+    "reldens": 16.64,
+    "comp_PA": 49.08,
+    "comp_TCI": 80.98,
+    "parent": "Electrical engineering",
+    "color": "#C8B2B2",
+    "id": "Computer technology",
+    "value": 1695
+  },
+  {
+    "domain": "Control",
+    "geo": "Groningen (NL11)",
+    "count": 129,
+    "rca": 2.39,
+    "share": 0.2612,
+    "share_d": 0.1091,
+    "reldens": 1.78,
+    "comp_PA": 79.07,
+    "comp_TCI": 94.64,
+    "parent": "Instruments",
+    "color": "#518F51",
+    "id": "Control",
+    "value": 129
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Groningen (NL11)",
+    "count": 531,
+    "rca": 0.48,
+    "share": 1.0751,
+    "share_d": 2.2603,
+    "reldens": 19.64,
+    "comp_PA": 68.46,
+    "comp_TCI": 77.62,
+    "parent": "Electrical engineering",
+    "color": "#BD9292",
+    "id": "Digital communication",
+    "value": 531
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Groningen (NL11)",
+    "count": 60,
+    "rca": 0.29,
+    "share": 0.1215,
+    "share_d": 0.4229,
+    "reldens": 7.77,
+    "comp_PA": 51.46,
+    "comp_TCI": 82.35,
+    "parent": "Electrical engineering",
+    "color": "#B27272",
+    "id": "Electrical machinery, apparatus, energy",
+    "value": 60
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Groningen (NL11)",
+    "count": 27,
+    "rca": 0.18,
+    "share": 0.0547,
+    "share_d": 0.3072,
+    "reldens": 3.34,
+    "comp_PA": 69.03,
+    "comp_TCI": 88.53,
+    "parent": "Mechanical engineering",
+    "color": "#AA5A5A",
+    "id": "Engines, pumps, turbines",
+    "value": 27
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Groningen (NL11)",
+    "count": 1761,
+    "rca": 0.57,
+    "share": 3.5654,
+    "share_d": 6.2601,
+    "reldens": 17.08,
+    "comp_PA": 43.9,
+    "comp_TCI": 58.8,
+    "parent": "Chemistry",
+    "color": "#C19F9F",
+    "id": "Environmental technology",
+    "value": 1761
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Groningen (NL11)",
+    "count": 1204,
+    "rca": 0.75,
+    "share": 2.4377,
+    "share_d": 3.2491,
+    "reldens": 70.65,
+    "comp_PA": 0,
+    "comp_TCI": 38.85,
+    "parent": "Chemistry",
+    "color": "#C9B7B7",
+    "id": "Food chemistry",
+    "value": 1204
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Groningen (NL11)",
+    "count": 2619,
+    "rca": 0.78,
+    "share": 5.3026,
+    "share_d": 6.7844,
+    "reldens": 14.91,
+    "comp_PA": 26.57,
+    "comp_TCI": 53.75,
+    "parent": "Other fields",
+    "color": "#CBBABA",
+    "id": "Green technologies",
+    "value": 2619
+  },
+  {
+    "domain": "Handling",
+    "geo": "Groningen (NL11)",
+    "count": 214,
+    "rca": 0.75,
+    "share": 0.4333,
+    "share_d": 0.58,
+    "reldens": 15.59,
+    "comp_PA": 71.21,
+    "comp_TCI": 94.37,
+    "parent": "Mechanical engineering",
+    "color": "#C9B7B7",
+    "id": "Handling",
+    "value": 214
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Groningen (NL11)",
+    "count": 529,
+    "rca": 0.89,
+    "share": 1.071,
+    "share_d": 1.2048,
+    "reldens": 11.87,
+    "comp_PA": 25,
+    "comp_TCI": 86.04,
+    "parent": "Electrical engineering",
+    "color": "#CFC7C7",
+    "id": "IT methods for management",
+    "value": 529
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Groningen (NL11)",
+    "count": 5,
+    "rca": 0.11,
+    "share": 0.0101,
+    "share_d": 0.0954,
+    "reldens": 9.82,
+    "comp_PA": 50.58,
+    "comp_TCI": 93.2,
+    "parent": "Mechanical engineering",
+    "color": "#A34646",
+    "id": "Machine tools",
+    "value": 5
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Groningen (NL11)",
+    "count": 831,
+    "rca": 1.29,
+    "share": 1.6825,
+    "share_d": 1.3027,
+    "reldens": 16.49,
+    "comp_PA": 51.04,
+    "comp_TCI": 86.4,
+    "parent": "Chemistry",
+    "color": "#8DAE8D",
+    "id": "Macromolecular chemistry, polymers",
+    "value": 831
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Groningen (NL11)",
+    "count": 720,
+    "rca": 0.48,
+    "share": 1.4578,
+    "share_d": 3.0638,
+    "reldens": 13.56,
+    "comp_PA": 46.26,
+    "comp_TCI": 96.09,
+    "parent": "Chemistry",
+    "color": "#BD9292",
+    "id": "Materials, metallurgy",
+    "value": 720
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Groningen (NL11)",
+    "count": 83,
+    "rca": 0.25,
+    "share": 0.168,
+    "share_d": 0.6618,
+    "reldens": 6.63,
+    "comp_PA": 64.03,
+    "comp_TCI": 100,
+    "parent": "Mechanical engineering",
+    "color": "#AF6A6A",
+    "id": "Mechanical elements",
+    "value": 83
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Groningen (NL11)",
+    "count": 16700,
+    "rca": 1.5,
+    "share": 33.8118,
+    "share_d": 22.6112,
+    "reldens": 70.93,
+    "comp_PA": 35.2,
+    "comp_TCI": 10.96,
+    "parent": "Instruments",
+    "color": "#7AA47A",
+    "id": "Medical technology",
+    "value": 16700
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Groningen (NL11)",
+    "count": 2124,
+    "rca": 0.68,
+    "share": 4.3004,
+    "share_d": 6.2817,
+    "reldens": 25.73,
+    "comp_PA": 61.6,
+    "comp_TCI": 91.88,
+    "parent": "Chemistry",
+    "color": "#C6AEAE",
+    "id": "Micro-structural and nano-technology",
+    "value": 2124
+  },
+  {
+    "domain": "Optics",
+    "geo": "Groningen (NL11)",
+    "count": 1989,
+    "rca": 1.12,
+    "share": 4.027,
+    "share_d": 3.5926,
+    "reldens": 15.02,
+    "comp_PA": 75.78,
+    "comp_TCI": 59.85,
+    "parent": "Instruments",
+    "color": "#A4BAA4",
+    "id": "Optics",
+    "value": 1989
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Groningen (NL11)",
+    "count": 371,
+    "rca": 0.87,
+    "share": 0.7511,
+    "share_d": 0.8675,
+    "reldens": 53.65,
+    "comp_PA": 22.91,
+    "comp_TCI": 61.25,
+    "parent": "Chemistry",
+    "color": "#CEC5C5",
+    "id": "Organic fine chemistry",
+    "value": 371
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Groningen (NL11)",
+    "count": 2171,
+    "rca": 1.79,
+    "share": 4.3955,
+    "share_d": 2.4538,
+    "reldens": 79.21,
+    "comp_PA": 32.41,
+    "comp_TCI": 0.98,
+    "parent": "Chemistry",
+    "color": "#699B69",
+    "id": "Pharmaceuticals",
+    "value": 2171
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Groningen (NL11)",
+    "count": 229,
+    "rca": 0.59,
+    "share": 0.4636,
+    "share_d": 0.7799,
+    "reldens": 12.72,
+    "comp_PA": 80.81,
+    "comp_TCI": 87.29,
+    "parent": "Electrical engineering",
+    "color": "#C2A2A2",
+    "id": "Semiconductors",
+    "value": 229
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Groningen (NL11)",
+    "count": 23,
+    "rca": 0.35,
+    "share": 0.0466,
+    "share_d": 0.134,
+    "reldens": 2.22,
+    "comp_PA": 88.71,
+    "comp_TCI": 92.88,
+    "parent": "Chemistry",
+    "color": "#B67D7D",
+    "id": "Surface technology, coating",
+    "value": 23
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Groningen (NL11)",
+    "count": 6,
+    "rca": 0.15,
+    "share": 0.0121,
+    "share_d": 0.0833,
+    "reldens": 33.72,
+    "comp_PA": 100,
+    "comp_TCI": 64.18,
+    "parent": "Electrical engineering",
+    "color": "#A75252",
+    "id": "Telecommunications",
+    "value": 6
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Groningen (NL11)",
+    "count": 60,
+    "rca": 0.18,
+    "share": 0.1215,
+    "share_d": 0.6663,
+    "reldens": 6.3,
+    "comp_PA": 46.49,
+    "comp_TCI": 89.12,
+    "parent": "Mechanical engineering",
+    "color": "#AA5A5A",
+    "id": "Thermal processes and apparatus",
+    "value": 60
+  },
+  {
+    "domain": "Transport",
+    "geo": "Groningen (NL11)",
+    "count": 118,
+    "rca": 0.5,
+    "share": 0.2389,
+    "share_d": 0.4817,
+    "reldens": 3.8,
+    "comp_PA": 78.66,
+    "comp_TCI": 96.05,
+    "parent": "Mechanical engineering",
+    "color": "#BE9595",
+    "id": "Transport",
+    "value": 118
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

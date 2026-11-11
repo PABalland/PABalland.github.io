@@ -1,0 +1,556 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 6,
+    "rca": 0.21,
+    "share": 0.2458,
+    "share_d": 1.1965,
+    "reldens": 18.64,
+    "comp_PA": 93.17,
+    "comp_TCI": 46.06,
+    "parent": "Electrical engineering",
+    "color": "#AC6161",
+    "id": "Audio-visual technology",
+    "value": 6
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.5211,
+    "reldens": 2.47,
+    "comp_PA": 76.19,
+    "comp_TCI": 51.71,
+    "parent": "Electrical engineering",
+    "color": "darkred",
+    "id": "Basic communication processes",
+    "value": 0
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 223,
+    "rca": 2.76,
+    "share": 9.1356,
+    "share_d": 3.3066,
+    "reldens": 63.52,
+    "comp_PA": 23.84,
+    "comp_TCI": 0.76,
+    "parent": "Chemistry",
+    "color": "#478947",
+    "id": "Basic materials chemistry",
+    "value": 223
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 171,
+    "rca": 1.92,
+    "share": 7.0053,
+    "share_d": 3.6542,
+    "reldens": 38.46,
+    "comp_PA": 48.44,
+    "comp_TCI": 14.45,
+    "parent": "Chemistry",
+    "color": "#639863",
+    "id": "Biotechnology",
+    "value": 171
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 102,
+    "rca": 1.53,
+    "share": 4.1786,
+    "share_d": 2.7236,
+    "reldens": 44.28,
+    "comp_PA": 18.27,
+    "comp_TCI": 7.15,
+    "parent": "Chemistry",
+    "color": "#78A378",
+    "id": "Chemical engineering",
+    "value": 102
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 20,
+    "rca": 0.31,
+    "share": 0.8193,
+    "share_d": 2.6333,
+    "reldens": 21.92,
+    "comp_PA": 0,
+    "comp_TCI": 12.6,
+    "parent": "Other fields",
+    "color": "#B37575",
+    "id": "Civil engineering",
+    "value": 20
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 50,
+    "rca": 0.38,
+    "share": 2.0483,
+    "share_d": 5.4202,
+    "reldens": 6.34,
+    "comp_PA": 78.68,
+    "comp_TCI": 49.66,
+    "parent": "Electrical engineering",
+    "color": "#B78282",
+    "id": "Computer technology",
+    "value": 50
+  },
+  {
+    "domain": "Control",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 19,
+    "rca": 0.35,
+    "share": 0.7784,
+    "share_d": 2.1957,
+    "reldens": 5.62,
+    "comp_PA": 57.71,
+    "comp_TCI": 33.48,
+    "parent": "Instruments",
+    "color": "#B67D7D",
+    "id": "Control",
+    "value": 19
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 10,
+    "rca": 0.06,
+    "share": 0.4097,
+    "share_d": 7.2963,
+    "reldens": 0.59,
+    "comp_PA": 100,
+    "comp_TCI": 92.57,
+    "parent": "Electrical engineering",
+    "color": "#9D3434",
+    "id": "Digital communication",
+    "value": 10
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 79,
+    "rca": 0.42,
+    "share": 3.2364,
+    "share_d": 7.6989,
+    "reldens": 24.98,
+    "comp_PA": 59.6,
+    "comp_TCI": 25.47,
+    "parent": "Electrical engineering",
+    "color": "#BA8989",
+    "id": "Electrical machinery, apparatus, energy",
+    "value": 79
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 25,
+    "rca": 0.37,
+    "share": 1.0242,
+    "share_d": 2.7608,
+    "reldens": 15.55,
+    "comp_PA": 12.23,
+    "comp_TCI": 19.99,
+    "parent": "Mechanical engineering",
+    "color": "#B78080",
+    "id": "Engines, pumps, turbines",
+    "value": 25
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 14,
+    "rca": 0.63,
+    "share": 0.5735,
+    "share_d": 0.9085,
+    "reldens": 47.37,
+    "comp_PA": 14.68,
+    "comp_TCI": 13.65,
+    "parent": "Chemistry",
+    "color": "#C4A7A7",
+    "id": "Environmental technology",
+    "value": 14
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 111,
+    "rca": 3.45,
+    "share": 4.5473,
+    "share_d": 1.319,
+    "reldens": 58.46,
+    "comp_PA": 16.44,
+    "comp_TCI": 11.37,
+    "parent": "Chemistry",
+    "color": "#388238",
+    "id": "Food chemistry",
+    "value": 111
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 12,
+    "rca": 0.33,
+    "share": 0.4916,
+    "share_d": 1.4757,
+    "reldens": 16.11,
+    "comp_PA": 30.62,
+    "comp_TCI": 16.86,
+    "parent": "Other fields",
+    "color": "#B47979",
+    "id": "Furniture, games",
+    "value": 12
+  },
+  {
+    "domain": "Handling",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 74,
+    "rca": 0.92,
+    "share": 3.0315,
+    "share_d": 3.2832,
+    "reldens": 30.01,
+    "comp_PA": 30,
+    "comp_TCI": 8.52,
+    "parent": "Mechanical engineering",
+    "color": "#D0CACA",
+    "id": "Handling",
+    "value": 74
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 5,
+    "rca": 0.21,
+    "share": 0.2048,
+    "share_d": 0.9759,
+    "reldens": 4.71,
+    "comp_PA": 68.3,
+    "comp_TCI": 32.73,
+    "parent": "Electrical engineering",
+    "color": "#AC6161",
+    "id": "IT methods for management",
+    "value": 5
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 25,
+    "rca": 0.44,
+    "share": 1.0242,
+    "share_d": 2.3433,
+    "reldens": 36.62,
+    "comp_PA": 27.85,
+    "comp_TCI": 17.77,
+    "parent": "Mechanical engineering",
+    "color": "#BB8C8C",
+    "id": "Machine tools",
+    "value": 25
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 428,
+    "rca": 6.78,
+    "share": 17.5338,
+    "share_d": 2.5863,
+    "reldens": 65.37,
+    "comp_PA": 48.98,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color": "#136E13",
+    "id": "Macromolecular chemistry, polymers",
+    "value": 428
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 90,
+    "rca": 1.29,
+    "share": 3.687,
+    "share_d": 2.8678,
+    "reldens": 44.73,
+    "comp_PA": 25.52,
+    "comp_TCI": 7.62,
+    "parent": "Chemistry",
+    "color": "#8DAE8D",
+    "id": "Materials, metallurgy",
+    "value": 90
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 18,
+    "rca": 0.17,
+    "share": 0.7374,
+    "share_d": 4.2376,
+    "reldens": 6.34,
+    "comp_PA": 56.04,
+    "comp_TCI": 37.89,
+    "parent": "Instruments",
+    "color": "#A95757",
+    "id": "Measurement",
+    "value": 18
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 34,
+    "rca": 0.4,
+    "share": 1.3929,
+    "share_d": 3.4779,
+    "reldens": 13.73,
+    "comp_PA": 23.83,
+    "comp_TCI": 17.56,
+    "parent": "Mechanical engineering",
+    "color": "#B98585",
+    "id": "Mechanical elements",
+    "value": 34
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 112,
+    "rca": 0.8,
+    "share": 4.5883,
+    "share_d": 5.7396,
+    "reldens": 24.93,
+    "comp_PA": 31.71,
+    "comp_TCI": 22.13,
+    "parent": "Instruments",
+    "color": "#CBBDBD",
+    "id": "Medical technology",
+    "value": 112
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 3,
+    "rca": 0.49,
+    "share": 0.1229,
+    "share_d": 0.2518,
+    "reldens": 49.29,
+    "comp_PA": 25.98,
+    "comp_TCI": 27.17,
+    "parent": "Chemistry",
+    "color": "#BD9494",
+    "id": "Micro-structural and nano-technology",
+    "value": 3
+  },
+  {
+    "domain": "Optics",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 44,
+    "rca": 0.88,
+    "share": 1.8025,
+    "share_d": 2.0437,
+    "reldens": 30.64,
+    "comp_PA": 78.24,
+    "comp_TCI": 36.21,
+    "parent": "Instruments",
+    "color": "#CFC6C6",
+    "id": "Optics",
+    "value": 44
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 134,
+    "rca": 1.67,
+    "share": 5.4896,
+    "share_d": 3.2956,
+    "reldens": 47.42,
+    "comp_PA": 38.13,
+    "comp_TCI": 15.53,
+    "parent": "Chemistry",
+    "color": "#6F9F6F",
+    "id": "Organic fine chemistry",
+    "value": 134
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 19,
+    "rca": 0.43,
+    "share": 0.7784,
+    "share_d": 1.8142,
+    "reldens": 28.71,
+    "comp_PA": 47.06,
+    "comp_TCI": 14.26,
+    "parent": "Other fields",
+    "color": "#BA8A8A",
+    "id": "Other consumer goods",
+    "value": 19
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 279,
+    "rca": 2.43,
+    "share": 11.4297,
+    "share_d": 4.7117,
+    "reldens": 50.21,
+    "comp_PA": 16.06,
+    "comp_TCI": 2.87,
+    "parent": "Mechanical engineering",
+    "color": "#508E50",
+    "id": "Other special machines",
+    "value": 279
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 39,
+    "rca": 0.49,
+    "share": 1.5977,
+    "share_d": 3.2655,
+    "reldens": 94.78,
+    "comp_PA": 42.13,
+    "comp_TCI": 17.98,
+    "parent": "Chemistry",
+    "color": "#BD9494",
+    "id": "Pharmaceuticals",
+    "value": 39
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 21,
+    "rca": 0.67,
+    "share": 0.8603,
+    "share_d": 1.2919,
+    "reldens": 32.97,
+    "comp_PA": 82.46,
+    "comp_TCI": 32.2,
+    "parent": "Electrical engineering",
+    "color": "#C6ADAD",
+    "id": "Semiconductors",
+    "value": 21
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 118,
+    "rca": 1.92,
+    "share": 4.8341,
+    "share_d": 2.524,
+    "reldens": 44.19,
+    "comp_PA": 51.35,
+    "comp_TCI": 5.15,
+    "parent": "Chemistry",
+    "color": "#639863",
+    "id": "Surface technology, coating",
+    "value": 118
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 4,
+    "rca": 0.08,
+    "share": 0.1639,
+    "share_d": 2.0768,
+    "reldens": 2.6,
+    "comp_PA": 92.78,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color": "#9F3C3C",
+    "id": "Telecommunications",
+    "value": 4
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 75,
+    "rca": 1.99,
+    "share": 3.0725,
+    "share_d": 1.5439,
+    "reldens": 44.34,
+    "comp_PA": 21.37,
+    "comp_TCI": 9.02,
+    "parent": "Mechanical engineering",
+    "color": "#609660",
+    "id": "Textile and paper machines",
+    "value": 75
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 30,
+    "rca": 0.74,
+    "share": 1.229,
+    "share_d": 1.6639,
+    "reldens": 22.05,
+    "comp_PA": 36.5,
+    "comp_TCI": 12.29,
+    "parent": "Mechanical engineering",
+    "color": "#C9B6B6",
+    "id": "Thermal processes and apparatus",
+    "value": 30
+  },
+  {
+    "domain": "Transport",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 47,
+    "rca": 0.28,
+    "share": 1.9254,
+    "share_d": 6.8948,
+    "reldens": 11.2,
+    "comp_PA": 37.61,
+    "comp_TCI": 27.82,
+    "parent": "Mechanical engineering",
+    "color": "#B17070",
+    "id": "Transport",
+    "value": 47
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

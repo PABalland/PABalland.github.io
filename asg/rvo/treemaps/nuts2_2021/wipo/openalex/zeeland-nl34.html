@@ -1,0 +1,511 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Zeeland (NL34)",
+    "count": 87,
+    "rca": 1.45,
+    "share": 11.4173,
+    "share_d": 7.8893,
+    "reldens": 47.34,
+    "comp_PA": 38.25,
+    "comp_TCI": 0,
+    "parent": "Instruments",
+    "color": "#7EA67E",
+    "id": "Analysis of biological materials",
+    "value": 87
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Zeeland (NL34)",
+    "count": 1,
+    "rca": 0.13,
+    "share": 0.1312,
+    "share_d": 1.0114,
+    "reldens": 17.31,
+    "comp_PA": 83.97,
+    "comp_TCI": 68.28,
+    "parent": "Electrical engineering",
+    "color": "#A54C4C",
+    "id": "Audio-visual technology",
+    "value": 1
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Zeeland (NL34)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1264,
+    "reldens": 44.92,
+    "comp_PA": 64.75,
+    "comp_TCI": 24.76,
+    "parent": "Electrical engineering",
+    "color": "darkred",
+    "id": "Basic communication processes",
+    "value": 0
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Zeeland (NL34)",
+    "count": 3,
+    "rca": 0.28,
+    "share": 0.3937,
+    "share_d": 1.4028,
+    "reldens": 36.97,
+    "comp_PA": 61.76,
+    "comp_TCI": 76.67,
+    "parent": "Chemistry",
+    "color": "#B17070",
+    "id": "Basic materials chemistry",
+    "value": 3
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Zeeland (NL34)",
+    "count": 108,
+    "rca": 0.86,
+    "share": 14.1732,
+    "share_d": 16.5396,
+    "reldens": 62.19,
+    "comp_PA": 39.94,
+    "comp_TCI": 2.53,
+    "parent": "Chemistry",
+    "color": "#CEC4C4",
+    "id": "Biotechnology",
+    "value": 108
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Zeeland (NL34)",
+    "count": 12,
+    "rca": 1.97,
+    "share": 1.5748,
+    "share_d": 0.798,
+    "reldens": 35.68,
+    "comp_PA": 58.48,
+    "comp_TCI": 85.81,
+    "parent": "Chemistry",
+    "color": "#619761",
+    "id": "Chemical engineering",
+    "value": 12
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Zeeland (NL34)",
+    "count": 27,
+    "rca": 1.14,
+    "share": 3.5433,
+    "share_d": 3.1148,
+    "reldens": 34.04,
+    "comp_PA": 58.93,
+    "comp_TCI": 82.59,
+    "parent": "Other fields",
+    "color": "#A1B9A1",
+    "id": "Civil engineering",
+    "value": 27
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Zeeland (NL34)",
+    "count": 12,
+    "rca": 0.32,
+    "share": 1.5748,
+    "share_d": 4.8639,
+    "reldens": 15.92,
+    "comp_PA": 49.08,
+    "comp_TCI": 80.98,
+    "parent": "Electrical engineering",
+    "color": "#B47777",
+    "id": "Computer technology",
+    "value": 12
+  },
+  {
+    "domain": "Control",
+    "geo": "Zeeland (NL34)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1091,
+    "reldens": 3.96,
+    "comp_PA": 79.07,
+    "comp_TCI": 94.64,
+    "parent": "Instruments",
+    "color": "darkred",
+    "id": "Control",
+    "value": 0
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Zeeland (NL34)",
+    "count": 4,
+    "rca": 0.23,
+    "share": 0.5249,
+    "share_d": 2.2603,
+    "reldens": 10.51,
+    "comp_PA": 68.46,
+    "comp_TCI": 77.62,
+    "parent": "Electrical engineering",
+    "color": "#AE6565",
+    "id": "Digital communication",
+    "value": 4
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Zeeland (NL34)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.4229,
+    "reldens": 26.2,
+    "comp_PA": 51.46,
+    "comp_TCI": 82.35,
+    "parent": "Electrical engineering",
+    "color": "darkred",
+    "id": "Electrical machinery, apparatus, energy",
+    "value": 0
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Zeeland (NL34)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.3072,
+    "reldens": 22.26,
+    "comp_PA": 69.03,
+    "comp_TCI": 88.53,
+    "parent": "Mechanical engineering",
+    "color": "darkred",
+    "id": "Engines, pumps, turbines",
+    "value": 0
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Zeeland (NL34)",
+    "count": 57,
+    "rca": 1.19,
+    "share": 7.4803,
+    "share_d": 6.2601,
+    "reldens": 50.07,
+    "comp_PA": 43.9,
+    "comp_TCI": 58.8,
+    "parent": "Chemistry",
+    "color": "#99B499",
+    "id": "Environmental technology",
+    "value": 57
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Zeeland (NL34)",
+    "count": 22,
+    "rca": 0.89,
+    "share": 2.8871,
+    "share_d": 3.2491,
+    "reldens": 49.31,
+    "comp_PA": 0,
+    "comp_TCI": 38.85,
+    "parent": "Chemistry",
+    "color": "#CFC7C7",
+    "id": "Food chemistry",
+    "value": 22
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Zeeland (NL34)",
+    "count": 87,
+    "rca": 1.68,
+    "share": 11.4173,
+    "share_d": 6.7844,
+    "reldens": 42.49,
+    "comp_PA": 26.57,
+    "comp_TCI": 53.75,
+    "parent": "Other fields",
+    "color": "#6F9E6F",
+    "id": "Green technologies",
+    "value": 87
+  },
+  {
+    "domain": "Handling",
+    "geo": "Zeeland (NL34)",
+    "count": 2,
+    "rca": 0.45,
+    "share": 0.2625,
+    "share_d": 0.58,
+    "reldens": 14.61,
+    "comp_PA": 71.21,
+    "comp_TCI": 94.37,
+    "parent": "Mechanical engineering",
+    "color": "#BB8E8E",
+    "id": "Handling",
+    "value": 2
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Zeeland (NL34)",
+    "count": 3,
+    "rca": 0.33,
+    "share": 0.3937,
+    "share_d": 1.2048,
+    "reldens": 15.94,
+    "comp_PA": 25,
+    "comp_TCI": 86.04,
+    "parent": "Electrical engineering",
+    "color": "#B47979",
+    "id": "IT methods for management",
+    "value": 3
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Zeeland (NL34)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0954,
+    "reldens": 8.52,
+    "comp_PA": 50.58,
+    "comp_TCI": 93.2,
+    "parent": "Mechanical engineering",
+    "color": "darkred",
+    "id": "Machine tools",
+    "value": 0
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Zeeland (NL34)",
+    "count": 17,
+    "rca": 1.71,
+    "share": 2.231,
+    "share_d": 1.3027,
+    "reldens": 27.74,
+    "comp_PA": 51.04,
+    "comp_TCI": 86.4,
+    "parent": "Chemistry",
+    "color": "#6D9D6D",
+    "id": "Macromolecular chemistry, polymers",
+    "value": 17
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Zeeland (NL34)",
+    "count": 5,
+    "rca": 0.21,
+    "share": 0.6562,
+    "share_d": 3.0638,
+    "reldens": 30.55,
+    "comp_PA": 46.26,
+    "comp_TCI": 96.09,
+    "parent": "Chemistry",
+    "color": "#AC6161",
+    "id": "Materials, metallurgy",
+    "value": 5
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Zeeland (NL34)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.6618,
+    "reldens": 21.29,
+    "comp_PA": 64.03,
+    "comp_TCI": 100,
+    "parent": "Mechanical engineering",
+    "color": "darkred",
+    "id": "Mechanical elements",
+    "value": 0
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Zeeland (NL34)",
+    "count": 254,
+    "rca": 1.47,
+    "share": 33.3333,
+    "share_d": 22.6112,
+    "reldens": 25.83,
+    "comp_PA": 35.2,
+    "comp_TCI": 10.96,
+    "parent": "Instruments",
+    "color": "#7DA67D",
+    "id": "Medical technology",
+    "value": 254
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Zeeland (NL34)",
+    "count": 20,
+    "rca": 0.42,
+    "share": 2.6247,
+    "share_d": 6.2817,
+    "reldens": 33.83,
+    "comp_PA": 61.6,
+    "comp_TCI": 91.88,
+    "parent": "Chemistry",
+    "color": "#BA8989",
+    "id": "Micro-structural and nano-technology",
+    "value": 20
+  },
+  {
+    "domain": "Optics",
+    "geo": "Zeeland (NL34)",
+    "count": 2,
+    "rca": 0.07,
+    "share": 0.2625,
+    "share_d": 3.5926,
+    "reldens": 19.86,
+    "comp_PA": 75.78,
+    "comp_TCI": 59.85,
+    "parent": "Instruments",
+    "color": "#9E3838",
+    "id": "Optics",
+    "value": 2
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Zeeland (NL34)",
+    "count": 15,
+    "rca": 2.27,
+    "share": 1.9685,
+    "share_d": 0.8675,
+    "reldens": 33.1,
+    "comp_PA": 22.91,
+    "comp_TCI": 61.25,
+    "parent": "Chemistry",
+    "color": "#559155",
+    "id": "Organic fine chemistry",
+    "value": 15
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Zeeland (NL34)",
+    "count": 15,
+    "rca": 0.8,
+    "share": 1.9685,
+    "share_d": 2.4538,
+    "reldens": 57.33,
+    "comp_PA": 32.41,
+    "comp_TCI": 0.98,
+    "parent": "Chemistry",
+    "color": "#CBBDBD",
+    "id": "Pharmaceuticals",
+    "value": 15
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Zeeland (NL34)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.7799,
+    "reldens": 8.52,
+    "comp_PA": 80.81,
+    "comp_TCI": 87.29,
+    "parent": "Electrical engineering",
+    "color": "darkred",
+    "id": "Semiconductors",
+    "value": 0
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Zeeland (NL34)",
+    "count": 1,
+    "rca": 0.98,
+    "share": 0.1312,
+    "share_d": 0.134,
+    "reldens": 15.84,
+    "comp_PA": 88.71,
+    "comp_TCI": 92.88,
+    "parent": "Chemistry",
+    "color": "#D2D1D1",
+    "id": "Surface technology, coating",
+    "value": 1
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Zeeland (NL34)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0833,
+    "reldens": 3.4,
+    "comp_PA": 100,
+    "comp_TCI": 64.18,
+    "parent": "Electrical engineering",
+    "color": "darkred",
+    "id": "Telecommunications",
+    "value": 0
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Zeeland (NL34)",
+    "count": 5,
+    "rca": 0.98,
+    "share": 0.6562,
+    "share_d": 0.6663,
+    "reldens": 42.23,
+    "comp_PA": 46.49,
+    "comp_TCI": 89.12,
+    "parent": "Mechanical engineering",
+    "color": "#D2D1D1",
+    "id": "Thermal processes and apparatus",
+    "value": 5
+  },
+  {
+    "domain": "Transport",
+    "geo": "Zeeland (NL34)",
+    "count": 3,
+    "rca": 0.82,
+    "share": 0.3937,
+    "share_d": 0.4817,
+    "reldens": 38.7,
+    "comp_PA": 78.66,
+    "comp_TCI": 96.05,
+    "parent": "Mechanical engineering",
+    "color": "#CCBFBF",
+    "id": "Transport",
+    "value": 3
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Gelderland (NL22)",
+    "count": 6,
+    "rca": 0.49,
+    "share": 0.1515,
+    "share_d": 0.3102,
+    "reldens": 16.03,
+    "comp_PA": 62.61,
+    "comp_TCI": 9.26,
+    "parent": "Industry & Construction",
+    "color": "#BD9494",
+    "id": "Civil engineering (42)",
+    "value": 6
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Gelderland (NL22)",
+    "count": 44,
+    "rca": 0.25,
+    "share": 1.1111,
+    "share_d": 4.4883,
+    "reldens": 10.72,
+    "comp_PA": 82.41,
+    "comp_TCI": 68.64,
+    "parent": "Information & Communication",
+    "color": "#AF6A6A",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 44
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Gelderland (NL22)",
+    "count": 8,
+    "rca": 0.47,
+    "share": 0.202,
+    "share_d": 0.4343,
+    "reldens": 15.02,
+    "comp_PA": 64.05,
+    "comp_TCI": 17.17,
+    "parent": "Industry & Construction",
+    "color": "#BC9191",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 8
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Gelderland (NL22)",
+    "count": 87,
+    "rca": 3.44,
+    "share": 2.197,
+    "share_d": 0.6395,
+    "reldens": 41.7,
+    "comp_PA": 66.74,
+    "comp_TCI": 19.68,
+    "parent": "Primary & Extractive",
+    "color": "#388238",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 87
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Gelderland (NL22)",
+    "count": 9,
+    "rca": 0.7,
+    "share": 0.2273,
+    "share_d": 0.3247,
+    "reldens": 12.54,
+    "comp_PA": 68.66,
+    "comp_TCI": 17.92,
+    "parent": "Industry & Construction",
+    "color": "#C7B1B1",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 9
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Gelderland (NL22)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0178,
+    "reldens": 13.04,
+    "comp_PA": 64.48,
+    "comp_TCI": 18.99,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "darkred",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Gelderland (NL22)",
+    "count": 27,
+    "rca": 0.45,
+    "share": 0.6818,
+    "share_d": 1.5175,
+    "reldens": 20.5,
+    "comp_PA": 71.02,
+    "comp_TCI": 14.68,
+    "parent": "Industry & Construction",
+    "color": "#BB8E8E",
+    "id": "Manufacture of basic metals (24)",
+    "value": 27
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Gelderland (NL22)",
+    "count": 766,
+    "rca": 2.27,
+    "share": 19.3434,
+    "share_d": 8.5094,
+    "reldens": 64.69,
+    "comp_PA": 75.28,
+    "comp_TCI": 21.58,
+    "parent": "Industry & Construction",
+    "color": "#559155",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 766
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Gelderland (NL22)",
+    "count": 3,
+    "rca": 1.09,
+    "share": 0.0758,
+    "share_d": 0.0697,
+    "reldens": 80.57,
+    "comp_PA": 68.17,
+    "comp_TCI": 9.37,
+    "parent": "Industry & Construction",
+    "color": "#AABEAA",
+    "id": "Manufacture of beverages (11)",
+    "value": 3
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Gelderland (NL22)",
+    "count": 1038,
+    "rca": 3.14,
+    "share": 26.2121,
+    "share_d": 8.3412,
+    "reldens": 44.92,
+    "comp_PA": 73.8,
+    "comp_TCI": 2.56,
+    "parent": "Industry & Construction",
+    "color": "#3E853E",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 1038
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Gelderland (NL22)",
+    "count": 10,
+    "rca": 0.5,
+    "share": 0.2525,
+    "share_d": 0.5006,
+    "reldens": 61.11,
+    "comp_PA": 67.34,
+    "comp_TCI": 8.75,
+    "parent": "Industry & Construction",
+    "color": "#BE9595",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 10
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Gelderland (NL22)",
+    "count": 256,
+    "rca": 0.39,
+    "share": 6.4646,
+    "share_d": 16.7466,
+    "reldens": 19.31,
+    "comp_PA": 82.09,
+    "comp_TCI": 67.18,
+    "parent": "Industry & Construction",
+    "color": "#B88484",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 256
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Gelderland (NL22)",
+    "count": 106,
+    "rca": 0.3,
+    "share": 2.6768,
+    "share_d": 8.8208,
+    "reldens": 21.11,
+    "comp_PA": 79.03,
+    "comp_TCI": 37.5,
+    "parent": "Industry & Construction",
+    "color": "#B27474",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 106
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Gelderland (NL22)",
+    "count": 138,
+    "rca": 0.94,
+    "share": 3.4848,
+    "share_d": 3.7148,
+    "reldens": 18.7,
+    "comp_PA": 73.35,
+    "comp_TCI": 14.17,
+    "parent": "Industry & Construction",
+    "color": "#D1CDCD",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 138
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Gelderland (NL22)",
+    "count": 322,
+    "rca": 6.37,
+    "share": 8.1313,
+    "share_d": 1.276,
+    "reldens": 79.71,
+    "comp_PA": 71,
+    "comp_TCI": 14.79,
+    "parent": "Industry & Construction",
+    "color": "#166F16",
+    "id": "Manufacture of food products (10)",
+    "value": 322
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Gelderland (NL22)",
+    "count": 16,
+    "rca": 1.11,
+    "share": 0.404,
+    "share_d": 0.3642,
+    "reldens": 12.46,
+    "comp_PA": 65.73,
+    "comp_TCI": 20.77,
+    "parent": "Industry & Construction",
+    "color": "#A6BBA6",
+    "id": "Manufacture of furniture (31)",
+    "value": 16
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Gelderland (NL22)",
+    "count": 7,
+    "rca": 0.8,
+    "share": 0.1768,
+    "share_d": 0.2203,
+    "reldens": 38.57,
+    "comp_PA": 66.85,
+    "comp_TCI": 12.79,
+    "parent": "Industry & Construction",
+    "color": "#CBBDBD",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 7
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Gelderland (NL22)",
+    "count": 478,
+    "rca": 0.89,
+    "share": 12.0707,
+    "share_d": 13.6246,
+    "reldens": 29.3,
+    "comp_PA": 72.51,
+    "comp_TCI": 14.93,
+    "parent": "Industry & Construction",
+    "color": "#CFC7C7",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 478
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Gelderland (NL22)",
+    "count": 43,
+    "rca": 0.23,
+    "share": 1.0859,
+    "share_d": 4.8013,
+    "reldens": 14.59,
+    "comp_PA": 76.03,
+    "comp_TCI": 42.5,
+    "parent": "Industry & Construction",
+    "color": "#AE6565",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 43
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Gelderland (NL22)",
+    "count": 22,
+    "rca": 0.4,
+    "share": 0.5556,
+    "share_d": 1.3806,
+    "reldens": 27.4,
+    "comp_PA": 69.2,
+    "comp_TCI": 8.6,
+    "parent": "Industry & Construction",
+    "color": "#B98585",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 22
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Gelderland (NL22)",
+    "count": 24,
+    "rca": 0.33,
+    "share": 0.6061,
+    "share_d": 1.8285,
+    "reldens": 12.19,
+    "comp_PA": 68.8,
+    "comp_TCI": 20.89,
+    "parent": "Industry & Construction",
+    "color": "#B47979",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 24
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Gelderland (NL22)",
+    "count": 17,
+    "rca": 0.67,
+    "share": 0.4293,
+    "share_d": 0.638,
+    "reldens": 41.48,
+    "comp_PA": 65.9,
+    "comp_TCI": 15.57,
+    "parent": "Industry & Construction",
+    "color": "#C6ADAD",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 17
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Gelderland (NL22)",
+    "count": 276,
+    "rca": 1.54,
+    "share": 6.9697,
+    "share_d": 4.5321,
+    "reldens": 30.58,
+    "comp_PA": 73.8,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#78A378",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 276
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Gelderland (NL22)",
+    "count": 25,
+    "rca": 1.19,
+    "share": 0.6313,
+    "share_d": 0.5309,
+    "reldens": 34.48,
+    "comp_PA": 69.03,
+    "comp_TCI": 7.7,
+    "parent": "Industry & Construction",
+    "color": "#99B499",
+    "id": "Manufacture of textiles (13)",
+    "value": 25
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Gelderland (NL22)",
+    "count": 1,
+    "rca": 0.19,
+    "share": 0.0253,
+    "share_d": 0.1353,
+    "reldens": 24.31,
+    "comp_PA": 76.82,
+    "comp_TCI": 9.9,
+    "parent": "Industry & Construction",
+    "color": "#AA5C5C",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Gelderland (NL22)",
+    "count": 4,
+    "rca": 0.46,
+    "share": 0.101,
+    "share_d": 0.2184,
+    "reldens": 38.34,
+    "comp_PA": 66.49,
+    "comp_TCI": 19.84,
+    "parent": "Industry & Construction",
+    "color": "#BC8F8F",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 4
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Gelderland (NL22)",
+    "count": 2,
+    "rca": 0.31,
+    "share": 0.0505,
+    "share_d": 0.1609,
+    "reldens": 37.55,
+    "comp_PA": 58.95,
+    "comp_TCI": 21.94,
+    "parent": "Industry & Construction",
+    "color": "#B37575",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 2
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Gelderland (NL22)",
+    "count": 1,
+    "rca": 0.46,
+    "share": 0.0253,
+    "share_d": 0.055,
+    "reldens": 45.6,
+    "comp_PA": 57.19,
+    "comp_TCI": 21.9,
+    "parent": "Primary & Extractive",
+    "color": "#BC8F8F",
+    "id": "Mining of metal ores (7)",
+    "value": 1
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Gelderland (NL22)",
+    "count": 9,
+    "rca": 0.65,
+    "share": 0.2273,
+    "share_d": 0.3477,
+    "reldens": 11.23,
+    "comp_PA": 66.51,
+    "comp_TCI": 27.18,
+    "parent": "Primary & Extractive",
+    "color": "#C5AAAA",
+    "id": "Mining support service activities (9)",
+    "value": 9
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Gelderland (NL22)",
+    "count": 139,
+    "rca": 0.62,
+    "share": 3.5101,
+    "share_d": 5.6807,
+    "reldens": 23.96,
+    "comp_PA": 75.42,
+    "comp_TCI": 28.08,
+    "parent": "Industry & Construction",
+    "color": "#C4A6A6",
+    "id": "Other manufacturing (32)",
+    "value": 139
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Gelderland (NL22)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.027,
+    "reldens": 2.11,
+    "comp_PA": 55.04,
+    "comp_TCI": 21.2,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Gelderland (NL22)",
+    "count": 2,
+    "rca": 0.22,
+    "share": 0.0505,
+    "share_d": 0.2345,
+    "reldens": 35.07,
+    "comp_PA": 76.28,
+    "comp_TCI": 27.01,
+    "parent": "Industry & Construction",
+    "color": "#AD6363",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 2
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Gelderland (NL22)",
+    "count": 3,
+    "rca": 5.75,
+    "share": 0.0758,
+    "share_d": 0.0132,
+    "reldens": 2.26,
+    "comp_PA": 78.59,
+    "comp_TCI": 46.63,
+    "parent": "Information & Communication",
+    "color": "#1B721B",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 3
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Gelderland (NL22)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0159,
+    "reldens": 65.98,
+    "comp_PA": 62.57,
+    "comp_TCI": 14.55,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Gelderland (NL22)",
+    "count": 1,
+    "rca": 0.6,
+    "share": 0.0253,
+    "share_d": 0.0418,
+    "reldens": 25.26,
+    "comp_PA": 64.7,
+    "comp_TCI": 27.27,
+    "parent": "Industry & Construction",
+    "color": "#C3A3A3",
+    "id": "Sewerage (37)",
+    "value": 1
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Gelderland (NL22)",
+    "count": 26,
+    "rca": 0.86,
+    "share": 0.6566,
+    "share_d": 0.7642,
+    "reldens": 10.17,
+    "comp_PA": 67.45,
+    "comp_TCI": 13.66,
+    "parent": "Industry & Construction",
+    "color": "#CEC4C4",
+    "id": "Specialised construction activities (43)",
+    "value": 26
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Gelderland (NL22)",
+    "count": 15,
+    "rca": 0.05,
+    "share": 0.3788,
+    "share_d": 8.0471,
+    "reldens": 6.65,
+    "comp_PA": 87.91,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#9B2F2F",
+    "id": "Telecommunication (61)",
+    "value": 15
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Gelderland (NL22)",
+    "count": 8,
+    "rca": 1.12,
+    "share": 0.202,
+    "share_d": 0.1797,
+    "reldens": 26.21,
+    "comp_PA": 68.17,
+    "comp_TCI": 10.38,
+    "parent": "Industry & Construction",
+    "color": "#A4BAA4",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 8
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Gelderland (NL22)",
+    "count": 21,
+    "rca": 1.19,
+    "share": 0.5303,
+    "share_d": 0.4468,
+    "reldens": 29.5,
+    "comp_PA": 68.31,
+    "comp_TCI": 16.15,
+    "parent": "Industry & Construction",
+    "color": "#99B499",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 21
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

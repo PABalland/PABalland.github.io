@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Drenthe (NL13)",
+    "count": 4,
+    "rca": 0.75,
+    "share": 0.2449,
+    "share_d": 0.3245,
+    "reldens": 29.17,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#C9B7B7",
+    "id": "Drenthe (NL13)",
+    "value": 4
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.3245,
+    "reldens": 11.11,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "darkred",
+    "id": "Flevoland (NL23)",
+    "value": 0
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 15,
+    "rca": 1.21,
+    "share": 0.3913,
+    "share_d": 0.3245,
+    "reldens": 18.89,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#96B396",
+    "id": "Friesland (NL) (NL12)",
+    "value": 15
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Gelderland (NL22)",
+    "count": 88,
+    "rca": 0.26,
+    "share": 0.0844,
+    "share_d": 0.3245,
+    "reldens": 4.86,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#B06C6C",
+    "id": "Gelderland (NL22)",
+    "value": 88
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Groningen (NL11)",
+    "count": 129,
+    "rca": 0.63,
+    "share": 0.2042,
+    "share_d": 0.3245,
+    "reldens": 41.62,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#C4A7A7",
+    "id": "Groningen (NL11)",
+    "value": 129
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Limburg (NL) (NL42)",
+    "count": 46,
+    "rca": 0.29,
+    "share": 0.0939,
+    "share_d": 0.3245,
+    "reldens": 18.18,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#B27272",
+    "id": "Limburg (NL) (NL42)",
+    "value": 46
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Noord-Brabant (NL41)",
+    "count": 552,
+    "rca": 2.63,
+    "share": 0.8533,
+    "share_d": 0.3245,
+    "reldens": 73.12,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#4A8B4A",
+    "id": "Noord-Brabant (NL41)",
+    "value": 552
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Noord-Holland (NL32)",
+    "count": 281,
+    "rca": 0.61,
+    "share": 0.1969,
+    "share_d": 0.3245,
+    "reldens": 27.87,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#C3A5A5",
+    "id": "Noord-Holland (NL32)",
+    "value": 281
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Overijssel (NL21)",
+    "count": 187,
+    "rca": 1.55,
+    "share": 0.5017,
+    "share_d": 0.3245,
+    "reldens": 74.43,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#77A377",
+    "id": "Overijssel (NL21)",
+    "value": 187
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Utrecht (NL31)",
+    "count": 125,
+    "rca": 0.32,
+    "share": 0.1042,
+    "share_d": 0.3245,
+    "reldens": 30.08,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#B47777",
+    "id": "Utrecht (NL31)",
+    "value": 125
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Zeeland (NL34)",
+    "count": 4,
+    "rca": 1.31,
+    "share": 0.4264,
+    "share_d": 0.3245,
+    "reldens": 7.39,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#8BAD8B",
+    "id": "Zeeland (NL34)",
+    "value": 4
+  },
+  {
+    "domain": "Warehousing, storage and support activities for transportation (52)",
+    "geo": "Zuid-Holland (NL33)",
+    "count": 1205,
+    "rca": 1.81,
+    "share": 0.5867,
+    "share_d": 0.3245,
+    "reldens": 81.94,
+    "comp_PA": 62.96,
+    "comp_TCI": 48.26,
+    "color": "#689B68",
+    "id": "Zuid-Holland (NL33)",
+    "value": 1205
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

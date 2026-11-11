@@ -1,0 +1,526 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Funding RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Funding RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.4511,
+    "reldens": 19.04,
+    "comp_PA": 89.22,
+    "comp_TCI": 67.47,
+    "parent": "Instruments",
+    "color": "darkred",
+    "id": "Analysis of biological materials",
+    "value": 0
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 1.6397,
+    "reldens": 10.12,
+    "comp_PA": 77.55,
+    "comp_TCI": 19.27,
+    "parent": "Electrical engineering",
+    "color": "darkred",
+    "id": "Audio-visual technology",
+    "value": 0
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 2.61,
+    "rca": 5.53,
+    "share": 3.8684,
+    "share_d": 0.6994,
+    "reldens": 3.36,
+    "comp_PA": 84.3,
+    "comp_TCI": 5.59,
+    "parent": "Electrical engineering",
+    "color": "#1D731D",
+    "id": "Basic communication processes",
+    "value": 2.61
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 15.21,
+    "rca": 6.49,
+    "share": 22.5434,
+    "share_d": 3.4717,
+    "reldens": 5.16,
+    "comp_PA": 69.77,
+    "comp_TCI": 65.42,
+    "parent": "Chemistry",
+    "color": "#156F15",
+    "id": "Biotechnology",
+    "value": 15.21
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 1.4053,
+    "reldens": 38.77,
+    "comp_PA": 84.5,
+    "comp_TCI": 78.2,
+    "parent": "Chemistry",
+    "color": "darkred",
+    "id": "Chemical engineering",
+    "value": 0
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 4.5912,
+    "reldens": 17.78,
+    "comp_PA": 67.43,
+    "comp_TCI": 6.5,
+    "parent": "Other fields",
+    "color": "darkred",
+    "id": "Civil engineering",
+    "value": 0
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 1.06,
+    "rca": 0.07,
+    "share": 1.5711,
+    "share_d": 21.4185,
+    "reldens": 13.25,
+    "comp_PA": 69.45,
+    "comp_TCI": 3.58,
+    "parent": "Electrical engineering",
+    "color": "#9E3838",
+    "id": "Computer technology",
+    "value": 1.06
+  },
+  {
+    "domain": "Control",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 1.4225,
+    "reldens": 11.48,
+    "comp_PA": 77.54,
+    "comp_TCI": 44.69,
+    "parent": "Instruments",
+    "color": "darkred",
+    "id": "Control",
+    "value": 0
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 1.765,
+    "reldens": 13.79,
+    "comp_PA": 78.42,
+    "comp_TCI": 17.22,
+    "parent": "Electrical engineering",
+    "color": "darkred",
+    "id": "Digital communication",
+    "value": 0
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 6.77,
+    "rca": 1.11,
+    "share": 10.0341,
+    "share_d": 9.0734,
+    "reldens": 33.95,
+    "comp_PA": 72.47,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color": "#A6BBA6",
+    "id": "Electrical machinery, apparatus, energy",
+    "value": 6.77
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 27.97,
+    "rca": 8.7,
+    "share": 41.4555,
+    "share_d": 4.7654,
+    "reldens": 36.76,
+    "comp_PA": 65.24,
+    "comp_TCI": 73.1,
+    "parent": "Chemistry",
+    "color": "#066706",
+    "id": "Environmental technology",
+    "value": 27.97
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 1.06,
+    "rca": 0.59,
+    "share": 1.5711,
+    "share_d": 2.6697,
+    "reldens": 23.44,
+    "comp_PA": 65.74,
+    "comp_TCI": 35.06,
+    "parent": "Chemistry",
+    "color": "#C2A2A2",
+    "id": "Food chemistry",
+    "value": 1.06
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.6696,
+    "reldens": 3.73,
+    "comp_PA": 71.74,
+    "comp_TCI": 25.77,
+    "parent": "Other fields",
+    "color": "darkred",
+    "id": "Furniture, games",
+    "value": 0
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 7.09,
+    "rca": 1.97,
+    "share": 10.5084,
+    "share_d": 5.3359,
+    "reldens": 47.23,
+    "comp_PA": 61.08,
+    "comp_TCI": 83.46,
+    "parent": "Other fields",
+    "color": "#619761",
+    "id": "Green technologies",
+    "value": 7.09
+  },
+  {
+    "domain": "Handling",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1104,
+    "reldens": 16.3,
+    "comp_PA": 83.22,
+    "comp_TCI": 29.26,
+    "parent": "Mechanical engineering",
+    "color": "darkred",
+    "id": "Handling",
+    "value": 0
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 10.6165,
+    "reldens": 13.19,
+    "comp_PA": 70,
+    "comp_TCI": 4.46,
+    "parent": "Electrical engineering",
+    "color": "darkred",
+    "id": "IT methods for management",
+    "value": 0
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.3676,
+    "reldens": 13.21,
+    "comp_PA": 65.12,
+    "comp_TCI": 72.4,
+    "parent": "Mechanical engineering",
+    "color": "darkred",
+    "id": "Machine tools",
+    "value": 0
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0492,
+    "reldens": 25.23,
+    "comp_PA": 74.83,
+    "comp_TCI": 52.05,
+    "parent": "Chemistry",
+    "color": "darkred",
+    "id": "Macromolecular chemistry, polymers",
+    "value": 0
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 2.61,
+    "rca": 0.79,
+    "share": 3.8684,
+    "share_d": 4.9259,
+    "reldens": 20.95,
+    "comp_PA": 54.16,
+    "comp_TCI": 61.76,
+    "parent": "Chemistry",
+    "color": "#CBBCBC",
+    "id": "Materials, metallurgy",
+    "value": 2.61
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0682,
+    "reldens": 19.59,
+    "comp_PA": 100,
+    "comp_TCI": 68.34,
+    "parent": "Instruments",
+    "color": "darkred",
+    "id": "Measurement",
+    "value": 0
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1803,
+    "reldens": 8.97,
+    "comp_PA": 39.93,
+    "comp_TCI": 34.82,
+    "parent": "Mechanical engineering",
+    "color": "darkred",
+    "id": "Mechanical elements",
+    "value": 0
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 4.8343,
+    "reldens": 21.54,
+    "comp_PA": 67.78,
+    "comp_TCI": 56.37,
+    "parent": "Instruments",
+    "color": "darkred",
+    "id": "Medical technology",
+    "value": 0
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1257,
+    "reldens": 26.28,
+    "comp_PA": 93.53,
+    "comp_TCI": 71.44,
+    "parent": "Chemistry",
+    "color": "darkred",
+    "id": "Micro-structural and nano-technology",
+    "value": 0
+  },
+  {
+    "domain": "Optics",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0859,
+    "reldens": 11.02,
+    "comp_PA": 46.39,
+    "comp_TCI": 42.65,
+    "parent": "Instruments",
+    "color": "darkred",
+    "id": "Optics",
+    "value": 0
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0656,
+    "reldens": 14.04,
+    "comp_PA": 73.96,
+    "comp_TCI": 60.98,
+    "parent": "Chemistry",
+    "color": "darkred",
+    "id": "Organic fine chemistry",
+    "value": 0
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 1.06,
+    "rca": 0.21,
+    "share": 1.5711,
+    "share_d": 7.5712,
+    "reldens": 10.11,
+    "comp_PA": 75.4,
+    "comp_TCI": 0,
+    "parent": "Other fields",
+    "color": "#AC6161",
+    "id": "Other consumer goods",
+    "value": 1.06
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.4646,
+    "reldens": 6.31,
+    "comp_PA": 46.09,
+    "comp_TCI": 27.13,
+    "parent": "Mechanical engineering",
+    "color": "darkred",
+    "id": "Other special machines",
+    "value": 0
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 2.1148,
+    "reldens": 37.65,
+    "comp_PA": 69.08,
+    "comp_TCI": 70.61,
+    "parent": "Chemistry",
+    "color": "darkred",
+    "id": "Pharmaceuticals",
+    "value": 0
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.9546,
+    "reldens": 21.9,
+    "comp_PA": 80.58,
+    "comp_TCI": 75.79,
+    "parent": "Electrical engineering",
+    "color": "darkred",
+    "id": "Semiconductors",
+    "value": 0
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 1.014,
+    "reldens": 11.6,
+    "comp_PA": 81,
+    "comp_TCI": 21.11,
+    "parent": "Electrical engineering",
+    "color": "darkred",
+    "id": "Telecommunications",
+    "value": 0
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1104,
+    "reldens": 19.89,
+    "comp_PA": 0,
+    "comp_TCI": 26.36,
+    "parent": "Mechanical engineering",
+    "color": "darkred",
+    "id": "Textile and paper machines",
+    "value": 0
+  },
+  {
+    "domain": "Transport",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 2.03,
+    "rca": 0.43,
+    "share": 3.0087,
+    "share_d": 6.9625,
+    "reldens": 15.95,
+    "comp_PA": 66.98,
+    "comp_TCI": 26.5,
+    "parent": "Mechanical engineering",
+    "color": "#BA8A8A",
+    "id": "Transport",
+    "value": 2.03
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

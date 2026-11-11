@@ -1,0 +1,556 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Noord-Holland (NL32)",
+    "count": 52,
+    "rca": 1.35,
+    "share": 1.6099,
+    "share_d": 1.1965,
+    "reldens": 28.12,
+    "comp_PA": 93.17,
+    "comp_TCI": 46.06,
+    "parent": "Electrical engineering",
+    "color": "#87AB87",
+    "id": "Audio-visual technology",
+    "value": 52
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Noord-Holland (NL32)",
+    "count": 1,
+    "rca": 0.06,
+    "share": 0.031,
+    "share_d": 0.5211,
+    "reldens": 21.78,
+    "comp_PA": 76.19,
+    "comp_TCI": 51.71,
+    "parent": "Electrical engineering",
+    "color": "#9D3434",
+    "id": "Basic communication processes",
+    "value": 1
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Noord-Holland (NL32)",
+    "count": 269,
+    "rca": 2.52,
+    "share": 8.3282,
+    "share_d": 3.3066,
+    "reldens": 61.19,
+    "comp_PA": 23.84,
+    "comp_TCI": 0.76,
+    "parent": "Chemistry",
+    "color": "#4D8D4D",
+    "id": "Basic materials chemistry",
+    "value": 269
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Noord-Holland (NL32)",
+    "count": 240,
+    "rca": 2.03,
+    "share": 7.4303,
+    "share_d": 3.6542,
+    "reldens": 85.63,
+    "comp_PA": 48.44,
+    "comp_TCI": 14.45,
+    "parent": "Chemistry",
+    "color": "#5E955E",
+    "id": "Biotechnology",
+    "value": 240
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Noord-Holland (NL32)",
+    "count": 137,
+    "rca": 1.56,
+    "share": 4.2415,
+    "share_d": 2.7236,
+    "reldens": 47.73,
+    "comp_PA": 18.27,
+    "comp_TCI": 7.15,
+    "parent": "Chemistry",
+    "color": "#76A276",
+    "id": "Chemical engineering",
+    "value": 137
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Noord-Holland (NL32)",
+    "count": 105,
+    "rca": 1.23,
+    "share": 3.2508,
+    "share_d": 2.6333,
+    "reldens": 30.81,
+    "comp_PA": 0,
+    "comp_TCI": 12.6,
+    "parent": "Other fields",
+    "color": "#94B294",
+    "id": "Civil engineering",
+    "value": 105
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Noord-Holland (NL32)",
+    "count": 239,
+    "rca": 1.37,
+    "share": 7.3994,
+    "share_d": 5.4202,
+    "reldens": 16.99,
+    "comp_PA": 78.68,
+    "comp_TCI": 49.66,
+    "parent": "Electrical engineering",
+    "color": "#85AA85",
+    "id": "Computer technology",
+    "value": 239
+  },
+  {
+    "domain": "Control",
+    "geo": "Noord-Holland (NL32)",
+    "count": 56,
+    "rca": 0.79,
+    "share": 1.7337,
+    "share_d": 2.1957,
+    "reldens": 32.38,
+    "comp_PA": 57.71,
+    "comp_TCI": 33.48,
+    "parent": "Instruments",
+    "color": "#CBBCBC",
+    "id": "Control",
+    "value": 56
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Noord-Holland (NL32)",
+    "count": 72,
+    "rca": 0.31,
+    "share": 2.2291,
+    "share_d": 7.2963,
+    "reldens": 27.02,
+    "comp_PA": 100,
+    "comp_TCI": 92.57,
+    "parent": "Electrical engineering",
+    "color": "#B37575",
+    "id": "Digital communication",
+    "value": 72
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Noord-Holland (NL32)",
+    "count": 78,
+    "rca": 0.31,
+    "share": 2.4149,
+    "share_d": 7.6989,
+    "reldens": 35.98,
+    "comp_PA": 59.6,
+    "comp_TCI": 25.47,
+    "parent": "Electrical engineering",
+    "color": "#B37575",
+    "id": "Electrical machinery, apparatus, energy",
+    "value": 78
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Noord-Holland (NL32)",
+    "count": 57,
+    "rca": 0.64,
+    "share": 1.7647,
+    "share_d": 2.7608,
+    "reldens": 25.11,
+    "comp_PA": 12.23,
+    "comp_TCI": 19.99,
+    "parent": "Mechanical engineering",
+    "color": "#C5A9A9",
+    "id": "Engines, pumps, turbines",
+    "value": 57
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Noord-Holland (NL32)",
+    "count": 28,
+    "rca": 0.95,
+    "share": 0.8669,
+    "share_d": 0.9085,
+    "reldens": 52.48,
+    "comp_PA": 14.68,
+    "comp_TCI": 13.65,
+    "parent": "Chemistry",
+    "color": "#D1CECE",
+    "id": "Environmental technology",
+    "value": 28
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Noord-Holland (NL32)",
+    "count": 173,
+    "rca": 4.06,
+    "share": 5.356,
+    "share_d": 1.319,
+    "reldens": 79.67,
+    "comp_PA": 16.44,
+    "comp_TCI": 11.37,
+    "parent": "Chemistry",
+    "color": "#2E7C2E",
+    "id": "Food chemistry",
+    "value": 173
+  },
+  {
+    "domain": "Furniture, games",
+    "geo": "Noord-Holland (NL32)",
+    "count": 105,
+    "rca": 2.2,
+    "share": 3.2508,
+    "share_d": 1.4757,
+    "reldens": 35.2,
+    "comp_PA": 30.62,
+    "comp_TCI": 16.86,
+    "parent": "Other fields",
+    "color": "#589258",
+    "id": "Furniture, games",
+    "value": 105
+  },
+  {
+    "domain": "Handling",
+    "geo": "Noord-Holland (NL32)",
+    "count": 126,
+    "rca": 1.19,
+    "share": 3.9009,
+    "share_d": 3.2832,
+    "reldens": 32.38,
+    "comp_PA": 30,
+    "comp_TCI": 8.52,
+    "parent": "Mechanical engineering",
+    "color": "#99B499",
+    "id": "Handling",
+    "value": 126
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Noord-Holland (NL32)",
+    "count": 30,
+    "rca": 0.95,
+    "share": 0.9288,
+    "share_d": 0.9759,
+    "reldens": 43.79,
+    "comp_PA": 68.3,
+    "comp_TCI": 32.73,
+    "parent": "Electrical engineering",
+    "color": "#D1CECE",
+    "id": "IT methods for management",
+    "value": 30
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Noord-Holland (NL32)",
+    "count": 43,
+    "rca": 0.57,
+    "share": 1.3313,
+    "share_d": 2.3433,
+    "reldens": 42.82,
+    "comp_PA": 27.85,
+    "comp_TCI": 17.77,
+    "parent": "Mechanical engineering",
+    "color": "#C19F9F",
+    "id": "Machine tools",
+    "value": 43
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Noord-Holland (NL32)",
+    "count": 106,
+    "rca": 1.27,
+    "share": 3.2817,
+    "share_d": 2.5863,
+    "reldens": 50.5,
+    "comp_PA": 48.98,
+    "comp_TCI": 0,
+    "parent": "Chemistry",
+    "color": "#8FAF8F",
+    "id": "Macromolecular chemistry, polymers",
+    "value": 106
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Noord-Holland (NL32)",
+    "count": 133,
+    "rca": 1.44,
+    "share": 4.1176,
+    "share_d": 2.8678,
+    "reldens": 39.72,
+    "comp_PA": 25.52,
+    "comp_TCI": 7.62,
+    "parent": "Chemistry",
+    "color": "#7FA77F",
+    "id": "Materials, metallurgy",
+    "value": 133
+  },
+  {
+    "domain": "Measurement",
+    "geo": "Noord-Holland (NL32)",
+    "count": 85,
+    "rca": 0.62,
+    "share": 2.6316,
+    "share_d": 4.2376,
+    "reldens": 25.7,
+    "comp_PA": 56.04,
+    "comp_TCI": 37.89,
+    "parent": "Instruments",
+    "color": "#C4A6A6",
+    "id": "Measurement",
+    "value": 85
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Noord-Holland (NL32)",
+    "count": 59,
+    "rca": 0.53,
+    "share": 1.8266,
+    "share_d": 3.4779,
+    "reldens": 33.14,
+    "comp_PA": 23.83,
+    "comp_TCI": 17.56,
+    "parent": "Mechanical engineering",
+    "color": "#BF9A9A",
+    "id": "Mechanical elements",
+    "value": 59
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Noord-Holland (NL32)",
+    "count": 170,
+    "rca": 0.92,
+    "share": 5.2632,
+    "share_d": 5.7396,
+    "reldens": 50.33,
+    "comp_PA": 31.71,
+    "comp_TCI": 22.13,
+    "parent": "Instruments",
+    "color": "#D0CACA",
+    "id": "Medical technology",
+    "value": 170
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Noord-Holland (NL32)",
+    "count": 8,
+    "rca": 0.98,
+    "share": 0.2477,
+    "share_d": 0.2518,
+    "reldens": 55.22,
+    "comp_PA": 25.98,
+    "comp_TCI": 27.17,
+    "parent": "Chemistry",
+    "color": "#D2D1D1",
+    "id": "Micro-structural and nano-technology",
+    "value": 8
+  },
+  {
+    "domain": "Optics",
+    "geo": "Noord-Holland (NL32)",
+    "count": 39,
+    "rca": 0.59,
+    "share": 1.2074,
+    "share_d": 2.0437,
+    "reldens": 44.37,
+    "comp_PA": 78.24,
+    "comp_TCI": 36.21,
+    "parent": "Instruments",
+    "color": "#C2A2A2",
+    "id": "Optics",
+    "value": 39
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Noord-Holland (NL32)",
+    "count": 150,
+    "rca": 1.41,
+    "share": 4.644,
+    "share_d": 3.2956,
+    "reldens": 87.15,
+    "comp_PA": 38.13,
+    "comp_TCI": 15.53,
+    "parent": "Chemistry",
+    "color": "#81A881",
+    "id": "Organic fine chemistry",
+    "value": 150
+  },
+  {
+    "domain": "Other consumer goods",
+    "geo": "Noord-Holland (NL32)",
+    "count": 58,
+    "rca": 0.99,
+    "share": 1.7957,
+    "share_d": 1.8142,
+    "reldens": 42.81,
+    "comp_PA": 47.06,
+    "comp_TCI": 14.26,
+    "parent": "Other fields",
+    "color": "#D3D2D2",
+    "id": "Other consumer goods",
+    "value": 58
+  },
+  {
+    "domain": "Other special machines",
+    "geo": "Noord-Holland (NL32)",
+    "count": 146,
+    "rca": 0.96,
+    "share": 4.5201,
+    "share_d": 4.7117,
+    "reldens": 60.12,
+    "comp_PA": 16.06,
+    "comp_TCI": 2.87,
+    "parent": "Mechanical engineering",
+    "color": "#D2CFCF",
+    "id": "Other special machines",
+    "value": 146
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Noord-Holland (NL32)",
+    "count": 192,
+    "rca": 1.82,
+    "share": 5.9443,
+    "share_d": 3.2655,
+    "reldens": 94.52,
+    "comp_PA": 42.13,
+    "comp_TCI": 17.98,
+    "parent": "Chemistry",
+    "color": "#679A67",
+    "id": "Pharmaceuticals",
+    "value": 192
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Noord-Holland (NL32)",
+    "count": 13,
+    "rca": 0.31,
+    "share": 0.4025,
+    "share_d": 1.2919,
+    "reldens": 52.25,
+    "comp_PA": 82.46,
+    "comp_TCI": 32.2,
+    "parent": "Electrical engineering",
+    "color": "#B37575",
+    "id": "Semiconductors",
+    "value": 13
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Noord-Holland (NL32)",
+    "count": 89,
+    "rca": 1.09,
+    "share": 2.7554,
+    "share_d": 2.524,
+    "reldens": 44.84,
+    "comp_PA": 51.35,
+    "comp_TCI": 5.15,
+    "parent": "Chemistry",
+    "color": "#AABEAA",
+    "id": "Surface technology, coating",
+    "value": 89
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Noord-Holland (NL32)",
+    "count": 11,
+    "rca": 0.16,
+    "share": 0.3406,
+    "share_d": 2.0768,
+    "reldens": 21.26,
+    "comp_PA": 92.78,
+    "comp_TCI": 100,
+    "parent": "Electrical engineering",
+    "color": "#A85454",
+    "id": "Telecommunications",
+    "value": 11
+  },
+  {
+    "domain": "Textile and paper machines",
+    "geo": "Noord-Holland (NL32)",
+    "count": 18,
+    "rca": 0.36,
+    "share": 0.5573,
+    "share_d": 1.5439,
+    "reldens": 56.81,
+    "comp_PA": 21.37,
+    "comp_TCI": 9.02,
+    "parent": "Mechanical engineering",
+    "color": "#B67F7F",
+    "id": "Textile and paper machines",
+    "value": 18
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Noord-Holland (NL32)",
+    "count": 42,
+    "rca": 0.78,
+    "share": 1.3003,
+    "share_d": 1.6639,
+    "reldens": 35.24,
+    "comp_PA": 36.5,
+    "comp_TCI": 12.29,
+    "parent": "Mechanical engineering",
+    "color": "#CBBABA",
+    "id": "Thermal processes and apparatus",
+    "value": 42
+  },
+  {
+    "domain": "Transport",
+    "geo": "Noord-Holland (NL32)",
+    "count": 100,
+    "rca": 0.45,
+    "share": 3.096,
+    "share_d": 6.8948,
+    "reldens": 27.08,
+    "comp_PA": 37.61,
+    "comp_TCI": 27.82,
+    "parent": "Mechanical engineering",
+    "color": "#BB8E8E",
+    "id": "Transport",
+    "value": 100
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

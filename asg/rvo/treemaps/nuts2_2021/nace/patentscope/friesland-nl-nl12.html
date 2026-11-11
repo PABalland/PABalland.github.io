@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 3,
+    "rca": 3.64,
+    "share": 1.1278,
+    "share_d": 0.3102,
+    "reldens": 71.17,
+    "comp_PA": 62.61,
+    "comp_TCI": 9.26,
+    "parent": "Industry & Construction",
+    "color": "#358035",
+    "id": "Civil engineering (42)",
+    "value": 3
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 2,
+    "rca": 0.17,
+    "share": 0.7519,
+    "share_d": 4.4883,
+    "reldens": 16.85,
+    "comp_PA": 82.41,
+    "comp_TCI": 68.64,
+    "parent": "Information & Communication",
+    "color": "#A95757",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 2
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 3,
+    "rca": 2.6,
+    "share": 1.1278,
+    "share_d": 0.4343,
+    "reldens": 83.11,
+    "comp_PA": 64.05,
+    "comp_TCI": 17.17,
+    "parent": "Industry & Construction",
+    "color": "#4B8B4B",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 3
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.6395,
+    "reldens": 56.55,
+    "comp_PA": 66.74,
+    "comp_TCI": 19.68,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 0
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 2,
+    "rca": 2.32,
+    "share": 0.7519,
+    "share_d": 0.3247,
+    "reldens": 68.81,
+    "comp_PA": 68.66,
+    "comp_TCI": 17.92,
+    "parent": "Industry & Construction",
+    "color": "#539053",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 2
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0178,
+    "reldens": 68.7,
+    "comp_PA": 64.48,
+    "comp_TCI": 18.99,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "darkred",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 5,
+    "rca": 1.24,
+    "share": 1.8797,
+    "share_d": 1.5175,
+    "reldens": 68.77,
+    "comp_PA": 71.02,
+    "comp_TCI": 14.68,
+    "parent": "Industry & Construction",
+    "color": "#93B193",
+    "id": "Manufacture of basic metals (24)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 5,
+    "rca": 0.22,
+    "share": 1.8797,
+    "share_d": 8.5094,
+    "reldens": 63.15,
+    "comp_PA": 75.28,
+    "comp_TCI": 21.58,
+    "parent": "Industry & Construction",
+    "color": "#AD6363",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0697,
+    "reldens": 82.64,
+    "comp_PA": 68.17,
+    "comp_TCI": 9.37,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of beverages (11)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 23,
+    "rca": 1.04,
+    "share": 8.6466,
+    "share_d": 8.3412,
+    "reldens": 55.25,
+    "comp_PA": 73.8,
+    "comp_TCI": 2.56,
+    "parent": "Industry & Construction",
+    "color": "#B7C5B7",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 23
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.5006,
+    "reldens": 75.27,
+    "comp_PA": 67.34,
+    "comp_TCI": 8.75,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 19,
+    "rca": 0.43,
+    "share": 7.1429,
+    "share_d": 16.7466,
+    "reldens": 38.71,
+    "comp_PA": 82.09,
+    "comp_TCI": 67.18,
+    "parent": "Industry & Construction",
+    "color": "#BA8A8A",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 19
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 7,
+    "rca": 0.3,
+    "share": 2.6316,
+    "share_d": 8.8208,
+    "reldens": 56.09,
+    "comp_PA": 79.03,
+    "comp_TCI": 37.5,
+    "parent": "Industry & Construction",
+    "color": "#B27474",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 7
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 12,
+    "rca": 1.21,
+    "share": 4.5113,
+    "share_d": 3.7148,
+    "reldens": 66.79,
+    "comp_PA": 73.35,
+    "comp_TCI": 14.17,
+    "parent": "Industry & Construction",
+    "color": "#96B396",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 12
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 8,
+    "rca": 2.36,
+    "share": 3.0075,
+    "share_d": 1.276,
+    "reldens": 27.99,
+    "comp_PA": 71,
+    "comp_TCI": 14.79,
+    "parent": "Industry & Construction",
+    "color": "#528F52",
+    "id": "Manufacture of food products (10)",
+    "value": 8
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.3642,
+    "reldens": 55.8,
+    "comp_PA": 65.73,
+    "comp_TCI": 20.77,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of furniture (31)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 1,
+    "rca": 1.71,
+    "share": 0.3759,
+    "share_d": 0.2203,
+    "reldens": 48.49,
+    "comp_PA": 66.85,
+    "comp_TCI": 12.79,
+    "parent": "Industry & Construction",
+    "color": "#6D9D6D",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 64,
+    "rca": 1.77,
+    "share": 24.0602,
+    "share_d": 13.6246,
+    "reldens": 56.68,
+    "comp_PA": 72.51,
+    "comp_TCI": 14.93,
+    "parent": "Industry & Construction",
+    "color": "#6A9C6A",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 64
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 2,
+    "rca": 0.16,
+    "share": 0.7519,
+    "share_d": 4.8013,
+    "reldens": 56.54,
+    "comp_PA": 76.03,
+    "comp_TCI": 42.5,
+    "parent": "Industry & Construction",
+    "color": "#A85454",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 6,
+    "rca": 1.63,
+    "share": 2.2556,
+    "share_d": 1.3806,
+    "reldens": 74.85,
+    "comp_PA": 69.2,
+    "comp_TCI": 8.6,
+    "parent": "Industry & Construction",
+    "color": "#72A072",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 6
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 7,
+    "rca": 1.44,
+    "share": 2.6316,
+    "share_d": 1.8285,
+    "reldens": 55.57,
+    "comp_PA": 68.8,
+    "comp_TCI": 20.89,
+    "parent": "Industry & Construction",
+    "color": "#7FA77F",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 7
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 7,
+    "rca": 4.12,
+    "share": 2.6316,
+    "share_d": 0.638,
+    "reldens": 82.43,
+    "comp_PA": 65.9,
+    "comp_TCI": 15.57,
+    "parent": "Industry & Construction",
+    "color": "#2E7C2E",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 7
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 29,
+    "rca": 2.41,
+    "share": 10.9023,
+    "share_d": 4.5321,
+    "reldens": 70.64,
+    "comp_PA": 73.8,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#518E51",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 29
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 7,
+    "rca": 4.96,
+    "share": 2.6316,
+    "share_d": 0.5309,
+    "reldens": 66.76,
+    "comp_PA": 69.03,
+    "comp_TCI": 7.7,
+    "parent": "Industry & Construction",
+    "color": "#237623",
+    "id": "Manufacture of textiles (13)",
+    "value": 7
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1353,
+    "reldens": 43.69,
+    "comp_PA": 76.82,
+    "comp_TCI": 9.9,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.2184,
+    "reldens": 56.91,
+    "comp_PA": 66.49,
+    "comp_TCI": 19.84,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 3,
+    "rca": 7.01,
+    "share": 1.1278,
+    "share_d": 0.1609,
+    "reldens": 83.63,
+    "comp_PA": 58.95,
+    "comp_TCI": 21.94,
+    "parent": "Industry & Construction",
+    "color": "#116D11",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 3
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.055,
+    "reldens": 58.72,
+    "comp_PA": 57.19,
+    "comp_TCI": 21.9,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Mining of metal ores (7)",
+    "value": 0
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 12,
+    "rca": 12.98,
+    "share": 4.5113,
+    "share_d": 0.3477,
+    "reldens": 50.56,
+    "comp_PA": 66.51,
+    "comp_TCI": 27.18,
+    "parent": "Primary & Extractive",
+    "color": "#006400",
+    "id": "Mining support service activities (9)",
+    "value": 12
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 14,
+    "rca": 0.93,
+    "share": 5.2632,
+    "share_d": 5.6807,
+    "reldens": 32.9,
+    "comp_PA": 75.42,
+    "comp_TCI": 28.08,
+    "parent": "Industry & Construction",
+    "color": "#D0CBCB",
+    "id": "Other manufacturing (32)",
+    "value": 14
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.027,
+    "reldens": 88.16,
+    "comp_PA": 55.04,
+    "comp_TCI": 21.2,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 1,
+    "rca": 1.6,
+    "share": 0.3759,
+    "share_d": 0.2345,
+    "reldens": 75.85,
+    "comp_PA": 76.28,
+    "comp_TCI": 27.01,
+    "parent": "Industry & Construction",
+    "color": "#74A174",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 1
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0132,
+    "reldens": 6.78,
+    "comp_PA": 78.59,
+    "comp_TCI": 46.63,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0159,
+    "reldens": 60.56,
+    "comp_PA": 62.57,
+    "comp_TCI": 14.55,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0418,
+    "reldens": 89.79,
+    "comp_PA": 64.7,
+    "comp_TCI": 27.27,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Sewerage (37)",
+    "value": 0
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 4,
+    "rca": 1.97,
+    "share": 1.5038,
+    "share_d": 0.7642,
+    "reldens": 77.5,
+    "comp_PA": 67.45,
+    "comp_TCI": 13.66,
+    "parent": "Industry & Construction",
+    "color": "#619761",
+    "id": "Specialised construction activities (43)",
+    "value": 4
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 2,
+    "rca": 0.09,
+    "share": 0.7519,
+    "share_d": 8.0471,
+    "reldens": 12.39,
+    "comp_PA": 87.91,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#A13F3F",
+    "id": "Telecommunication (61)",
+    "value": 2
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1797,
+    "reldens": 58.39,
+    "comp_PA": 68.17,
+    "comp_TCI": 10.38,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 0
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Friesland (NL) (NL12)",
+    "count": 18,
+    "rca": 15.14,
+    "share": 6.7669,
+    "share_d": 0.4468,
+    "reldens": 52.75,
+    "comp_PA": 68.31,
+    "comp_TCI": 16.15,
+    "parent": "Industry & Construction",
+    "color": "#006400",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 18
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

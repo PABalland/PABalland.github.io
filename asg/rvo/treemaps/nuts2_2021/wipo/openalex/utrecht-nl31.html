@@ -1,0 +1,511 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Scientific RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Scientific RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Analysis of biological materials",
+    "geo": "Utrecht (NL31)",
+    "count": 7747,
+    "rca": 1.06,
+    "share": 8.3922,
+    "share_d": 7.8893,
+    "reldens": 74.46,
+    "comp_PA": 38.25,
+    "comp_TCI": 0,
+    "parent": "Instruments",
+    "color": "#B1C1B1",
+    "id": "Analysis of biological materials",
+    "value": 7747
+  },
+  {
+    "domain": "Audio-visual technology",
+    "geo": "Utrecht (NL31)",
+    "count": 774,
+    "rca": 0.83,
+    "share": 0.8385,
+    "share_d": 1.0114,
+    "reldens": 15.7,
+    "comp_PA": 83.97,
+    "comp_TCI": 68.28,
+    "parent": "Electrical engineering",
+    "color": "#CDC0C0",
+    "id": "Audio-visual technology",
+    "value": 774
+  },
+  {
+    "domain": "Basic communication processes",
+    "geo": "Utrecht (NL31)",
+    "count": 170,
+    "rca": 1.46,
+    "share": 0.1842,
+    "share_d": 0.1264,
+    "reldens": 53.78,
+    "comp_PA": 64.75,
+    "comp_TCI": 24.76,
+    "parent": "Electrical engineering",
+    "color": "#7DA67D",
+    "id": "Basic communication processes",
+    "value": 170
+  },
+  {
+    "domain": "Basic materials chemistry",
+    "geo": "Utrecht (NL31)",
+    "count": 493,
+    "rca": 0.38,
+    "share": 0.5341,
+    "share_d": 1.4028,
+    "reldens": 13.55,
+    "comp_PA": 61.76,
+    "comp_TCI": 76.67,
+    "parent": "Chemistry",
+    "color": "#B78282",
+    "id": "Basic materials chemistry",
+    "value": 493
+  },
+  {
+    "domain": "Biotechnology",
+    "geo": "Utrecht (NL31)",
+    "count": 19069,
+    "rca": 1.25,
+    "share": 20.6571,
+    "share_d": 16.5396,
+    "reldens": 59.39,
+    "comp_PA": 39.94,
+    "comp_TCI": 2.53,
+    "parent": "Chemistry",
+    "color": "#91B091",
+    "id": "Biotechnology",
+    "value": 19069
+  },
+  {
+    "domain": "Chemical engineering",
+    "geo": "Utrecht (NL31)",
+    "count": 386,
+    "rca": 0.52,
+    "share": 0.4181,
+    "share_d": 0.798,
+    "reldens": 21.84,
+    "comp_PA": 58.48,
+    "comp_TCI": 85.81,
+    "parent": "Chemistry",
+    "color": "#BF9898",
+    "id": "Chemical engineering",
+    "value": 386
+  },
+  {
+    "domain": "Civil engineering",
+    "geo": "Utrecht (NL31)",
+    "count": 2173,
+    "rca": 0.76,
+    "share": 2.354,
+    "share_d": 3.1148,
+    "reldens": 24.82,
+    "comp_PA": 58.93,
+    "comp_TCI": 82.59,
+    "parent": "Other fields",
+    "color": "#CAB8B8",
+    "id": "Civil engineering",
+    "value": 2173
+  },
+  {
+    "domain": "Computer technology",
+    "geo": "Utrecht (NL31)",
+    "count": 3254,
+    "rca": 0.72,
+    "share": 3.525,
+    "share_d": 4.8639,
+    "reldens": 14.47,
+    "comp_PA": 49.08,
+    "comp_TCI": 80.98,
+    "parent": "Electrical engineering",
+    "color": "#C8B3B3",
+    "id": "Computer technology",
+    "value": 3254
+  },
+  {
+    "domain": "Control",
+    "geo": "Utrecht (NL31)",
+    "count": 3,
+    "rca": 0.03,
+    "share": 0.0032,
+    "share_d": 0.1091,
+    "reldens": 2.88,
+    "comp_PA": 79.07,
+    "comp_TCI": 94.64,
+    "parent": "Instruments",
+    "color": "#972525",
+    "id": "Control",
+    "value": 3
+  },
+  {
+    "domain": "Digital communication",
+    "geo": "Utrecht (NL31)",
+    "count": 654,
+    "rca": 0.31,
+    "share": 0.7085,
+    "share_d": 2.2603,
+    "reldens": 8.16,
+    "comp_PA": 68.46,
+    "comp_TCI": 77.62,
+    "parent": "Electrical engineering",
+    "color": "#B37575",
+    "id": "Digital communication",
+    "value": 654
+  },
+  {
+    "domain": "Electrical machinery, apparatus, energy",
+    "geo": "Utrecht (NL31)",
+    "count": 76,
+    "rca": 0.19,
+    "share": 0.0823,
+    "share_d": 0.4229,
+    "reldens": 21.98,
+    "comp_PA": 51.46,
+    "comp_TCI": 82.35,
+    "parent": "Electrical engineering",
+    "color": "#AA5C5C",
+    "id": "Electrical machinery, apparatus, energy",
+    "value": 76
+  },
+  {
+    "domain": "Engines, pumps, turbines",
+    "geo": "Utrecht (NL31)",
+    "count": 49,
+    "rca": 0.17,
+    "share": 0.0531,
+    "share_d": 0.3072,
+    "reldens": 7.37,
+    "comp_PA": 69.03,
+    "comp_TCI": 88.53,
+    "parent": "Mechanical engineering",
+    "color": "#A95757",
+    "id": "Engines, pumps, turbines",
+    "value": 49
+  },
+  {
+    "domain": "Environmental technology",
+    "geo": "Utrecht (NL31)",
+    "count": 6271,
+    "rca": 1.09,
+    "share": 6.7933,
+    "share_d": 6.2601,
+    "reldens": 34.53,
+    "comp_PA": 43.9,
+    "comp_TCI": 58.8,
+    "parent": "Chemistry",
+    "color": "#AABEAA",
+    "id": "Environmental technology",
+    "value": 6271
+  },
+  {
+    "domain": "Food chemistry",
+    "geo": "Utrecht (NL31)",
+    "count": 2775,
+    "rca": 0.93,
+    "share": 3.0061,
+    "share_d": 3.2491,
+    "reldens": 83.87,
+    "comp_PA": 0,
+    "comp_TCI": 38.85,
+    "parent": "Chemistry",
+    "color": "#D0CBCB",
+    "id": "Food chemistry",
+    "value": 2775
+  },
+  {
+    "domain": "Green technologies",
+    "geo": "Utrecht (NL31)",
+    "count": 6307,
+    "rca": 1.01,
+    "share": 6.8323,
+    "share_d": 6.7844,
+    "reldens": 34,
+    "comp_PA": 26.57,
+    "comp_TCI": 53.75,
+    "parent": "Other fields",
+    "color": "#C5CCC5",
+    "id": "Green technologies",
+    "value": 6307
+  },
+  {
+    "domain": "Handling",
+    "geo": "Utrecht (NL31)",
+    "count": 104,
+    "rca": 0.19,
+    "share": 0.1127,
+    "share_d": 0.58,
+    "reldens": 4.23,
+    "comp_PA": 71.21,
+    "comp_TCI": 94.37,
+    "parent": "Mechanical engineering",
+    "color": "#AA5C5C",
+    "id": "Handling",
+    "value": 104
+  },
+  {
+    "domain": "IT methods for management",
+    "geo": "Utrecht (NL31)",
+    "count": 691,
+    "rca": 0.62,
+    "share": 0.7485,
+    "share_d": 1.2048,
+    "reldens": 12.13,
+    "comp_PA": 25,
+    "comp_TCI": 86.04,
+    "parent": "Electrical engineering",
+    "color": "#C4A6A6",
+    "id": "IT methods for management",
+    "value": 691
+  },
+  {
+    "domain": "Machine tools",
+    "geo": "Utrecht (NL31)",
+    "count": 6,
+    "rca": 0.07,
+    "share": 0.0065,
+    "share_d": 0.0954,
+    "reldens": 0.91,
+    "comp_PA": 50.58,
+    "comp_TCI": 93.2,
+    "parent": "Mechanical engineering",
+    "color": "#9E3838",
+    "id": "Machine tools",
+    "value": 6
+  },
+  {
+    "domain": "Macromolecular chemistry, polymers",
+    "geo": "Utrecht (NL31)",
+    "count": 532,
+    "rca": 0.44,
+    "share": 0.5763,
+    "share_d": 1.3027,
+    "reldens": 21.66,
+    "comp_PA": 51.04,
+    "comp_TCI": 86.4,
+    "parent": "Chemistry",
+    "color": "#BB8C8C",
+    "id": "Macromolecular chemistry, polymers",
+    "value": 532
+  },
+  {
+    "domain": "Materials, metallurgy",
+    "geo": "Utrecht (NL31)",
+    "count": 974,
+    "rca": 0.34,
+    "share": 1.0551,
+    "share_d": 3.0638,
+    "reldens": 13.87,
+    "comp_PA": 46.26,
+    "comp_TCI": 96.09,
+    "parent": "Chemistry",
+    "color": "#B57B7B",
+    "id": "Materials, metallurgy",
+    "value": 974
+  },
+  {
+    "domain": "Mechanical elements",
+    "geo": "Utrecht (NL31)",
+    "count": 124,
+    "rca": 0.2,
+    "share": 0.1343,
+    "share_d": 0.6618,
+    "reldens": 2.46,
+    "comp_PA": 64.03,
+    "comp_TCI": 100,
+    "parent": "Mechanical engineering",
+    "color": "#AB5E5E",
+    "id": "Mechanical elements",
+    "value": 124
+  },
+  {
+    "domain": "Medical technology",
+    "geo": "Utrecht (NL31)",
+    "count": 30148,
+    "rca": 1.44,
+    "share": 32.6588,
+    "share_d": 22.6112,
+    "reldens": 66.62,
+    "comp_PA": 35.2,
+    "comp_TCI": 10.96,
+    "parent": "Instruments",
+    "color": "#7FA77F",
+    "id": "Medical technology",
+    "value": 30148
+  },
+  {
+    "domain": "Micro-structural and nano-technology",
+    "geo": "Utrecht (NL31)",
+    "count": 2765,
+    "rca": 0.48,
+    "share": 2.9953,
+    "share_d": 6.2817,
+    "reldens": 20.98,
+    "comp_PA": 61.6,
+    "comp_TCI": 91.88,
+    "parent": "Chemistry",
+    "color": "#BD9292",
+    "id": "Micro-structural and nano-technology",
+    "value": 2765
+  },
+  {
+    "domain": "Optics",
+    "geo": "Utrecht (NL31)",
+    "count": 2072,
+    "rca": 0.62,
+    "share": 2.2446,
+    "share_d": 3.5926,
+    "reldens": 17.64,
+    "comp_PA": 75.78,
+    "comp_TCI": 59.85,
+    "parent": "Instruments",
+    "color": "#C4A6A6",
+    "id": "Optics",
+    "value": 2072
+  },
+  {
+    "domain": "Organic fine chemistry",
+    "geo": "Utrecht (NL31)",
+    "count": 282,
+    "rca": 0.35,
+    "share": 0.3055,
+    "share_d": 0.8675,
+    "reldens": 41.88,
+    "comp_PA": 22.91,
+    "comp_TCI": 61.25,
+    "parent": "Chemistry",
+    "color": "#B67D7D",
+    "id": "Organic fine chemistry",
+    "value": 282
+  },
+  {
+    "domain": "Pharmaceuticals",
+    "geo": "Utrecht (NL31)",
+    "count": 3782,
+    "rca": 1.67,
+    "share": 4.097,
+    "share_d": 2.4538,
+    "reldens": 79.02,
+    "comp_PA": 32.41,
+    "comp_TCI": 0.98,
+    "parent": "Chemistry",
+    "color": "#6F9F6F",
+    "id": "Pharmaceuticals",
+    "value": 3782
+  },
+  {
+    "domain": "Semiconductors",
+    "geo": "Utrecht (NL31)",
+    "count": 215,
+    "rca": 0.3,
+    "share": 0.2329,
+    "share_d": 0.7799,
+    "reldens": 6.98,
+    "comp_PA": 80.81,
+    "comp_TCI": 87.29,
+    "parent": "Electrical engineering",
+    "color": "#B27474",
+    "id": "Semiconductors",
+    "value": 215
+  },
+  {
+    "domain": "Surface technology, coating",
+    "geo": "Utrecht (NL31)",
+    "count": 27,
+    "rca": 0.22,
+    "share": 0.0292,
+    "share_d": 0.134,
+    "reldens": 3.87,
+    "comp_PA": 88.71,
+    "comp_TCI": 92.88,
+    "parent": "Chemistry",
+    "color": "#AD6363",
+    "id": "Surface technology, coating",
+    "value": 27
+  },
+  {
+    "domain": "Telecommunications",
+    "geo": "Utrecht (NL31)",
+    "count": 11,
+    "rca": 0.14,
+    "share": 0.0119,
+    "share_d": 0.0833,
+    "reldens": 0.77,
+    "comp_PA": 100,
+    "comp_TCI": 64.18,
+    "parent": "Electrical engineering",
+    "color": "#A64F4F",
+    "id": "Telecommunications",
+    "value": 11
+  },
+  {
+    "domain": "Thermal processes and apparatus",
+    "geo": "Utrecht (NL31)",
+    "count": 155,
+    "rca": 0.25,
+    "share": 0.1679,
+    "share_d": 0.6663,
+    "reldens": 16.54,
+    "comp_PA": 46.49,
+    "comp_TCI": 89.12,
+    "parent": "Mechanical engineering",
+    "color": "#AF6A6A",
+    "id": "Thermal processes and apparatus",
+    "value": 155
+  },
+  {
+    "domain": "Transport",
+    "geo": "Utrecht (NL31)",
+    "count": 223,
+    "rca": 0.5,
+    "share": 0.2416,
+    "share_d": 0.4817,
+    "reldens": 13.13,
+    "comp_PA": 78.66,
+    "comp_TCI": 96.05,
+    "parent": "Mechanical engineering",
+    "color": "#BE9595",
+    "id": "Transport",
+    "value": 223
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

@@ -1,0 +1,631 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.knitr .inline{background:#f7f7f7;border:1px solid #B0B0B0;}
+.error{font-weight:bold;color:#FF0000;}
+.warning{font-weight:bold;}
+.message{font-style:italic;}
+.source,.output,.warning,.error,.message{padding:0 1em;border:1px solid #F7F7F7;}
+.source{background:#f5f5f5;}
+.hl.num{color:#AF0F91;}
+.hl.str{color:#317ECC;}
+.hl.com{color:#AD95AF;font-style:italic;}
+.hl.opt{color:#000;}
+.hl.std{color:#585858;}
+.hl.kwa{color:#295F94;font-weight:bold;}
+.hl.kwb{color:#B05A65;}
+.hl.kwc{color:#55aa55;}
+.hl.kwd{color:#BC5A65;font-weight:bold;}
+body{margin:0;overflow:hidden;font-family:Arial,Helvetica,sans-serif;}
+.container{display:flex;flex-direction:column;height:100vh;}
+#chart{flex:1 1 auto;}
+.legend{display:flex;justify-content:center;padding:12px 0;}
+.legend-item{display:flex;align-items:center;margin:0 24px;font-size:28px;}
+.box{width:28px;height:28px;margin-right:10px;border:none;}
+.pos{background:#2d7c2d;}
+.neg{background:#8B1A0F;}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/d3plus-hierarchy@1"></script>
+</head>
+<body>
+<div class="container">
+  <div id="chart"></div>
+  <div class="legend">
+    <div class="legend-item"><span class="box pos"></span><span>Techn. RCA &gt; 1</span></div>
+    <div class="legend-item"><span class="box neg"></span><span>Techn. RCA &lt; 1</span></div>
+  </div>
+</div>
+
+<script>
+var data= [
+  {
+    "domain": "Civil engineering (42)",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "rca": 2.73,
+    "share": 0.8475,
+    "share_d": 0.3102,
+    "reldens": 57.9,
+    "comp_PA": 62.61,
+    "comp_TCI": 9.26,
+    "parent": "Industry & Construction",
+    "color": "#488A48",
+    "id": "Civil engineering (42)",
+    "value": 1
+  },
+  {
+    "domain": "Computer programming, consultancy and related activities (62)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 4.4883,
+    "reldens": 17.58,
+    "comp_PA": 82.41,
+    "comp_TCI": 68.64,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Computer programming, consultancy and related activities (62)",
+    "value": 0
+  },
+  {
+    "domain": "Construction of residential and non-residential buildings (41)",
+    "geo": "Flevoland (NL23)",
+    "count": 2,
+    "rca": 3.9,
+    "share": 1.6949,
+    "share_d": 0.4343,
+    "reldens": 79.25,
+    "comp_PA": 64.05,
+    "comp_TCI": 17.17,
+    "parent": "Industry & Construction",
+    "color": "#317E31",
+    "id": "Construction of residential and non-residential buildings (41)",
+    "value": 2
+  },
+  {
+    "domain": "Crop and animal production, hunting and related service activities (1)",
+    "geo": "Flevoland (NL23)",
+    "count": 4,
+    "rca": 5.3,
+    "share": 3.3898,
+    "share_d": 0.6395,
+    "reldens": 45.87,
+    "comp_PA": 66.74,
+    "comp_TCI": 19.68,
+    "parent": "Primary & Extractive",
+    "color": "#1F751F",
+    "id": "Crop and animal production, hunting and related service activities (1)",
+    "value": 4
+  },
+  {
+    "domain": "Electricity, gas, steam and air conditioning supply (35)",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "rca": 2.61,
+    "share": 0.8475,
+    "share_d": 0.3247,
+    "reldens": 59.72,
+    "comp_PA": 68.66,
+    "comp_TCI": 17.92,
+    "parent": "Industry & Construction",
+    "color": "#4B8B4B",
+    "id": "Electricity, gas, steam and air conditioning supply (35)",
+    "value": 1
+  },
+  {
+    "domain": "Land transport and transport via pipelines (49)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0178,
+    "reldens": 58.84,
+    "comp_PA": 64.48,
+    "comp_TCI": 18.99,
+    "parent": "Trade, Transport & Hospitality",
+    "color": "darkred",
+    "id": "Land transport and transport via pipelines (49)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of basic metals (24)",
+    "geo": "Flevoland (NL23)",
+    "count": 4,
+    "rca": 2.23,
+    "share": 3.3898,
+    "share_d": 1.5175,
+    "reldens": 63.84,
+    "comp_PA": 71.02,
+    "comp_TCI": 14.68,
+    "parent": "Industry & Construction",
+    "color": "#569156",
+    "id": "Manufacture of basic metals (24)",
+    "value": 4
+  },
+  {
+    "domain": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "geo": "Flevoland (NL23)",
+    "count": 8,
+    "rca": 0.8,
+    "share": 6.7797,
+    "share_d": 8.5094,
+    "reldens": 68.16,
+    "comp_PA": 75.28,
+    "comp_TCI": 21.58,
+    "parent": "Industry & Construction",
+    "color": "#CBBDBD",
+    "id": "Manufacture of basic pharmaceutical products and pharmaceutical preparations (21)",
+    "value": 8
+  },
+  {
+    "domain": "Manufacture of beverages (11)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0697,
+    "reldens": 80.57,
+    "comp_PA": 68.17,
+    "comp_TCI": 9.37,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of beverages (11)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of chemicals and chemical products (20)",
+    "geo": "Flevoland (NL23)",
+    "count": 12,
+    "rca": 1.22,
+    "share": 10.1695,
+    "share_d": 8.3412,
+    "reldens": 40.56,
+    "comp_PA": 73.8,
+    "comp_TCI": 2.56,
+    "parent": "Industry & Construction",
+    "color": "#95B295",
+    "id": "Manufacture of chemicals and chemical products (20)",
+    "value": 12
+  },
+  {
+    "domain": "Manufacture of coke and refined petroleum products (19)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.5006,
+    "reldens": 65.36,
+    "comp_PA": 67.34,
+    "comp_TCI": 8.75,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of coke and refined petroleum products (19)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of computer, electronic and optical products (26)",
+    "geo": "Flevoland (NL23)",
+    "count": 14,
+    "rca": 0.71,
+    "share": 11.8644,
+    "share_d": 16.7466,
+    "reldens": 34.47,
+    "comp_PA": 82.09,
+    "comp_TCI": 67.18,
+    "parent": "Industry & Construction",
+    "color": "#C8B2B2",
+    "id": "Manufacture of computer, electronic and optical products (26)",
+    "value": 14
+  },
+  {
+    "domain": "Manufacture of electrical equipment (27)",
+    "geo": "Flevoland (NL23)",
+    "count": 4,
+    "rca": 0.38,
+    "share": 3.3898,
+    "share_d": 8.8208,
+    "reldens": 52.28,
+    "comp_PA": 79.03,
+    "comp_TCI": 37.5,
+    "parent": "Industry & Construction",
+    "color": "#B78282",
+    "id": "Manufacture of electrical equipment (27)",
+    "value": 4
+  },
+  {
+    "domain": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "geo": "Flevoland (NL23)",
+    "count": 5,
+    "rca": 1.14,
+    "share": 4.2373,
+    "share_d": 3.7148,
+    "reldens": 64.56,
+    "comp_PA": 73.35,
+    "comp_TCI": 14.17,
+    "parent": "Industry & Construction",
+    "color": "#A1B9A1",
+    "id": "Manufacture of fabricated metal products, except machinery and equipment (25)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of food products (10)",
+    "geo": "Flevoland (NL23)",
+    "count": 4,
+    "rca": 2.66,
+    "share": 3.3898,
+    "share_d": 1.276,
+    "reldens": 29.67,
+    "comp_PA": 71,
+    "comp_TCI": 14.79,
+    "parent": "Industry & Construction",
+    "color": "#498B49",
+    "id": "Manufacture of food products (10)",
+    "value": 4
+  },
+  {
+    "domain": "Manufacture of furniture (31)",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "rca": 2.33,
+    "share": 0.8475,
+    "share_d": 0.3642,
+    "reldens": 48.24,
+    "comp_PA": 65.73,
+    "comp_TCI": 20.77,
+    "parent": "Industry & Construction",
+    "color": "#539053",
+    "id": "Manufacture of furniture (31)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of leather and related products of other materials (15)",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "rca": 3.85,
+    "share": 0.8475,
+    "share_d": 0.2203,
+    "reldens": 52.89,
+    "comp_PA": 66.85,
+    "comp_TCI": 12.79,
+    "parent": "Industry & Construction",
+    "color": "#327E32",
+    "id": "Manufacture of leather and related products of other materials (15)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of machinery and equipment n.e.c. (28)",
+    "geo": "Flevoland (NL23)",
+    "count": 25,
+    "rca": 1.56,
+    "share": 21.1864,
+    "share_d": 13.6246,
+    "reldens": 44.9,
+    "comp_PA": 72.51,
+    "comp_TCI": 14.93,
+    "parent": "Industry & Construction",
+    "color": "#76A276",
+    "id": "Manufacture of machinery and equipment n.e.c. (28)",
+    "value": 25
+  },
+  {
+    "domain": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "rca": 0.18,
+    "share": 0.8475,
+    "share_d": 4.8013,
+    "reldens": 49.51,
+    "comp_PA": 76.03,
+    "comp_TCI": 42.5,
+    "parent": "Industry & Construction",
+    "color": "#AA5A5A",
+    "id": "Manufacture of motor vehicles, trailers and semi-trailers (29)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of other non-metallic mineral products (23)",
+    "geo": "Flevoland (NL23)",
+    "count": 5,
+    "rca": 3.07,
+    "share": 4.2373,
+    "share_d": 1.3806,
+    "reldens": 64.77,
+    "comp_PA": 69.2,
+    "comp_TCI": 8.6,
+    "parent": "Industry & Construction",
+    "color": "#408640",
+    "id": "Manufacture of other non-metallic mineral products (23)",
+    "value": 5
+  },
+  {
+    "domain": "Manufacture of other transport equipment (30)",
+    "geo": "Flevoland (NL23)",
+    "count": 2,
+    "rca": 0.93,
+    "share": 1.6949,
+    "share_d": 1.8285,
+    "reldens": 60.47,
+    "comp_PA": 68.8,
+    "comp_TCI": 20.89,
+    "parent": "Industry & Construction",
+    "color": "#D0CBCB",
+    "id": "Manufacture of other transport equipment (30)",
+    "value": 2
+  },
+  {
+    "domain": "Manufacture of paper and paper products (17)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.638,
+    "reldens": 46.98,
+    "comp_PA": 65.9,
+    "comp_TCI": 15.57,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of paper and paper products (17)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of rubber and plastic products (22)",
+    "geo": "Flevoland (NL23)",
+    "count": 10,
+    "rca": 1.87,
+    "share": 8.4746,
+    "share_d": 4.5321,
+    "reldens": 54.27,
+    "comp_PA": 73.8,
+    "comp_TCI": 0,
+    "parent": "Industry & Construction",
+    "color": "#659965",
+    "id": "Manufacture of rubber and plastic products (22)",
+    "value": 10
+  },
+  {
+    "domain": "Manufacture of textiles (13)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.5309,
+    "reldens": 66.35,
+    "comp_PA": 69.03,
+    "comp_TCI": 7.7,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of textiles (13)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of tobacco products (12)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1353,
+    "reldens": 26.87,
+    "comp_PA": 76.82,
+    "comp_TCI": 9.9,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of tobacco products (12)",
+    "value": 0
+  },
+  {
+    "domain": "Manufacture of wearing apparel (14)",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "rca": 3.88,
+    "share": 0.8475,
+    "share_d": 0.2184,
+    "reldens": 32.27,
+    "comp_PA": 66.49,
+    "comp_TCI": 19.84,
+    "parent": "Industry & Construction",
+    "color": "#317E31",
+    "id": "Manufacture of wearing apparel (14)",
+    "value": 1
+  },
+  {
+    "domain": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1609,
+    "reldens": 57.77,
+    "comp_PA": 58.95,
+    "comp_TCI": 21.94,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials (16)",
+    "value": 0
+  },
+  {
+    "domain": "Mining of metal ores (7)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.055,
+    "reldens": 41.92,
+    "comp_PA": 57.19,
+    "comp_TCI": 21.9,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Mining of metal ores (7)",
+    "value": 0
+  },
+  {
+    "domain": "Mining support service activities (9)",
+    "geo": "Flevoland (NL23)",
+    "count": 2,
+    "rca": 4.88,
+    "share": 1.6949,
+    "share_d": 0.3477,
+    "reldens": 45.14,
+    "comp_PA": 66.51,
+    "comp_TCI": 27.18,
+    "parent": "Primary & Extractive",
+    "color": "#247724",
+    "id": "Mining support service activities (9)",
+    "value": 2
+  },
+  {
+    "domain": "Other manufacturing (32)",
+    "geo": "Flevoland (NL23)",
+    "count": 6,
+    "rca": 0.9,
+    "share": 5.0847,
+    "share_d": 5.6807,
+    "reldens": 41.22,
+    "comp_PA": 75.42,
+    "comp_TCI": 28.08,
+    "parent": "Industry & Construction",
+    "color": "#CFC8C8",
+    "id": "Other manufacturing (32)",
+    "value": 6
+  },
+  {
+    "domain": "Other mining and quarrying (8)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.027,
+    "reldens": 84.78,
+    "comp_PA": 55.04,
+    "comp_TCI": 21.2,
+    "parent": "Primary & Extractive",
+    "color": "darkred",
+    "id": "Other mining and quarrying (8)",
+    "value": 0
+  },
+  {
+    "domain": "Printing and reproduction of recorded media (18)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.2345,
+    "reldens": 44.78,
+    "comp_PA": 76.28,
+    "comp_TCI": 27.01,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Printing and reproduction of recorded media (18)",
+    "value": 0
+  },
+  {
+    "domain": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0132,
+    "reldens": 7.34,
+    "comp_PA": 78.59,
+    "comp_TCI": 46.63,
+    "parent": "Information & Communication",
+    "color": "darkred",
+    "id": "Programming, broadcasting, news agency and other content distribution activities (60)",
+    "value": 0
+  },
+  {
+    "domain": "Remediation activities and other waste management service activities (39)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0159,
+    "reldens": 31.03,
+    "comp_PA": 62.57,
+    "comp_TCI": 14.55,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Remediation activities and other waste management service activities (39)",
+    "value": 0
+  },
+  {
+    "domain": "Sewerage (37)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.0418,
+    "reldens": 71.97,
+    "comp_PA": 64.7,
+    "comp_TCI": 27.27,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Sewerage (37)",
+    "value": 0
+  },
+  {
+    "domain": "Specialised construction activities (43)",
+    "geo": "Flevoland (NL23)",
+    "count": 4,
+    "rca": 4.44,
+    "share": 3.3898,
+    "share_d": 0.7642,
+    "reldens": 71.14,
+    "comp_PA": 67.45,
+    "comp_TCI": 13.66,
+    "parent": "Industry & Construction",
+    "color": "#297A29",
+    "id": "Specialised construction activities (43)",
+    "value": 4
+  },
+  {
+    "domain": "Telecommunication (61)",
+    "geo": "Flevoland (NL23)",
+    "count": 1,
+    "rca": 0.11,
+    "share": 0.8475,
+    "share_d": 8.0471,
+    "reldens": 11.31,
+    "comp_PA": 87.91,
+    "comp_TCI": 100,
+    "parent": "Information & Communication",
+    "color": "#A34646",
+    "id": "Telecommunication (61)",
+    "value": 1
+  },
+  {
+    "domain": "Waste collection, recovery and disposal activities (38)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.1797,
+    "reldens": 47.1,
+    "comp_PA": 68.17,
+    "comp_TCI": 10.38,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Waste collection, recovery and disposal activities (38)",
+    "value": 0
+  },
+  {
+    "domain": "Water collection, treatment and supply (36)",
+    "geo": "Flevoland (NL23)",
+    "count": 0,
+    "rca": 0,
+    "share": 0,
+    "share_d": 0.4468,
+    "reldens": 53.62,
+    "comp_PA": 68.31,
+    "comp_TCI": 16.15,
+    "parent": "Industry & Construction",
+    "color": "darkred",
+    "id": "Water collection, treatment and supply (36)",
+    "value": 0
+  }
+] ; new d3plus.Treemap().select("#chart").data(data).groupBy(["parent","id"]).tooltipConfig({body:function(d){return"<table><tr><td>Count:</td><td>"+d.count+"</td></tr><tr><td>RCA:</td><td>"+d.rca+"</td></tr></table>";},title:function(d){var t=d.id;return t.charAt(0).toUpperCase()+t.substr(1).toUpperCase();}}).sum("value").layoutPadding(1.25).legend(false).color("color").render();
+</script>
+</body>
+</html>

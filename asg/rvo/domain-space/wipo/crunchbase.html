@@ -1,0 +1,646 @@
+<!doctype html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <title>Forced Network</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #legend-container {
+            flex: 0 0 auto;
+            max-height: 12%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(4px, 1.2vh, 12px) clamp(8px, 3vw, 32px);
+            background: rgba(255, 255, 255, 0.96);
+            order: 2;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .custom-legend {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(6px, 1.5vw, 16px);
+            width: 100%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: clamp(4px, 0.5vw, 8px);
+            font-weight: 600;
+            color: #1b1d21;
+            font-size: clamp(10px, 1.3vw, 16px);
+            cursor: default;
+            white-space: nowrap;
+        }
+
+        .legend-item.dim {
+            opacity: 0.35;
+        }
+
+        .legend-square {
+            width: clamp(10px, 1.2vw, 16px);
+            height: clamp(10px, 1.2vw, 16px);
+            flex-shrink: 0;
+        }
+
+        .legend-label {
+            pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            #legend-container {
+                padding: 4px 8px;
+                max-height: 18%;
+            }
+
+            .custom-legend {
+                gap: 4px 8px;
+            }
+
+            .legend-item {
+                font-size: 10px;
+                gap: 3px;
+            }
+
+            .legend-square {
+                width: 8px;
+                height: 8px;
+            }
+        }
+
+        svg.network {
+            flex: 1 1 auto;
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: move;
+            background: #ffffff;
+            order: 1;
+        }
+
+        .link {
+            stroke: rgba(140, 150, 170, 0.45);
+        }
+
+        .link.highlighted {
+            stroke: rgba(80, 90, 110, 0.9);
+            stroke-width: 6px;
+        }
+
+        .link.dimmed {
+            opacity: 0.2;
+        }
+
+        .node.dimmed {
+            opacity: 0.25;
+        }
+
+        .node.highlighted circle {
+            stroke-width: 3px;
+        }
+
+        .node.highlighted text {
+            font-weight: 700;
+        }
+
+        .node circle {
+            stroke: #ffffff;
+            stroke-width: 2px;
+        }
+
+        .node text {
+            font-weight: 400;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="legend-container">
+        <div class="custom-legend" id="legend"></div>
+    </div>
+
+    <svg class="network"></svg>
+
+    <script>
+
+        var nodes = [{"id":"Analysis of biological materials","id2":0,"x":-3.5451,"y":-0.556,"color":"#8cab79","parent":"Instruments","size":1.5},{"id":"Audio-visual technology","id2":1,"x":-1.7444,"y":1.9851,"color":"#365a94","parent":"Electrical engineering","size":1.5},{"id":"Basic communication processes","id2":2,"x":-1.3767,"y":2.3237,"color":"#365a94","parent":"Electrical engineering","size":1.5},{"id":"Biotechnology","id2":3,"x":-2.1365,"y":-0.2782,"color":"#800020","parent":"Chemistry","size":1.5},{"id":"Chemical engineering","id2":4,"x":1.3635,"y":0.4396,"color":"#800020","parent":"Chemistry","size":1.5},{"id":"Civil engineering","id2":5,"x":-0.4341,"y":0.7071,"color":"#e28f26","parent":"Other fields","size":1.5},{"id":"Computer technology","id2":6,"x":-0.8807,"y":0.6678,"color":"#365a94","parent":"Electrical engineering","size":1.5},{"id":"Control","id2":7,"x":-0.2005,"y":-1.2419,"color":"#8cab79","parent":"Instruments","size":1.5},{"id":"Digital communication","id2":24,"x":-0.9511,"y":2.1845,"color":"#365a94","parent":"Electrical engineering","size":1.5},{"id":"Electrical machinery, apparatus, energy","id2":8,"x":0.5022,"y":0.1362,"color":"#365a94","parent":"Electrical engineering","size":1.5},{"id":"Environmental technology","id2":9,"x":0.1466,"y":0.3839,"color":"#800020","parent":"Chemistry","size":1.5},{"id":"Food chemistry","id2":10,"x":-1.1389,"y":0.1449,"color":"#800020","parent":"Chemistry","size":1.5},{"id":"Furniture, games","id2":25,"x":-2.3107,"y":1.7927,"color":"#e28f26","parent":"Other fields","size":1.5},{"id":"Green technologies","id2":22,"x":0.7297,"y":0.7725,"color":"#e28f26","parent":"Other fields","size":1.5},{"id":"Handling","id2":11,"x":-1.2333,"y":-1.586,"color":"#EEDC82","parent":"Mechanical engineering","size":1.5},{"id":"IT methods for management","id2":18,"x":-1.0748,"y":1.2188,"color":"#365a94","parent":"Electrical engineering","size":1.5},{"id":"Machine tools","id2":13,"x":0.0049,"y":-2.3589,"color":"#EEDC82","parent":"Mechanical engineering","size":1.5},{"id":"Macromolecular chemistry, polymers","id2":12,"x":1.0855,"y":-0.8855,"color":"#800020","parent":"Chemistry","size":1.5},{"id":"Materials, metallurgy","id2":14,"x":-0.0865,"y":-0.4264,"color":"#800020","parent":"Chemistry","size":1.5},{"id":"Measurement","id2":30,"x":-2.4452,"y":-0.7494,"color":"#8cab79","parent":"Instruments","size":1.5},{"id":"Mechanical elements","id2":28,"x":0.6304,"y":-2.1408,"color":"#EEDC82","parent":"Mechanical engineering","size":1.5},{"id":"Medical technology","id2":20,"x":-2.2254,"y":0.342,"color":"#8cab79","parent":"Instruments","size":1.5},{"id":"Micro-structural and nano-technology","id2":29,"x":1.6072,"y":-1.4479,"color":"#800020","parent":"Chemistry","size":1.5},{"id":"Optics","id2":17,"x":1.9599,"y":-0.6683,"color":"#8cab79","parent":"Instruments","size":1.5},{"id":"Organic fine chemistry","id2":15,"x":-3.1537,"y":1.2995,"color":"#800020","parent":"Chemistry","size":1.5},{"id":"Other consumer goods","id2":21,"x":-1.3968,"y":1.0294,"color":"#e28f26","parent":"Other fields","size":1.5},{"id":"Other special machines","id2":16,"x":-0.6738,"y":-1.8101,"color":"#EEDC82","parent":"Mechanical engineering","size":1.5},{"id":"Pharmaceuticals","id2":19,"x":-3.6243,"y":-0.0064,"color":"#800020","parent":"Chemistry","size":1.5},{"id":"Semiconductors","id2":26,"x":0.9957,"y":-0.3516,"color":"#365a94","parent":"Electrical engineering","size":1.5},{"id":"Telecommunications","id2":27,"x":-0.2944,"y":2.7059,"color":"#365a94","parent":"Electrical engineering","size":1.5},{"id":"Textile and paper machines","id2":31,"x":0.0991,"y":1.3863,"color":"#EEDC82","parent":"Mechanical engineering","size":1.5},{"id":"Transport","id2":23,"x":-0.7521,"y":-0.2925,"color":"#EEDC82","parent":"Mechanical engineering","size":1.5}] ;
+
+        var links =  [{"source":"Analysis of biological materials","target":"Medical technology","weight":0.1721},{"source":"Audio-visual technology","target":"Furniture, games","weight":0.1377},{"source":"Basic communication processes","target":"Computer technology","weight":0.0827},{"source":"Biotechnology","target":"Medical technology","weight":0.2385},{"source":"Biotechnology","target":"Pharmaceuticals","weight":0.2708},{"source":"Chemical engineering","target":"Materials, metallurgy","weight":0.0708},{"source":"Audio-visual technology","target":"Computer technology","weight":0.1347},{"source":"Civil engineering","target":"Computer technology","weight":0.1245},{"source":"Computer technology","target":"Digital communication","weight":0.138},{"source":"Computer technology","target":"IT methods for management","weight":0.3912},{"source":"Computer technology","target":"Medical technology","weight":0.1275},{"source":"Computer technology","target":"Other consumer goods","weight":0.2267},{"source":"Computer technology","target":"Transport","weight":0.1488},{"source":"Computer technology","target":"Control","weight":0.0947},{"source":"Control","target":"Materials, metallurgy","weight":0.0935},{"source":"Control","target":"Mechanical elements","weight":0.0495},{"source":"Electrical machinery, apparatus, energy","target":"Green technologies","weight":0.1899},{"source":"Electrical machinery, apparatus, energy","target":"Materials, metallurgy","weight":0.1215},{"source":"Environmental technology","target":"Green technologies","weight":0.1859},{"source":"Food chemistry","target":"Other consumer goods","weight":0.099},{"source":"Handling","target":"Transport","weight":0.0532},{"source":"Macromolecular chemistry, polymers","target":"Materials, metallurgy","weight":0.033},{"source":"Machine tools","target":"Materials, metallurgy","weight":0.0965},{"source":"Materials, metallurgy","target":"Micro-structural and nano-technology","weight":0.042},{"source":"Materials, metallurgy","target":"Semiconductors","weight":0.1015},{"source":"Materials, metallurgy","target":"Textile and paper machines","weight":0.0309},{"source":"Biotechnology","target":"Measurement","weight":0.0171},{"source":"Organic fine chemistry","target":"Other consumer goods","weight":0.0454},{"source":"Other special machines","target":"Transport","weight":0.0462},{"source":"Optics","target":"Semiconductors","weight":0.0535},{"source":"Computer technology","target":"Telecommunications","weight":0.0759},{"source":"IT methods for management","target":"Computer technology","weight":0.3912},{"source":"Pharmaceuticals","target":"Biotechnology","weight":0.2708},{"source":"Medical technology","target":"Biotechnology","weight":0.2385},{"source":"Pharmaceuticals","target":"Medical technology","weight":0.2286},{"source":"Medical technology","target":"Pharmaceuticals","weight":0.2286},{"source":"Other consumer goods","target":"Computer technology","weight":0.2267},{"source":"Green technologies","target":"Electrical machinery, apparatus, energy","weight":0.1899},{"source":"Green technologies","target":"Environmental technology","weight":0.1859},{"source":"Medical technology","target":"Analysis of biological materials","weight":0.1721},{"source":"Transport","target":"Computer technology","weight":0.1488},{"source":"Other consumer goods","target":"IT methods for management","weight":0.1432},{"source":"IT methods for management","target":"Other consumer goods","weight":0.1432},{"source":"Digital communication","target":"Computer technology","weight":0.138},{"source":"Furniture, games","target":"Audio-visual technology","weight":0.1377},{"source":"Computer technology","target":"Audio-visual technology","weight":0.1347},{"source":"Environmental technology","target":"Electrical machinery, apparatus, energy","weight":0.13},{"source":"Electrical machinery, apparatus, energy","target":"Environmental technology","weight":0.13},{"source":"Medical technology","target":"Computer technology","weight":0.1275},{"source":"Other consumer goods","target":"Medical technology","weight":0.1269},{"source":"Medical technology","target":"Other consumer goods","weight":0.1269},{"source":"Computer technology","target":"Civil engineering","weight":0.1245},{"source":"Materials, metallurgy","target":"Electrical machinery, apparatus, energy","weight":0.1215},{"source":"Digital communication","target":"Audio-visual technology","weight":0.1138},{"source":"Audio-visual technology","target":"Digital communication","weight":0.1138},{"source":"Semiconductors","target":"Materials, metallurgy","weight":0.1015},{"source":"Other consumer goods","target":"Food chemistry","weight":0.099},{"source":"Furniture, games","target":"Computer technology","weight":0.0974},{"source":"Computer technology","target":"Furniture, games","weight":0.0974},{"source":"Materials, metallurgy","target":"Machine tools","weight":0.0965},{"source":"Control","target":"Computer technology","weight":0.0947},{"source":"Materials, metallurgy","target":"Control","weight":0.0935},{"source":"Food chemistry","target":"Computer technology","weight":0.091},{"source":"Computer technology","target":"Food chemistry","weight":0.091},{"source":"IT methods for management","target":"Civil engineering","weight":0.09},{"source":"Civil engineering","target":"IT methods for management","weight":0.09},{"source":"IT methods for management","target":"Digital communication","weight":0.0862},{"source":"Digital communication","target":"IT methods for management","weight":0.0862},{"source":"Transport","target":"Materials, metallurgy","weight":0.085},{"source":"Materials, metallurgy","target":"Transport","weight":0.085},{"source":"Computer technology","target":"Basic communication processes","weight":0.0827},{"source":"Materials, metallurgy","target":"Computer technology","weight":0.0819},{"source":"Computer technology","target":"Materials, metallurgy","weight":0.0819},{"source":"Transport","target":"Food chemistry","weight":0.0791},{"source":"Food chemistry","target":"Transport","weight":0.0791},{"source":"Transport","target":"Electrical machinery, apparatus, energy","weight":0.078},{"source":"Electrical machinery, apparatus, energy","target":"Transport","weight":0.078},{"source":"Biotechnology","target":"Analysis of biological materials","weight":0.0775},{"source":"Analysis of biological materials","target":"Biotechnology","weight":0.0775},{"source":"Telecommunications","target":"Computer technology","weight":0.0759},{"source":"Environmental technology","target":"Computer technology","weight":0.0754},{"source":"Computer technology","target":"Environmental technology","weight":0.0754},{"source":"Transport","target":"Other consumer goods","weight":0.0753},{"source":"Other consumer goods","target":"Transport","weight":0.0753},{"source":"Digital communication","target":"Basic communication processes","weight":0.075},{"source":"Basic communication processes","target":"Digital communication","weight":0.075},{"source":"Transport","target":"Control","weight":0.0725},{"source":"Control","target":"Transport","weight":0.0725},{"source":"Materials, metallurgy","target":"Chemical engineering","weight":0.0708},{"source":"Food chemistry","target":"Biotechnology","weight":0.0707},{"source":"Biotechnology","target":"Food chemistry","weight":0.0707},{"source":"Semiconductors","target":"Electrical machinery, apparatus, energy","weight":0.0685},{"source":"Electrical machinery, apparatus, energy","target":"Semiconductors","weight":0.0685},{"source":"Other consumer goods","target":"Audio-visual technology","weight":0.0675},{"source":"Audio-visual technology","target":"Other consumer goods","weight":0.0675},{"source":"Transport","target":"IT methods for management","weight":0.0667},{"source":"IT methods for management","target":"Transport","weight":0.0667},{"source":"Materials, metallurgy","target":"Environmental technology","weight":0.066},{"source":"Environmental technology","target":"Materials, metallurgy","weight":0.066},{"source":"Materials, metallurgy","target":"Green technologies","weight":0.0659},{"source":"Green technologies","target":"Materials, metallurgy","weight":0.0659},{"source":"Telecommunications","target":"Digital communication","weight":0.0654},{"source":"Digital communication","target":"Telecommunications","weight":0.0654},{"source":"Electrical machinery, apparatus, energy","target":"Chemical engineering","weight":0.0639},{"source":"Chemical engineering","target":"Electrical machinery, apparatus, energy","weight":0.0639},{"source":"Food chemistry","target":"Environmental technology","weight":0.063},{"source":"Environmental technology","target":"Food chemistry","weight":0.063},{"source":"Machine tools","target":"Control","weight":0.062},{"source":"Control","target":"Machine tools","weight":0.062},{"source":"Materials, metallurgy","target":"Food chemistry","weight":0.0612},{"source":"Food chemistry","target":"Materials, metallurgy","weight":0.0612},{"source":"Transport","target":"Civil engineering","weight":0.0564},{"source":"Civil engineering","target":"Transport","weight":0.0564},{"source":"Electrical machinery, apparatus, energy","target":"Computer technology","weight":0.056},{"source":"Computer technology","target":"Electrical machinery, apparatus, energy","weight":0.056},{"source":"IT methods for management","target":"Basic communication processes","weight":0.0537},{"source":"Basic communication processes","target":"IT methods for management","weight":0.0537},{"source":"Semiconductors","target":"Optics","weight":0.0535},{"source":"Transport","target":"Handling","weight":0.0532},{"source":"Other consumer goods","target":"Civil engineering","weight":0.053},{"source":"Other consumer goods","target":"Digital communication","weight":0.053},{"source":"Civil engineering","target":"Other consumer goods","weight":0.053},{"source":"Digital communication","target":"Other consumer goods","weight":0.053},{"source":"Medical technology","target":"IT methods for management","weight":0.0522},{"source":"IT methods for management","target":"Medical technology","weight":0.0522},{"source":"Computer technology","target":"Biotechnology","weight":0.0507},{"source":"Biotechnology","target":"Computer technology","weight":0.0507},{"source":"Medical technology","target":"Materials, metallurgy","weight":0.0498},{"source":"Materials, metallurgy","target":"Medical technology","weight":0.0498},{"source":"Other consumer goods","target":"Furniture, games","weight":0.0496},{"source":"Furniture, games","target":"Other consumer goods","weight":0.0496},{"source":"Mechanical elements","target":"Control","weight":0.0495},{"source":"Green technologies","target":"Chemical engineering","weight":0.0492},{"source":"Chemical engineering","target":"Green technologies","weight":0.0492},{"source":"Environmental technology","target":"Chemical engineering","weight":0.0462},{"source":"Chemical engineering","target":"Environmental technology","weight":0.0462},{"source":"Transport","target":"Other special machines","weight":0.0462},{"source":"Pharmaceuticals","target":"Analysis of biological materials","weight":0.0455},{"source":"IT methods for management","target":"Environmental technology","weight":0.0455},{"source":"Environmental technology","target":"IT methods for management","weight":0.0455},{"source":"Analysis of biological materials","target":"Pharmaceuticals","weight":0.0455},{"source":"Other consumer goods","target":"Organic fine chemistry","weight":0.0454},{"source":"Other consumer goods","target":"Materials, metallurgy","weight":0.0444},{"source":"Materials, metallurgy","target":"Other consumer goods","weight":0.0444},{"source":"Green technologies","target":"Computer technology","weight":0.0437},{"source":"Computer technology","target":"Green technologies","weight":0.0437},{"source":"Environmental technology","target":"Civil engineering","weight":0.0432},{"source":"Civil engineering","target":"Environmental technology","weight":0.0432},{"source":"Semiconductors","target":"Computer technology","weight":0.0422},{"source":"Computer technology","target":"Semiconductors","weight":0.0422},{"source":"Materials, metallurgy","target":"Civil engineering","weight":0.042},{"source":"Civil engineering","target":"Materials, metallurgy","weight":0.042},{"source":"Micro-structural and nano-technology","target":"Materials, metallurgy","weight":0.042},{"source":"IT methods for management","target":"Audio-visual technology","weight":0.041},{"source":"Audio-visual technology","target":"IT methods for management","weight":0.041},{"source":"Mechanical elements","target":"Materials, metallurgy","weight":0.0405},{"source":"Materials, metallurgy","target":"Mechanical elements","weight":0.0405},{"source":"Materials, metallurgy","target":"Biotechnology","weight":0.0403},{"source":"Biotechnology","target":"Materials, metallurgy","weight":0.0403},{"source":"Other consumer goods","target":"Basic communication processes","weight":0.0401},{"source":"IT methods for management","target":"Food chemistry","weight":0.0401},{"source":"Food chemistry","target":"IT methods for management","weight":0.0401},{"source":"Basic communication processes","target":"Other consumer goods","weight":0.0401},{"source":"Materials, metallurgy","target":"Handling","weight":0.0312},{"source":"Handling","target":"Materials, metallurgy","weight":0.0312},{"source":"Materials, metallurgy","target":"Macromolecular chemistry, polymers","weight":0.033},{"source":"Macromolecular chemistry, polymers","target":"Environmental technology","weight":0.0281},{"source":"Environmental technology","target":"Macromolecular chemistry, polymers","weight":0.0281},{"source":"Measurement","target":"Biotechnology","weight":0.0171},{"source":"Measurement","target":"Computer technology","weight":0.0149},{"source":"Computer technology","target":"Measurement","weight":0.0149},{"source":"Semiconductors","target":"Micro-structural and nano-technology","weight":0.028},{"source":"Micro-structural and nano-technology","target":"Semiconductors","weight":0.028},{"source":"Optics","target":"Materials, metallurgy","weight":0.0331},{"source":"Materials, metallurgy","target":"Optics","weight":0.0331},{"source":"Organic fine chemistry","target":"Medical technology","weight":0.0289},{"source":"Medical technology","target":"Organic fine chemistry","weight":0.0289},{"source":"Other special machines","target":"Materials, metallurgy","weight":0.0264},{"source":"Materials, metallurgy","target":"Other special machines","weight":0.0264},{"source":"Textile and paper machines","target":"Materials, metallurgy","weight":0.0309},{"source":"Textile and paper machines","target":"Other consumer goods","weight":0.0304},{"source":"Other consumer goods","target":"Textile and paper machines","weight":0.0304}] ;
+
+        var svg = d3.select("svg.network");
+        var svgNode = svg.node();
+        var REFERENCE_WIDTH = 1100;
+        var BASE_RADIUS = 46;
+
+        var extentX = d3.extent(nodes, function (d) { return d.x; });
+        var extentY = d3.extent(nodes, function (d) { return d.y; });
+
+        nodes.forEach(function (node) {
+            node.dataX = node.x;
+            node.dataY = node.y;
+        });
+
+        var width, height, nodeRadius, horizontalBounds;
+
+        function recalcLayout() {
+            width = (svgNode && svgNode.clientWidth) || window.innerWidth;
+            height = (svgNode && svgNode.clientHeight) || Math.round(window.innerHeight * 0.9);
+            nodeRadius = Math.max(20, Math.min(BASE_RADIUS, Math.round(BASE_RADIUS * (width / REFERENCE_WIDTH))));
+            var padding = nodeRadius * 2;
+            var horPadding = Math.max(10, nodeRadius * 0.25);
+
+            var availableWidth = Math.max(width - padding * 2, padding);
+            var availableHeight = Math.max(height - padding * 2, padding);
+
+            var baseLeft = padding;
+            var baseRight = padding + availableWidth;
+
+            var minXBound = baseLeft + horPadding + nodeRadius;
+            var maxXBound = baseRight - horPadding - nodeRadius;
+
+            if (maxXBound <= minXBound) {
+                var midpoint = (baseLeft + baseRight) / 2;
+                minXBound = midpoint - 1;
+                maxXBound = midpoint + 1;
+            }
+
+            horizontalBounds = { min: minXBound, max: maxXBound };
+
+            var scaleX = d3.scaleLinear().domain(extentX).range([horizontalBounds.min, horizontalBounds.max]);
+            var scaleY = d3.scaleLinear().domain(extentY).range([padding, padding + availableHeight]);
+
+            nodes.forEach(function (node) {
+                var targetX = clampX(scaleX(node.dataX));
+                var targetY = scaleY(node.dataY);
+                node.originalX = targetX;
+                node.originalY = targetY;
+            });
+
+            svg.attr("viewBox", [0, 0, width, height]).attr("preserveAspectRatio", "xMidYMid meet");
+        }
+
+        function clampX(value) {
+            return Math.max(horizontalBounds.min, Math.min(horizontalBounds.max, value));
+        }
+
+        recalcLayout();
+
+        nodes.forEach(function (node) {
+            node.x = node.originalX;
+            node.y = node.originalY;
+        });
+
+        var container = svg.append("g");
+
+        var zoomBehavior = d3.zoom()
+            .scaleExtent([0.6, 3])
+            .on("zoom", function (event) {
+                container.attr("transform", event.transform);
+            });
+
+        svg.call(zoomBehavior);
+
+        var nodeById = new Map(nodes.map(function (node) {
+            return [node.id, node];
+        }));
+
+        var linkData = links.map(function (link) {
+            return {
+                source: nodeById.get(link.source),
+                target: nodeById.get(link.target),
+                weight: link.weight
+            };
+        }).filter(function (link) {
+            return link.source && link.target;
+        });
+
+        var linkExtent = linkData.length ? d3.extent(linkData, function (d) { return d.weight || 1; }) : [1, 1];
+        if (linkExtent[0] === linkExtent[1]) {
+            linkExtent[1] = linkExtent[0] + 1;
+        }
+
+        var linkWidth = d3.scaleSqrt()
+            .domain(linkExtent)
+            .range([0.6, 4]);
+
+        var link = container.append("g")
+            .attr("stroke-linecap", "round")
+            .selectAll("line")
+            .data(linkData)
+            .join("line")
+            .attr("class", "link")
+            .attr("stroke-width", function (d) { return linkWidth(d.weight || 1); });
+
+        var adjacency = new Map();
+
+        linkData.forEach(function (link) {
+            var sourceId = link.source.id;
+            var targetId = link.target.id;
+
+            if (!adjacency.has(sourceId)) {
+                adjacency.set(sourceId, new Set());
+            }
+
+            if (!adjacency.has(targetId)) {
+                adjacency.set(targetId, new Set());
+            }
+
+            adjacency.get(sourceId).add(targetId);
+            adjacency.get(targetId).add(sourceId);
+        });
+
+        var node = container.append("g")
+            .selectAll("g")
+            .data(nodes)
+            .join("g")
+            .attr("class", "node")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended))
+            .on("mouseenter", highlightConnected)
+            .on("mouseleave", resetHighlight);
+
+        node.append("circle")
+            .attr("r", nodeRadius)
+            .attr("fill", function (d) { return d.color; });
+
+        node.append("text")
+            .attr("class", "node-label")
+            .attr("fill", function (d) {
+                return getContrastingTextColor(d.color);
+            })
+            .style("fill", function (d) {
+                return getContrastingTextColor(d.color);
+            })
+            .call(wrapText, nodeRadius);
+
+        node.append("title")
+            .text(function (d) {
+                return d.id + (d.parent ? " (" + d.parent + ")" : "");
+            });
+
+        renderLegend();
+
+        var simulation = d3.forceSimulation(nodes)
+            .alpha(0.9)
+            .alphaDecay(0.09)
+            .force("collide", d3.forceCollide(nodeRadius + 8).strength(0.95).iterations(4))
+            .force("x", d3.forceX(function (d) { return d.originalX; }).strength(1))
+            .force("y", d3.forceY(function (d) { return d.originalY; }).strength(1))
+            .on("tick", ticked);
+
+        var resizeTimer;
+        window.addEventListener("resize", function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                recalcLayout();
+
+                node.select("circle").attr("r", nodeRadius);
+                node.select("text").call(wrapText, nodeRadius);
+
+                simulation
+                    .force("collide", d3.forceCollide(nodeRadius + 8).strength(0.95).iterations(4))
+                    .force("x", d3.forceX(function (d) { return d.originalX; }).strength(1))
+                    .force("y", d3.forceY(function (d) { return d.originalY; }).strength(1))
+                    .alpha(0.8)
+                    .restart();
+            }, 150);
+        });
+
+        function ticked() {
+            nodes.forEach(function (d) {
+                d.x = clampX(d.x);
+                if (d.fx != null) {
+                    d.fx = clampX(d.fx);
+                }
+            });
+
+            link
+                .attr("x1", function (d) { return d.source.x; })
+                .attr("y1", function (d) { return d.source.y; })
+                .attr("x2", function (d) { return d.target.x; })
+                .attr("y2", function (d) { return d.target.y; });
+
+            node.attr("transform", function (d) {
+                return "translate(" + d.x + "," + d.y + ")";
+            });
+        }
+
+        function dragstarted(event, d) {
+            if (!event.active) {
+                simulation.alphaTarget(0.3).restart();
+            }
+            d.fx = clampX(d.x);
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            var clampedX = clampX(event.x);
+            d.fx = clampedX;
+            d.fy = event.y;
+            d.x = clampedX;
+            d.y = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) {
+                simulation.alphaTarget(0);
+            }
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function darkenColor(hexColor, factor) {
+            factor = factor || 0.5;
+            var hex = hexColor.trim().replace("#", "");
+            if (hex.length === 3) {
+                hex = hex.split("").map(function (ch) { return ch + ch; }).join("");
+            }
+
+            var r = parseInt(hex.slice(0, 2), 16);
+            var g = parseInt(hex.slice(2, 4), 16);
+            var b = parseInt(hex.slice(4, 6), 16);
+
+            r = Math.round(r * factor);
+            g = Math.round(g * factor);
+            b = Math.round(b * factor);
+
+            return "#" + [r, g, b].map(function (val) {
+                var hexVal = val.toString(16);
+                return hexVal.length === 1 ? "0" + hexVal : hexVal;
+            }).join("");
+        }
+
+        function highlightConnected(event, nodeDatum) {
+            var neighbors = adjacency.get(nodeDatum.id) || new Set();
+            var activeIds = new Set(neighbors);
+            activeIds.add(nodeDatum.id);
+
+            node.each(function (d) {
+                var isActive = activeIds.has(d.id);
+                var nodeElement = d3.select(this);
+                nodeElement
+                    .classed("highlighted", isActive)
+                    .classed("dimmed", !isActive);
+
+                if (isActive) {
+                    var darkerColor = darkenColor(d.color, 0.6);
+                    nodeElement.select("circle").style("stroke", darkerColor);
+                }
+            });
+
+            link.each(function (l) {
+                var isActive = l.source.id === nodeDatum.id || l.target.id === nodeDatum.id;
+                d3.select(this)
+                    .classed("highlighted", isActive)
+                    .classed("dimmed", !isActive);
+            });
+        }
+
+        function resetHighlight() {
+            node.classed("highlighted", false)
+                .classed("dimmed", false)
+                .select("circle").style("stroke", null);
+            link.classed("highlighted", false)
+                .classed("dimmed", false);
+        }
+
+        function renderLegend() {
+            var legend = d3.select("#legend");
+            if (legend.empty()) {
+                return;
+            }
+
+            legend.attr("role", "list");
+
+            var parentColorMap = new Map();
+            nodes.forEach(function (node) {
+                var parentName = node.parent || "Other";
+                if (!parentColorMap.has(parentName)) {
+                    parentColorMap.set(parentName, node.color || "#6c6f7d");
+                }
+            });
+
+            var legendData = Array.from(parentColorMap, function (entry) {
+                return { parent: entry[0], color: entry[1] };
+            });
+
+            var legendItems = legend.selectAll(".legend-item")
+                .data(legendData, function (d) { return d.parent; });
+
+            legendItems.exit().remove();
+
+            var legendEnter = legendItems.enter()
+                .append("div")
+                .attr("class", "legend-item")
+                .attr("role", "listitem");
+
+            legendEnter.append("span")
+                .attr("class", "legend-square");
+
+            legendEnter.append("span")
+                .attr("class", "legend-label");
+
+            legendItems = legendEnter.merge(legendItems);
+
+            legendItems.select(".legend-square")
+                .style("background-color", function (d) { return d.color; });
+
+            legendItems.select(".legend-label")
+                .text(function (d) { return d.parent; });
+        }
+
+        function isColorDark(hexColor) {
+            if (!hexColor) {
+                return false;
+            }
+
+            var hex = hexColor.trim().replace("#", "");
+            if (hex.length === 3) {
+                hex = hex.split("").map(function (ch) { return ch + ch; }).join("");
+            }
+
+            if (hex.length !== 6) {
+                return false;
+            }
+
+            var r = parseInt(hex.slice(0, 2), 16) / 255;
+            var g = parseInt(hex.slice(2, 4), 16) / 255;
+            var b = parseInt(hex.slice(4, 6), 16) / 255;
+
+            var convert = function (channel) {
+                return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+            };
+
+            var lum = 0.2126 * convert(r) + 0.7152 * convert(g) + 0.0722 * convert(b);
+            return lum < 0.55;
+        }
+
+        function getContrastingTextColor(hexColor) {
+            return isColorDark(hexColor) ? "#ffffff" : "#1b1d21";
+        }
+
+        function wrapText(selection, radius) {
+            var diameter = radius * 2;
+            var maxWidth = diameter * 0.85;
+            var maxHeight = diameter * 0.85;
+            var lineHeightMultiplier = 1.15;
+            var minFontSize = 4;
+
+            selection.each(function (d) {
+                var text = d3.select(this);
+                var label = (d.id || "").trim();
+
+                text.selectAll("tspan").remove();
+                text.text("");
+
+                if (!label) {
+                    return;
+                }
+
+                var words = label.split(/\s+/).filter(function (word) { return word.length; });
+                if (!words.length) {
+                    text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(label);
+                    return;
+                }
+
+                var maxFontSize = Math.min(13, radius * 0.45);
+                var startingFontSize = Math.max(Math.round(maxFontSize), minFontSize);
+                var bestFit = null;
+
+                for (var fontSize = startingFontSize; fontSize >= minFontSize; fontSize -= 1) {
+                    var layout = layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth);
+                    bestFit = layout;
+                    var totalHeight = layout.lines.length * layout.lineHeight;
+
+                    if (layout.maxLineWidth <= maxWidth && totalHeight <= maxHeight) {
+                        break;
+                    }
+                }
+
+                if (!bestFit) {
+                    bestFit = {
+                        lines: [label],
+                        fontSize: minFontSize,
+                        lineHeight: Math.round(minFontSize * lineHeightMultiplier)
+                    };
+                }
+
+                text.style("font-size", bestFit.fontSize + "px");
+                text.selectAll("tspan").remove();
+
+                var offset = (bestFit.lines.length - 1) * bestFit.lineHeight / 2;
+
+                bestFit.lines.forEach(function (line, index) {
+                    text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", -offset + index * bestFit.lineHeight)
+                        .text(line);
+                });
+            });
+
+            function layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth) {
+                text.style("font-size", fontSize + "px");
+                text.selectAll("tspan").remove();
+
+                var lines = [];
+                var currentLine = [];
+                var maxLineWidth = 0;
+
+                words.forEach(function (word) {
+                    currentLine.push(word);
+                    var tester = text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(currentLine.join(" "));
+                    var lineLength = tester.node().getComputedTextLength();
+                    tester.remove();
+
+                    if (lineLength > maxWidth && currentLine.length > 1) {
+                        currentLine.pop();
+                        var finalized = currentLine.join(" ");
+                        var measureFinal = text.append("tspan")
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .text(finalized);
+                        var finalLength = measureFinal.node().getComputedTextLength();
+                        measureFinal.remove();
+
+                        lines.push(finalized);
+                        maxLineWidth = Math.max(maxLineWidth, finalLength);
+
+                        currentLine = [word];
+                        var measureWord = text.append("tspan")
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .text(word);
+                        var wordLength = measureWord.node().getComputedTextLength();
+                        measureWord.remove();
+                        maxLineWidth = Math.max(maxLineWidth, wordLength);
+                    } else {
+                        maxLineWidth = Math.max(maxLineWidth, lineLength);
+                    }
+                });
+
+                if (currentLine.length) {
+                    var finalLine = currentLine.join(" ");
+                    var finalTester = text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(finalLine);
+                    var finalLineLength = finalTester.node().getComputedTextLength();
+                    finalTester.remove();
+
+                    lines.push(finalLine);
+                    maxLineWidth = Math.max(maxLineWidth, finalLineLength);
+                }
+
+                var lineHeight = Math.max(Math.round(fontSize * lineHeightMultiplier), Math.ceil(fontSize));
+
+                return {
+                    lines: lines,
+                    fontSize: fontSize,
+                    lineHeight: lineHeight,
+                    maxLineWidth: maxLineWidth
+                };
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
