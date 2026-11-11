@@ -1,6 +1,6 @@
 
 
-p <- "ron-dep"
+p <- "rvo"
 setwd(paste0("~/Library/CloudStorage/Dropbox/GitHub/PABalland.github.io/asg/", p))
 folder <- paste0("~/Library/CloudStorage/Dropbox/GitHub/PABalland.github.io/asg/", p)
 files <- list.files(folder, recursive = TRUE, full.names = TRUE)
