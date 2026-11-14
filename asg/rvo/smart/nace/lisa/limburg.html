@@ -1,0 +1,861 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --ink:#1f2328; --muted:#6b7280; --faint:#9ca3af; --grid:#eef0f3; --axis:#d1d5db;
+  --pos:#3f7f4f; --neg:#9b3b34;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#fff;}
+body{font-family:Inter,"Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--ink);overflow:hidden;}
+.wrap{display:flex;flex-direction:column;height:100vh;padding:18px 22px 10px;}
+#chart{flex:1 1 auto;position:relative;min-height:0;}
+svg{display:block;width:100%;height:100%;}
+.footer{display:flex;align-items:center;justify-content:center;gap:28px;flex-wrap:wrap;
+  padding-top:8px;font-size:12.5px;color:var(--muted);}
+.lg{display:flex;align-items:center;gap:8px;}
+.dot{width:11px;height:11px;border-radius:50%;}
+.ramp{width:90px;height:8px;border-radius:4px;
+  background:linear-gradient(90deg,#9b3b34,#c49a96,#e6e1e1,#9cbc9f,#3f7f4f);}
+.axis-title{font-size:19px;font-weight:600;fill:var(--ink);letter-spacing:.01em;}
+.tick text{font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums;}
+.quad{font-size:10.5px;fill:var(--faint);text-transform:uppercase;letter-spacing:.08em;font-weight:600;}
+.label{font-size:14px;fill:#374151;font-weight:500;pointer-events:none;
+  paint-order:stroke;stroke:#fff;stroke-width:3.5px;stroke-linejoin:round;transition:opacity .15s;}
+.pt{cursor:pointer;transition:r .15s, opacity .15s;}
+.dim .pt:not(.on), .dim .label:not(.on), .dim .leader:not(.on){opacity:.25;}
+.label.on{font-weight:700;fill:var(--ink);}
+.leader{stroke:#c7cbd1;stroke-width:1;}
+.tip{position:absolute;pointer-events:none;background:#fff;border:1px solid #e5e7eb;border-radius:8px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);padding:10px 12px;font-size:12px;min-width:190px;max-width:320px;
+  opacity:0;transition:opacity .12s;z-index:5;}
+.tip h4{margin:0 0 6px;font-size:13px;}
+.tip table{width:100%;border-collapse:collapse;}
+.tip td{padding:2px 0;color:var(--muted);}
+.tip td.v{text-align:right;padding-left:14px;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="chart"><div class="tip" id="tip"></div></div>
+<div class="footer">
+  <span class="lg">
+    Employment RCA &lt; 1
+    <span class="dot" style="background:var(--neg)"></span>
+    <span class="ramp"></span>
+    <span class="dot" style="background:var(--pos)"></span>
+    Employment RCA &gt; 1
+  </span>
+  <span class="lg" style="color:var(--faint)">Dashed lines = medians</span>
+</div>
+</div>
+<script>
+var data=
+  [
+  {
+    "id": "01. Landbouw, jacht en dienstverlening voor de landbouw en jacht",
+    "x": 48.8,
+    "y": 31.42,
+    "color": "#98B498",
+    "rca": 1.2,
+    "value": 0.5
+  },
+  {
+    "id": "02. Bosbouw, exploitatie van bossen en dienstverlening voor de bosbouw",
+    "x": 15.67,
+    "y": 18.93,
+    "color": "#C09C9C",
+    "rca": 0.55,
+    "value": 0.5
+  },
+  {
+    "id": "03. Visserij en aquacultuur",
+    "x": 28.68,
+    "y": 40.34,
+    "color": "#A34646",
+    "rca": 0.11,
+    "value": 0.5
+  },
+  {
+    "id": "06. Winning van aardolie en aardgas",
+    "x": 27.59,
+    "y": 28.29,
+    "color": "darkred",
+    "rca": 0,
+    "value": 0.5
+  },
+  {
+    "id": "08. Overige winning van delfstoffen",
+    "x": 51.79,
+    "y": 11.62,
+    "color": "#3A823A",
+    "rca": 3.36,
+    "value": 0.5
+  },
+  {
+    "id": "09. Dienstverlening voor de winning van delfstoffen",
+    "x": 61.85,
+    "y": 12.64,
+    "color": "#9B2F2F",
+    "rca": 0.05,
+    "value": 0.5
+  },
+  {
+    "id": "10. Vervaardiging van voedingsmiddelen",
+    "x": 57.7,
+    "y": 42.55,
+    "color": "#CEC5C5",
+    "rca": 0.87,
+    "value": 0.5
+  },
+  {
+    "id": "11. Vervaardiging van dranken",
+    "x": 44.99,
+    "y": 29.33,
+    "color": "#609660",
+    "rca": 1.99,
+    "value": 0.5
+  },
+  {
+    "id": "12. Vervaardiging van tabaksproducten",
+    "x": 0,
+    "y": 37.92,
+    "color": "darkred",
+    "rca": 0,
+    "value": 0.5
+  },
+  {
+    "id": "13. Vervaardiging van textiel",
+    "x": 58.66,
+    "y": 52.66,
+    "color": "#BD9494",
+    "rca": 0.49,
+    "value": 0.5
+  },
+  {
+    "id": "14. Vervaardiging van kleding",
+    "x": 47.13,
+    "y": 63.39,
+    "color": "lightgrey",
+    "rca": 1,
+    "value": 0.5
+  },
+  {
+    "id": "15. Vervaardiging van leer, lederwaren en soortgelijke producten van andere materialen",
+    "x": 25.4,
+    "y": 59.71,
+    "color": "#D1CDCD",
+    "rca": 0.94,
+    "value": 0.5
+  },
+  {
+    "id": "16. Houtindustrie en vervaardiging van artikelen van hout en kurk, met uitzondering van meubelen; vervaardiging van artikelen van riet en van vlechtwerk",
+    "x": 44.05,
+    "y": 16.99,
+    "color": "#C4A7A7",
+    "rca": 0.63,
+    "value": 0.5
+  },
+  {
+    "id": "17. Vervaardiging van papier en papierwaren",
+    "x": 68.94,
+    "y": 63.97,
+    "color": "#528F52",
+    "rca": 2.36,
+    "value": 0.5
+  },
+  {
+    "id": "18. Activiteiten op het gebied van drukwerk en reproductie van opgenomen media",
+    "x": 40,
+    "y": 67.02,
+    "color": "#95B295",
+    "rca": 1.22,
+    "value": 0.5
+  },
+  {
+    "id": "19. Vervaardiging van cokes en van geraffineerde aardolieproducten",
+    "x": 69.17,
+    "y": 68.45,
+    "color": "#992A2A",
+    "rca": 0.04,
+    "value": 0.5
+  },
+  {
+    "id": "20. Vervaardiging van chemicaliën en chemische producten",
+    "x": 34.87,
+    "y": 72.05,
+    "color": "#4E8D4E",
+    "rca": 2.49,
+    "value": 0.5
+  },
+  {
+    "id": "21. Vervaardiging van farmaceutische grondstoffen en producten",
+    "x": 35.38,
+    "y": 85.92,
+    "color": "#BB8E8E",
+    "rca": 0.45,
+    "value": 0.5
+  },
+  {
+    "id": "22. Vervaardiging van producten van rubber of kunststof",
+    "x": 54.38,
+    "y": 59.63,
+    "color": "#689B68",
+    "rca": 1.8,
+    "value": 0.5
+  },
+  {
+    "id": "23. Vervaardiging van overige niet-metaalhoudende minerale producten",
+    "x": 53.76,
+    "y": 37.86,
+    "color": "#3D843D",
+    "rca": 3.22,
+    "value": 0.5
+  },
+  {
+    "id": "24. Vervaardiging van basismetalen",
+    "x": 56.3,
+    "y": 62.27,
+    "color": "#80A780",
+    "rca": 1.43,
+    "value": 0.5
+  },
+  {
+    "id": "25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur",
+    "x": 48.16,
+    "y": 51.87,
+    "color": "#6F9F6F",
+    "rca": 1.67,
+    "value": 0.5
+  },
+  {
+    "id": "26. Vervaardiging van computers en van elektronische en optische apparatuur",
+    "x": 34.39,
+    "y": 89.63,
+    "color": "#C7B1B1",
+    "rca": 0.7,
+    "value": 0.5
+  },
+  {
+    "id": "27. Vervaardiging van elektrische apparatuur",
+    "x": 37.57,
+    "y": 71.96,
+    "color": "#C5AAAA",
+    "rca": 0.65,
+    "value": 0.5
+  },
+  {
+    "id": "28. Vervaardiging van machines en apparaten, n.e.g.",
+    "x": 35.27,
+    "y": 54.04,
+    "color": "#9AB59A",
+    "rca": 1.18,
+    "value": 0.5
+  },
+  {
+    "id": "29. Vervaardiging van motorvoertuigen, aanhangwagens en opleggers",
+    "x": 54.29,
+    "y": 43.71,
+    "color": "#D2CFCF",
+    "rca": 0.96,
+    "value": 0.5
+  },
+  {
+    "id": "30. Vervaardiging van overige vervoermiddelen",
+    "x": 31.57,
+    "y": 45.33,
+    "color": "#B27272",
+    "rca": 0.29,
+    "value": 0.5
+  },
+  {
+    "id": "31. Vervaardiging van meubelen",
+    "x": 40.15,
+    "y": 30.52,
+    "color": "#CFC6C6",
+    "rca": 0.88,
+    "value": 0.5
+  },
+  {
+    "id": "32. Vervaardiging van overige goederen",
+    "x": 54.88,
+    "y": 58.92,
+    "color": "#D2D0D0",
+    "rca": 0.97,
+    "value": 0.5
+  },
+  {
+    "id": "33. Reparatie, onderhoud en installatie van machines en apparaten",
+    "x": 38.97,
+    "y": 29.99,
+    "color": "#CEC5C5",
+    "rca": 0.87,
+    "value": 0.5
+  },
+  {
+    "id": "35. Productie en distributie van en handel in elektriciteit, gas, stoom en gekoelde lucht",
+    "x": 35.5,
+    "y": 30.82,
+    "color": "#D0CBCB",
+    "rca": 0.93,
+    "value": 0.5
+  },
+  {
+    "id": "36. Winning, behandeling en distributie van water",
+    "x": 19.96,
+    "y": 17.26,
+    "color": "#448844",
+    "rca": 2.86,
+    "value": 0.5
+  },
+  {
+    "id": "37. Afvalwaterinzameling en -behandeling",
+    "x": 45.58,
+    "y": 28.33,
+    "color": "#C4A6A6",
+    "rca": 0.62,
+    "value": 0.5
+  },
+  {
+    "id": "38. Afvalinzameling, voorbereiding tot recycling, en verwijdering",
+    "x": 52.48,
+    "y": 32.11,
+    "color": "#AFC0AF",
+    "rca": 1.07,
+    "value": 0.5
+  },
+  {
+    "id": "39. Sanering en overig afvalbeheer",
+    "x": 11.77,
+    "y": 37.02,
+    "color": "#BBC6BB",
+    "rca": 1.03,
+    "value": 0.5
+  },
+  {
+    "id": "41. Burgerlijke en utiliteitsbouw",
+    "x": 30.46,
+    "y": 15.8,
+    "color": "#C8B3B3",
+    "rca": 0.72,
+    "value": 0.5
+  },
+  {
+    "id": "42. Grond-, water- en wegenbouw",
+    "x": 31.44,
+    "y": 13.87,
+    "color": "#BF9A9A",
+    "rca": 0.53,
+    "value": 0.5
+  },
+  {
+    "id": "43. Gespecialiseerde werkzaamheden in de bouw",
+    "x": 41.06,
+    "y": 17.41,
+    "color": "#CFC8C8",
+    "rca": 0.9,
+    "value": 0.5
+  },
+  {
+    "id": "46. Groothandel",
+    "x": 49.57,
+    "y": 48.92,
+    "color": "#CFC6C6",
+    "rca": 0.88,
+    "value": 0.5
+  },
+  {
+    "id": "47. Detailhandel",
+    "x": 48.63,
+    "y": 22.57,
+    "color": "#A6BBA6",
+    "rca": 1.11,
+    "value": 0.5
+  },
+  {
+    "id": "49. Vervoer over land en via pijpleidingen",
+    "x": 49.19,
+    "y": 33.12,
+    "color": "#9AB59A",
+    "rca": 1.18,
+    "value": 0.5
+  },
+  {
+    "id": "50. Vervoer over water",
+    "x": 50.59,
+    "y": 39.13,
+    "color": "#B67D7D",
+    "rca": 0.35,
+    "value": 0.5
+  },
+  {
+    "id": "51. Luchtvaart",
+    "x": 55.9,
+    "y": 55.76,
+    "color": "#9B2F2F",
+    "rca": 0.05,
+    "value": 0.5
+  },
+  {
+    "id": "52. Opslag en dienstverlening voor vervoer",
+    "x": 44.16,
+    "y": 43.49,
+    "color": "#539053",
+    "rca": 2.34,
+    "value": 0.5
+  },
+  {
+    "id": "53. Post- en koeriersdiensten",
+    "x": 67.1,
+    "y": 47.53,
+    "color": "#D2D0D0",
+    "rca": 0.97,
+    "value": 0.5
+  },
+  {
+    "id": "55. Logiesverstrekking en -bemiddeling",
+    "x": 63.12,
+    "y": 0,
+    "color": "#75A275",
+    "rca": 1.58,
+    "value": 0.5
+  },
+  {
+    "id": "56. Exploitatie van eet- en drinkgelegenheden",
+    "x": 64.92,
+    "y": 3.43,
+    "color": "#BBC6BB",
+    "rca": 1.03,
+    "value": 0.5
+  },
+  {
+    "id": "58. Activiteiten van uitgeverijen",
+    "x": 29.01,
+    "y": 88.14,
+    "color": "#BA8989",
+    "rca": 0.42,
+    "value": 0.5
+  },
+  {
+    "id": "59. Productie en distributie van films en video- en televisieprogramma’s en audio, maken van geluidsopnamen en uitgeven van muziekopnamen",
+    "x": 17.3,
+    "y": 100,
+    "color": "#BD9292",
+    "rca": 0.48,
+    "value": 0.5
+  },
+  {
+    "id": "60. Programmering, uitzending, perssagentschappen en overige activiteiten op het gebied van de verspreiding van inhoud",
+    "x": 11.46,
+    "y": 99.27,
+    "color": "#BA8A8A",
+    "rca": 0.43,
+    "value": 0.5
+  },
+  {
+    "id": "61. Telecommunicatie",
+    "x": 31.07,
+    "y": 60.21,
+    "color": "#B1C1B1",
+    "rca": 1.06,
+    "value": 0.5
+  },
+  {
+    "id": "62. Computerprogrammering, consultancy en aanverwante activiteiten",
+    "x": 35.96,
+    "y": 87.7,
+    "color": "#BE9595",
+    "rca": 0.5,
+    "value": 0.5
+  },
+  {
+    "id": "63. Dienstverlenende activiteiten op het gebied van informatie",
+    "x": 27.69,
+    "y": 95.07,
+    "color": "#BD9292",
+    "rca": 0.48,
+    "value": 0.5
+  },
+  {
+    "id": "64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen",
+    "x": 34.46,
+    "y": 58.61,
+    "color": "#B27474",
+    "rca": 0.3,
+    "value": 0.5
+  },
+  {
+    "id": "65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen",
+    "x": 24.1,
+    "y": 69.29,
+    "color": "#A2B9A2",
+    "rca": 1.13,
+    "value": 0.5
+  },
+  {
+    "id": "66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen",
+    "x": 45.88,
+    "y": 66.99,
+    "color": "#CBBCBC",
+    "rca": 0.79,
+    "value": 0.5
+  },
+  {
+    "id": "68. Exploitatie van en handel in onroerend goed",
+    "x": 42.55,
+    "y": 43.65,
+    "color": "#C7B1B1",
+    "rca": 0.7,
+    "value": 0.5
+  },
+  {
+    "id": "69. Rechtskundige en boekhoudkundige dienstverlening",
+    "x": 42.36,
+    "y": 58.06,
+    "color": "#C6ADAD",
+    "rca": 0.67,
+    "value": 0.5
+  },
+  {
+    "id": "70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering",
+    "x": 33.38,
+    "y": 71.04,
+    "color": "#C4A6A6",
+    "rca": 0.62,
+    "value": 0.5
+  },
+  {
+    "id": "71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle",
+    "x": 35.77,
+    "y": 46.75,
+    "color": "#C9B7B7",
+    "rca": 0.75,
+    "value": 0.5
+  },
+  {
+    "id": "72. Wetenschappelijk onderzoek en ontwikkeling",
+    "x": 32.55,
+    "y": 84.39,
+    "color": "#D3D2D2",
+    "rca": 0.99,
+    "value": 0.5
+  },
+  {
+    "id": "73. Reclameactiviteiten, marktonderzoek en public relations",
+    "x": 33.21,
+    "y": 83.94,
+    "color": "#BE9797",
+    "rca": 0.51,
+    "value": 0.5
+  },
+  {
+    "id": "74. Overige wetenschappelijke en technische activiteiten en overige specialistische zakelijke dienstverlening",
+    "x": 37.4,
+    "y": 72.26,
+    "color": "#C3A3A3",
+    "rca": 0.6,
+    "value": 0.5
+  },
+  {
+    "id": "75. Veterinaire dienstverlening",
+    "x": 70.6,
+    "y": 20.85,
+    "color": "#D2CFCF",
+    "rca": 0.96,
+    "value": 0.5
+  },
+  {
+    "id": "77. Verhuur en lease",
+    "x": 35.8,
+    "y": 34.03,
+    "color": "#CFC7C7",
+    "rca": 0.89,
+    "value": 0.5
+  },
+  {
+    "id": "78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer",
+    "x": 44.04,
+    "y": 42.61,
+    "color": "lightgrey",
+    "rca": 1,
+    "value": 0.5
+  },
+  {
+    "id": "79. Activiteiten van reisbureaus, reisorganisatoren, reserveringsbureaus en aanverwante activiteiten",
+    "x": 46.99,
+    "y": 45.68,
+    "color": "#C19F9F",
+    "rca": 0.57,
+    "value": 0.5
+  },
+  {
+    "id": "80. Opsporings- en beveiligingsdiensten",
+    "x": 61.33,
+    "y": 52.46,
+    "color": "#CFC8C8",
+    "rca": 0.9,
+    "value": 0.5
+  },
+  {
+    "id": "81. Diensten in verband met gebouwen; landschapsverzorging",
+    "x": 57.51,
+    "y": 16.69,
+    "color": "#CBBABA",
+    "rca": 0.78,
+    "value": 0.5
+  },
+  {
+    "id": "82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening",
+    "x": 42.95,
+    "y": 52.59,
+    "color": "#98B498",
+    "rca": 1.2,
+    "value": 0.5
+  },
+  {
+    "id": "84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen",
+    "x": 40.05,
+    "y": 50.96,
+    "color": "lightgrey",
+    "rca": 1,
+    "value": 0.5
+  },
+  {
+    "id": "85. Onderwijs",
+    "x": 49.87,
+    "y": 52.32,
+    "color": "#CFC6C6",
+    "rca": 0.88,
+    "value": 0.5
+  },
+  {
+    "id": "86. Gezondheidszorg",
+    "x": 59.05,
+    "y": 30.26,
+    "color": "#AFC0AF",
+    "rca": 1.07,
+    "value": 0.5
+  },
+  {
+    "id": "87. Verpleging, verzorging en begeleiding met verblijf",
+    "x": 72.55,
+    "y": 18.34,
+    "color": "#99B499",
+    "rca": 1.19,
+    "value": 0.5
+  },
+  {
+    "id": "88. Maatschappelijke dienstverlening zonder verblijf",
+    "x": 70.53,
+    "y": 24.29,
+    "color": "#8BAD8B",
+    "rca": 1.31,
+    "value": 0.5
+  },
+  {
+    "id": "90. Activiteiten op het gebied van scheppende en uitvoerende kunst",
+    "x": 36.28,
+    "y": 68.01,
+    "color": "#C9B6B6",
+    "rca": 0.74,
+    "value": 0.5
+  },
+  {
+    "id": "91. Activiteiten van bibliotheken, archieven, musea en overige culturele activiteiten",
+    "x": 35.12,
+    "y": 56.43,
+    "color": "#CFC6C6",
+    "rca": 0.88,
+    "value": 0.5
+  },
+  {
+    "id": "92. Exploitatie van loterijen, kansspelen en kansspelautomaten",
+    "x": 75.79,
+    "y": 5.78,
+    "color": "#5C945C",
+    "rca": 2.08,
+    "value": 0.5
+  },
+  {
+    "id": "93. Sport, ontspanning en recreatie",
+    "x": 54.12,
+    "y": 23.28,
+    "color": "#9DB79D",
+    "rca": 1.16,
+    "value": 0.5
+  },
+  {
+    "id": "94. Activiteiten van ledenorganisaties",
+    "x": 41.4,
+    "y": 38.6,
+    "color": "#C6AEAE",
+    "rca": 0.68,
+    "value": 0.5
+  },
+  {
+    "id": "95. Reparatie en onderhoud van computers, consumentenartikelen, auto’s en motorfietsen",
+    "x": 59.81,
+    "y": 35.2,
+    "color": "#94B294",
+    "rca": 1.23,
+    "value": 0.5
+  },
+  {
+    "id": "96. Persoonlijke dienstverlening",
+    "x": 56.97,
+    "y": 28.55,
+    "color": "#96B396",
+    "rca": 1.21,
+    "value": 0.5
+  }
+]   ;
+
+/* ---------- config ---------- */
+var X_TITLE="Skill-Relatedness Density", Y_TITLE="Economic Complexity Index";
+var FIXED_X_DOMAIN=null;      // e.g. [0,110] to force a domain; null = fit to data
+var R=8;                      // bubble radius
+var MAXLAB=28;                // max label length in characters (full name stays in the tooltip)
+var RCA_TITLE="Employment RCA";
+
+/* ---------- helpers ---------- */
+function median(v){v=[...v].sort((a,b)=>a-b);var h=Math.floor(v.length/2);return v.length%2?v[h]:(v[h-1]+v[h])/2;}
+function niceStep(span,target){var raw=span/target,p=Math.pow(10,Math.floor(Math.log10(raw))),n=raw/p;
+  return (n<1.5?1:n<3?2:n<7?5:10)*p;}
+function niceDomain(min,max,target){var s=niceStep(max-min,target);return [Math.floor(min/s)*s,Math.ceil(max/s)*s,s];}
+function fmt(v,d){return (v===undefined||v===null||v==="")?"–":(typeof v==="number"?v.toFixed(d):v);}
+function el(tag,attrs,parent){var e=document.createElementNS("http://www.w3.org/2000/svg",tag);
+  for(var k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+var LEAD=/^(Vervaardiging van |Activiteiten op het gebied van |Dienstverlenende activiteiten op het gebied van |Activiteiten van |Exploitatie van en handel in |Exploitatie van |Productie en distributie van en handel in |Productie en distributie van |Diensten in verband met |Winning, behandeling en distributie van |Winning van )/;
+function shortName(s){var m=s.match(/^(\d+\.\s*)(.*)$/), code=m?m[1]:"", full=(m?m[2]:s).replace(LEAD,"");
+  full=full.charAt(0).toUpperCase()+full.slice(1);             // generic lead-ins ("Vervaardiging van ...") dropped
+  var t=full.split(/[,;]/)[0];                                 // cut at the first comma or semicolon
+  if(t.length>MAXLAB)t=t.slice(0,MAXLAB).replace(/\s+\S*$/,"").replace(/\s+(en|van|voor|op|de|het|in|met|of)$/,"");
+  return code+t+(t.length<full.length?"\u2026":"");}
+function overlap(a,b,pad){pad=pad||0;return !(a.x+a.w+pad<b.x||b.x+b.w+pad<a.x||a.y+a.h+pad<b.y||b.y+b.h+pad<a.y);}
+
+var mx=median(data.map(d=>d.x)), my=median(data.map(d=>d.y));
+var host=document.getElementById("chart"), tip=document.getElementById("tip");
+
+function draw(){
+  host.querySelectorAll("svg").forEach(s=>s.remove());
+  var W=host.clientWidth, H=host.clientHeight;
+  var m={top:16,right:28,bottom:64,left:78};
+  var iw=W-m.left-m.right, ih=H-m.top-m.bottom;
+
+  var xs=data.map(d=>d.x), ys=data.map(d=>d.y);
+  var xpad=(Math.max(...xs)-Math.min(...xs))*0.12, ypad=(Math.max(...ys)-Math.min(...ys))*0.08;
+  var xd=FIXED_X_DOMAIN?[...FIXED_X_DOMAIN,niceStep(FIXED_X_DOMAIN[1]-FIXED_X_DOMAIN[0],10)]
+                       :niceDomain(Math.min(...xs)-xpad,Math.max(...xs)+xpad,8);
+  var yd=niceDomain(Math.min(...ys)-ypad,Math.max(...ys)+ypad,7);
+  var sx=v=>m.left+(v-xd[0])/(xd[1]-xd[0])*iw;
+  var sy=v=>m.top+ih-(v-yd[0])/(yd[1]-yd[0])*ih;
+
+  var svg=el("svg",{viewBox:`0 0 ${W} ${H}`},null); host.appendChild(svg);
+
+  // quadrant tint (top-right = most promising)
+  el("rect",{x:sx(mx),y:m.top,width:m.left+iw-sx(mx),height:sy(my)-m.top,fill:"#f3f8f4"},svg);
+
+  // grid + ticks
+  var g=el("g",{},svg);
+  for(var v=xd[0];v<=xd[1]+1e-9;v+=xd[2]){var x=sx(v);
+    el("line",{x1:x,x2:x,y1:m.top,y2:m.top+ih,stroke:"var(--grid)"},g);
+    var t=el("g",{class:"tick"},g);var tx=el("text",{x:x,y:m.top+ih+18,"text-anchor":"middle"},t);tx.textContent=+v.toFixed(2);}
+  for(var v=yd[0];v<=yd[1]+1e-9;v+=yd[2]){var y=sy(v);
+    el("line",{x1:m.left,x2:m.left+iw,y1:y,y2:y,stroke:"var(--grid)"},g);
+    var t=el("g",{class:"tick"},g);var ty=el("text",{x:m.left-10,y:y+4,"text-anchor":"end"},t);ty.textContent=+v.toFixed(2);}
+  el("line",{x1:m.left,x2:m.left+iw,y1:m.top+ih,y2:m.top+ih,stroke:"var(--axis)"},g);
+  el("line",{x1:m.left,x2:m.left,y1:m.top,y2:m.top+ih,stroke:"var(--axis)"},g);
+
+  // medians
+  el("line",{x1:sx(mx),x2:sx(mx),y1:m.top,y2:m.top+ih,stroke:"#b8bdc4","stroke-dasharray":"5 5"},svg);
+  el("line",{x1:m.left,x2:m.left+iw,y1:sy(my),y2:sy(my),stroke:"#b8bdc4","stroke-dasharray":"5 5"},svg);
+
+  // quadrant captions
+  var q=[["High complexity · High relatedness",m.left+iw-8,m.top+16,"end"],
+         ["High complexity · Low relatedness",m.left+8,m.top+16,"start"],
+         ["Low complexity · Low relatedness",m.left+8,m.top+ih-10,"start"],
+         ["Low complexity · High relatedness",m.left+iw-8,m.top+ih-10,"end"]];
+  var blocked=[];
+  q.forEach(a=>{var t=el("text",{class:"quad",x:a[1],y:a[2],"text-anchor":a[3]},svg);t.textContent=a[0];
+    var b=t.getBBox();blocked.push({x:b.x,y:b.y,w:b.width,h:b.height});});
+
+  // axis titles
+  var xt=el("text",{class:"axis-title",x:m.left+iw/2,y:H-14,"text-anchor":"middle"},svg);xt.textContent=X_TITLE+"";
+  var yt=el("text",{class:"axis-title",transform:`translate(22,${m.top+ih/2}) rotate(-90)`,"text-anchor":"middle"},svg);yt.textContent=Y_TITLE+"";
+
+  // points
+  var pts=data.map(d=>({d:d,cx:sx(d.x),cy:sy(d.y)}));
+  var circBoxes=pts.map(p=>({x:p.cx-R,y:p.cy-R,w:2*R,h:2*R}));
+  var leaders=el("g",{},svg), dots=el("g",{},svg), labs=el("g",{},svg);
+
+  pts.forEach(p=>{
+    p.c=el("circle",{class:"pt",cx:p.cx,cy:p.cy,r:R,fill:p.d.color,stroke:"#fff","stroke-width":2,
+      style:"filter:drop-shadow(0 1px 1.5px rgba(0,0,0,.18))"},dots);
+    var ring=el("circle",{cx:p.cx,cy:p.cy,r:R+0.5,fill:"none",stroke:p.d.rca>=1?"var(--pos)":"var(--neg)","stroke-width":1,opacity:.55,"pointer-events":"none"},dots);
+  });
+
+  // label placement: greedy, try candidate offsets, avoid circles, other labels, captions, bounds
+  var placed=[];
+  var order=[...pts].sort((a,b)=>shortName(b.d.id).length-shortName(a.d.id).length);
+  order.forEach(p=>{
+    var t=el("text",{class:"label"},labs);t.textContent=shortName(p.d.id);
+    var bb=t.getBBox(), w=bb.width, h=bb.height, gap=R+5;
+    var cands=[];
+    [[1,0],[-1,0],[0,-1],[0,1],[1,-1],[1,1],[-1,-1],[-1,1]].forEach(([dx,dy])=>{
+      [1,1.9,2.8].forEach(k=>cands.push({dx,dy,k}));});
+    var best=null,bestScore=1e9;
+    cands.forEach(c=>{
+      var ax=p.cx+c.dx*gap*c.k, ay=p.cy+c.dy*gap*c.k;
+      var x= c.dx>0?ax: c.dx<0?ax-w: ax-w/2;
+      var y= c.dy>0?ay: c.dy<0?ay-h: ay-h/2;
+      var box={x:x,y:y,w:w,h:h};
+      var s=(c.k-1)*6+(c.dx===0?2:0)+(c.dy!==0&&c.dx!==0?1.5:0);
+      if(x<m.left+2||x+w>m.left+iw-2||y<m.top||y+h>m.top+ih-2)s+=1000;
+      circBoxes.forEach(cb=>{if(overlap(box,cb,2))s+=200;});
+      placed.forEach(pb=>{if(overlap(box,pb,3))s+=300;});
+      blocked.forEach(qb=>{if(overlap(box,qb,2))s+=60;});
+      if(s<bestScore){bestScore=s;best={box,c};}
+    });
+    var b=best.box;
+    t.setAttribute("x",b.x);t.setAttribute("y",b.y+h*0.78);
+    placed.push(b);p.t=t;
+    if(best.c.k>1){ // leader line for pushed-out labels
+      var lx=Math.max(b.x,Math.min(p.cx,b.x+b.w)), ly=Math.max(b.y,Math.min(p.cy,b.y+b.h));
+      var dx=lx-p.cx, dy=ly-p.cy, dist=Math.hypot(dx,dy)||1;
+      p.l=el("line",{class:"leader",x1:p.cx+dx/dist*(R+2),y1:p.cy+dy/dist*(R+2),x2:lx,y2:ly},leaders);
+    }
+  });
+
+  // interaction
+  pts.forEach(p=>{
+    p.c.addEventListener("mouseenter",()=>{
+      svg.classList.add("dim");[p.c,p.t,p.l].forEach(e=>e&&e.classList.add("on"));p.c.setAttribute("r",R+3);
+      var d=p.d;
+      tip.innerHTML=`<h4>${d.id}</h4><table>
+        <tr><td>${X_TITLE}</td><td class="v">${fmt(d.x,1)}</td></tr>
+        <tr><td>${Y_TITLE}</td><td class="v">${fmt(d.y,1)}</td></tr>
+        <tr><td>${RCA_TITLE}</td><td class="v" style="color:${d.rca>=1?"var(--pos)":"var(--neg)"}">${fmt(d.rca,2)}</td></tr>
+        ${d.crunchbase!==undefined?`<tr><td>Investment index</td><td class="v">${fmt(d.crunchbase,2)}</td></tr>`:""}
+        ${d.regpat!==undefined?`<tr><td>Technology index</td><td class="v">${fmt(d.regpat,2)}</td></tr>`:""}
+        ${d.openalex!==undefined?`<tr><td>Scientific index</td><td class="v">${fmt(d.openalex,2)}</td></tr>`:""}
+      </table>`;
+      tip.style.opacity=1;
+      var tw=tip.offsetWidth, th=tip.offsetHeight;
+      var left=p.cx+16+tw>W?p.cx-16-tw:p.cx+16, top=Math.max(4,Math.min(H-th-4,p.cy-th/2));
+      tip.style.left=left+"px";tip.style.top=top+"px";
+    });
+    p.c.addEventListener("mouseleave",()=>{
+      svg.classList.remove("dim");[p.c,p.t,p.l].forEach(e=>e&&e.classList.remove("on"));p.c.setAttribute("r",R);
+      tip.style.opacity=0;
+    });
+  });
+}
+
+draw();
+var rt;window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(draw,120);});
+</script>
+</body>
+</html>
