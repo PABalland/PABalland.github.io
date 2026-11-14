@@ -1,5 +1,3 @@
-
-
 p <- "rvo"
 setwd(paste0("~/Library/CloudStorage/Dropbox/GitHub/PABalland.github.io/asg/", p))
 folder <- paste0("~/Library/CloudStorage/Dropbox/GitHub/PABalland.github.io/asg/", p)
