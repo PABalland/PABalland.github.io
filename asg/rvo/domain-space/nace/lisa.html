@@ -1,0 +1,646 @@
+<!doctype html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <title>Forced Network</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+            font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        #legend-container {
+            flex: 0 0 auto;
+            max-height: 12%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: clamp(4px, 1.2vh, 12px) clamp(8px, 3vw, 32px);
+            background: rgba(255, 255, 255, 0.96);
+            order: 2;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .custom-legend {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(6px, 1.5vw, 16px);
+            width: 100%;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: clamp(4px, 0.5vw, 8px);
+            font-weight: 600;
+            color: #1b1d21;
+            font-size: clamp(10px, 1.3vw, 16px);
+            cursor: default;
+            white-space: nowrap;
+        }
+
+        .legend-item.dim {
+            opacity: 0.35;
+        }
+
+        .legend-square {
+            width: clamp(10px, 1.2vw, 16px);
+            height: clamp(10px, 1.2vw, 16px);
+            flex-shrink: 0;
+        }
+
+        .legend-label {
+            pointer-events: none;
+        }
+
+        @media (max-width: 600px) {
+            #legend-container {
+                padding: 4px 8px;
+                max-height: 18%;
+            }
+
+            .custom-legend {
+                gap: 4px 8px;
+            }
+
+            .legend-item {
+                font-size: 10px;
+                gap: 3px;
+            }
+
+            .legend-square {
+                width: 8px;
+                height: 8px;
+            }
+        }
+
+        svg.network {
+            flex: 1 1 auto;
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: move;
+            background: #ffffff;
+            order: 1;
+        }
+
+        .link {
+            stroke: rgba(140, 150, 170, 0.45);
+        }
+
+        .link.highlighted {
+            stroke: rgba(80, 90, 110, 0.9);
+            stroke-width: 6px;
+        }
+
+        .link.dimmed {
+            opacity: 0.2;
+        }
+
+        .node.dimmed {
+            opacity: 0.25;
+        }
+
+        .node.highlighted circle {
+            stroke-width: 3px;
+        }
+
+        .node.highlighted text {
+            font-weight: 700;
+        }
+
+        .node circle {
+            stroke: #ffffff;
+            stroke-width: 2px;
+        }
+
+        .node text {
+            font-weight: 400;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+            font-family: "Helvetica Neue", Arial, sans-serif;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="legend-container">
+        <div class="custom-legend" id="legend"></div>
+    </div>
+
+    <svg class="network"></svg>
+
+    <script>
+
+        var nodes = [{"id":"02. Bosbouw, exploitatie van bossen en dienstverlening voor de bosbouw","id2":0,"x":2.4044,"y":0.0858,"color":"#009E73","parent":"Primary & Extractive","size":1.5},{"id":"03. Visserij en aquacultuur","id2":1,"x":-0.8898,"y":1.1211,"color":"#009E73","parent":"Primary & Extractive","size":1.5},{"id":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","id2":2,"x":-1.8773,"y":0.2964,"color":"#009E73","parent":"Primary & Extractive","size":1.5},{"id":"11. Vervaardiging van dranken","id2":3,"x":-3.344,"y":1.1025,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"10. Vervaardiging van voedingsmiddelen","id2":4,"x":-1.6178,"y":1.3812,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"14. Vervaardiging van kleding","id2":5,"x":-0.9973,"y":2.7991,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"46. Groothandel","id2":6,"x":-1.183,"y":0.3392,"color":"#E69F00","parent":"Trade, Transport & Hospitality","size":1.5},{"id":"18. Activiteiten op het gebied van drukwerk en reproductie van opgenomen media","id2":7,"x":2.141,"y":-1.4271,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"38. Afvalinzameling, voorbereiding tot recycling, en verwijdering","id2":8,"x":-3.8186,"y":1.697,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"20. Vervaardiging van chemicaliën en chemische producten","id2":9,"x":-2.7703,"y":-0.1323,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"21. Vervaardiging van farmaceutische grondstoffen en producten","id2":10,"x":-3.3986,"y":-0.9472,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"24. Vervaardiging van basismetalen","id2":11,"x":-3.1176,"y":-3.5358,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"28. Vervaardiging van machines en apparaten, n.e.g.","id2":12,"x":-2.0439,"y":-1.5909,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"27. Vervaardiging van elektrische apparatuur","id2":13,"x":-3.3161,"y":-1.4763,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"26. Vervaardiging van computers en van elektronische en optische apparatuur","id2":14,"x":-1.4526,"y":-1.3442,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"29. Vervaardiging van motorvoertuigen, aanhangwagens en opleggers","id2":15,"x":-3.7502,"y":-3.087,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"30. Vervaardiging van overige vervoermiddelen","id2":16,"x":-1.7697,"y":-3.8145,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"35. Productie en distributie van en handel in elektriciteit, gas, stoom en gekoelde lucht","id2":17,"x":-0.4218,"y":-2.4447,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"36. Winning, behandeling en distributie van water","id2":18,"x":0.1239,"y":-3.3084,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"41. Burgerlijke en utiliteitsbouw","id2":19,"x":-0.904,"y":-0.2186,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"16. Houtindustrie en vervaardiging van artikelen van hout en kurk, met uitzondering van meubelen; vervaardiging van artikelen van riet en van vlechtwerk","id2":20,"x":-3.8065,"y":0.6729,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"42. Grond-, water- en wegenbouw","id2":21,"x":-1.0036,"y":-2.0181,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"39. Sanering en overig afvalbeheer","id2":22,"x":0.0019,"y":-2.6003,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"37. Afvalwaterinzameling en -behandeling","id2":23,"x":1.0564,"y":-2.1371,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","id2":24,"x":-0.3523,"y":0.1699,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"33. Reparatie, onderhoud en installatie van machines en apparaten","id2":25,"x":-1.3719,"y":-2.0179,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"13. Vervaardiging van textiel","id2":26,"x":-2.2419,"y":2.6754,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"47. Detailhandel","id2":27,"x":-0.1721,"y":1.6077,"color":"#E69F00","parent":"Trade, Transport & Hospitality","size":1.5},{"id":"96. Persoonlijke dienstverlening","id2":28,"x":0.6095,"y":2.9798,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"49. Vervoer over land en via pijpleidingen","id2":29,"x":-2.0133,"y":1.0535,"color":"#E69F00","parent":"Trade, Transport & Hospitality","size":1.5},{"id":"52. Opslag en dienstverlening voor vervoer","id2":30,"x":-1.7567,"y":1.8732,"color":"#E69F00","parent":"Trade, Transport & Hospitality","size":1.5},{"id":"55. Logiesverstrekking en -bemiddeling","id2":31,"x":0.1373,"y":2.2805,"color":"#E69F00","parent":"Trade, Transport & Hospitality","size":1.5},{"id":"59. Productie en distributie van films en video- en televisieprogramma’s en audio, maken van geluidsopnamen en uitgeven van muziekopnamen","id2":32,"x":4.0965,"y":2.1092,"color":"#0072B2","parent":"Information & Communication","size":1.5},{"id":"60. Programmering, uitzending, perssagentschappen en overige activiteiten op het gebied van de verspreiding van inhoud","id2":33,"x":4.7661,"y":0.7373,"color":"#0072B2","parent":"Information & Communication","size":1.5},{"id":"58. Activiteiten van uitgeverijen","id2":34,"x":3.0964,"y":-0.1735,"color":"#0072B2","parent":"Information & Communication","size":1.5},{"id":"73. Reclameactiviteiten, marktonderzoek en public relations","id2":35,"x":1.9899,"y":0.3848,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"62. Computerprogrammering, consultancy en aanverwante activiteiten","id2":36,"x":1.0479,"y":0.0295,"color":"#0072B2","parent":"Information & Communication","size":1.5},{"id":"61. Telecommunicatie","id2":37,"x":0.2015,"y":-1.1276,"color":"#0072B2","parent":"Information & Communication","size":1.5},{"id":"63. Dienstverlenende activiteiten op het gebied van informatie","id2":38,"x":3.0811,"y":-0.668,"color":"#0072B2","parent":"Information & Communication","size":1.5},{"id":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","id2":39,"x":0.825,"y":-0.4062,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","id2":40,"x":1.6958,"y":-0.4408,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"69. Rechtskundige en boekhoudkundige dienstverlening","id2":41,"x":1.1833,"y":0.2522,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"06. Winning van aardolie en aardgas","id2":42,"x":0.5025,"y":-2.0764,"color":"#009E73","parent":"Primary & Extractive","size":1.5},{"id":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","id2":43,"x":-0.6459,"y":-1.2792,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"85. Onderwijs","id2":44,"x":0.2566,"y":0.6419,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"74. Overige wetenschappelijke en technische activiteiten en overige specialistische zakelijke dienstverlening","id2":45,"x":2.7073,"y":1.1744,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"77. Verhuur en lease","id2":46,"x":-2.5134,"y":2.1071,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"51. Luchtvaart","id2":47,"x":-1.4825,"y":4.4776,"color":"#E69F00","parent":"Trade, Transport & Hospitality","size":1.5},{"id":"82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening","id2":48,"x":1.2807,"y":1.3677,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","id2":49,"x":0.647,"y":0.0003,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"86. Gezondheidszorg","id2":50,"x":0.2248,"y":0.9127,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"88. Maatschappelijke dienstverlening zonder verblijf","id2":51,"x":1.0105,"y":1.5854,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"92. Exploitatie van loterijen, kansspelen en kansspelautomaten","id2":52,"x":0.8585,"y":3.8796,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"93. Sport, ontspanning en recreatie","id2":53,"x":0.1531,"y":2.8544,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"94. Activiteiten van ledenorganisaties","id2":54,"x":1.6157,"y":0.7895,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"95. Reparatie en onderhoud van computers, consumentenartikelen, auto’s en motorfietsen","id2":55,"x":-1.5787,"y":2.8992,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"56. Exploitatie van eet- en drinkgelegenheden","id2":56,"x":0.4665,"y":2.1066,"color":"#E69F00","parent":"Trade, Transport & Hospitality","size":1.5},{"id":"87. Verpleging, verzorging en begeleiding met verblijf","id2":57,"x":0.5876,"y":1.5915,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","id2":58,"x":1.5948,"y":-0.8275,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"12. Vervaardiging van tabaksproducten","id2":59,"x":-3.3677,"y":1.6464,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"32. Vervaardiging van overige goederen","id2":60,"x":1.6849,"y":1.1052,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"43. Gespecialiseerde werkzaamheden in de bouw","id2":61,"x":-0.9134,"y":-0.9515,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"19. Vervaardiging van cokes en van geraffineerde aardolieproducten","id2":62,"x":-3.841,"y":0.0028,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"09. Dienstverlening voor de winning van delfstoffen","id2":63,"x":-2.1024,"y":-3.0911,"color":"#009E73","parent":"Primary & Extractive","size":1.5},{"id":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","id2":64,"x":-2.2504,"y":-2.1157,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"53. Post- en koeriersdiensten","id2":65,"x":-1.3861,"y":2.0165,"color":"#E69F00","parent":"Trade, Transport & Hospitality","size":1.5},{"id":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","id2":66,"x":0.108,"y":-0.3822,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"50. Vervoer over water","id2":67,"x":-2.2952,"y":0.0251,"color":"#E69F00","parent":"Trade, Transport & Hospitality","size":1.5},{"id":"90. Activiteiten op het gebied van scheppende en uitvoerende kunst","id2":68,"x":3.2749,"y":3.0006,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"80. Opsporings- en beveiligingsdiensten","id2":69,"x":-0.5098,"y":1.7507,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"72. Wetenschappelijk onderzoek en ontwikkeling","id2":70,"x":-1.4892,"y":-0.5052,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"81. Diensten in verband met gebouwen; landschapsverzorging","id2":71,"x":0.2319,"y":0.373,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"17. Vervaardiging van papier en papierwaren","id2":72,"x":0.7734,"y":-2.7656,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"68. Exploitatie van en handel in onroerend goed","id2":73,"x":0.7657,"y":0.7041,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"22. Vervaardiging van producten van rubber of kunststof","id2":74,"x":-1.9046,"y":-2.2855,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"31. Vervaardiging van meubelen","id2":75,"x":-2.5363,"y":1.1912,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"79. Activiteiten van reisbureaus, reisorganisatoren, reserveringsbureaus en aanverwante activiteiten","id2":76,"x":0.0206,"y":3.553,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"91. Activiteiten van bibliotheken, archieven, musea en overige culturele activiteiten","id2":77,"x":3.8466,"y":1.4758,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"99. Activiteiten van extraterritoriale organisaties en instanties","id2":78,"x":0.6805,"y":-0.8596,"color":"#56B4E9","parent":"Public & Social Services","size":1.5},{"id":"23. Vervaardiging van overige niet-metaalhoudende minerale producten","id2":79,"x":-2.7298,"y":-1.6524,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"15. Vervaardiging van leer, lederwaren en soortgelijke producten van andere materialen","id2":80,"x":-2.6197,"y":1.7468,"color":"#D55E00","parent":"Industry & Construction","size":1.5},{"id":"75. Veterinaire dienstverlening","id2":81,"x":1.4027,"y":3.2363,"color":"#CC79A7","parent":"Finance & Business Services","size":1.5},{"id":"08. Overige winning van delfstoffen","id2":82,"x":-3.325,"y":-0.5308,"color":"#009E73","parent":"Primary & Extractive","size":1.5}] ;
+
+        var links =  [{"source":"02. Bosbouw, exploitatie van bossen en dienstverlening voor de bosbouw","target":"81. Diensten in verband met gebouwen; landschapsverzorging","weight":0.0462},{"source":"03. Visserij en aquacultuur","target":"46. Groothandel","weight":0.0218},{"source":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","target":"08. Overige winning van delfstoffen","weight":0.0228},{"source":"11. Vervaardiging van dranken","target":"10. Vervaardiging van voedingsmiddelen","weight":0.038},{"source":"10. Vervaardiging van voedingsmiddelen","target":"46. Groothandel","weight":0.0843},{"source":"14. Vervaardiging van kleding","target":"47. Detailhandel","weight":0.0285},{"source":"46. Groothandel","target":"15. Vervaardiging van leer, lederwaren en soortgelijke producten van andere materialen","weight":0.027},{"source":"18. Activiteiten op het gebied van drukwerk en reproductie van opgenomen media","target":"17. Vervaardiging van papier en papierwaren","weight":0.1004},{"source":"18. Activiteiten op het gebied van drukwerk en reproductie van opgenomen media","target":"58. Activiteiten van uitgeverijen","weight":0.0519},{"source":"38. Afvalinzameling, voorbereiding tot recycling, en verwijdering","target":"19. Vervaardiging van cokes en van geraffineerde aardolieproducten","weight":0.0523},{"source":"20. Vervaardiging van chemicaliën en chemische producten","target":"19. Vervaardiging van cokes en van geraffineerde aardolieproducten","weight":0.1018},{"source":"21. Vervaardiging van farmaceutische grondstoffen en producten","target":"72. Wetenschappelijk onderzoek en ontwikkeling","weight":0.0685},{"source":"46. Groothandel","target":"22. Vervaardiging van producten van rubber of kunststof","weight":0.0428},{"source":"46. Groothandel","target":"23. Vervaardiging van overige niet-metaalhoudende minerale producten","weight":0.0338},{"source":"24. Vervaardiging van basismetalen","target":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","weight":0.0607},{"source":"28. Vervaardiging van machines en apparaten, n.e.g.","target":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","weight":0.099},{"source":"28. Vervaardiging van machines en apparaten, n.e.g.","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0807},{"source":"27. Vervaardiging van elektrische apparatuur","target":"28. Vervaardiging van machines en apparaten, n.e.g.","weight":0.0456},{"source":"26. Vervaardiging van computers en van elektronische en optische apparatuur","target":"28. Vervaardiging van machines en apparaten, n.e.g.","weight":0.0458},{"source":"29. Vervaardiging van motorvoertuigen, aanhangwagens en opleggers","target":"28. Vervaardiging van machines en apparaten, n.e.g.","weight":0.0602},{"source":"30. Vervaardiging van overige vervoermiddelen","target":"09. Dienstverlening voor de winning van delfstoffen","weight":0.0443},{"source":"35. Productie en distributie van en handel in elektriciteit, gas, stoom en gekoelde lucht","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0446},{"source":"36. Winning, behandeling en distributie van water","target":"35. Productie en distributie van en handel in elektriciteit, gas, stoom en gekoelde lucht","weight":0.0234},{"source":"38. Afvalinzameling, voorbereiding tot recycling, en verwijdering","target":"49. Vervoer over land en via pijpleidingen","weight":0.0584},{"source":"41. Burgerlijke en utiliteitsbouw","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.1099},{"source":"16. Houtindustrie en vervaardiging van artikelen van hout en kurk, met uitzondering van meubelen; vervaardiging van artikelen van riet en van vlechtwerk","target":"41. Burgerlijke en utiliteitsbouw","weight":0.0538},{"source":"42. Grond-, water- en wegenbouw","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.071},{"source":"42. Grond-, water- en wegenbouw","target":"09. Dienstverlening voor de winning van delfstoffen","weight":0.0996},{"source":"39. Sanering en overig afvalbeheer","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.038},{"source":"37. Afvalwaterinzameling en -behandeling","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0252},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0886},{"source":"33. Reparatie, onderhoud en installatie van machines en apparaten","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0576},{"source":"13. Vervaardiging van textiel","target":"46. Groothandel","weight":0.0345},{"source":"46. Groothandel","target":"47. Detailhandel","weight":0.2203},{"source":"46. Groothandel","target":"31. Vervaardiging van meubelen","weight":0.0395},{"source":"46. Groothandel","target":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","weight":0.0665},{"source":"47. Detailhandel","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.1687},{"source":"96. Persoonlijke dienstverlening","target":"47. Detailhandel","weight":0.069},{"source":"46. Groothandel","target":"49. Vervoer over land en via pijpleidingen","weight":0.0772},{"source":"49. Vervoer over land en via pijpleidingen","target":"53. Post- en koeriersdiensten","weight":0.0942},{"source":"52. Opslag en dienstverlening voor vervoer","target":"49. Vervoer over land en via pijpleidingen","weight":0.1255},{"source":"52. Opslag en dienstverlening voor vervoer","target":"50. Vervoer over water","weight":0.083},{"source":"55. Logiesverstrekking en -bemiddeling","target":"81. Diensten in verband met gebouwen; landschapsverzorging","weight":0.0676},{"source":"55. Logiesverstrekking en -bemiddeling","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.3234},{"source":"59. Productie en distributie van films en video- en televisieprogramma’s en audio, maken van geluidsopnamen en uitgeven van muziekopnamen","target":"90. Activiteiten op het gebied van scheppende en uitvoerende kunst","weight":0.0774},{"source":"60. Programmering, uitzending, perssagentschappen en overige activiteiten op het gebied van de verspreiding van inhoud","target":"59. Productie en distributie van films en video- en televisieprogramma’s en audio, maken van geluidsopnamen en uitgeven van muziekopnamen","weight":0.1914},{"source":"58. Activiteiten van uitgeverijen","target":"60. Programmering, uitzending, perssagentschappen en overige activiteiten op het gebied van de verspreiding van inhoud","weight":0.0507},{"source":"73. Reclameactiviteiten, marktonderzoek en public relations","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0852},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0879},{"source":"61. Telecommunicatie","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.1072},{"source":"63. Dienstverlenende activiteiten op het gebied van informatie","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.097},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0843},{"source":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","target":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","weight":0.1616},{"source":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","target":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","weight":0.1115},{"source":"69. Rechtskundige en boekhoudkundige dienstverlening","target":"68. Exploitatie van en handel in onroerend goed","weight":0.0515},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.1028},{"source":"06. Winning van aardolie en aardgas","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0487},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0875},{"source":"85. Onderwijs","target":"72. Wetenschappelijk onderzoek en ontwikkeling","weight":0.0557},{"source":"73. Reclameactiviteiten, marktonderzoek en public relations","target":"58. Activiteiten van uitgeverijen","weight":0.0526},{"source":"74. Overige wetenschappelijke en technische activiteiten en overige specialistische zakelijke dienstverlening","target":"73. Reclameactiviteiten, marktonderzoek en public relations","weight":0.0484},{"source":"47. Detailhandel","target":"75. Veterinaire dienstverlening","weight":0.0385},{"source":"77. Verhuur en lease","target":"12. Vervaardiging van tabaksproducten","weight":0.1487},{"source":"77. Verhuur en lease","target":"46. Groothandel","weight":0.046},{"source":"47. Detailhandel","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.1075},{"source":"51. Luchtvaart","target":"79. Activiteiten van reisbureaus, reisorganisatoren, reserveringsbureaus en aanverwante activiteiten","weight":0.0485},{"source":"55. Logiesverstrekking en -bemiddeling","target":"79. Activiteiten van reisbureaus, reisorganisatoren, reserveringsbureaus en aanverwante activiteiten","weight":0.0471},{"source":"82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0565},{"source":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","target":"32. Vervaardiging van overige goederen","weight":0.1313},{"source":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.1689},{"source":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","target":"80. Opsporings- en beveiligingsdiensten","weight":0.0718},{"source":"69. Rechtskundige en boekhoudkundige dienstverlening","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0856},{"source":"85. Onderwijs","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0887},{"source":"86. Gezondheidszorg","target":"87. Verpleging, verzorging en begeleiding met verblijf","weight":0.2712},{"source":"47. Detailhandel","target":"87. Verpleging, verzorging en begeleiding met verblijf","weight":0.087},{"source":"88. Maatschappelijke dienstverlening zonder verblijf","target":"87. Verpleging, verzorging en begeleiding met verblijf","weight":0.3005},{"source":"02. Bosbouw, exploitatie van bossen en dienstverlening voor de bosbouw","target":"91. Activiteiten van bibliotheken, archieven, musea en overige culturele activiteiten","weight":0.0394},{"source":"92. Exploitatie van loterijen, kansspelen en kansspelautomaten","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.0408},{"source":"93. Sport, ontspanning en recreatie","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.0872},{"source":"94. Activiteiten van ledenorganisaties","target":"85. Onderwijs","weight":0.0834},{"source":"95. Reparatie en onderhoud van computers, consumentenartikelen, auto’s en motorfietsen","target":"47. Detailhandel","weight":0.0411},{"source":"94. Activiteiten van ledenorganisaties","target":"99. Activiteiten van extraterritoriale organisaties en instanties","weight":0},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"55. Logiesverstrekking en -bemiddeling","weight":0.3174},{"source":"87. Verpleging, verzorging en begeleiding met verblijf","target":"88. Maatschappelijke dienstverlening zonder verblijf","weight":0.3005},{"source":"88. Maatschappelijke dienstverlening zonder verblijf","target":"87. Verpleging, verzorging en begeleiding met verblijf","weight":0.2972},{"source":"87. Verpleging, verzorging en begeleiding met verblijf","target":"86. Gezondheidszorg","weight":0.2712},{"source":"47. Detailhandel","target":"46. Groothandel","weight":0.2203},{"source":"86. Gezondheidszorg","target":"87. Verpleging, verzorging en begeleiding met verblijf","weight":0.2143},{"source":"59. Productie en distributie van films en video- en televisieprogramma’s en audio, maken van geluidsopnamen en uitgeven van muziekopnamen","target":"60. Programmering, uitzending, perssagentschappen en overige activiteiten op het gebied van de verspreiding van inhoud","weight":0.1763},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.1689},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"47. Detailhandel","weight":0.1687},{"source":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","target":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","weight":0.1616},{"source":"88. Maatschappelijke dienstverlening zonder verblijf","target":"86. Gezondheidszorg","weight":0.1571},{"source":"12. Vervaardiging van tabaksproducten","target":"77. Verhuur en lease","weight":0.1487},{"source":"86. Gezondheidszorg","target":"88. Maatschappelijke dienstverlening zonder verblijf","weight":0.1396},{"source":"46. Groothandel","target":"47. Detailhandel","weight":0.1379},{"source":"32. Vervaardiging van overige goederen","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.1313},{"source":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","target":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","weight":0.1312},{"source":"49. Vervoer over land en via pijpleidingen","target":"52. Opslag en dienstverlening voor vervoer","weight":0.1217},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","weight":0.1115},{"source":"43. Gespecialiseerde werkzaamheden in de bouw","target":"41. Burgerlijke en utiliteitsbouw","weight":0.1099},{"source":"47. Detailhandel","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.1087},{"source":"19. Vervaardiging van cokes en van geraffineerde aardolieproducten","target":"20. Vervaardiging van chemicaliën en chemische producten","weight":0.1018},{"source":"09. Dienstverlening voor de winning van delfstoffen","target":"42. Grond-, water- en wegenbouw","weight":0.0996},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"63. Dienstverlenende activiteiten op het gebied van informatie","weight":0.097},{"source":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","target":"28. Vervaardiging van machines en apparaten, n.e.g.","weight":0.0969},{"source":"53. Post- en koeriersdiensten","target":"49. Vervoer over land en via pijpleidingen","weight":0.0942},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0922},{"source":"63. Dienstverlenende activiteiten op het gebied van informatie","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0919},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"46. Groothandel","weight":0.0918},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"85. Onderwijs","weight":0.0887},{"source":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","target":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","weight":0.0885},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0879},{"source":"46. Groothandel","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0877},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0875},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0873},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"93. Sport, ontspanning en recreatie","weight":0.0872},{"source":"41. Burgerlijke en utiliteitsbouw","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0871},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","weight":0.0843},{"source":"46. Groothandel","target":"10. Vervaardiging van voedingsmiddelen","weight":0.0843},{"source":"10. Vervaardiging van voedingsmiddelen","target":"46. Groothandel","weight":0.0838},{"source":"69. Rechtskundige en boekhoudkundige dienstverlening","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0837},{"source":"85. Onderwijs","target":"94. Activiteiten van ledenorganisaties","weight":0.0834},{"source":"50. Vervoer over water","target":"52. Opslag en dienstverlening voor vervoer","weight":0.083},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"28. Vervaardiging van machines en apparaten, n.e.g.","weight":0.0807},{"source":"88. Maatschappelijke dienstverlening zonder verblijf","target":"85. Onderwijs","weight":0.0806},{"source":"47. Detailhandel","target":"86. Gezondheidszorg","weight":0.0796},{"source":"90. Activiteiten op het gebied van scheppende en uitvoerende kunst","target":"59. Productie en distributie van films en video- en televisieprogramma’s en audio, maken van geluidsopnamen en uitgeven van muziekopnamen","weight":0.0774},{"source":"47. Detailhandel","target":"88. Maatschappelijke dienstverlening zonder verblijf","weight":0.0769},{"source":"49. Vervoer over land en via pijpleidingen","target":"46. Groothandel","weight":0.0768},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","weight":0.0765},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"46. Groothandel","weight":0.075},{"source":"86. Gezondheidszorg","target":"85. Onderwijs","weight":0.0746},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0743},{"source":"49. Vervoer over land en via pijpleidingen","target":"53. Post- en koeriersdiensten","weight":0.0741},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"49. Vervoer over land en via pijpleidingen","weight":0.074},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"73. Reclameactiviteiten, marktonderzoek en public relations","weight":0.0737},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"47. Detailhandel","weight":0.0719},{"source":"80. Opsporings- en beveiligingsdiensten","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0718},{"source":"43. Gespecialiseerde werkzaamheden in de bouw","target":"42. Grond-, water- en wegenbouw","weight":0.071},{"source":"69. Rechtskundige en boekhoudkundige dienstverlening","target":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","weight":0.0708},{"source":"93. Sport, ontspanning en recreatie","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.0704},{"source":"46. Groothandel","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0695},{"source":"47. Detailhandel","target":"10. Vervaardiging van voedingsmiddelen","weight":0.0692},{"source":"86. Gezondheidszorg","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0688},{"source":"72. Wetenschappelijk onderzoek en ontwikkeling","target":"21. Vervaardiging van farmaceutische grondstoffen en producten","weight":0.0685},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.0683},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"55. Logiesverstrekking en -bemiddeling","weight":0.0676},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"41. Burgerlijke en utiliteitsbouw","weight":0.0675},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"61. Telecommunicatie","weight":0.067},{"source":"85. Onderwijs","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0667},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"42. Grond-, water- en wegenbouw","weight":0.0666},{"source":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","target":"46. Groothandel","weight":0.0665},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"46. Groothandel","weight":0.0663},{"source":"46. Groothandel","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0663},{"source":"52. Opslag en dienstverlening voor vervoer","target":"46. Groothandel","weight":0.0662},{"source":"42. Grond-, water- en wegenbouw","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0649},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0645},{"source":"88. Maatschappelijke dienstverlening zonder verblijf","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0638},{"source":"46. Groothandel","target":"28. Vervaardiging van machines en apparaten, n.e.g.","weight":0.0635},{"source":"85. Onderwijs","target":"86. Gezondheidszorg","weight":0.0634},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"52. Opslag en dienstverlening voor vervoer","weight":0.0634},{"source":"46. Groothandel","target":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","weight":0.063},{"source":"94. Activiteiten van ledenorganisaties","target":"85. Onderwijs","weight":0.0626},{"source":"46. Groothandel","target":"52. Opslag en dienstverlening voor vervoer","weight":0.0624},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","weight":0.0622},{"source":"43. Gespecialiseerde werkzaamheden in de bouw","target":"46. Groothandel","weight":0.0619},{"source":"09. Dienstverlening voor de winning van delfstoffen","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0615},{"source":"52. Opslag en dienstverlening voor vervoer","target":"50. Vervoer over water","weight":0.0614},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","weight":0.0611},{"source":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","target":"24. Vervaardiging van basismetalen","weight":0.0607},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"81. Diensten in verband met gebouwen; landschapsverzorging","weight":0.0602},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","weight":0.0601},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"28. Vervaardiging van machines en apparaten, n.e.g.","weight":0.0601},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.06},{"source":"46. Groothandel","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0596},{"source":"17. Vervaardiging van papier en papierwaren","target":"18. Activiteiten op het gebied van drukwerk en reproductie van opgenomen media","weight":0.0593},{"source":"21. Vervaardiging van farmaceutische grondstoffen en producten","target":"72. Wetenschappelijk onderzoek en ontwikkeling","weight":0.0593},{"source":"42. Grond-, water- en wegenbouw","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0593},{"source":"47. Detailhandel","target":"96. Persoonlijke dienstverlening","weight":0.059},{"source":"85. Onderwijs","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0589},{"source":"46. Groothandel","target":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","weight":0.0586},{"source":"49. Vervoer over land en via pijpleidingen","target":"38. Afvalinzameling, voorbereiding tot recycling, en verwijdering","weight":0.0584},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"42. Grond-, water- en wegenbouw","weight":0.0584},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0582},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0581},{"source":"47. Detailhandel","target":"85. Onderwijs","weight":0.0572},{"source":"87. Verpleging, verzorging en begeleiding met verblijf","target":"85. Onderwijs","weight":0.0572},{"source":"55. Logiesverstrekking en -bemiddeling","target":"47. Detailhandel","weight":0.0571},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0568},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening","weight":0.0565},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"87. Verpleging, verzorging en begeleiding met verblijf","weight":0.0562},{"source":"86. Gezondheidszorg","target":"94. Activiteiten van ledenorganisaties","weight":0.0562},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"86. Gezondheidszorg","weight":0.0562},{"source":"47. Detailhandel","target":"49. Vervoer over land en via pijpleidingen","weight":0.0561},{"source":"20. Vervaardiging van chemicaliën en chemische producten","target":"19. Vervaardiging van cokes en van geraffineerde aardolieproducten","weight":0.056},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"46. Groothandel","weight":0.0558},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"69. Rechtskundige en boekhoudkundige dienstverlening","weight":0.0551},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"80. Opsporings- en beveiligingsdiensten","weight":0.055},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"69. Rechtskundige en boekhoudkundige dienstverlening","weight":0.0549},{"source":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","target":"69. Rechtskundige en boekhoudkundige dienstverlening","weight":0.0548},{"source":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","target":"46. Groothandel","weight":0.0547},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"81. Diensten in verband met gebouwen; landschapsverzorging","weight":0.0543},{"source":"94. Activiteiten van ledenorganisaties","target":"86. Gezondheidszorg","weight":0.0543},{"source":"24. Vervaardiging van basismetalen","target":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","weight":0.0541},{"source":"10. Vervaardiging van voedingsmiddelen","target":"47. Detailhandel","weight":0.0541},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"69. Rechtskundige en boekhoudkundige dienstverlening","weight":0.054},{"source":"43. Gespecialiseerde werkzaamheden in de bouw","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0539},{"source":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","target":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","weight":0.0536},{"source":"82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening","target":"46. Groothandel","weight":0.0535},{"source":"55. Logiesverstrekking en -bemiddeling","target":"93. Sport, ontspanning en recreatie","weight":0.0534},{"source":"85. Onderwijs","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0532},{"source":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","target":"33. Reparatie, onderhoud en installatie van machines en apparaten","weight":0.0531},{"source":"47. Detailhandel","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0528},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"96. Persoonlijke dienstverlening","weight":0.0526},{"source":"58. Activiteiten van uitgeverijen","target":"73. Reclameactiviteiten, marktonderzoek en public relations","weight":0.0526},{"source":"38. Afvalinzameling, voorbereiding tot recycling, en verwijdering","target":"49. Vervoer over land en via pijpleidingen","weight":0.0525},{"source":"72. Wetenschappelijk onderzoek en ontwikkeling","target":"86. Gezondheidszorg","weight":0.0525},{"source":"46. Groothandel","target":"33. Reparatie, onderhoud en installatie van machines en apparaten","weight":0.0525},{"source":"69. Rechtskundige en boekhoudkundige dienstverlening","target":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","weight":0.0523},{"source":"58. Activiteiten van uitgeverijen","target":"18. Activiteiten op het gebied van drukwerk en reproductie van opgenomen media","weight":0.0519},{"source":"59. Productie en distributie van films en video- en televisieprogramma’s en audio, maken van geluidsopnamen en uitgeven van muziekopnamen","target":"90. Activiteiten op het gebied van scheppende en uitvoerende kunst","weight":0.0519},{"source":"43. Gespecialiseerde werkzaamheden in de bouw","target":"33. Reparatie, onderhoud en installatie van machines en apparaten","weight":0.0518},{"source":"33. Reparatie, onderhoud en installatie van machines en apparaten","target":"28. Vervaardiging van machines en apparaten, n.e.g.","weight":0.0517},{"source":"69. Rechtskundige en boekhoudkundige dienstverlening","target":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","weight":0.0515},{"source":"28. Vervaardiging van machines en apparaten, n.e.g.","target":"46. Groothandel","weight":0.0515},{"source":"82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0514},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0512},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","weight":0.0509},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"10. Vervaardiging van voedingsmiddelen","weight":0.0509},{"source":"55. Logiesverstrekking en -bemiddeling","target":"81. Diensten in verband met gebouwen; landschapsverzorging","weight":0.0508},{"source":"28. Vervaardiging van machines en apparaten, n.e.g.","target":"33. Reparatie, onderhoud en installatie van machines en apparaten","weight":0.0504},{"source":"88. Maatschappelijke dienstverlening zonder verblijf","target":"94. Activiteiten van ledenorganisaties","weight":0.0503},{"source":"47. Detailhandel","target":"81. Diensten in verband met gebouwen; landschapsverzorging","weight":0.0503},{"source":"73. Reclameactiviteiten, marktonderzoek en public relations","target":"58. Activiteiten van uitgeverijen","weight":0.0497},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","weight":0.0495},{"source":"69. Rechtskundige en boekhoudkundige dienstverlening","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0495},{"source":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","target":"86. Gezondheidszorg","weight":0.0491},{"source":"47. Detailhandel","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0491},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.049},{"source":"86. Gezondheidszorg","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0488},{"source":"68. Exploitatie van en handel in onroerend goed","target":"41. Burgerlijke en utiliteitsbouw","weight":0.0487},{"source":"73. Reclameactiviteiten, marktonderzoek en public relations","target":"74. Overige wetenschappelijke en technische activiteiten en overige specialistische zakelijke dienstverlening","weight":0.0484},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.0482},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0482},{"source":"47. Detailhandel","target":"73. Reclameactiviteiten, marktonderzoek en public relations","weight":0.048},{"source":"73. Reclameactiviteiten, marktonderzoek en public relations","target":"46. Groothandel","weight":0.0479},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"10. Vervaardiging van voedingsmiddelen","weight":0.0477},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0477},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"68. Exploitatie van en handel in onroerend goed","weight":0.0477},{"source":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0476},{"source":"47. Detailhandel","target":"93. Sport, ontspanning en recreatie","weight":0.0475},{"source":"82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0474},{"source":"94. Activiteiten van ledenorganisaties","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0474},{"source":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","target":"86. Gezondheidszorg","weight":0.0471},{"source":"86. Gezondheidszorg","target":"72. Wetenschappelijk onderzoek en ontwikkeling","weight":0.047},{"source":"61. Telecommunicatie","target":"46. Groothandel","weight":0.047},{"source":"55. Logiesverstrekking en -bemiddeling","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.047},{"source":"18. Activiteiten op het gebied van drukwerk en reproductie van opgenomen media","target":"73. Reclameactiviteiten, marktonderzoek en public relations","weight":0.0469},{"source":"58. Activiteiten van uitgeverijen","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0469},{"source":"85. Onderwijs","target":"87. Verpleging, verzorging en begeleiding met verblijf","weight":0.0464},{"source":"46. Groothandel","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0463},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"41. Burgerlijke en utiliteitsbouw","weight":0.0463},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"02. Bosbouw, exploitatie van bossen en dienstverlening voor de bosbouw","weight":0.0462},{"source":"85. Onderwijs","target":"41. Burgerlijke en utiliteitsbouw","weight":0.0461},{"source":"46. Groothandel","target":"77. Verhuur en lease","weight":0.046},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"49. Vervoer over land en via pijpleidingen","weight":0.0459},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"68. Exploitatie van en handel in onroerend goed","weight":0.0459},{"source":"69. Rechtskundige en boekhoudkundige dienstverlening","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0453},{"source":"47. Detailhandel","target":"77. Verhuur en lease","weight":0.0452},{"source":"80. Opsporings- en beveiligingsdiensten","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.045},{"source":"85. Onderwijs","target":"88. Maatschappelijke dienstverlening zonder verblijf","weight":0.0449},{"source":"47. Detailhandel","target":"55. Logiesverstrekking en -bemiddeling","weight":0.0447},{"source":"93. Sport, ontspanning en recreatie","target":"55. Logiesverstrekking en -bemiddeling","weight":0.0447},{"source":"47. Detailhandel","target":"74. Overige wetenschappelijke en technische activiteiten en overige specialistische zakelijke dienstverlening","weight":0.0447},{"source":"47. Detailhandel","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0446},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"35. Productie en distributie van en handel in elektriciteit, gas, stoom en gekoelde lucht","weight":0.0446},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"58. Activiteiten van uitgeverijen","weight":0.0446},{"source":"41. Burgerlijke en utiliteitsbouw","target":"68. Exploitatie van en handel in onroerend goed","weight":0.0446},{"source":"09. Dienstverlening voor de winning van delfstoffen","target":"30. Vervaardiging van overige vervoermiddelen","weight":0.0443},{"source":"33. Reparatie, onderhoud en installatie van machines en apparaten","target":"30. Vervaardiging van overige vervoermiddelen","weight":0.0443},{"source":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0443},{"source":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","target":"49. Vervoer over land en via pijpleidingen","weight":0.0443},{"source":"93. Sport, ontspanning en recreatie","target":"47. Detailhandel","weight":0.044},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"53. Post- en koeriersdiensten","weight":0.0438},{"source":"77. Verhuur en lease","target":"46. Groothandel","weight":0.0437},{"source":"46. Groothandel","target":"20. Vervaardiging van chemicaliën en chemische producten","weight":0.0436},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","weight":0.0435},{"source":"43. Gespecialiseerde werkzaamheden in de bouw","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0432},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"88. Maatschappelijke dienstverlening zonder verblijf","weight":0.0431},{"source":"73. Reclameactiviteiten, marktonderzoek en public relations","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0431},{"source":"49. Vervoer over land en via pijpleidingen","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.043},{"source":"73. Reclameactiviteiten, marktonderzoek en public relations","target":"63. Dienstverlenende activiteiten op het gebied van informatie","weight":0.0429},{"source":"96. Persoonlijke dienstverlening","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.0426},{"source":"73. Reclameactiviteiten, marktonderzoek en public relations","target":"18. Activiteiten op het gebied van drukwerk en reproductie van opgenomen media","weight":0.0426},{"source":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0424},{"source":"49. Vervoer over land en via pijpleidingen","target":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","weight":0.0424},{"source":"10. Vervaardiging van voedingsmiddelen","target":"20. Vervaardiging van chemicaliën en chemische producten","weight":0.0424},{"source":"55. Logiesverstrekking en -bemiddeling","target":"68. Exploitatie van en handel in onroerend goed","weight":0.0424},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"47. Detailhandel","weight":0.0423},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0421},{"source":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","target":"69. Rechtskundige en boekhoudkundige dienstverlening","weight":0.0418},{"source":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0418},{"source":"85. Onderwijs","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0418},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0418},{"source":"46. Groothandel","target":"73. Reclameactiviteiten, marktonderzoek en public relations","weight":0.0417},{"source":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0416},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"87. Verpleging, verzorging en begeleiding met verblijf","weight":0.0416},{"source":"22. Vervaardiging van producten van rubber of kunststof","target":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","weight":0.0414},{"source":"20. Vervaardiging van chemicaliën en chemische producten","target":"10. Vervaardiging van voedingsmiddelen","weight":0.0414},{"source":"33. Reparatie, onderhoud en installatie van machines en apparaten","target":"46. Groothandel","weight":0.0413},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0413},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0413},{"source":"47. Detailhandel","target":"52. Opslag en dienstverlening voor vervoer","weight":0.0412},{"source":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","target":"68. Exploitatie van en handel in onroerend goed","weight":0.0411},{"source":"47. Detailhandel","target":"95. Reparatie en onderhoud van computers, consumentenartikelen, auto’s en motorfietsen","weight":0.0411},{"source":"63. Dienstverlenende activiteiten op het gebied van informatie","target":"73. Reclameactiviteiten, marktonderzoek en public relations","weight":0.041},{"source":"47. Detailhandel","target":"82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening","weight":0.041},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"90. Activiteiten op het gebied van scheppende en uitvoerende kunst","weight":0.041},{"source":"93. Sport, ontspanning en recreatie","target":"85. Onderwijs","weight":0.041},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"92. Exploitatie van loterijen, kansspelen en kansspelautomaten","weight":0.0408},{"source":"73. Reclameactiviteiten, marktonderzoek en public relations","target":"47. Detailhandel","weight":0.0405},{"source":"28. Vervaardiging van machines en apparaten, n.e.g.","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0404},{"source":"46. Groothandel","target":"27. Vervaardiging van elektrische apparatuur","weight":0.0403},{"source":"87. Verpleging, verzorging en begeleiding met verblijf","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0402},{"source":"20. Vervaardiging van chemicaliën en chemische producten","target":"46. Groothandel","weight":0.0402},{"source":"28. Vervaardiging van machines en apparaten, n.e.g.","target":"26. Vervaardiging van computers en van elektronische en optische apparatuur","weight":0.0401},{"source":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.04},{"source":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0397},{"source":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","target":"30. Vervaardiging van overige vervoermiddelen","weight":0.0396},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0396},{"source":"31. Vervaardiging van meubelen","target":"46. Groothandel","weight":0.0395},{"source":"46. Groothandel","target":"26. Vervaardiging van computers en van elektronische en optische apparatuur","weight":0.0395},{"source":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","target":"81. Diensten in verband met gebouwen; landschapsverzorging","weight":0.0395},{"source":"69. Rechtskundige en boekhoudkundige dienstverlening","target":"46. Groothandel","weight":0.0394},{"source":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","target":"85. Onderwijs","weight":0.0392},{"source":"49. Vervoer over land en via pijpleidingen","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0392},{"source":"72. Wetenschappelijk onderzoek en ontwikkeling","target":"85. Onderwijs","weight":0.0391},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"69. Rechtskundige en boekhoudkundige dienstverlening","weight":0.039},{"source":"47. Detailhandel","target":"80. Opsporings- en beveiligingsdiensten","weight":0.039},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"61. Telecommunicatie","weight":0.039},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"73. Reclameactiviteiten, marktonderzoek en public relations","weight":0.0388},{"source":"46. Groothandel","target":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","weight":0.0387},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"65. Activiteiten op het gebied van verzekeringen en pensioenfondsen, met uitzondering van verplichte sociale verzekeringen","weight":0.0386},{"source":"22. Vervaardiging van producten van rubber of kunststof","target":"46. Groothandel","weight":0.0386},{"source":"47. Detailhandel","target":"69. Rechtskundige en boekhoudkundige dienstverlening","weight":0.0384},{"source":"90. Activiteiten op het gebied van scheppende en uitvoerende kunst","target":"91. Activiteiten van bibliotheken, archieven, musea en overige culturele activiteiten","weight":0.0384},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"32. Vervaardiging van overige goederen","weight":0.0384},{"source":"43. Gespecialiseerde werkzaamheden in de bouw","target":"35. Productie en distributie van en handel in elektriciteit, gas, stoom en gekoelde lucht","weight":0.0384},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0382},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"85. Onderwijs","weight":0.0382},{"source":"60. Programmering, uitzending, perssagentschappen en overige activiteiten op het gebied van de verspreiding van inhoud","target":"58. Activiteiten van uitgeverijen","weight":0.0381},{"source":"18. Activiteiten op het gebied van drukwerk en reproductie van opgenomen media","target":"46. Groothandel","weight":0.0381},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"88. Maatschappelijke dienstverlening zonder verblijf","weight":0.0381},{"source":"61. Telecommunicatie","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0381},{"source":"27. Vervaardiging van elektrische apparatuur","target":"26. Vervaardiging van computers en van elektronische en optische apparatuur","weight":0.0381},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.038},{"source":"47. Detailhandel","target":"68. Exploitatie van en handel in onroerend goed","weight":0.038},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"46. Groothandel","weight":0.038},{"source":"82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening","target":"47. Detailhandel","weight":0.0379},{"source":"61. Telecommunicatie","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0379},{"source":"47. Detailhandel","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0378},{"source":"79. Activiteiten van reisbureaus, reisorganisatoren, reserveringsbureaus en aanverwante activiteiten","target":"55. Logiesverstrekking en -bemiddeling","weight":0.0378},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"87. Verpleging, verzorging en begeleiding met verblijf","weight":0.0377},{"source":"59. Productie en distributie van films en video- en televisieprogramma’s en audio, maken van geluidsopnamen en uitgeven van muziekopnamen","target":"73. Reclameactiviteiten, marktonderzoek en public relations","weight":0.0376},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"46. Groothandel","weight":0.0375},{"source":"47. Detailhandel","target":"53. Post- en koeriersdiensten","weight":0.0372},{"source":"94. Activiteiten van ledenorganisaties","target":"88. Maatschappelijke dienstverlening zonder verblijf","weight":0.0372},{"source":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0371},{"source":"79. Activiteiten van reisbureaus, reisorganisatoren, reserveringsbureaus en aanverwante activiteiten","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0371},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0371},{"source":"74. Overige wetenschappelijke en technische activiteiten en overige specialistische zakelijke dienstverlening","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.037},{"source":"46. Groothandel","target":"31. Vervaardiging van meubelen","weight":0.0368},{"source":"90. Activiteiten op het gebied van scheppende en uitvoerende kunst","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.0367},{"source":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0367},{"source":"42. Grond-, water- en wegenbouw","target":"41. Burgerlijke en utiliteitsbouw","weight":0.0366},{"source":"52. Opslag en dienstverlening voor vervoer","target":"51. Luchtvaart","weight":0.0365},{"source":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","target":"22. Vervaardiging van producten van rubber of kunststof","weight":0.0363},{"source":"74. Overige wetenschappelijke en technische activiteiten en overige specialistische zakelijke dienstverlening","target":"73. Reclameactiviteiten, marktonderzoek en public relations","weight":0.0363},{"source":"87. Verpleging, verzorging en begeleiding met verblijf","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0362},{"source":"31. Vervaardiging van meubelen","target":"41. Burgerlijke en utiliteitsbouw","weight":0.0361},{"source":"80. Opsporings- en beveiligingsdiensten","target":"49. Vervoer over land en via pijpleidingen","weight":0.036},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"85. Onderwijs","weight":0.036},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"68. Exploitatie van en handel in onroerend goed","weight":0.0359},{"source":"43. Gespecialiseerde werkzaamheden in de bouw","target":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","weight":0.0358},{"source":"94. Activiteiten van ledenorganisaties","target":"41. Burgerlijke en utiliteitsbouw","weight":0.0358},{"source":"72. Wetenschappelijk onderzoek en ontwikkeling","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0357},{"source":"46. Groothandel","target":"17. Vervaardiging van papier en papierwaren","weight":0.0356},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"46. Groothandel","weight":0.0356},{"source":"10. Vervaardiging van voedingsmiddelen","target":"11. Vervaardiging van dranken","weight":0.0356},{"source":"33. Reparatie, onderhoud en installatie van machines en apparaten","target":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","weight":0.0355},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","weight":0.0353},{"source":"79. Activiteiten van reisbureaus, reisorganisatoren, reserveringsbureaus en aanverwante activiteiten","target":"51. Luchtvaart","weight":0.0352},{"source":"17. Vervaardiging van papier en papierwaren","target":"22. Vervaardiging van producten van rubber of kunststof","weight":0.0349},{"source":"85. Onderwijs","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0349},{"source":"88. Maatschappelijke dienstverlening zonder verblijf","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0348},{"source":"91. Activiteiten van bibliotheken, archieven, musea en overige culturele activiteiten","target":"94. Activiteiten van ledenorganisaties","weight":0.0347},{"source":"28. Vervaardiging van machines en apparaten, n.e.g.","target":"43. Gespecialiseerde werkzaamheden in de bouw","weight":0.0345},{"source":"29. Vervaardiging van motorvoertuigen, aanhangwagens en opleggers","target":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","weight":0.0345},{"source":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","target":"29. Vervaardiging van motorvoertuigen, aanhangwagens en opleggers","weight":0.0345},{"source":"12. Vervaardiging van tabaksproducten","target":"46. Groothandel","weight":0.0341},{"source":"47. Detailhandel","target":"92. Exploitatie van loterijen, kansspelen en kansspelautomaten","weight":0.0341},{"source":"69. Rechtskundige en boekhoudkundige dienstverlening","target":"85. Onderwijs","weight":0.034},{"source":"72. Wetenschappelijk onderzoek en ontwikkeling","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0339},{"source":"30. Vervaardiging van overige vervoermiddelen","target":"33. Reparatie, onderhoud en installatie van machines en apparaten","weight":0.0338},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"50. Vervoer over water","weight":0.0338},{"source":"47. Detailhandel","target":"79. Activiteiten van reisbureaus, reisorganisatoren, reserveringsbureaus en aanverwante activiteiten","weight":0.0337},{"source":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","target":"94. Activiteiten van ledenorganisaties","weight":0.0336},{"source":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","target":"85. Onderwijs","weight":0.0336},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"85. Onderwijs","weight":0.0336},{"source":"10. Vervaardiging van voedingsmiddelen","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.0335},{"source":"21. Vervaardiging van farmaceutische grondstoffen en producten","target":"20. Vervaardiging van chemicaliën en chemische producten","weight":0.0335},{"source":"58. Activiteiten van uitgeverijen","target":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","weight":0.0335},{"source":"46. Groothandel","target":"13. Vervaardiging van textiel","weight":0.0334},{"source":"96. Persoonlijke dienstverlening","target":"46. Groothandel","weight":0.0334},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"30. Vervaardiging van overige vervoermiddelen","weight":0.0333},{"source":"68. Exploitatie van en handel in onroerend goed","target":"64. Financiële dienstverlening, met uitzondering van verzekeringen en pensioenfondsen","weight":0.0332},{"source":"95. Reparatie en onderhoud van computers, consumentenartikelen, auto’s en motorfietsen","target":"47. Detailhandel","weight":0.0331},{"source":"27. Vervaardiging van elektrische apparatuur","target":"46. Groothandel","weight":0.0328},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"72. Wetenschappelijk onderzoek en ontwikkeling","weight":0.0327},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"86. Gezondheidszorg","weight":0.0327},{"source":"53. Post- en koeriersdiensten","target":"46. Groothandel","weight":0.0327},{"source":"53. Post- en koeriersdiensten","target":"52. Opslag en dienstverlening voor vervoer","weight":0.0326},{"source":"43. Gespecialiseerde werkzaamheden in de bouw","target":"39. Sanering en overig afvalbeheer","weight":0.0326},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"26. Vervaardiging van computers en van elektronische en optische apparatuur","weight":0.0325},{"source":"52. Opslag en dienstverlening voor vervoer","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0325},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","weight":0.0325},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"72. Wetenschappelijk onderzoek en ontwikkeling","weight":0.0325},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"62. Computerprogrammering, consultancy en aanverwante activiteiten","weight":0.0325},{"source":"41. Burgerlijke en utiliteitsbouw","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0324},{"source":"73. Reclameactiviteiten, marktonderzoek en public relations","target":"60. Programmering, uitzending, perssagentschappen en overige activiteiten op het gebied van de verspreiding van inhoud","weight":0.0323},{"source":"68. Exploitatie van en handel in onroerend goed","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0322},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"47. Detailhandel","weight":0.0321},{"source":"38. Afvalinzameling, voorbereiding tot recycling, en verwijdering","target":"46. Groothandel","weight":0.0321},{"source":"96. Persoonlijke dienstverlening","target":"87. Verpleging, verzorging en begeleiding met verblijf","weight":0.0321},{"source":"53. Post- en koeriersdiensten","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.032},{"source":"43. Gespecialiseerde werkzaamheden in de bouw","target":"28. Vervaardiging van machines en apparaten, n.e.g.","weight":0.032},{"source":"35. Productie en distributie van en handel in elektriciteit, gas, stoom en gekoelde lucht","target":"42. Grond-, water- en wegenbouw","weight":0.0319},{"source":"46. Groothandel","target":"61. Telecommunicatie","weight":0.0319},{"source":"47. Detailhandel","target":"31. Vervaardiging van meubelen","weight":0.0319},{"source":"20. Vervaardiging van chemicaliën en chemische producten","target":"72. Wetenschappelijk onderzoek en ontwikkeling","weight":0.0318},{"source":"46. Groothandel","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.0317},{"source":"59. Productie en distributie van films en video- en televisieprogramma’s en audio, maken van geluidsopnamen en uitgeven van muziekopnamen","target":"82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening","weight":0.0316},{"source":"72. Wetenschappelijk onderzoek en ontwikkeling","target":"26. Vervaardiging van computers en van elektronische en optische apparatuur","weight":0.0315},{"source":"62. Computerprogrammering, consultancy en aanverwante activiteiten","target":"74. Overige wetenschappelijke en technische activiteiten en overige specialistische zakelijke dienstverlening","weight":0.0315},{"source":"82. Administratieve en ondersteunende activiteiten ten behoeve van kantoren en overige zakelijke dienstverlening","target":"69. Rechtskundige en boekhoudkundige dienstverlening","weight":0.0314},{"source":"46. Groothandel","target":"21. Vervaardiging van farmaceutische grondstoffen en producten","weight":0.0314},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"33. Reparatie, onderhoud en installatie van machines en apparaten","weight":0.0314},{"source":"46. Groothandel","target":"85. Onderwijs","weight":0.0313},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"20. Vervaardiging van chemicaliën en chemische producten","weight":0.0313},{"source":"46. Groothandel","target":"81. Diensten in verband met gebouwen; landschapsverzorging","weight":0.0313},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"86. Gezondheidszorg","weight":0.0313},{"source":"68. Exploitatie van en handel in onroerend goed","target":"66. Ondersteunende activiteiten voor financiële diensten, verzekeringen en pensioenen","weight":0.0312},{"source":"50. Vervoer over water","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0312},{"source":"93. Sport, ontspanning en recreatie","target":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","weight":0.0311},{"source":"85. Onderwijs","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0311},{"source":"42. Grond-, water- en wegenbouw","target":"35. Productie en distributie van en handel in elektriciteit, gas, stoom en gekoelde lucht","weight":0.0311},{"source":"55. Logiesverstrekking en -bemiddeling","target":"46. Groothandel","weight":0.031},{"source":"55. Logiesverstrekking en -bemiddeling","target":"96. Persoonlijke dienstverlening","weight":0.031},{"source":"41. Burgerlijke en utiliteitsbouw","target":"42. Grond-, water- en wegenbouw","weight":0.031},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"26. Vervaardiging van computers en van elektronische en optische apparatuur","weight":0.0309},{"source":"22. Vervaardiging van producten van rubber of kunststof","target":"20. Vervaardiging van chemicaliën en chemische producten","weight":0.0309},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"80. Opsporings- en beveiligingsdiensten","weight":0.0309},{"source":"56. Exploitatie van eet- en drinkgelegenheden","target":"79. Activiteiten van reisbureaus, reisorganisatoren, reserveringsbureaus en aanverwante activiteiten","weight":0.0309},{"source":"31. Vervaardiging van meubelen","target":"16. Houtindustrie en vervaardiging van artikelen van hout en kurk, met uitzondering van meubelen; vervaardiging van artikelen van riet en van vlechtwerk","weight":0.0303},{"source":"16. Houtindustrie en vervaardiging van artikelen van hout en kurk, met uitzondering van meubelen; vervaardiging van artikelen van riet en van vlechtwerk","target":"31. Vervaardiging van meubelen","weight":0.0291},{"source":"46. Groothandel","target":"16. Houtindustrie en vervaardiging van artikelen van hout en kurk, met uitzondering van meubelen; vervaardiging van artikelen van riet en van vlechtwerk","weight":0.0289},{"source":"11. Vervaardiging van dranken","target":"46. Groothandel","weight":0.0293},{"source":"46. Groothandel","target":"11. Vervaardiging van dranken","weight":0.0283},{"source":"35. Productie en distributie van en handel in elektriciteit, gas, stoom en gekoelde lucht","target":"36. Winning, behandeling en distributie van water","weight":0.0234},{"source":"42. Grond-, water- en wegenbouw","target":"36. Winning, behandeling en distributie van water","weight":0.0231},{"source":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","target":"36. Winning, behandeling en distributie van water","weight":0.0216},{"source":"36. Winning, behandeling en distributie van water","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0186},{"source":"95. Reparatie en onderhoud van computers, consumentenartikelen, auto’s en motorfietsen","target":"31. Vervaardiging van meubelen","weight":0.0293},{"source":"95. Reparatie en onderhoud van computers, consumentenartikelen, auto’s en motorfietsen","target":"46. Groothandel","weight":0.0285},{"source":"46. Groothandel","target":"03. Visserij en aquacultuur","weight":0.0218},{"source":"03. Visserij en aquacultuur","target":"46. Groothandel","weight":0.0161},{"source":"03. Visserij en aquacultuur","target":"47. Detailhandel","weight":0.0095},{"source":"47. Detailhandel","target":"03. Visserij en aquacultuur","weight":0.0088},{"source":"24. Vervaardiging van basismetalen","target":"28. Vervaardiging van machines en apparaten, n.e.g.","weight":0.0248},{"source":"22. Vervaardiging van producten van rubber of kunststof","target":"24. Vervaardiging van basismetalen","weight":0.0243},{"source":"55. Logiesverstrekking en -bemiddeling","target":"92. Exploitatie van loterijen, kansspelen en kansspelautomaten","weight":0.0272},{"source":"92. Exploitatie van loterijen, kansspelen en kansspelautomaten","target":"56. Exploitatie van eet- en drinkgelegenheden","weight":0.0245},{"source":"99. Activiteiten van extraterritoriale organisaties en instanties","target":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","weight":0},{"source":"99. Activiteiten van extraterritoriale organisaties en instanties","target":"02. Bosbouw, exploitatie van bossen en dienstverlening voor de bosbouw","weight":0},{"source":"99. Activiteiten van extraterritoriale organisaties en instanties","target":"03. Visserij en aquacultuur","weight":0},{"source":"99. Activiteiten van extraterritoriale organisaties en instanties","target":"06. Winning van aardolie en aardgas","weight":0},{"source":"39. Sanering en overig afvalbeheer","target":"71. Activiteiten van architecten en ingenieurs; technisch ontwerp en advies, keuring en controle","weight":0.0244},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"39. Sanering en overig afvalbeheer","weight":0.0204},{"source":"47. Detailhandel","target":"14. Vervaardiging van kleding","weight":0.0285},{"source":"14. Vervaardiging van kleding","target":"47. Detailhandel","weight":0.0262},{"source":"14. Vervaardiging van kleding","target":"46. Groothandel","weight":0.0244},{"source":"46. Groothandel","target":"14. Vervaardiging van kleding","weight":0.0215},{"source":"47. Detailhandel","target":"13. Vervaardiging van textiel","weight":0.0217},{"source":"10. Vervaardiging van voedingsmiddelen","target":"13. Vervaardiging van textiel","weight":0.0197},{"source":"28. Vervaardiging van machines en apparaten, n.e.g.","target":"29. Vervaardiging van motorvoertuigen, aanhangwagens en opleggers","weight":0.0292},{"source":"81. Diensten in verband met gebouwen; landschapsverzorging","target":"37. Afvalwaterinzameling en -behandeling","weight":0.0237},{"source":"37. Afvalwaterinzameling en -behandeling","target":"42. Grond-, water- en wegenbouw","weight":0.0207},{"source":"37. Afvalwaterinzameling en -behandeling","target":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","weight":0.0183},{"source":"23. Vervaardiging van overige niet-metaalhoudende minerale producten","target":"25. Vervaardiging van producten van metaal, met uitzondering van machines en apparatuur","weight":0.0305},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"23. Vervaardiging van overige niet-metaalhoudende minerale producten","weight":0.0296},{"source":"23. Vervaardiging van overige niet-metaalhoudende minerale producten","target":"22. Vervaardiging van producten van rubber of kunststof","weight":0.0286},{"source":"51. Luchtvaart","target":"52. Opslag en dienstverlening voor vervoer","weight":0.0273},{"source":"02. Bosbouw, exploitatie van bossen en dienstverlening voor de bosbouw","target":"81. Diensten in verband met gebouwen; landschapsverzorging","weight":0.0141},{"source":"84. Openbaar bestuur, overheidsdiensten en verplichte sociale verzekeringen","target":"02. Bosbouw, exploitatie van bossen en dienstverlening voor de bosbouw","weight":0.0096},{"source":"46. Groothandel","target":"12. Vervaardiging van tabaksproducten","weight":0.0132},{"source":"12. Vervaardiging van tabaksproducten","target":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","weight":0},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"06. Winning van aardolie en aardgas","weight":0.0292},{"source":"78. Arbeidsbemiddeling, activiteiten van uitzendbureaus en personeelsbeheer","target":"06. Winning van aardolie en aardgas","weight":0.0207},{"source":"33. Reparatie, onderhoud en installatie van machines en apparaten","target":"06. Winning van aardolie en aardgas","weight":0.0167},{"source":"47. Detailhandel","target":"32. Vervaardiging van overige goederen","weight":0.0292},{"source":"46. Groothandel","target":"32. Vervaardiging van overige goederen","weight":0.0285},{"source":"70. Activiteiten van hoofdkantoren, interne concerndiensten en managementadvisering","target":"19. Vervaardiging van cokes en van geraffineerde aardolieproducten","weight":0.0188},{"source":"15. Vervaardiging van leer, lederwaren en soortgelijke producten van andere materialen","target":"46. Groothandel","weight":0.0152},{"source":"47. Detailhandel","target":"15. Vervaardiging van leer, lederwaren en soortgelijke producten van andere materialen","weight":0.0092},{"source":"15. Vervaardiging van leer, lederwaren en soortgelijke producten van andere materialen","target":"01. Landbouw, jacht en dienstverlening voor de landbouw en jacht","weight":0},{"source":"75. Veterinaire dienstverlening","target":"96. Persoonlijke dienstverlening","weight":0.0218},{"source":"75. Veterinaire dienstverlening","target":"47. Detailhandel","weight":0.0215},{"source":"75. Veterinaire dienstverlening","target":"85. Onderwijs","weight":0.0195},{"source":"42. Grond-, water- en wegenbouw","target":"08. Overige winning van delfstoffen","weight":0.0216},{"source":"46. Groothandel","target":"08. Overige winning van delfstoffen","weight":0.0138},{"source":"49. Vervoer over land en via pijpleidingen","target":"08. Overige winning van delfstoffen","weight":0.013},{"source":"94. Activiteiten van ledenorganisaties","target":"91. Activiteiten van bibliotheken, archieven, musea en overige culturele activiteiten","weight":0.0291},{"source":"09. Dienstverlening voor de winning van delfstoffen","target":"50. Vervoer over water","weight":0.0238}] ;
+
+        var svg = d3.select("svg.network");
+        var svgNode = svg.node();
+        var REFERENCE_WIDTH = 1100;
+        var BASE_RADIUS = 46;
+
+        var extentX = d3.extent(nodes, function (d) { return d.x; });
+        var extentY = d3.extent(nodes, function (d) { return d.y; });
+
+        nodes.forEach(function (node) {
+            node.dataX = node.x;
+            node.dataY = node.y;
+        });
+
+        var width, height, nodeRadius, horizontalBounds;
+
+        function recalcLayout() {
+            width = (svgNode && svgNode.clientWidth) || window.innerWidth;
+            height = (svgNode && svgNode.clientHeight) || Math.round(window.innerHeight * 0.9);
+            nodeRadius = Math.max(20, Math.min(BASE_RADIUS, Math.round(BASE_RADIUS * (width / REFERENCE_WIDTH))));
+            var padding = nodeRadius * 2;
+            var horPadding = Math.max(10, nodeRadius * 0.25);
+
+            var availableWidth = Math.max(width - padding * 2, padding);
+            var availableHeight = Math.max(height - padding * 2, padding);
+
+            var baseLeft = padding;
+            var baseRight = padding + availableWidth;
+
+            var minXBound = baseLeft + horPadding + nodeRadius;
+            var maxXBound = baseRight - horPadding - nodeRadius;
+
+            if (maxXBound <= minXBound) {
+                var midpoint = (baseLeft + baseRight) / 2;
+                minXBound = midpoint - 1;
+                maxXBound = midpoint + 1;
+            }
+
+            horizontalBounds = { min: minXBound, max: maxXBound };
+
+            var scaleX = d3.scaleLinear().domain(extentX).range([horizontalBounds.min, horizontalBounds.max]);
+            var scaleY = d3.scaleLinear().domain(extentY).range([padding, padding + availableHeight]);
+
+            nodes.forEach(function (node) {
+                var targetX = clampX(scaleX(node.dataX));
+                var targetY = scaleY(node.dataY);
+                node.originalX = targetX;
+                node.originalY = targetY;
+            });
+
+            svg.attr("viewBox", [0, 0, width, height]).attr("preserveAspectRatio", "xMidYMid meet");
+        }
+
+        function clampX(value) {
+            return Math.max(horizontalBounds.min, Math.min(horizontalBounds.max, value));
+        }
+
+        recalcLayout();
+
+        nodes.forEach(function (node) {
+            node.x = node.originalX;
+            node.y = node.originalY;
+        });
+
+        var container = svg.append("g");
+
+        var zoomBehavior = d3.zoom()
+            .scaleExtent([0.6, 3])
+            .on("zoom", function (event) {
+                container.attr("transform", event.transform);
+            });
+
+        svg.call(zoomBehavior);
+
+        var nodeById = new Map(nodes.map(function (node) {
+            return [node.id, node];
+        }));
+
+        var linkData = links.map(function (link) {
+            return {
+                source: nodeById.get(link.source),
+                target: nodeById.get(link.target),
+                weight: link.weight
+            };
+        }).filter(function (link) {
+            return link.source && link.target;
+        });
+
+        var linkExtent = linkData.length ? d3.extent(linkData, function (d) { return d.weight || 1; }) : [1, 1];
+        if (linkExtent[0] === linkExtent[1]) {
+            linkExtent[1] = linkExtent[0] + 1;
+        }
+
+        var linkWidth = d3.scaleSqrt()
+            .domain(linkExtent)
+            .range([0.6, 4]);
+
+        var link = container.append("g")
+            .attr("stroke-linecap", "round")
+            .selectAll("line")
+            .data(linkData)
+            .join("line")
+            .attr("class", "link")
+            .attr("stroke-width", function (d) { return linkWidth(d.weight || 1); });
+
+        var adjacency = new Map();
+
+        linkData.forEach(function (link) {
+            var sourceId = link.source.id;
+            var targetId = link.target.id;
+
+            if (!adjacency.has(sourceId)) {
+                adjacency.set(sourceId, new Set());
+            }
+
+            if (!adjacency.has(targetId)) {
+                adjacency.set(targetId, new Set());
+            }
+
+            adjacency.get(sourceId).add(targetId);
+            adjacency.get(targetId).add(sourceId);
+        });
+
+        var node = container.append("g")
+            .selectAll("g")
+            .data(nodes)
+            .join("g")
+            .attr("class", "node")
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended))
+            .on("mouseenter", highlightConnected)
+            .on("mouseleave", resetHighlight);
+
+        node.append("circle")
+            .attr("r", nodeRadius)
+            .attr("fill", function (d) { return d.color; });
+
+        node.append("text")
+            .attr("class", "node-label")
+            .attr("fill", function (d) {
+                return getContrastingTextColor(d.color);
+            })
+            .style("fill", function (d) {
+                return getContrastingTextColor(d.color);
+            })
+            .call(wrapText, nodeRadius);
+
+        node.append("title")
+            .text(function (d) {
+                return d.id + (d.parent ? " (" + d.parent + ")" : "");
+            });
+
+        renderLegend();
+
+        var simulation = d3.forceSimulation(nodes)
+            .alpha(0.9)
+            .alphaDecay(0.09)
+            .force("collide", d3.forceCollide(nodeRadius + 8).strength(0.95).iterations(4))
+            .force("x", d3.forceX(function (d) { return d.originalX; }).strength(1))
+            .force("y", d3.forceY(function (d) { return d.originalY; }).strength(1))
+            .on("tick", ticked);
+
+        var resizeTimer;
+        window.addEventListener("resize", function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                recalcLayout();
+
+                node.select("circle").attr("r", nodeRadius);
+                node.select("text").call(wrapText, nodeRadius);
+
+                simulation
+                    .force("collide", d3.forceCollide(nodeRadius + 8).strength(0.95).iterations(4))
+                    .force("x", d3.forceX(function (d) { return d.originalX; }).strength(1))
+                    .force("y", d3.forceY(function (d) { return d.originalY; }).strength(1))
+                    .alpha(0.8)
+                    .restart();
+            }, 150);
+        });
+
+        function ticked() {
+            nodes.forEach(function (d) {
+                d.x = clampX(d.x);
+                if (d.fx != null) {
+                    d.fx = clampX(d.fx);
+                }
+            });
+
+            link
+                .attr("x1", function (d) { return d.source.x; })
+                .attr("y1", function (d) { return d.source.y; })
+                .attr("x2", function (d) { return d.target.x; })
+                .attr("y2", function (d) { return d.target.y; });
+
+            node.attr("transform", function (d) {
+                return "translate(" + d.x + "," + d.y + ")";
+            });
+        }
+
+        function dragstarted(event, d) {
+            if (!event.active) {
+                simulation.alphaTarget(0.3).restart();
+            }
+            d.fx = clampX(d.x);
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            var clampedX = clampX(event.x);
+            d.fx = clampedX;
+            d.fy = event.y;
+            d.x = clampedX;
+            d.y = event.y;
+        }
+
+        function dragended(event, d) {
+            if (!event.active) {
+                simulation.alphaTarget(0);
+            }
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function darkenColor(hexColor, factor) {
+            factor = factor || 0.5;
+            var hex = hexColor.trim().replace("#", "");
+            if (hex.length === 3) {
+                hex = hex.split("").map(function (ch) { return ch + ch; }).join("");
+            }
+
+            var r = parseInt(hex.slice(0, 2), 16);
+            var g = parseInt(hex.slice(2, 4), 16);
+            var b = parseInt(hex.slice(4, 6), 16);
+
+            r = Math.round(r * factor);
+            g = Math.round(g * factor);
+            b = Math.round(b * factor);
+
+            return "#" + [r, g, b].map(function (val) {
+                var hexVal = val.toString(16);
+                return hexVal.length === 1 ? "0" + hexVal : hexVal;
+            }).join("");
+        }
+
+        function highlightConnected(event, nodeDatum) {
+            var neighbors = adjacency.get(nodeDatum.id) || new Set();
+            var activeIds = new Set(neighbors);
+            activeIds.add(nodeDatum.id);
+
+            node.each(function (d) {
+                var isActive = activeIds.has(d.id);
+                var nodeElement = d3.select(this);
+                nodeElement
+                    .classed("highlighted", isActive)
+                    .classed("dimmed", !isActive);
+
+                if (isActive) {
+                    var darkerColor = darkenColor(d.color, 0.6);
+                    nodeElement.select("circle").style("stroke", darkerColor);
+                }
+            });
+
+            link.each(function (l) {
+                var isActive = l.source.id === nodeDatum.id || l.target.id === nodeDatum.id;
+                d3.select(this)
+                    .classed("highlighted", isActive)
+                    .classed("dimmed", !isActive);
+            });
+        }
+
+        function resetHighlight() {
+            node.classed("highlighted", false)
+                .classed("dimmed", false)
+                .select("circle").style("stroke", null);
+            link.classed("highlighted", false)
+                .classed("dimmed", false);
+        }
+
+        function renderLegend() {
+            var legend = d3.select("#legend");
+            if (legend.empty()) {
+                return;
+            }
+
+            legend.attr("role", "list");
+
+            var parentColorMap = new Map();
+            nodes.forEach(function (node) {
+                var parentName = node.parent || "Other";
+                if (!parentColorMap.has(parentName)) {
+                    parentColorMap.set(parentName, node.color || "#6c6f7d");
+                }
+            });
+
+            var legendData = Array.from(parentColorMap, function (entry) {
+                return { parent: entry[0], color: entry[1] };
+            });
+
+            var legendItems = legend.selectAll(".legend-item")
+                .data(legendData, function (d) { return d.parent; });
+
+            legendItems.exit().remove();
+
+            var legendEnter = legendItems.enter()
+                .append("div")
+                .attr("class", "legend-item")
+                .attr("role", "listitem");
+
+            legendEnter.append("span")
+                .attr("class", "legend-square");
+
+            legendEnter.append("span")
+                .attr("class", "legend-label");
+
+            legendItems = legendEnter.merge(legendItems);
+
+            legendItems.select(".legend-square")
+                .style("background-color", function (d) { return d.color; });
+
+            legendItems.select(".legend-label")
+                .text(function (d) { return d.parent; });
+        }
+
+        function isColorDark(hexColor) {
+            if (!hexColor) {
+                return false;
+            }
+
+            var hex = hexColor.trim().replace("#", "");
+            if (hex.length === 3) {
+                hex = hex.split("").map(function (ch) { return ch + ch; }).join("");
+            }
+
+            if (hex.length !== 6) {
+                return false;
+            }
+
+            var r = parseInt(hex.slice(0, 2), 16) / 255;
+            var g = parseInt(hex.slice(2, 4), 16) / 255;
+            var b = parseInt(hex.slice(4, 6), 16) / 255;
+
+            var convert = function (channel) {
+                return channel <= 0.03928 ? channel / 12.92 : Math.pow((channel + 0.055) / 1.055, 2.4);
+            };
+
+            var lum = 0.2126 * convert(r) + 0.7152 * convert(g) + 0.0722 * convert(b);
+            return lum < 0.55;
+        }
+
+        function getContrastingTextColor(hexColor) {
+            return isColorDark(hexColor) ? "#ffffff" : "#1b1d21";
+        }
+
+        function wrapText(selection, radius) {
+            var diameter = radius * 2;
+            var maxWidth = diameter * 0.85;
+            var maxHeight = diameter * 0.85;
+            var lineHeightMultiplier = 1.15;
+            var minFontSize = 4;
+
+            selection.each(function (d) {
+                var text = d3.select(this);
+                var label = (d.id || "").trim();
+
+                text.selectAll("tspan").remove();
+                text.text("");
+
+                if (!label) {
+                    return;
+                }
+
+                var words = label.split(/\s+/).filter(function (word) { return word.length; });
+                if (!words.length) {
+                    text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(label);
+                    return;
+                }
+
+                var maxFontSize = Math.min(13, radius * 0.45);
+                var startingFontSize = Math.max(Math.round(maxFontSize), minFontSize);
+                var bestFit = null;
+
+                for (var fontSize = startingFontSize; fontSize >= minFontSize; fontSize -= 1) {
+                    var layout = layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth);
+                    bestFit = layout;
+                    var totalHeight = layout.lines.length * layout.lineHeight;
+
+                    if (layout.maxLineWidth <= maxWidth && totalHeight <= maxHeight) {
+                        break;
+                    }
+                }
+
+                if (!bestFit) {
+                    bestFit = {
+                        lines: [label],
+                        fontSize: minFontSize,
+                        lineHeight: Math.round(minFontSize * lineHeightMultiplier)
+                    };
+                }
+
+                text.style("font-size", bestFit.fontSize + "px");
+                text.selectAll("tspan").remove();
+
+                var offset = (bestFit.lines.length - 1) * bestFit.lineHeight / 2;
+
+                bestFit.lines.forEach(function (line, index) {
+                    text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", -offset + index * bestFit.lineHeight)
+                        .text(line);
+                });
+            });
+
+            function layoutLines(text, words, fontSize, lineHeightMultiplier, maxWidth) {
+                text.style("font-size", fontSize + "px");
+                text.selectAll("tspan").remove();
+
+                var lines = [];
+                var currentLine = [];
+                var maxLineWidth = 0;
+
+                words.forEach(function (word) {
+                    currentLine.push(word);
+                    var tester = text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(currentLine.join(" "));
+                    var lineLength = tester.node().getComputedTextLength();
+                    tester.remove();
+
+                    if (lineLength > maxWidth && currentLine.length > 1) {
+                        currentLine.pop();
+                        var finalized = currentLine.join(" ");
+                        var measureFinal = text.append("tspan")
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .text(finalized);
+                        var finalLength = measureFinal.node().getComputedTextLength();
+                        measureFinal.remove();
+
+                        lines.push(finalized);
+                        maxLineWidth = Math.max(maxLineWidth, finalLength);
+
+                        currentLine = [word];
+                        var measureWord = text.append("tspan")
+                            .attr("x", 0)
+                            .attr("y", 0)
+                            .text(word);
+                        var wordLength = measureWord.node().getComputedTextLength();
+                        measureWord.remove();
+                        maxLineWidth = Math.max(maxLineWidth, wordLength);
+                    } else {
+                        maxLineWidth = Math.max(maxLineWidth, lineLength);
+                    }
+                });
+
+                if (currentLine.length) {
+                    var finalLine = currentLine.join(" ");
+                    var finalTester = text.append("tspan")
+                        .attr("x", 0)
+                        .attr("y", 0)
+                        .text(finalLine);
+                    var finalLineLength = finalTester.node().getComputedTextLength();
+                    finalTester.remove();
+
+                    lines.push(finalLine);
+                    maxLineWidth = Math.max(maxLineWidth, finalLineLength);
+                }
+
+                var lineHeight = Math.max(Math.round(fontSize * lineHeightMultiplier), Math.ceil(fontSize));
+
+                return {
+                    lines: lines,
+                    fontSize: fontSize,
+                    lineHeight: lineHeight,
+                    maxLineWidth: maxLineWidth
+                };
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
